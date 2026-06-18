@@ -2166,10 +2166,7 @@
                 if (hasEdit && isAdminMode) {
                     admin =
                         `<div class="card-admin-actions"><button class="btn-edit-card" data-game-id="${game.id}">✏️ 编辑</button><button class="btn-del-card" data-game-id="${game.id}">🗑 删除</button></div>`;
-                } else if (!hasEdit) {
-                    admin =
-                        `<div class="card-admin-actions"><span class="edit-locked">🔒 编辑需验证</span></div>`;
-                }
+                } 
 
                 return `<div class="gallery-card" data-game-id="${game.id}">${cover}<div class="card-body"><div class="card-title">${escapeHTML(game.title)}</div><div class="card-desc">${escapeHTML(game.description||'')}</div><div class="card-meta">${meta}${dateDisplay}</div></div>${admin}</div>`;
             }
