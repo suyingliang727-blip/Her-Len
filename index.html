@@ -1752,36 +1752,62 @@
             // 数据加载 & 保存
             // ================================================================
             async function loadGames() {
-                if (SUPABASE_ENABLED && supabaseClient) {
-                    const remoteData = await loadFromSupabase();
-                    if (remoteData && remoteData.length > 0) {
-                        games = remoteData;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                        return games;
-                    }
-                }
+                 // 1. 优先尝试从 Supabase 加载（增加 try-catch，防止网络错误导致崩溃）
+                 if (SUPABASE_ENABLED && supabaseClient) {
+                     try {
+                         const remoteData = await loadFromSupabase();
+                         if (remoteData && remoteData.length > 0) {
+                             // 云端有数据，直接使用并缓存到本地
+                             games = remoteData;
+                             localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+                             console.log('✅ 从 Supabase 加载数据成功');
+                             return games;
+                         }
+                     } catch (e) {
+                         console.warn('⚠️ Supabase 查询失败，尝试本地加载', e);
+                     }
+                 }
 
-                const s = localStorage.getItem(STORAGE_KEY);
-                if (s) {
+                 // 2. 从本地存储加载
+                 const s = localStorage.getItem(STORAGE_KEY);
+                 if (s) {
                     try {
                         games = JSON.parse(s);
                         if (games && games.length > 0) {
+                            console.log('✅ 从本地存储加载数据成功');
+                            // 如果 Supabase 可用且云端无数据，把本地数据同步到云端
                             if (SUPABASE_ENABLED && supabaseClient) {
-                                await saveToSupabase(games);
+                                try {
+                                    const remoteCheck = await loadFromSupabase();
+                                    if (!remoteCheck || remoteCheck.length === 0) {
+                                        await saveToSupabase(games);
+                                        console.log('☁️ 本地数据已同步到 Supabase');
+                                    }
+                                } catch (e) {
+                                    console.warn('⚠️ 云端同步失败，但本地数据保留', e);
+                                }
                             }
                             return games;
                         }
-                    } catch (_) {}
+                    } catch (_) {
+                         console.warn('⚠️ 本地存储解析失败');
+                    }
                 }
 
+                // 3. 本地和云端都没有数据，使用默认示例游戏（只有首次部署才会执行）
+                console.log('📦 首次启动，插入默认示例游戏');
                 games = [...DEFAULT_GAMES];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                 if (SUPABASE_ENABLED && supabaseClient) {
-                    await saveToSupabase(games);
+                    try {
+                        await saveToSupabase(games);
+                        console.log('☁️ 默认数据已上传到 Supabase');
+                    } catch (e) {
+                        console.error('❌ 默认数据上传失败，但本地已保存', e);
+                    }
                 }
-                return games;
+                 return games;
             }
-
             async function saveGames() {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                 if (SUPABASE_ENABLED && supabaseClient) {
