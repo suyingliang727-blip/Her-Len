@@ -1747,20 +1747,14 @@
                 }
                 return [...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays];
             }
-            // ===== 🆕 获取所有题材（默认 + 自定义） =====
+
             function getAllGenres() {
-                // 如果 customGenres 还没加载，先从 localStorage 恢复
-                if (customGenres.length === 0) {
-                    loadCustomTags();
-                }
+                loadCustomTags(); // 每次都重新加载，确保获取最新数据
                 return [...DEFAULT_GENRE_OPTIONS, ...customGenres];
             }
 
-            // ===== 🆕 获取所有玩法（默认 + 自定义） =====
             function getAllGameplays() {
-                if (customGameplays.length === 0) {
-                    loadCustomTags();
-                }
+                loadCustomTags(); // 每次都重新加载，确保获取最新数据
                 return [...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays];
             }
 
@@ -2348,6 +2342,8 @@
             // 筛选 UI
             // ================================================================
             function updateFilterUI() {
+                // === 🆕 每次刷新筛选区时，重新加载最新的自定义标签 ===
+                loadCustomTags();
                 const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
                 const row = document.getElementById('filterCategoryRow');
                 row.innerHTML = Object.entries(map).map(([cat, info]) => {
