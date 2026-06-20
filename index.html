@@ -11,29 +11,29 @@
     </script>
     <style>
         /* ================================================================
-           全局变量 & 渐变背景（增强）
+           全局变量 & 渐变背景 (新增虹彩/玻璃质感变量)
            ================================================================ */
         :root {
             --bg: #f3eff7;
             --surface: rgba(250, 247, 253, 0.55);
-            --surface2: rgba(246, 242, 250, 0.6);
+            --surface2: rgba(246, 242, 250, 0.60);
             --text: #3d3546;
             --text2: #665c72;
             --text3: #8c8099;
-            --border: rgba(213, 207, 224, 0.4);
+            --border: rgba(213, 207, 224, 0.35);
             --accent: #9b8abd;
             --accent2: #7e6fa0;
-            --tag-bg: rgba(237, 231, 242, 0.5);
+            --tag-bg: rgba(237, 231, 242, 0.50);
             --tag-text: #5a4e66;
             --tag-active-bg: #9b8abd;
             --tag-active-text: #fff;
-            --shadow: 0 8px 32px rgba(60, 30, 80, 0.08);
-            --shadow-lg: 0 16px 64px rgba(60, 30, 80, 0.18);
-            --overlay: rgba(30, 15, 40, 0.5);
-            --card-hover: rgba(245, 240, 249, 0.6);
-            --filter-bg: rgba(250, 247, 253, 0.6);
-            --modal-bg: rgba(250, 247, 253, 0.75);
-            --input-bg: rgba(245, 240, 249, 0.5);
+            --shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
+            --shadow-lg: 0 16px 64px rgba(60, 30, 80, 0.25);
+            --overlay: rgba(30, 15, 40, 0.6);
+            --card-hover: rgba(245, 240, 249, 0.50);
+            --filter-bg: rgba(250, 247, 253, 0.65);
+            --modal-bg: rgba(250, 247, 253, 0.82);
+            --input-bg: rgba(245, 240, 249, 0.50);
             --danger: #c0392b;
             --success: #5d8a5e;
             --scrollbar-thumb: #d0c4d8;
@@ -41,52 +41,51 @@
             --logo-gradient: linear-gradient(135deg, #9b8abd 0%, #7e6fa0 100%);
             --view-tab-active: #9b8abd;
             --view-tab-text: #fff;
-            --glass-bg-light: rgba(237, 231, 242, 0.35);
+            --glass-bg-light: rgba(237, 231, 242, 0.40);
             --coin-color: #f5b342;
             --sort-active-bg: #9b8abd;
             --sort-active-text: #fff;
-            --sync-status-bg: rgba(241, 240, 243, 0.5);
+            --sync-status-bg: rgba(241, 240, 243, 0.50);
             --card-perspective: 1200px;
             --glow-color: rgba(155, 138, 189, 0.12);
             --glow-color2: rgba(125, 100, 160, 0.06);
             --gold: #f5a623;
-            --gold-glow: rgba(245, 166, 35, 0.2);
+            --gold-glow: rgba(245, 166, 35, 0.3);
             --bg-gradient-start: #f8f4fc;
             --bg-gradient-end: #ede6f5;
             --announcement-bg: rgba(155, 138, 189, 0.08);
-            --announcement-border: rgba(213, 207, 224, 0.3);
+            --announcement-border: rgba(213, 207, 224, 0.30);
             --announcement-text: #3d3546;
-            /* 新增：虹彩 & 玻璃变量 */
-            --glass-blur: 24px;
-            --glass-border: rgba(255, 255, 255, 0.25);
-            --glass-shadow: 0 8px 32px rgba(60, 30, 80, 0.10);
-            --iridescent-angle: 130deg;
-            --iridescent-speed: 12s;
-            --water-speed: 18s;
-            --silver-glow: rgba(220, 220, 240, 0.6);
+            /* ---- 新增：玻璃/虹彩专用 ---- */
+            --glass-border: rgba(255, 255, 255, 0.20);
+            --glass-shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
+            --iridescent-opacity: 0.10;
+            --silver-sweep-color: rgba(255, 255, 255, 0.60);
+            --card-bg-glass: rgba(255, 255, 255, 0.65);
+            --card-border-glass: rgba(213, 207, 224, 0.55);
         }
 
         [data-theme="dark"] {
             --bg: #1e1822;
-            --surface: rgba(42, 35, 48, 0.6);
-            --surface2: rgba(48, 40, 54, 0.6);
+            --surface: rgba(42, 35, 48, 0.60);
+            --surface2: rgba(48, 40, 54, 0.65);
             --text: #e2dae8;
             --text2: #b8a9c4;
             --text3: #8c7d9a;
-            --border: rgba(69, 60, 78, 0.4);
+            --border: rgba(69, 60, 78, 0.40);
             --accent: #b8a2d6;
             --accent2: #9e8abf;
-            --tag-bg: rgba(54, 47, 62, 0.5);
+            --tag-bg: rgba(54, 47, 62, 0.50);
             --tag-text: #c4b5d3;
             --tag-active-bg: #b8a2d6;
             --tag-active-text: #1e1822;
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.5);
-            --overlay: rgba(0, 0, 0, 0.7);
-            --card-hover: rgba(48, 40, 54, 0.6);
-            --filter-bg: rgba(34, 28, 38, 0.6);
-            --modal-bg: rgba(42, 35, 48, 0.75);
-            --input-bg: rgba(48, 40, 54, 0.5);
+            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.50);
+            --overlay: rgba(0, 0, 0, 0.75);
+            --card-hover: rgba(48, 40, 54, 0.40);
+            --filter-bg: rgba(34, 28, 38, 0.70);
+            --modal-bg: rgba(42, 35, 48, 0.85);
+            --input-bg: rgba(48, 40, 54, 0.55);
             --danger: #e74c3c;
             --success: #6a9b6c;
             --scrollbar-thumb: #4a3d55;
@@ -94,11 +93,11 @@
             --logo-gradient: linear-gradient(135deg, #b8a2d6 0%, #9e8abf 100%);
             --view-tab-active: #b8a2d6;
             --view-tab-text: #1e1822;
-            --glass-bg-light: rgba(54, 47, 62, 0.35);
+            --glass-bg-light: rgba(54, 47, 62, 0.50);
             --coin-color: #f5b342;
             --sort-active-bg: #b8a2d6;
             --sort-active-text: #1e1822;
-            --sync-status-bg: rgba(42, 35, 48, 0.5);
+            --sync-status-bg: rgba(42, 35, 48, 0.55);
             --glow-color: rgba(155, 138, 189, 0.08);
             --glow-color2: rgba(125, 100, 160, 0.04);
             --gold: #f5a623;
@@ -106,12 +105,15 @@
             --bg-gradient-start: #1a1520;
             --bg-gradient-end: #241e2b;
             --announcement-bg: rgba(184, 162, 214, 0.06);
-            --announcement-border: rgba(69, 60, 78, 0.3);
+            --announcement-border: rgba(69, 60, 78, 0.40);
             --announcement-text: #e2dae8;
-            --glass-blur: 24px;
+            /* ---- 深色玻璃/虹彩 ---- */
             --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            --silver-glow: rgba(120, 120, 160, 0.4);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
+            --iridescent-opacity: 0.08;
+            --silver-sweep-color: rgba(255, 255, 255, 0.35);
+            --card-bg-glass: rgba(255, 255, 255, 0.04);
+            --card-border-glass: rgba(255, 255, 255, 0.06);
         }
 
         /* ===== 基础样式 ===== */
@@ -130,7 +132,6 @@
             line-height: 1.6;
             overflow-x: hidden;
             background-attachment: fixed;
-            position: relative;
         }
 
         ::-webkit-scrollbar {
@@ -148,146 +149,7 @@
         }
 
         /* ================================================================
-           ★ 新增：仿水面背景（水波纹 + 虹彩光晕）
-           ================================================================ */
-        .water-bg-container {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-            background: transparent;
-        }
-
-        .water-bg-layer {
-            position: absolute;
-            inset: -20%;
-            background:
-                radial-gradient(ellipse at 30% 40%, rgba(155, 138, 189, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 60%, rgba(125, 100, 160, 0.05) 0%, transparent 45%),
-                radial-gradient(ellipse at 50% 80%, rgba(200, 180, 220, 0.04) 0%, transparent 40%);
-            animation: waterFlow var(--water-speed) ease-in-out infinite alternate;
-            will-change: transform;
-        }
-
-        .water-bg-layer:nth-child(2) {
-            animation-duration: calc(var(--water-speed) * 1.3);
-            animation-delay: -3s;
-            background:
-                radial-gradient(ellipse at 60% 30%, rgba(180, 160, 200, 0.05) 0%, transparent 55%),
-                radial-gradient(ellipse at 20% 70%, rgba(140, 120, 170, 0.04) 0%, transparent 50%);
-            transform: scale(1.1);
-        }
-
-        .water-bg-layer:nth-child(3) {
-            animation-duration: calc(var(--water-speed) * 0.8);
-            animation-delay: -6s;
-            background:
-                radial-gradient(ellipse at 80% 20%, rgba(200, 185, 220, 0.04) 0%, transparent 60%),
-                radial-gradient(ellipse at 10% 90%, rgba(160, 140, 190, 0.03) 0%, transparent 50%);
-            transform: scale(1.2);
-        }
-
-        @keyframes waterFlow {
-            0% {
-                transform: translate(0, 0) scale(1) rotate(0deg);
-            }
-            25% {
-                transform: translate(1.5%, 1%) scale(1.02) rotate(0.5deg);
-            }
-            50% {
-                transform: translate(-1%, 2%) scale(0.98) rotate(-0.3deg);
-            }
-            75% {
-                transform: translate(2%, -1%) scale(1.01) rotate(0.4deg);
-            }
-            100% {
-                transform: translate(-1.5%, -1.5%) scale(1.03) rotate(-0.2deg);
-            }
-        }
-
-        /* 水面高光条纹 */
-        .water-ripple {
-            position: absolute;
-            inset: 0;
-            background:
-                repeating-linear-gradient(90deg,
-                    transparent 0%,
-                    rgba(255, 255, 255, 0.015) 3%,
-                    transparent 6%,
-                    transparent 20%);
-            animation: rippleMove 14s linear infinite;
-            pointer-events: none;
-        }
-
-        .water-ripple:nth-child(4) {
-            transform: rotate(30deg) scale(1.5);
-            animation-duration: 22s;
-            animation-delay: -4s;
-            background:
-                repeating-linear-gradient(120deg,
-                    transparent 0%,
-                    rgba(255, 255, 255, 0.01) 4%,
-                    transparent 8%,
-                    transparent 25%);
-        }
-
-        @keyframes rippleMove {
-            0% {
-                transform: translateX(-30%) scale(1);
-            }
-            100% {
-                transform: translateX(30%) scale(1);
-            }
-        }
-
-        /* ================================================================
-           ★ 新增：虹彩反射叠加层（全局）
-           ================================================================ */
-        .iridescent-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.3;
-            background:
-                conic-gradient(from var(--iridescent-angle, 130deg) at 50% 50%,
-                    rgba(180, 140, 220, 0.08) 0%,
-                    rgba(100, 200, 255, 0.06) 25%,
-                    rgba(255, 180, 200, 0.08) 50%,
-                    rgba(200, 230, 150, 0.06) 75%,
-                    rgba(180, 140, 220, 0.08) 100%);
-            mix-blend-mode: overlay;
-            transition: opacity 0.8s ease;
-            will-change: transform;
-            animation: iridescentRotate var(--iridescent-speed) linear infinite;
-        }
-
-        @keyframes iridescentRotate {
-            0% {
-                --iridescent-angle: 0deg;
-            }
-            100% {
-                --iridescent-angle: 360deg;
-            }
-        }
-
-        /* 由于CSS无法直接动画自定义属性，用transform替代 */
-        .iridescent-overlay {
-            animation: iridescentSpin var(--iridescent-speed) linear infinite;
-        }
-
-        @keyframes iridescentSpin {
-            0% {
-                filter: hue-rotate(0deg) saturate(0.5);
-            }
-            100% {
-                filter: hue-rotate(360deg) saturate(0.5);
-            }
-        }
-
-        /* ================================================================
-           原有背景光晕（保留但减弱，与水波纹融合）
+           背景光晕 (保留并增强)
            ================================================================ */
         .bg-glow-container {
             position: fixed;
@@ -295,14 +157,13 @@
             pointer-events: none;
             z-index: 0;
             overflow: hidden;
-            opacity: 0.6;
         }
 
         .bg-glow {
             position: absolute;
             border-radius: 50%;
             filter: blur(120px);
-            opacity: 0.4;
+            opacity: 0.6;
             transition: transform 8s ease-in-out, opacity 4s ease-in-out;
             will-change: transform;
         }
@@ -333,13 +194,14 @@
             left: 50%;
             transform: translate(-50%, -50%);
             animation: floatGlow3 30s ease-in-out infinite alternate;
-            opacity: 0.2;
+            opacity: 0.3;
         }
 
         @keyframes floatGlow1 {
             0% {
                 transform: translate(0, 0) scale(1);
             }
+
             100% {
                 transform: translate(150px, 100px) scale(1.3);
             }
@@ -349,6 +211,7 @@
             0% {
                 transform: translate(0, 0) scale(1);
             }
+
             100% {
                 transform: translate(-100px, -80px) scale(1.4);
             }
@@ -358,32 +221,14 @@
             0% {
                 transform: translate(-50%, -50%) scale(1);
             }
+
             100% {
                 transform: translate(-40%, -60%) scale(1.6);
             }
         }
 
         /* ================================================================
-           ★ 新增：玻璃质感通用类
-           ================================================================ */
-        .glass {
-            backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-            background: var(--surface);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-
-        .glass-strong {
-            backdrop-filter: blur(32px) saturate(1.6);
-            -webkit-backdrop-filter: blur(32px) saturate(1.6);
-            background: var(--surface);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        /* ================================================================
-           返回顶部按钮（玻璃质感增强）
+           返回顶部按钮 (玻璃质感)
            ================================================================ */
         #backToTop {
             position: fixed;
@@ -392,9 +237,10 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
+            background: rgba(155, 138, 189, 0.70);
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 24px rgba(155, 138, 189, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            box-shadow: 0 4px 24px rgba(155, 138, 189, 0.30);
             font-size: 1.6rem;
             cursor: pointer;
             display: flex;
@@ -405,9 +251,8 @@
             opacity: 0;
             transform: translateY(20px) scale(0.8);
             pointer-events: none;
-            backdrop-filter: blur(16px) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            background: rgba(155, 138, 189, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             line-height: 1;
         }
 
@@ -419,13 +264,8 @@
 
         #backToTop:hover {
             transform: translateY(-4px) scale(1.08);
-            background: var(--accent2);
-            box-shadow: 0 6px 32px rgba(155, 138, 189, 0.5);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        #backToTop:active {
-            transform: scale(0.92);
+            background: rgba(155, 138, 189, 0.85);
+            box-shadow: 0 6px 32px rgba(155, 138, 189, 0.45);
         }
 
         #backToTop .arrow {
@@ -438,22 +278,42 @@
         }
 
         [data-theme="dark"] #backToTop {
-            background: rgba(184, 162, 214, 0.6);
-            box-shadow: 0 4px 24px rgba(184, 162, 214, 0.2);
+            background: rgba(184, 162, 214, 0.70);
+            box-shadow: 0 4px 24px rgba(184, 162, 214, 0.25);
         }
 
         [data-theme="dark"] #backToTop:hover {
-            background: #9e8abf;
-            box-shadow: 0 6px 32px rgba(184, 162, 214, 0.4);
+            background: rgba(184, 162, 214, 0.85);
+            box-shadow: 0 6px 32px rgba(184, 162, 214, 0.40);
+        }
+
+        @media (max-width: 768px) {
+            #backToTop {
+                bottom: 20px;
+                right: 20px;
+                width: 42px;
+                height: 42px;
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #backToTop {
+                bottom: 16px;
+                right: 16px;
+                width: 38px;
+                height: 38px;
+                font-size: 1.1rem;
+            }
         }
 
         /* ================================================================
-           公告栏（玻璃质感增强）
+           公告栏 (玻璃质感)
            ================================================================ */
         .announcement-bar {
             background: var(--announcement-bg);
-            backdrop-filter: blur(16px) saturate(1.3);
-            -webkit-backdrop-filter: blur(16px) saturate(1.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1.5px solid var(--announcement-border);
             padding: 10px 20px 10px 28px;
             display: flex;
@@ -504,34 +364,64 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
             color: var(--text3);
             cursor: pointer;
             font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.25s;
+            transition: all 0.2s;
             margin-top: 2px;
             line-height: 1;
             padding: 0;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(4px);
         }
 
         .announcement-bar .announcement-close:hover {
             background: var(--border);
             color: var(--text);
-            transform: rotate(90deg) scale(1.05);
+            transform: rotate(90deg);
         }
 
-        .announcement-bar .announcement-close:active {
-            transform: scale(0.85) rotate(90deg);
+        @media (max-width: 768px) {
+            .announcement-bar {
+                padding: 8px 12px 8px 16px;
+                gap: 10px;
+            }
+
+            .announcement-bar .announcement-item {
+                font-size: 0.78rem;
+                gap: 6px;
+            }
+
+            .announcement-bar .announcement-close {
+                width: 26px;
+                height: 26px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .announcement-bar {
+                padding: 6px 8px 6px 12px;
+            }
+
+            .announcement-bar .announcement-item {
+                font-size: 0.72rem;
+                gap: 4px;
+            }
+
+            .announcement-bar .announcement-close {
+                width: 22px;
+                height: 22px;
+                font-size: 0.8rem;
+            }
         }
 
         /* ================================================================
-           投稿按钮（玻璃质感）
+           投稿按钮
            ================================================================ */
         .submit-link {
             display: inline-flex;
@@ -541,13 +431,12 @@
             color: var(--accent);
             font-weight: 600;
             text-decoration: none;
-            padding: 4px 12px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 14px;
             border: 1.5px solid var(--accent);
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(4px);
+            transition: all 0.25s ease;
             white-space: nowrap;
             cursor: pointer;
             letter-spacing: 0.02em;
@@ -556,22 +445,29 @@
         .submit-link:hover {
             background: var(--accent);
             color: #fff;
-            transform: translateY(-2px) scale(1.04);
-            box-shadow: 0 4px 20px rgba(155, 138, 189, 0.35);
-            border-color: var(--accent);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 16px rgba(155, 138, 189, 0.30);
         }
 
-        .submit-link:active {
-            transform: scale(0.95);
+        @media (max-width: 768px) {
+            .submit-link {
+                font-size: 0.65rem;
+                padding: 3px 8px;
+                border-radius: 12px;
+            }
         }
 
-        .submit-link .submit-icon {
-            font-size: 0.9rem;
-            line-height: 1;
+        @media (max-width: 480px) {
+            .submit-link {
+                font-size: 0.6rem;
+                padding: 2px 6px;
+                border-radius: 10px;
+                border-width: 1.2px;
+            }
         }
 
         /* ================================================================
-           筛选栏（玻璃质感）
+           筛选栏 (玻璃质感)
            ================================================================ */
         .filter-sticky {
             background: var(--filter-bg);
@@ -664,11 +560,10 @@
             cursor: pointer;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
-            transition: all .25s;
+            transition: all .2s;
             user-select: none;
+            backdrop-filter: blur(4px);
         }
 
         .view-tab:first-child {
@@ -690,7 +585,6 @@
         .view-tab:hover:not(.active) {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(155, 138, 189, 0.08);
         }
 
         .search-row {
@@ -709,18 +603,16 @@
             display: flex;
             align-items: center;
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             border: 1.5px solid var(--border);
             border-radius: 24px;
-            transition: border-color .25s, box-shadow .25s, background .3s;
+            transition: border-color .25s, box-shadow .25s;
             padding: 0 14px;
+            backdrop-filter: blur(4px);
         }
 
         .search-row .search-input-wrap:focus-within {
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.12);
-            background: var(--surface);
         }
 
         .search-row .search-input-wrap .search-icon {
@@ -745,7 +637,7 @@
 
         .search-row .search-input-wrap input::placeholder {
             color: var(--text3);
-            opacity: 0.6;
+            opacity: 0.7;
         }
 
         .search-row .search-clear-btn {
@@ -761,7 +653,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background .2s, color .2s, transform .2s;
+            transition: background .2s, color .2s;
             padding: 0;
             line-height: 1;
             visibility: hidden;
@@ -776,7 +668,6 @@
         .search-row .search-clear-btn:hover {
             background: var(--border);
             color: var(--text);
-            transform: scale(1.1);
         }
 
         .filter-row {
@@ -791,23 +682,22 @@
             padding: 7px 15px;
             border-radius: 20px;
             border: 1.5px solid var(--border);
-            background: var(--glass-bg-light);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: var(--surface);
             color: var(--text2);
             cursor: pointer;
             font-size: .85rem;
-            transition: all .25s;
+            transition: all .2s;
             white-space: nowrap;
             user-select: none;
             font-weight: 500;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
         }
 
         .filter-cat-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(155, 138, 189, 0.15);
-            transform: translateY(-1px);
+            background: rgba(155, 138, 189, 0.12);
         }
 
         .filter-cat-btn.active {
@@ -815,12 +705,13 @@
             color: #fff;
             border-color: var(--accent);
             font-weight: 600;
+            backdrop-filter: blur(8px);
         }
 
         .filter-cat-btn.has-selection {
             border-color: var(--accent);
             color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.15);
+            box-shadow: 0 0 0 2px rgba(155, 138, 189, 0.15);
         }
 
         .filter-options-panel {
@@ -830,14 +721,13 @@
             padding: 10px 16px;
             margin-top: 8px;
             background: var(--surface);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border-radius: 12px;
             border: 1px solid var(--border);
             flex-wrap: wrap;
             gap: 6px;
             box-shadow: var(--shadow);
             justify-content: center;
+            backdrop-filter: blur(8px);
         }
 
         .filter-options-panel.show {
@@ -849,21 +739,19 @@
             border-radius: 14px;
             border: 1px solid var(--border);
             background: var(--glass-bg-light);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--tag-text);
             cursor: pointer;
             font-size: .78rem;
-            transition: all .2s;
+            transition: all .18s;
             white-space: nowrap;
             user-select: none;
+            backdrop-filter: blur(4px);
         }
 
         .filter-option-tag:hover {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(155, 138, 189, 0.2);
-            transform: scale(1.04);
+            background: rgba(155, 138, 189, 0.15);
         }
 
         .filter-option-tag.selected {
@@ -893,8 +781,7 @@
             color: #fff;
             font-size: .75rem;
             font-weight: 500;
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(4px);
         }
 
         .active-filter-chip .remove-chip {
@@ -903,12 +790,10 @@
             margin-left: 2px;
             opacity: .8;
             font-size: .85rem;
-            transition: transform .2s;
         }
 
         .active-filter-chip .remove-chip:hover {
             opacity: 1;
-            transform: scale(1.3);
         }
 
         .clear-all-filters {
@@ -919,16 +804,12 @@
             font-weight: 500;
             text-decoration: underline;
             white-space: nowrap;
-            transition: opacity .2s;
         }
 
         .clear-all-filters:hover {
-            opacity: .7;
+            opacity: .8;
         }
 
-        /* ================================================================
-           工具栏（玻璃质感）
-           ================================================================ */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -956,23 +837,16 @@
             cursor: pointer;
             font-size: .82rem;
             font-weight: 500;
-            transition: all .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all .2s;
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             white-space: nowrap;
+            backdrop-filter: blur(4px);
         }
 
         .btn:hover {
             border-color: var(--accent);
             color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .btn:active {
-            transform: scale(0.95);
         }
 
         .btn-accent {
@@ -985,7 +859,6 @@
             background: var(--accent2);
             border-color: var(--accent2);
             color: #fff;
-            transform: translateY(-2px) scale(1.02);
         }
 
         .btn-sm {
@@ -1005,23 +878,24 @@
             color: #fff;
             border-color: #f5b342;
             font-weight: 600;
-            box-shadow: 0 2px 16px rgba(245, 179, 66, 0.2);
+            box-shadow: 0 2px 12px rgba(245, 179, 66, 0.20);
+            transition: all 0.3s ease;
         }
 
         .btn-random:hover {
             transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 4px 28px rgba(245, 179, 66, 0.35);
+            box-shadow: 0 4px 24px rgba(245, 179, 66, 0.35);
             border-color: #f5a623;
             color: #fff;
-        }
-
-        .btn-random:active .dice-icon {
-            transform: rotate(360deg) scale(1.2);
         }
 
         .btn-random .dice-icon {
             display: inline-block;
             transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-random:active .dice-icon {
+            transform: rotate(360deg) scale(1.2);
         }
 
         .btn-wishlist {
@@ -1090,8 +964,8 @@
             }
 
             50% {
-                transform: scale(1.6);
-                opacity: 0.4;
+                transform: scale(1.4);
+                opacity: 0.5;
             }
         }
 
@@ -1101,8 +975,6 @@
             border-radius: 14px;
             overflow: hidden;
             border: 1.5px solid var(--border);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
         }
 
         .sort-btn {
@@ -1113,8 +985,9 @@
             border: none;
             background: var(--surface);
             color: var(--text2);
-            transition: all .25s;
+            transition: all .2s;
             white-space: nowrap;
+            backdrop-filter: blur(4px);
         }
 
         .sort-btn:hover {
@@ -1139,16 +1012,15 @@
             border-radius: 50%;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all .3s;
+            transition: all .2s;
             line-height: 1;
+            backdrop-filter: blur(4px);
         }
 
         .theme-toggle:hover {
             border-color: var(--accent);
             background: var(--card-hover);
-            transform: rotate(30deg) scale(1.05);
+            transform: rotate(30deg);
         }
 
         .watermark {
@@ -1187,10 +1059,12 @@
             0% {
                 transform: scale(1);
             }
+
             50% {
-                transform: scale(1.5);
+                transform: scale(1.4);
                 color: var(--accent);
             }
+
             100% {
                 transform: scale(1);
             }
@@ -1203,9 +1077,7 @@
             border-radius: 50%;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all .25s;
             line-height: 1;
             color: var(--coin-color);
             display: inline-flex;
@@ -1214,17 +1086,14 @@
             width: 40px;
             height: 40px;
             user-select: none;
+            backdrop-filter: blur(4px);
         }
 
         .coin-tip-btn:hover {
             border-color: var(--coin-color);
-            background: rgba(245, 179, 66, 0.12);
+            background: rgba(245, 179, 66, 0.10);
             transform: scale(1.08) rotate(-8deg);
-            box-shadow: 0 0 24px rgba(245, 179, 66, 0.2);
-        }
-
-        .coin-tip-btn:active {
-            transform: scale(0.92);
+            box-shadow: 0 0 16px rgba(245, 179, 66, 0.20);
         }
 
         .sync-status {
@@ -1233,18 +1102,15 @@
             gap: 4px;
             font-size: 0.65rem;
             color: var(--text3);
-            padding: 2px 10px;
-            border-radius: 10px;
+            padding: 2px 8px;
+            border-radius: 8px;
             background: var(--sync-status-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             white-space: nowrap;
-            border: 1px solid var(--border);
+            backdrop-filter: blur(4px);
         }
 
         .sync-status.synced {
             color: var(--success);
-            border-color: rgba(93, 138, 94, 0.3);
         }
 
         .sync-status.syncing {
@@ -1254,7 +1120,6 @@
 
         .sync-status.error {
             color: var(--danger);
-            border-color: rgba(192, 57, 43, 0.3);
         }
 
         @keyframes pulse {
@@ -1270,7 +1135,7 @@
         }
 
         /* ================================================================
-           ★ 新增：卡片玻璃质感 + 虹彩反射 + 银白色光效
+           ★★★ 核心：游戏卡片 - 玻璃质感 + 虹彩 + 银光 ★★★
            ================================================================ */
         .gallery-container {
             max-width: 1400px;
@@ -1286,128 +1151,173 @@
             gap: 20px;
         }
 
+        /* ---- 卡片主体：玻璃质感 + 3D 容器 ---- */
         .gallery-card {
-            background: var(--surface);
-            backdrop-filter: blur(16px) saturate(1.3);
-            -webkit-backdrop-filter: blur(16px) saturate(1.3);
-            border-radius: 18px;
+            position: relative;
+            border-radius: 20px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-            display: flex;
-            flex-direction: column;
+            /* 玻璃质感 */
+            background: var(--card-bg-glass);
+            backdrop-filter: blur(20px) saturate(1.3);
+            -webkit-backdrop-filter: blur(20px) saturate(1.3);
+            border: 1px solid var(--card-border-glass);
+            box-shadow: var(--glass-shadow);
+            /* 3D 容器 */
             perspective: var(--card-perspective);
             transform-style: preserve-3d;
+            /* 入场动画 */
             opacity: 0;
-            transform: translateY(40px) scale(0.96);
+            transform: translateY(40px) scale(0.96) rotateX(2deg);
             transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
                 transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.5s ease,
                 border-color 0.4s ease,
                 background 0.4s ease;
             will-change: transform, opacity;
-            position: relative;
-            /* 银白色光效默认状态 */
-            --silver-intensity: 0;
+            /* 防止溢出 */
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+            mask-image: radial-gradient(white, black);
         }
 
+        /* 卡片可见状态 */
         .gallery-card.visible {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0) scale(1) rotateX(0deg);
         }
 
+        /* 卡片悬停：增强玻璃质感 + 浮起 */
         .gallery-card:hover {
             transform: translateY(-8px) scale(1.015);
-            box-shadow: var(--shadow-lg), 0 0 40px rgba(155, 138, 189, 0.08);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(155, 138, 189, 0.30);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        [data-theme="dark"] .gallery-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(184, 162, 214, 0.25);
+        }
+
+        /* 卡片高亮 (随机推荐) */
+        .gallery-card.highlight {
+            animation: highlightPulse 1.2s ease 3;
             border-color: var(--accent);
-            background: var(--card-hover);
-            /* 悬停时银白色光效增强 */
-            --silver-intensity: 0.3;
+            box-shadow: 0 0 60px rgba(155, 138, 189, 0.35);
+            transform: scale(1.02);
+            z-index: 5;
         }
 
-        /* ★ 银白色光效：使用伪元素 + box-shadow */
-        .gallery-card::before {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: 18px;
-            padding: 1.5px;
-            background: conic-gradient(from var(--iridescent-angle, 130deg),
-                    transparent 0%,
-                    var(--silver-glow) 20%,
-                    transparent 40%,
-                    var(--silver-glow) 60%,
-                    transparent 80%,
-                    transparent 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            opacity: calc(0.15 + var(--silver-intensity, 0) * 0.7);
-            transition: opacity 0.6s ease;
-            z-index: 0;
-            animation: iridescentBorder 8s linear infinite;
+        [data-theme="dark"] .gallery-card.highlight {
+            box-shadow: 0 0 60px rgba(155, 138, 189, 0.20);
         }
 
-        @keyframes iridescentBorder {
-            0% {
-                --iridescent-angle: 0deg;
-            }
+        @keyframes highlightPulse {
+
+            0%,
             100% {
-                --iridescent-angle: 360deg;
+                box-shadow: 0 0 20px rgba(155, 138, 189, 0.15);
+                transform: scale(1.02);
+            }
+
+            50% {
+                box-shadow: 0 0 60px rgba(155, 138, 189, 0.40);
+                transform: scale(1.06);
             }
         }
 
-        /* 由于CSS无法直接动画自定义属性，用filter替代 */
-        .gallery-card::before {
-            animation: borderIridescent 10s linear infinite;
-        }
-
-        @keyframes borderIridescent {
-            0% {
-                filter: hue-rotate(0deg);
-            }
-            100% {
-                filter: hue-rotate(360deg);
-            }
-        }
-
-        /* ★ 虹彩反射层（卡片内部） */
-        .gallery-card .card-iridescent {
+        /* ---- 虹彩反射层 (Iridescent) ---- */
+        .card-iridescent {
             position: absolute;
             inset: 0;
-            border-radius: 18px;
             pointer-events: none;
             z-index: 1;
-            opacity: 0.2;
-            background:
-                conic-gradient(from var(--iridescent-angle, 130deg) at var(--shine-x, 50%) var(--shine-y, 50%),
-                    rgba(180, 140, 220, 0.06) 0%,
-                    rgba(100, 200, 255, 0.04) 25%,
-                    rgba(255, 180, 200, 0.06) 50%,
-                    rgba(200, 230, 150, 0.04) 75%,
-                    rgba(180, 140, 220, 0.06) 100%);
+            border-radius: 20px;
+            opacity: var(--iridescent-opacity);
             mix-blend-mode: overlay;
+            background: conic-gradient(from var(--iridescent-angle, 0deg),
+                    rgba(255, 182, 255, 0.35),
+                    rgba(182, 255, 255, 0.35),
+                    rgba(255, 255, 182, 0.35),
+                    rgba(255, 182, 200, 0.35),
+                    rgba(200, 182, 255, 0.35),
+                    rgba(255, 182, 255, 0.35));
             transition: opacity 0.6s ease;
+            will-change: background, opacity;
         }
 
+        /* 深色模式虹彩微调 */
+        [data-theme="dark"] .card-iridescent {
+            mix-blend-mode: soft-light;
+            opacity: calc(var(--iridescent-opacity) * 0.8);
+        }
+
+        /* 卡片悬停时虹彩略微增强 */
         .gallery-card:hover .card-iridescent {
-            opacity: 0.4;
+            opacity: calc(var(--iridescent-opacity) * 1.6);
         }
 
+        /* ---- 银白色扫光层 (移出时触发) ---- */
+        .card-silver-sweep {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            border-radius: 20px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(-100%) skewX(-25deg);
+            background: linear-gradient(90deg,
+                    transparent 0%,
+                    var(--silver-sweep-color) 40%,
+                    var(--silver-sweep-color) 60%,
+                    transparent 100%);
+            transition: none;
+            will-change: transform, opacity;
+        }
+
+        /* 银光触发动画 */
+        .card-silver-sweep.trigger {
+            animation: silverSweep 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes silverSweep {
+            0% {
+                opacity: 0;
+                transform: translateX(-100%) skewX(-25deg);
+            }
+
+            8% {
+                opacity: 1;
+            }
+
+            92% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(150%) skewX(-25deg);
+            }
+        }
+
+        /* 深色模式银光更柔和 */
+        [data-theme="dark"] .card-silver-sweep {
+            --silver-sweep-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ---- 原有的 card-shine 保留，但调整为更 subtle ---- */
         .gallery-card .card-shine {
             position: absolute;
             inset: 0;
-            border-radius: 18px;
+            border-radius: 20px;
             pointer-events: none;
+            z-index: 1;
             background: radial-gradient(circle at var(--shine-x, 50%) var(--shine-y, 50%),
-                    rgba(255, 255, 255, 0.15) 0%,
+                    rgba(255, 255, 255, 0.10) 0%,
                     transparent 60%);
             opacity: 0;
             transition: opacity 0.4s ease;
-            z-index: 1;
             mix-blend-mode: overlay;
         }
 
@@ -1417,64 +1327,12 @@
 
         [data-theme="dark"] .gallery-card .card-shine {
             background: radial-gradient(circle at var(--shine-x, 50%) var(--shine-y, 50%),
-                    rgba(255, 255, 255, 0.08) 0%,
+                    rgba(255, 255, 255, 0.05) 0%,
                     transparent 60%);
+            mix-blend-mode: soft-light;
         }
 
-        /* ★ 银白色光效 - 鼠标移出时触发闪烁 */
-        .gallery-card.silver-flash::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 20px;
-            background: radial-gradient(circle at center,
-                    rgba(220, 220, 255, 0.6) 0%,
-                    rgba(200, 200, 240, 0.2) 30%,
-                    transparent 70%);
-            pointer-events: none;
-            z-index: 5;
-            animation: silverFlash 0.6s ease-out forwards;
-            mix-blend-mode: overlay;
-        }
-
-        @keyframes silverFlash {
-            0% {
-                opacity: 1;
-                transform: scale(0.8);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(1.4);
-            }
-        }
-
-        .gallery-card.highlight {
-            animation: highlightPulse 1.2s ease 3;
-            border-color: var(--accent);
-            box-shadow: 0 0 50px rgba(155, 138, 189, 0.25);
-            transform: scale(1.03);
-            z-index: 5;
-            --silver-intensity: 0.5;
-        }
-
-        [data-theme="dark"] .gallery-card.highlight {
-            box-shadow: 0 0 50px rgba(155, 138, 189, 0.15);
-        }
-
-        @keyframes highlightPulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 20px rgba(155, 138, 189, 0.15);
-                transform: scale(1.03);
-            }
-
-            50% {
-                box-shadow: 0 0 60px rgba(155, 138, 189, 0.35);
-                transform: scale(1.07);
-            }
-        }
-
+        /* ---- 卡片内容 (保持 z-index 在效果层之上) ---- */
         .gallery-card .card-cover-wrap {
             position: relative;
             width: 100%;
@@ -1482,7 +1340,7 @@
             overflow: hidden;
             background: var(--tag-bg);
             flex-shrink: 0;
-            z-index: 2;
+            z-index: 3;
         }
 
         .gallery-card .card-cover {
@@ -1491,13 +1349,9 @@
             object-fit: cover;
             display: block;
             opacity: 0;
-            transition: opacity 0.6s ease, transform 0.6s ease;
+            transition: opacity 0.6s ease;
             position: relative;
             z-index: 2;
-        }
-
-        .gallery-card:hover .card-cover {
-            transform: scale(1.03);
         }
 
         .gallery-card .card-cover.loaded {
@@ -1528,7 +1382,7 @@
             flex-direction: column;
             gap: 4px;
             position: relative;
-            z-index: 2;
+            z-index: 3;
         }
 
         .gallery-card .card-title {
@@ -1560,10 +1414,9 @@
             padding: 2px 7px;
             border-radius: 10px;
             background: var(--glass-bg-light);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             color: var(--tag-text);
             white-space: nowrap;
+            backdrop-filter: blur(4px);
         }
 
         .gallery-card .card-meta span.accent-tag {
@@ -1594,18 +1447,16 @@
             border: 1.5px solid var(--border);
             cursor: pointer;
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
-            transition: all .25s;
+            transition: all .2s;
             user-select: none;
             font-weight: 500;
+            backdrop-filter: blur(4px);
         }
 
         .gallery-card .card-user-actions .action-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
-            transform: scale(1.04);
         }
 
         .gallery-card .card-user-actions .action-btn.active-wish {
@@ -1641,16 +1492,14 @@
             border: 1px solid var(--border);
             cursor: pointer;
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
-            transition: all .2s;
+            transition: all .15s;
+            backdrop-filter: blur(4px);
         }
 
         .gallery-card .card-admin-actions button:hover {
             border-color: var(--accent);
             color: var(--accent);
-            transform: scale(1.04);
         }
 
         .gallery-card .card-admin-actions button.btn-del:hover {
@@ -1667,76 +1516,94 @@
             border: 1px dashed var(--border);
         }
 
+        /* 卡片入场延迟 (交错) */
         .gallery-card:nth-child(1) {
             transition-delay: 0.02s;
         }
+
         .gallery-card:nth-child(2) {
             transition-delay: 0.04s;
         }
+
         .gallery-card:nth-child(3) {
             transition-delay: 0.06s;
         }
+
         .gallery-card:nth-child(4) {
             transition-delay: 0.08s;
         }
+
         .gallery-card:nth-child(5) {
             transition-delay: 0.10s;
         }
+
         .gallery-card:nth-child(6) {
             transition-delay: 0.12s;
         }
+
         .gallery-card:nth-child(7) {
             transition-delay: 0.14s;
         }
+
         .gallery-card:nth-child(8) {
             transition-delay: 0.16s;
         }
+
         .gallery-card:nth-child(9) {
             transition-delay: 0.18s;
         }
+
         .gallery-card:nth-child(10) {
             transition-delay: 0.20s;
         }
+
         .gallery-card:nth-child(11) {
             transition-delay: 0.22s;
         }
+
         .gallery-card:nth-child(12) {
             transition-delay: 0.24s;
         }
+
         .gallery-card:nth-child(13) {
             transition-delay: 0.26s;
         }
+
         .gallery-card:nth-child(14) {
             transition-delay: 0.28s;
         }
+
         .gallery-card:nth-child(15) {
             transition-delay: 0.30s;
         }
+
         .gallery-card:nth-child(16) {
             transition-delay: 0.32s;
         }
+
         .gallery-card:nth-child(17) {
             transition-delay: 0.34s;
         }
+
         .gallery-card:nth-child(18) {
             transition-delay: 0.36s;
         }
+
         .gallery-card:nth-child(19) {
             transition-delay: 0.38s;
         }
+
         .gallery-card:nth-child(20) {
             transition-delay: 0.40s;
         }
 
         /* ================================================================
-           弹窗（玻璃质感增强）
+           弹窗 (玻璃质感增强)
            ================================================================ */
         .modal-overlay {
             position: fixed;
             inset: 0;
             background: var(--overlay);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             z-index: 200;
             display: flex;
             align-items: center;
@@ -1744,7 +1611,9 @@
             padding: 20px;
             opacity: 0;
             pointer-events: none;
-            transition: opacity .4s ease;
+            transition: opacity .3s;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .modal-overlay.show {
@@ -1754,19 +1623,19 @@
 
         .modal {
             background: var(--modal-bg);
-            backdrop-filter: blur(32px) saturate(1.5);
-            -webkit-backdrop-filter: blur(32px) saturate(1.5);
+            backdrop-filter: blur(24px) saturate(1.3);
+            -webkit-backdrop-filter: blur(24px) saturate(1.3);
             border-radius: 24px;
             max-width: 800px;
             width: 100%;
             max-height: 85vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
             position: relative;
             padding: 28px 24px;
-            transform: scale(0.96) translateY(20px);
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.96) translateY(10px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .modal-overlay.show .modal {
@@ -1781,9 +1650,7 @@
             cursor: pointer;
             color: var(--text2);
             z-index: 10;
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: var(--modal-bg);
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -1791,15 +1658,16 @@
             align-items: center;
             justify-content: center;
             border: 1px solid var(--border);
-            transition: all .3s;
+            transition: all .2s;
             margin-left: 8px;
             margin-bottom: 4px;
+            backdrop-filter: blur(8px);
         }
 
         .modal-close:hover {
             color: var(--danger);
             border-color: var(--danger);
-            transform: rotate(90deg) scale(1.05);
+            transform: rotate(90deg);
         }
 
         .modal .detail-cover {
@@ -1809,7 +1677,6 @@
             border-radius: 12px;
             margin-bottom: 16px;
             background: var(--tag-bg);
-            border: 1px solid var(--border);
         }
 
         .modal .detail-title {
@@ -1840,9 +1707,8 @@
             padding: 4px 10px;
             border-radius: 12px;
             background: var(--glass-bg-light);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             color: var(--tag-text);
+            backdrop-filter: blur(4px);
         }
 
         .modal .detail-info-table {
@@ -1887,27 +1753,22 @@
         }
 
         .modal .detail-screenshots img:hover {
-            transform: scale(1.04);
+            transform: scale(1.03);
         }
 
         .modal .detail-video-link {
             display: inline-block;
             padding: 6px 14px;
             background: var(--tag-bg);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             border-radius: 14px;
             color: var(--accent);
             text-decoration: none;
             font-size: .8rem;
             margin: 3px;
-            transition: all .2s;
         }
 
         .modal .detail-video-link:hover {
             text-decoration: underline;
-            background: var(--accent);
-            color: #fff;
         }
 
         .modal .detail-link-btn {
@@ -1920,13 +1781,13 @@
             font-weight: 600;
             font-size: .85rem;
             margin: 4px;
-            transition: all .25s;
+            transition: all .2s;
         }
 
         .modal .detail-link-btn:hover {
             background: var(--accent2);
             transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(155, 138, 189, 0.3);
+            box-shadow: 0 4px 16px rgba(155, 138, 189, 0.25);
         }
 
         /* 成就弹窗 */
@@ -1955,15 +1816,14 @@
             border-radius: 12px;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all .25s;
+            transition: all .2s;
+            backdrop-filter: blur(4px);
         }
 
         .achievement-item.unlocked {
             border-color: var(--gold);
             background: rgba(245, 166, 35, 0.06);
-            box-shadow: 0 0 30px var(--gold-glow);
+            box-shadow: 0 0 20px var(--gold-glow);
         }
 
         .achievement-item .ach-icon {
@@ -2011,8 +1871,6 @@
             padding: 14px 16px;
             border-radius: 12px;
             background: var(--surface2);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             border: 1px solid var(--border);
             text-align: center;
         }
@@ -2075,8 +1933,6 @@
             border-radius: 10px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             font-size: .95rem;
             font-family: inherit;
@@ -2087,7 +1943,7 @@
         .key-input-group input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.12);
+            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.12);
         }
 
         .key-input-group button {
@@ -2099,12 +1955,11 @@
             font-weight: 600;
             cursor: pointer;
             font-size: .95rem;
-            transition: all .25s;
+            transition: background .2s;
         }
 
         .key-input-group button:hover {
             background: var(--accent2);
-            transform: scale(1.04);
         }
 
         .key-error {
@@ -2150,12 +2005,10 @@
             border-radius: 8px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             font-size: .82rem;
             font-family: inherit;
-            transition: border-color .2s, box-shadow .2s;
+            transition: border-color .2s;
         }
 
         .form-group input:focus,
@@ -2163,7 +2016,6 @@
         .form-group textarea:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.08);
         }
 
         .form-group textarea {
@@ -2220,11 +2072,10 @@
             cursor: pointer;
             font-size: .75rem;
             background: var(--glass-bg-light);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             color: var(--tag-text);
             user-select: none;
-            transition: all .2s;
+            transition: all .15s;
+            backdrop-filter: blur(4px);
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -2239,7 +2090,6 @@
 
         .tag-select-panel .tag-option:hover {
             border-color: var(--accent);
-            transform: scale(1.04);
         }
 
         .tag-select-panel .tag-option .del-tag-btn {
@@ -2255,7 +2105,7 @@
         }
 
         .tag-select-panel .tag-option .del-tag-btn:hover {
-            background: rgba(192, 57, 43, 0.15);
+            background: rgba(192, 57, 43, 0.12);
         }
 
         .add-tag-row {
@@ -2272,8 +2122,6 @@
             border-radius: 8px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             font-size: .75rem;
         }
@@ -2281,8 +2129,6 @@
         .smart-paste-area {
             margin-bottom: 14px;
             background: var(--surface2);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             padding: 12px;
             border-radius: 10px;
             border: 1px dashed var(--border);
@@ -2316,7 +2162,7 @@
             }
 
             50% {
-                transform: translateY(-12px);
+                transform: translateY(-10px);
             }
         }
 
@@ -2326,13 +2172,11 @@
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background: var(--glass-bg-light);
-            backdrop-filter: blur(20px) saturate(1.4);
-            -webkit-backdrop-filter: blur(20px) saturate(1.4);
             color: var(--text);
-            padding: 16px 32px;
-            border-radius: 18px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 14px 28px;
+            border-radius: 16px;
+            border: 1px solid var(--accent);
+            box-shadow: var(--shadow-lg);
             z-index: 999;
             font-size: 1rem;
             font-weight: 600;
@@ -2340,6 +2184,8 @@
             text-align: center;
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
             opacity: 0;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
 
         .toast-notification.show {
@@ -2349,24 +2195,9 @@
 
         .toast-notification.achievement-toast {
             border-color: var(--gold);
-            background: rgba(245, 166, 35, 0.12);
-            box-shadow: 0 0 50px var(--gold-glow);
+            background: rgba(245, 166, 35, 0.10);
+            box-shadow: 0 0 40px var(--gold-glow);
             font-size: 1.05rem;
-        }
-
-        /* ================================================================
-           ★ 新增：滚动触发动画（视差 + 渐入）
-           ================================================================ */
-        .scroll-reveal {
-            opacity: 0;
-            transform: translateY(30px) scale(0.97);
-            transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
-                transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .scroll-reveal.revealed {
-            opacity: 1;
-            transform: translateY(0) scale(1);
         }
 
         /* ================================================================
@@ -2532,7 +2363,7 @@
             }
 
             .gallery-card {
-                border-radius: 14px;
+                border-radius: 16px;
             }
 
             .btn-random {
@@ -2573,34 +2404,12 @@
                 font-size: 1.4rem;
                 width: 34px;
             }
-
-            .submit-link {
-                font-size: 0.65rem;
-                padding: 3px 8px;
-                border-radius: 12px;
-            }
-
-            .submit-link .submit-icon {
-                font-size: 0.75rem;
-            }
-
-            .gallery-card .card-iridescent {
-                opacity: 0.1;
-            }
-
-            .gallery-card:hover .card-iridescent {
-                opacity: 0.25;
-            }
-
-            .iridescent-overlay {
-                opacity: 0.15;
-            }
         }
 
         @media (max-width: 480px) {
             .gallery-grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 8px;
+                gap: 10px;
             }
 
             .toolbar-left {
@@ -2611,102 +2420,76 @@
                 font-size: 0.9rem;
             }
 
-            .submit-link {
-                font-size: 0.6rem;
-                padding: 2px 6px;
-                border-radius: 10px;
-                border-width: 1.2px;
-            }
-
-            .submit-link .submit-icon {
-                font-size: 0.7rem;
-            }
-
-            .announcement-bar {
-                padding: 6px 8px 6px 12px;
-            }
-
-            .announcement-bar .announcement-item {
-                font-size: 0.72rem;
-                gap: 4px;
-            }
-
-            .announcement-bar .announcement-item .announcement-icon {
-                font-size: 0.75rem;
-                width: 16px;
-            }
-
-            .announcement-bar .announcement-close {
-                width: 22px;
-                height: 22px;
-                font-size: 0.8rem;
-            }
-
             .gallery-card {
-                border-radius: 12px;
-            }
-
-            .gallery-card::before {
-                border-radius: 12px;
-            }
-
-            .gallery-card .card-iridescent {
-                border-radius: 12px;
-            }
-
-            .gallery-card .card-shine {
-                border-radius: 12px;
-            }
-
-            .gallery-card.silver-flash::after {
                 border-radius: 14px;
             }
+        }
+
+        /* ================================================================
+           ★ 新增：滚动进度指示器 (增强滚动互动)
+           ================================================================ */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.08s linear;
+            box-shadow: 0 0 12px rgba(155, 138, 189, 0.30);
+            border-radius: 0 2px 2px 0;
+        }
+
+        [data-theme="dark"] .scroll-progress {
+            box-shadow: 0 0 12px rgba(184, 162, 214, 0.20);
+        }
+
+        /* ================================================================
+           ★ 新增：滚动视差微动 (卡片背景跟随)
+           ================================================================ */
+        .gallery-card .card-parallax-bg {
+            position: absolute;
+            inset: -20%;
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 30px;
+            background: radial-gradient(ellipse at var(--parallax-x, 50%) var(--parallax-y, 50%),
+                    rgba(155, 138, 189, 0.04) 0%,
+                    transparent 70%);
+            transition: background 0.6s ease;
+            opacity: 0.5;
+            will-change: transform;
+        }
+
+        .gallery-card:hover .card-parallax-bg {
+            opacity: 1;
+        }
+
+        [data-theme="dark"] .gallery-card .card-parallax-bg {
+            background: radial-gradient(ellipse at var(--parallax-x, 50%) var(--parallax-y, 50%),
+                    rgba(184, 162, 214, 0.04) 0%,
+                    transparent 70%);
         }
     </style>
 </head>
 
 <body data-theme="light">
 
-    <!-- ================================================================
-    ★ 新增：仿水面背景层
-    ================================================================ -->
-    <div class="water-bg-container" aria-hidden="true">
-        <div class="water-bg-layer"></div>
-        <div class="water-bg-layer"></div>
-        <div class="water-bg-layer"></div>
-        <div class="water-ripple"></div>
-        <div class="water-ripple"></div>
-    </div>
-
-    <!-- ★ 新增：虹彩反射叠加层 -->
-    <div class="iridescent-overlay" aria-hidden="true"></div>
-
-    <!-- 原有背景光晕（保留，调整透明度） -->
+    <!-- 背景光晕 -->
     <div class="bg-glow-container" aria-hidden="true">
         <div class="bg-glow g1"></div>
         <div class="bg-glow g2"></div>
         <div class="bg-glow g3"></div>
     </div>
 
+    <!-- ===== 滚动进度条 (新增) ===== -->
+    <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
     <!-- ===== 返回顶部按钮 ===== -->
     <button id="backToTop" aria-label="返回顶部" title="返回顶部">
         <span class="arrow">↑</span>
     </button>
-
-    <!-- ===== 公告栏 ===== -->
-    <div class="announcement-bar" id="announcementBar">
-        <div class="announcement-content">
-            <div class="announcement-item">
-                <span class="announcement-icon">📢</span>
-                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
-            </div>
-            <div class="announcement-item">
-                <span class="announcement-icon">💾</span>
-                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和“玩过”标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
-            </div>
-        </div>
-        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
-    </div>
 
     <!-- ===== 筛选栏 ===== -->
     <div class="filter-sticky" id="filterSticky">
@@ -2734,6 +2517,21 @@
         <div class="filter-row" id="filterCategoryRow"></div>
         <div class="filter-options-panel" id="filterOptionsPanel"></div>
         <div class="active-filters-bar" id="activeFiltersBar"></div>
+    </div>
+
+    <!-- 公告栏 -->
+    <div class="announcement-bar" id="announcementBar">
+        <div class="announcement-content">
+            <div class="announcement-item">
+                <span class="announcement-icon">📢</span>
+                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
+            </div>
+            <div class="announcement-item">
+                <span class="announcement-icon">💾</span>
+                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和“玩过”标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
+            </div>
+        </div>
+        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
     </div>
 
     <!-- ===== 工具栏 ===== -->
@@ -2826,16 +2624,16 @@
                 感谢姊妹支持，你的鼓励是我持续更新网站的动力。
             </p>
             <div
-                style="background: var(--surface2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 16px; padding: 24px 20px; border: 2px solid var(--accent); text-align: center;">
+                style="background: var(--surface2); border-radius: 16px; padding: 24px 20px; border: 2px solid var(--accent); text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 8px;">⚡</div>
                 <h3 style="color: var(--text); margin-bottom: 6px; font-size: 1.1rem;">爱发电 · 订阅支持</h3>
                 <p style="color: var(--text2); font-size: 0.85rem; margin-bottom: 16px;">
                     选择你的发电方案，助力女性主角游戏持续更新
                 </p>
                 <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer"
-                    style="display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all .25s;"
-                    onmouseover="this.style.background='var(--accent2)'; this.style.transform='scale(1.04)'"
-                    onmouseout="this.style.background='var(--accent)'; this.style.transform='scale(1)'">
+                    style="display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all .2s;"
+                    onmouseover="this.style.background='var(--accent2)'"
+                    onmouseout="this.style.background='var(--accent)'">
                     🔗 前往支持
                 </a>
                 <p style="color: var(--text3); font-size: 0.7rem; margin-top: 14px;">
@@ -2854,7 +2652,7 @@
             'use strict';
 
             // ================================================================
-            // 配置与状态（沿用原有逻辑，只增不减）
+            // 配置与状态 (保持不变)
             // ================================================================
             const SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
@@ -2914,108 +2712,6 @@
             let userData = { wishlist: [], played: [], achievements: [] };
 
             // ================================================================
-            // ★ 新增：鼠标跟随视差 & 银白色光效增强
-            // ================================================================
-            let mouseX = 0.5,
-                mouseY = 0.5;
-            let isMouseOnPage = false;
-
-            function initMouseTracking() {
-                document.addEventListener('mousemove', function (e) {
-                    const w = window.innerWidth,
-                        h = window.innerHeight;
-                    mouseX = e.clientX / w;
-                    mouseY = e.clientY / h;
-                    isMouseOnPage = true;
-
-                    // 更新虹彩叠加层角度跟随鼠标
-                    const overlay = document.querySelector('.iridescent-overlay');
-                    if (overlay) {
-                        const angle = (mouseX * 360 + mouseY * 180) % 360;
-                        overlay.style.setProperty('--iridescent-angle', angle + 'deg');
-                    }
-
-                    // 更新水波纹层跟随鼠标（轻微偏移）
-                    const layers = document.querySelectorAll('.water-bg-layer');
-                    layers.forEach((layer, i) => {
-                        const speed = 0.02 + i * 0.01;
-                        const x = (mouseX - 0.5) * 30 * speed;
-                        const y = (mouseY - 0.5) * 30 * speed;
-                        layer.style.transform = `translate(${x}px, ${y}px) scale(${1 + (i * 0.02)})`;
-                    });
-                });
-
-                document.addEventListener('mouseleave', function () {
-                    isMouseOnPage = false;
-                    // 鼠标离开页面时，平滑恢复
-                    const layers = document.querySelectorAll('.water-bg-layer');
-                    layers.forEach((layer) => {
-                        layer.style.transition = 'transform 1.2s ease-out';
-                        layer.style.transform = 'translate(0, 0) scale(1)';
-                        setTimeout(() => { layer.style.transition = ''; }, 1300);
-                    });
-                });
-            }
-
-            // ★ 银白色光效触发：鼠标移出卡片时
-            function triggerSilverFlash(card) {
-                if (!card) return;
-                // 移除已有动画，重新触发
-                card.classList.remove('silver-flash');
-                void card.offsetWidth;
-                card.classList.add('silver-flash');
-                setTimeout(() => {
-                    card.classList.remove('silver-flash');
-                }, 700);
-            }
-
-            // ★ 滚动视差：页面滚动时背景层缓慢移动
-            function initScrollParallax() {
-                const bgLayers = document.querySelectorAll('.water-bg-layer');
-                const glowContainer = document.querySelector('.bg-glow-container');
-
-                window.addEventListener('scroll', function () {
-                    const scrollY = window.scrollY;
-                    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-                    const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
-
-                    // 水波纹层随滚动微移
-                    bgLayers.forEach((layer, i) => {
-                        const speed = 0.08 + i * 0.04;
-                        const yOffset = progress * 80 * speed;
-                        layer.style.transform =
-                            `translateY(${yOffset}px) scale(${1 + (i * 0.02)})`;
-                    });
-
-                    // 光晕随滚动移动
-                    if (glowContainer) {
-                        const g1 = glowContainer.querySelector('.g1');
-                        const g2 = glowContainer.querySelector('.g2');
-                        const g3 = glowContainer.querySelector('.g3');
-                        if (g1) g1.style.transform = `translate(${progress * 30}px, ${progress * 20}px) scale(1.1)`;
-                        if (g2) g2.style.transform = `translate(${-progress * 25}px, ${-progress * 15}px) scale(1.2)`;
-                        if (g3) g3.style.transform =
-                            `translate(${-50 + progress * 20}%, ${-50 + progress * 15}%) scale(${1 + progress * 0.3})`;
-                    }
-                }, { passive: true });
-            }
-
-            // ★ 滚动触发展示动画（卡片以外的元素）
-            function initScrollReveal() {
-                const revealElements = document.querySelectorAll('.scroll-reveal');
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('revealed');
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-
-                revealElements.forEach(el => observer.observe(el));
-            }
-
-            // ================================================================
             // 工具
             // ================================================================
             function escapeHTML(s) {
@@ -3029,7 +2725,7 @@
             }
 
             // ================================================================
-            // 自定义标签
+            // 自定义标签 (保持不变)
             // ================================================================
             function loadCustomTagsFromStorage() {
                 try {
@@ -3053,12 +2749,16 @@
                 if (SUPABASE_ENABLED && supabaseClient) {
                     Promise.all([
                         supabaseClient.from('games').upsert({
-                            id: 999999, title: '__custom_genres__',
-                            genre: customGenres, isReleased: true
+                            id: 999999,
+                            title: '__custom_genres__',
+                            genre: customGenres,
+                            isReleased: true
                         }, { onConflict: 'id' }),
                         supabaseClient.from('games').upsert({
-                            id: 999998, title: '__custom_gameplays__',
-                            genre: customGameplays, isReleased: true
+                            id: 999998,
+                            title: '__custom_gameplays__',
+                            genre: customGameplays,
+                            isReleased: true
                         }, { onConflict: 'id' })
                     ]).catch(() => { });
                 }
@@ -3072,9 +2772,7 @@
                         .from(TABLE_NAME)
                         .select('*')
                         .in('id', [999999, 999998]);
-
                     if (error || !data) return;
-
                     for (const row of data) {
                         if (row.id === 999999 && row.genre) {
                             customGenres = row.genre || [];
@@ -3128,7 +2826,7 @@
             }
 
             // ================================================================
-            // 用户数据
+            // 用户数据 (保持不变)
             // ================================================================
             const USER_DATA_KEY = 'heroineUserData';
 
@@ -3178,7 +2876,7 @@
             function isPlayed(gameId) { return userData.played.includes(gameId); }
 
             // ================================================================
-            // 成就系统
+            // 成就系统 (保持不变)
             // ================================================================
             function checkAchievements() {
                 const playedCount = userData.played.length;
@@ -3239,43 +2937,43 @@
                 const progress = getAchievementProgress();
                 const playedCount = userData.played.length;
                 let html = `
-                            <div class="achievement-progress">
-                                <div class="progress-text">
-                                    已解锁 <strong>${unlocked.length}</strong> / ${ACHIEVEMENTS.length} 项成就
-                                    （已标记 <strong>${playedCount}</strong> 款游戏为玩过）
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="fill" style="width: ${progress.percent}%;"></div>
-                                </div>
+                        <div class="achievement-progress">
+                            <div class="progress-text">
+                                已解锁 <strong>${unlocked.length}</strong> / ${ACHIEVEMENTS.length} 项成就
+                                （已标记 <strong>${playedCount}</strong> 款游戏为玩过）
                             </div>
-                            <div class="achievement-list">
-                        `;
+                            <div class="progress-bar">
+                                <div class="fill" style="width: ${progress.percent}%;"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-list">
+                    `;
                 unlocked.forEach(ach => {
                     html += `
-                                <div class="achievement-item unlocked">
-                                    <div class="ach-icon">${ach.icon}</div>
-                                    <div class="ach-info">
-                                        <div class="ach-name">${ach.name}</div>
-                                        <div class="ach-desc">${ach.desc}</div>
-                                    </div>
-                                    <div class="ach-status unlocked">✅ 已解锁</div>
+                            <div class="achievement-item unlocked">
+                                <div class="ach-icon">${ach.icon}</div>
+                                <div class="ach-info">
+                                    <div class="ach-name">${ach.name}</div>
+                                    <div class="ach-desc">${ach.desc}</div>
                                 </div>
-                            `;
+                                <div class="ach-status unlocked">✅ 已解锁</div>
+                            </div>
+                        `;
                 });
                 locked.forEach(ach => {
                     const isReachable = playedCount >= ach.threshold;
                     html += `
-                                <div class="achievement-item">
-                                    <div class="ach-icon">${ach.icon}</div>
-                                    <div class="ach-info">
-                                        <div class="ach-name" style="${isReachable ? 'color:var(--gold);' : ''}">${ach.name}</div>
-                                        <div class="ach-desc">${ach.desc}</div>
-                                    </div>
-                                    <div class="ach-status locked">
-                                        ${isReachable ? '🔓 可解锁' : '🔒 未解锁'}
-                                    </div>
+                            <div class="achievement-item">
+                                <div class="ach-icon">${ach.icon}</div>
+                                <div class="ach-info">
+                                    <div class="ach-name" style="${isReachable ? 'color:var(--gold);' : ''}">${ach.name}</div>
+                                    <div class="ach-desc">${ach.desc}</div>
                                 </div>
-                            `;
+                                <div class="ach-status locked">
+                                    ${isReachable ? '🔓 可解锁' : '🔒 未解锁'}
+                                </div>
+                            </div>
+                        `;
                 });
                 html += `</div>`;
                 container.innerHTML = html;
@@ -3294,7 +2992,7 @@
             }
 
             // ================================================================
-            // 数据加载
+            // 数据加载 (保持不变)
             // ================================================================
             const STORAGE_KEY = 'heroineGamesDataV2';
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
@@ -3332,7 +3030,6 @@
                         .neq('id', 999999)
                         .neq('id', 999998)
                         .order('id', { ascending: true });
-
                     if (error) {
                         setSyncStatus('error', error.message);
                         return null;
@@ -3369,8 +3066,12 @@
                 try {
                     await client.from(TABLE_NAME).delete().neq('id', 0);
                     const toInsert = gameList.map(g => ({
-                        ...g, genre: g.genre || [], gameplay: g.gameplay || [],
-                        platforms: g.platforms || [], videos: g.videos || [], screenshots: g.screenshots || []
+                        ...g,
+                        genre: g.genre || [],
+                        gameplay: g.gameplay || [],
+                        platforms: g.platforms || [],
+                        videos: g.videos || [],
+                        screenshots: g.screenshots || []
                     }));
                     for (let i = 0; i < toInsert.length; i += 50) {
                         const batch = toInsert.slice(i, i + 50);
@@ -3490,7 +3191,6 @@
 
             async function loadGames() {
                 loadCustomTagsFromStorage();
-
                 if (SUPABASE_ENABLED && supabaseClient) {
                     try {
                         const remote = await loadFromSupabase();
@@ -3510,24 +3210,21 @@
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                             if (supabaseClient) await saveToSupabase(games);
                         }
-
                         await loadCustomTagsFromSupabase();
                         return games;
-                    } catch (_) {}
+                    } catch (_) { }
                 }
-
                 const s = localStorage.getItem(STORAGE_KEY);
                 if (s) {
                     try {
                         games = JSON.parse(s);
                         if (games && games.length > 0) return games;
-                    } catch (_) {}
+                    } catch (_) { }
                 }
-
                 games = [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                 if (SUPABASE_ENABLED && supabaseClient) {
-                    try { await saveToSupabase(games); } catch (_) {}
+                    try { await saveToSupabase(games); } catch (_) { }
                 }
                 return games;
             }
@@ -3546,7 +3243,7 @@
                         isAdminMode = d.isAdminMode || false;
                         currentView = d.currentView || 'released';
                         currentSort = d.currentSort || 'newest';
-                    } catch (_) {}
+                    } catch (_) { }
                 }
                 applyTheme();
                 updateViewTabs();
@@ -3556,7 +3253,9 @@
 
             function saveSettings() {
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-                    theme: currentTheme, isAdminMode, currentView,
+                    theme: currentTheme,
+                    isAdminMode,
+                    currentView,
                     currentSort
                 }));
             }
@@ -3568,17 +3267,19 @@
             }
 
             // ================================================================
-            // 筛选分类
+            // 筛选分类 (保持不变)
             // ================================================================
             function getReleasedFilterCats() {
                 return {
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
                     gameplay: {
-                        label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
+                        label: '玩法',
+                        options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
                         field: 'gameplay'
                     },
                     platforms: {
-                        label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
+                        label: '平台',
+                        options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
                         field: 'platforms'
                     },
                     heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
@@ -3593,11 +3294,13 @@
                 return {
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
                     gameplay: {
-                        label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
+                        label: '玩法',
+                        options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
                         field: 'gameplay'
                     },
                     platforms: {
-                        label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
+                        label: '平台',
+                        options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
                         field: 'platforms'
                     },
                     heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
@@ -3622,7 +3325,7 @@
             }
 
             // ================================================================
-            // 视图、排序、搜索
+            // 视图、排序、搜索等
             // ================================================================
             function switchView(view) {
                 if (currentView === view) return;
@@ -3848,7 +3551,7 @@
             }
 
             // ================================================================
-            // 管理 UI
+            // 管理 UI (保持不变)
             // ================================================================
             function toggleAdminMode() {
                 if (!isEditor()) {
@@ -3926,7 +3629,7 @@
             function isEditor() { return isKeyVerified; }
 
             // ================================================================
-            // ★ 增强：渲染卡片（含虹彩反射 + 银白色光效）
+            // ★★★ 核心：渲染卡片 (含玻璃、虹彩、银光增强) ★★★
             // ================================================================
             let cardObserver = null;
             let cardShineListeners = [];
@@ -3992,13 +3695,13 @@
                             }
                         }
                     });
-                }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+                }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
 
                 const cards = grid.querySelectorAll('.gallery-card');
                 cards.forEach((card, i) => {
                     const rect = card.getBoundingClientRect();
                     const winHeight = window.innerHeight || document.documentElement.clientHeight;
-                    if (rect.top < winHeight - 60) {
+                    if (rect.top < winHeight - 40) {
                         card.classList.add('visible');
                         const img = card.querySelector('.card-cover');
                         if (img && !img.dataset.loaded) {
@@ -4024,7 +3727,9 @@
                     } else {
                         cardObserver.observe(card);
                     }
-                    setupCard3D(card);
+                    // ★ 增强3D交互 + 虹彩 + 银光
+                    setupCardEnhanced(card);
+                    // 愿望单/玩过按钮
                     const wishBtn = card.querySelector('.action-wish');
                     const playBtn = card.querySelector('.action-play');
                     if (wishBtn) {
@@ -4041,14 +3746,6 @@
                             togglePlayed(id);
                         });
                     }
-
-                    // ★ 银白色光效：鼠标移出卡片时触发
-                    card.addEventListener('mouseleave', function (e) {
-                        // 只有在鼠标真正移出卡片时才触发
-                        const related = e.relatedTarget;
-                        if (related && card.contains(related)) return;
-                        triggerSilverFlash(card);
-                    });
                 });
 
                 grid.querySelectorAll('.gallery-card').forEach(card => {
@@ -4097,115 +3794,200 @@
             }
 
             // ================================================================
-            // 3D 卡片效果（增强版：融入虹彩反射）
+            // ★★★ 增强版卡片3D交互 + 虹彩 + 银光 ★★★
             // ================================================================
-            function setupCard3D(card) {
+            function setupCardEnhanced(card) {
+                // 清理旧监听
                 const old = cardShineListeners.find(item => item.el === card);
                 if (old) {
                     card.removeEventListener('mousemove', old.handler);
-                    card.removeEventListener('touchmove', old.touchHandler);
+                    card.removeEventListener('mouseleave', old.leave);
+                    card.removeEventListener('touchstart', old.touchStart);
+                    card.removeEventListener('touchmove', old.touchMove);
                     card.removeEventListener('touchend', old.touchEnd);
                     card.removeEventListener('touchcancel', old.touchEnd);
-                    card.removeEventListener('mouseleave', old.leave);
                     cardShineListeners = cardShineListeners.filter(item => item.el !== card);
                 }
 
-                let isTouching = false;
+                // 获取效果层
+                const iridescent = card.querySelector('.card-iridescent');
+                const shine = card.querySelector('.card-shine');
+                const silver = card.querySelector('.card-silver-sweep');
 
-                const mouseHandler = function (e) {
+                let isTouching = false;
+                let timeoutId = null;
+
+                // 核心：鼠标移动 -> 更新3D变形 + 虹彩角度 + 光晕位置
+                const handleMove = function (e) {
                     const rect = card.getBoundingClientRect();
                     const x = (e.clientX - rect.left) / rect.width;
                     const y = (e.clientY - rect.top) / rect.height;
-                    applyTransform(card, x, y);
+                    const clampedX = Math.max(0, Math.min(1, x));
+                    const clampedY = Math.max(0, Math.min(1, y));
+
+                    // 3D 变形
+                    const rotateX = (clampedY - 0.5) * 2 * -6;
+                    const rotateY = (clampedX - 0.5) * 2 * 6;
+                    card.style.transform =
+                        `translateY(-8px) scale(1.015) perspective(${getComputedStyle(card).getPropertyValue('--card-perspective') || '1200px'}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+                    // 虹彩角度跟随鼠标
+                    if (iridescent) {
+                        const angle = clampedX * 360;
+                        iridescent.style.setProperty('--iridescent-angle', angle + 'deg');
+                    }
+
+                    // 光晕位置
+                    if (shine) {
+                        shine.style.setProperty('--shine-x', clampedX * 100 + '%');
+                        shine.style.setProperty('--shine-y', clampedY * 100 + '%');
+                    }
+
+                    // 视差背景
+                    const parallax = card.querySelector('.card-parallax-bg');
+                    if (parallax) {
+                        parallax.style.setProperty('--parallax-x', clampedX * 100 + '%');
+                        parallax.style.setProperty('--parallax-y', clampedY * 100 + '%');
+                    }
                 };
 
-                const touchStartHandler = function (e) {
+                // 移出 -> 重置变形 + 触发银光
+                const handleLeave = function () {
+                    card.style.transform = '';
+                    if (iridescent) {
+                        iridescent.style.setProperty('--iridescent-angle', '0deg');
+                    }
+                    if (shine) {
+                        shine.style.setProperty('--shine-x', '50%');
+                        shine.style.setProperty('--shine-y', '50%');
+                    }
+                    const parallax = card.querySelector('.card-parallax-bg');
+                    if (parallax) {
+                        parallax.style.setProperty('--parallax-x', '50%');
+                        parallax.style.setProperty('--parallax-y', '50%');
+                    }
+
+                    // ★ 触发银白色光效 (移出时)
+                    if (silver) {
+                        // 移除已有动画
+                        silver.classList.remove('trigger');
+                        // 强制回流后重新触发
+                        void silver.offsetWidth;
+                        silver.classList.add('trigger');
+                        // 动画结束后清理
+                        if (timeoutId) clearTimeout(timeoutId);
+                        timeoutId = setTimeout(() => {
+                            silver.classList.remove('trigger');
+                            timeoutId = null;
+                        }, 800);
+                    }
+                };
+
+                // Touch 支持
+                const handleTouchStart = function (e) {
                     const touch = e.touches[0];
                     if (!touch) return;
+                    isTouching = true;
                     const rect = card.getBoundingClientRect();
                     const x = (touch.clientX - rect.left) / rect.width;
                     const y = (touch.clientY - rect.top) / rect.height;
-                    isTouching = true;
-                    applyTransform(card, x, y);
+                    const clampedX = Math.max(0, Math.min(1, x));
+                    const clampedY = Math.max(0, Math.min(1, y));
+
+                    const rotateX = (clampedY - 0.5) * 2 * -6;
+                    const rotateY = (clampedX - 0.5) * 2 * 6;
+                    card.style.transform =
+                        `translateY(-8px) scale(1.015) perspective(${getComputedStyle(card).getPropertyValue('--card-perspective') || '1200px'}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    if (iridescent) {
+                        iridescent.style.setProperty('--iridescent-angle', clampedX * 360 + 'deg');
+                    }
+                    if (shine) {
+                        shine.style.setProperty('--shine-x', clampedX * 100 + '%');
+                        shine.style.setProperty('--shine-y', clampedY * 100 + '%');
+                    }
+                    const parallax = card.querySelector('.card-parallax-bg');
+                    if (parallax) {
+                        parallax.style.setProperty('--parallax-x', clampedX * 100 + '%');
+                        parallax.style.setProperty('--parallax-y', clampedY * 100 + '%');
+                    }
                 };
 
-                const touchMoveHandler = function (e) {
+                const handleTouchMove = function (e) {
                     if (!isTouching) return;
                     const touch = e.touches[0];
                     if (!touch) return;
                     const rect = card.getBoundingClientRect();
                     const x = (touch.clientX - rect.left) / rect.width;
                     const y = (touch.clientY - rect.top) / rect.height;
-                    applyTransform(card, Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y)));
+                    const clampedX = Math.max(0, Math.min(1, x));
+                    const clampedY = Math.max(0, Math.min(1, y));
+
+                    const rotateX = (clampedY - 0.5) * 2 * -6;
+                    const rotateY = (clampedX - 0.5) * 2 * 6;
+                    card.style.transform =
+                        `translateY(-8px) scale(1.015) perspective(${getComputedStyle(card).getPropertyValue('--card-perspective') || '1200px'}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    if (iridescent) {
+                        iridescent.style.setProperty('--iridescent-angle', clampedX * 360 + 'deg');
+                    }
+                    if (shine) {
+                        shine.style.setProperty('--shine-x', clampedX * 100 + '%');
+                        shine.style.setProperty('--shine-y', clampedY * 100 + '%');
+                    }
+                    const parallax = card.querySelector('.card-parallax-bg');
+                    if (parallax) {
+                        parallax.style.setProperty('--parallax-x', clampedX * 100 + '%');
+                        parallax.style.setProperty('--parallax-y', clampedY * 100 + '%');
+                    }
                 };
 
-                const touchEndHandler = function () {
+                const handleTouchEnd = function () {
                     isTouching = false;
                     card.style.transform = '';
-                    const shine = card.querySelector('.card-shine');
+                    if (iridescent) {
+                        iridescent.style.setProperty('--iridescent-angle', '0deg');
+                    }
                     if (shine) {
                         shine.style.setProperty('--shine-x', '50%');
                         shine.style.setProperty('--shine-y', '50%');
                     }
-                    const iri = card.querySelector('.card-iridescent');
-                    if (iri) {
-                        iri.style.setProperty('--shine-x', '50%');
-                        iri.style.setProperty('--shine-y', '50%');
+                    const parallax = card.querySelector('.card-parallax-bg');
+                    if (parallax) {
+                        parallax.style.setProperty('--parallax-x', '50%');
+                        parallax.style.setProperty('--parallax-y', '50%');
+                    }
+                    // 触控移出也触发银光
+                    if (silver) {
+                        silver.classList.remove('trigger');
+                        void silver.offsetWidth;
+                        silver.classList.add('trigger');
+                        if (timeoutId) clearTimeout(timeoutId);
+                        timeoutId = setTimeout(() => {
+                            silver.classList.remove('trigger');
+                            timeoutId = null;
+                        }, 800);
                     }
                 };
 
-                const leaveHandler = function () {
-                    card.style.transform = '';
-                    const shine = card.querySelector('.card-shine');
-                    if (shine) {
-                        shine.style.setProperty('--shine-x', '50%');
-                        shine.style.setProperty('--shine-y', '50%');
-                    }
-                    const iri = card.querySelector('.card-iridescent');
-                    if (iri) {
-                        iri.style.setProperty('--shine-x', '50%');
-                        iri.style.setProperty('--shine-y', '50%');
-                    }
-                };
-
-                function applyTransform(el, x, y) {
-                    const rotateX = (y - 0.5) * 2 * -5;
-                    const rotateY = (x - 0.5) * 2 * 5;
-                    const perspective = getComputedStyle(el).getPropertyValue('--card-perspective') || '1200px';
-                    el.style.transform =
-                        `translateY(-8px) scale(1.015) perspective(${perspective}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                    const shine = el.querySelector('.card-shine');
-                    if (shine) {
-                        shine.style.setProperty('--shine-x', x * 100 + '%');
-                        shine.style.setProperty('--shine-y', y * 100 + '%');
-                    }
-                    const iri = el.querySelector('.card-iridescent');
-                    if (iri) {
-                        iri.style.setProperty('--shine-x', x * 100 + '%');
-                        iri.style.setProperty('--shine-y', y * 100 + '%');
-                        const angle = (x * 360 + y * 180) % 360;
-                        iri.style.setProperty('--iridescent-angle', angle + 'deg');
-                    }
-                }
-
-                card.addEventListener('mousemove', mouseHandler);
-                card.addEventListener('mouseleave', leaveHandler);
-                card.addEventListener('touchstart', touchStartHandler, { passive: true });
-                card.addEventListener('touchmove', touchMoveHandler, { passive: true });
-                card.addEventListener('touchend', touchEndHandler, { passive: true });
-                card.addEventListener('touchcancel', touchEndHandler, { passive: true });
+                // 绑定事件
+                card.addEventListener('mousemove', handleMove);
+                card.addEventListener('mouseleave', handleLeave);
+                card.addEventListener('touchstart', handleTouchStart, { passive: true });
+                card.addEventListener('touchmove', handleTouchMove, { passive: true });
+                card.addEventListener('touchend', handleTouchEnd, { passive: true });
+                card.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
                 cardShineListeners.push({
                     el: card,
-                    handler: mouseHandler,
-                    touchHandler: touchMoveHandler,
-                    touchEnd: touchEndHandler,
-                    leave: leaveHandler
+                    handler: handleMove,
+                    leave: handleLeave,
+                    touchStart: handleTouchStart,
+                    touchMove: handleTouchMove,
+                    touchEnd: handleTouchEnd
                 });
             }
 
             // ================================================================
-            // 创建卡片 HTML（新增虹彩反射层）
+            // 创建卡片 HTML (新增虹彩层、银光层、视差背景)
             // ================================================================
             function createCardHTML(game) {
                 const inWish = isInWishlist(game.id);
@@ -4214,15 +3996,15 @@
                 let coverHTML = '';
                 if (game.cover) {
                     coverHTML = `
-                                <div class="card-cover-wrap">
-                                    <img class="card-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" />
-                                    <div class="card-cover-placeholder">🎮</div>
-                                </div>`;
+                            <div class="card-cover-wrap">
+                                <img class="card-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" />
+                                <div class="card-cover-placeholder">🎮</div>
+                            </div>`;
                 } else {
                     coverHTML = `
-                                <div class="card-cover-wrap">
-                                    <div class="card-cover-placeholder" style="position:relative;z-index:2;">🎮</div>
-                                </div>`;
+                            <div class="card-cover-wrap">
+                                <div class="card-cover-placeholder" style="position:relative;z-index:2;">🎮</div>
+                            </div>`;
                 }
 
                 let meta = '';
@@ -4251,32 +4033,34 @@
                 const playLabel = inPlay ? '已玩过' : '标记玩过';
 
                 const userActions = `
-                            <div class="card-user-actions">
-                                <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}">
-                                    <span class="icon">${wishIcon}</span> ${wishLabel}
-                                </button>
-                                <button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}">
-                                    <span class="icon">${playIcon}</span> ${playLabel}
-                                </button>
-                            </div>`;
+                        <div class="card-user-actions">
+                            <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}">
+                                <span class="icon">${wishIcon}</span> ${wishLabel}
+                            </button>
+                            <button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}">
+                                <span class="icon">${playIcon}</span> ${playLabel}
+                            </button>
+                        </div>`;
 
-                // ★ 新增虹彩反射层
+                // ★ 新增：虹彩层、银光层、视差背景
                 return `<div class="gallery-card" data-game-id="${game.id}">
-                                <div class="card-iridescent"></div>
-                                <div class="card-shine"></div>
-                                ${coverHTML}
-                                <div class="card-body">
-                                    <div class="card-title">${escapeHTML(game.title)}</div>
-                                    <div class="card-desc">${escapeHTML(game.description || '')}</div>
-                                    <div class="card-meta">${meta}${dateDisplay}</div>
-                                </div>
-                                ${userActions}
-                                ${admin}
-                            </div>`;
+                            <div class="card-parallax-bg"></div>
+                            <div class="card-iridescent"></div>
+                            <div class="card-silver-sweep"></div>
+                            <div class="card-shine"></div>
+                            ${coverHTML}
+                            <div class="card-body">
+                                <div class="card-title">${escapeHTML(game.title)}</div>
+                                <div class="card-desc">${escapeHTML(game.description || '')}</div>
+                                <div class="card-meta">${meta}${dateDisplay}</div>
+                            </div>
+                            ${userActions}
+                            ${admin}
+                        </div>`;
             }
 
             // ================================================================
-            // 详情弹窗
+            // 详情弹窗 (保持不变)
             // ================================================================
             function showDetailModal(game) {
                 const overlay = document.getElementById('detailModalOverlay'),
@@ -4297,26 +4081,26 @@
                 if (game.isReleased) {
                     rows =
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
-                                      <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
-                                      <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                                      <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
-                                      <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
-                                      <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                                      <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
-                                      <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
-                                      <tr><td>🍎 Mac</td><td>${escapeHTML(game.hasMacSupport || '—')}</td></tr>
-                                      <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                                      <tr><td>⏱ 时长</td><td>${escapeHTML(game.mainStoryDuration || '—')}</td></tr>
-                                      <tr><td>💰 最低价</td><td>${escapeHTML(game.lowestPrice || '—')}</td></tr>`;
+                                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
+                                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                                  <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
+                                  <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
+                                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                                  <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
+                                  <tr><td>🍎 Mac</td><td>${escapeHTML(game.hasMacSupport || '—')}</td></tr>
+                                  <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                                  <tr><td>⏱ 时长</td><td>${escapeHTML(game.mainStoryDuration || '—')}</td></tr>
+                                  <tr><td>💰 最低价</td><td>${escapeHTML(game.lowestPrice || '—')}</td></tr>`;
                 } else {
                     rows =
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
-                                      <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
-                                      <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                                      <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
-                                      <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                                      <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                                      <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>`;
+                                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
+                                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                                  <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                                  <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>`;
                 }
 
                 let releaseDateBadge = '';
@@ -4348,17 +4132,17 @@
 
                 modal.innerHTML =
                     `<button class="modal-close" id="detailModalClose">✕</button>${cover}<div class="detail-title">${escapeHTML(game.title)}</div>${releaseDateBadge}
-                                    <div style="display:flex;gap:16px;font-size:.85rem;color:var(--text2);margin:6px 0 12px;flex-wrap:wrap;">
-                                        <span>${wishStatus}</span>
-                                        <span>${playStatus}</span>
-                                    </div>
-                                    <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
-                                    <table class="detail-info-table">${rows}</table>${screens}${videos}
-                                    <div style="margin-top:14px;">${links.join(' ')}</div>
-                                    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                        <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
-                                        <button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>
-                                    </div>`;
+                                <div style="display:flex;gap:16px;font-size:.85rem;color:var(--text2);margin:6px 0 12px;flex-wrap:wrap;">
+                                    <span>${wishStatus}</span>
+                                    <span>${playStatus}</span>
+                                </div>
+                                <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
+                                <table class="detail-info-table">${rows}</table>${screens}${videos}
+                                <div style="margin-top:14px;">${links.join(' ')}</div>
+                                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                                    <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
+                                    <button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>
+                                </div>`;
 
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
@@ -4390,7 +4174,7 @@
             }
 
             // ================================================================
-            // 编辑弹窗（完整保留）
+            // 编辑弹窗 (保持不变，略)
             // ================================================================
             function showEditModal(game) {
                 if (!isEditor()) { alert('请先验证密钥以编辑游戏数据。\n双击 "Her Lens" 标题即可验证。'); return; }
@@ -4441,46 +4225,46 @@
 
             function buildEditFormHTML(data, isNew) {
                 return `
-                                    <button class="modal-close" id="editModalClose">✕</button>
-                                    <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
-                                    <div class="smart-paste-area">
-                                        <label style="font-weight:600;font-size:.82rem;color:var(--text2);">📋 智能粘贴识别</label>
-                                        <textarea id="efSmartPaste" placeholder="粘贴游戏描述文本，点击识别自动填充…"></textarea>
-                                        <button type="button" class="btn btn-sm" id="btnSmartParse" style="margin-top:6px;">🔍 智能识别</button>
-                                    </div>
-                                    <form id="editGameForm" onsubmit="return false;">
-                                        <div class="form-row"><div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div>
-                                        <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div></div>
-                                        <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
-                                        <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}">
-                                        <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
-                                        <div class="form-group"><label>封面URL</label><div style="display:flex;gap:8px;"><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}" style="flex:1;">
-                                        <input type="file" id="efCoverFile" accept="image/*" hidden><button type="button" class="btn btn-sm" id="btnUploadCover">📁 上传</button></div>
-                                        ${data.cover ? `<img src="${escapeHTML(data.cover)}" style="max-width:200px;max-height:100px;margin-top:6px;border-radius:6px;" id="coverPreview">` : ''}</div>
-                                        <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
-                                        <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
-                                        <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel"></div>
-                                        <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="新题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋ 添加</button></div></div>
-                                        <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel"></div>
-                                        <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="新玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋ 添加</button></div></div>
-                                        <div class="form-row"><div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p => `<option value="${escapeHTML(p)}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-                                        <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h => `<option value="${escapeHTML(h)}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
-                                        <div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
-                                        <div class="form-row" id="efChineseMacRow"><div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${CHINESE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-                                        <div class="form-group"><label>🍎 Mac</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div></div>
-                                        <div class="form-row"><div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无Demo</option><option value="1" ${data.hasDemo ? 'selected' : ''}>提供Demo</option></select></div>
-                                        <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div>
-                                        <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div></div>
-                                        <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')).map(p => `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
-                                        <div class="form-row"><div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div>
-                                        <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div></div>
-                                        <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label>
-                                        <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
-                                        <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
-                                        <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
-                                        <div style="display:flex;gap:10px;margin-top:16px;"><button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
-                                        <button type="button" class="btn" id="btnCancelEdit">取消</button></div>
-                                    </form>`;
+                                <button class="modal-close" id="editModalClose">✕</button>
+                                <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
+                                <div class="smart-paste-area">
+                                    <label style="font-weight:600;font-size:.82rem;color:var(--text2);">📋 智能粘贴识别</label>
+                                    <textarea id="efSmartPaste" placeholder="粘贴游戏描述文本，点击识别自动填充…"></textarea>
+                                    <button type="button" class="btn btn-sm" id="btnSmartParse" style="margin-top:6px;">🔍 智能识别</button>
+                                </div>
+                                <form id="editGameForm" onsubmit="return false;">
+                                    <div class="form-row"><div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div>
+                                    <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div></div>
+                                    <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
+                                    <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}">
+                                    <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
+                                    <div class="form-group"><label>封面URL</label><div style="display:flex;gap:8px;"><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}" style="flex:1;">
+                                    <input type="file" id="efCoverFile" accept="image/*" hidden><button type="button" class="btn btn-sm" id="btnUploadCover">📁 上传</button></div>
+                                    ${data.cover ? `<img src="${escapeHTML(data.cover)}" style="max-width:200px;max-height:100px;margin-top:6px;border-radius:6px;" id="coverPreview">` : ''}</div>
+                                    <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
+                                    <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
+                                    <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel"></div>
+                                    <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="新题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋ 添加</button></div></div>
+                                    <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel"></div>
+                                    <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="新玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋ 添加</button></div></div>
+                                    <div class="form-row"><div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p => `<option value="${escapeHTML(p)}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
+                                    <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h => `<option value="${escapeHTML(h)}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
+                                    <div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+                                    <div class="form-row" id="efChineseMacRow"><div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${CHINESE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                                    <div class="form-group"><label>🍎 Mac</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div></div>
+                                    <div class="form-row"><div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无Demo</option><option value="1" ${data.hasDemo ? 'selected' : ''}>提供Demo</option></select></div>
+                                    <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div>
+                                    <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div></div>
+                                    <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')).map(p => `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
+                                    <div class="form-row"><div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div>
+                                    <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div></div>
+                                    <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label>
+                                    <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
+                                    <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
+                                    <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
+                                    <div style="display:flex;gap:10px;margin-top:16px;"><button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
+                                    <button type="button" class="btn" id="btnCancelEdit">取消</button></div>
+                                </form>`;
             }
 
             function refreshTagPanel(modal, panelId, field, options, selectedValues, defaultOptions) {
@@ -4652,7 +4436,8 @@
                 const titleMatch = text.match(/《(.+?)》/);
                 if (titleMatch) result.title = titleMatch[1].trim();
                 else {
-                    const lines = text.split('\n').filter(l => l.trim()); if (lines.length > 0) result.title = lines[0]
+                    const lines = text.split('\n').filter(l => l.trim());
+                    if (lines.length > 0) result.title = lines[0]
                         .trim();
                 }
                 const allGenres = getAllGenres(),
@@ -4745,14 +4530,15 @@
             }
 
             // ================================================================
-            // CSV 导入
+            // CSV 导入 (保持不变)
             // ================================================================
             function importCSV(file) {
                 if (!isEditor()) { alert('请先验证密钥以导入数据。'); return; }
                 const reader = new FileReader();
                 reader.onload = function (ev) {
                     const results = Papa.parse(ev.target.result, {
-                        header: true, skipEmptyLines: true,
+                        header: true,
+                        skipEmptyLines: true,
                         trimHeaders: true
                     });
                     if (results.errors && results.errors.length) { alert('CSV 解析出错，请检查文件格式。'); return; }
@@ -4830,7 +4616,8 @@
 
             function splitAndTrim(str) {
                 if (!str) return [];
-                return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                return str.split(',').map(s => s.trim()).filter(s => s
+                    .length > 0);
             }
 
             function mapPerspective(v) {
@@ -4870,12 +4657,12 @@
                     if (parts.length === 3) {
                         return `${parts[0].padStart(4, '0')}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
                     }
-                } catch (_) {}
+                } catch (_) { }
                 return d;
             }
 
             // ================================================================
-            // 密钥弹窗
+            // 密钥弹窗 (保持不变)
             // ================================================================
             function openKeyModal() {
                 const overlay = document.getElementById('keyModalOverlay');
@@ -4910,7 +4697,7 @@
             }
 
             // ================================================================
-            // 打赏弹窗
+            // 打赏弹窗 (保持不变)
             // ================================================================
             function openTipModal() {
                 document.getElementById('tipModalOverlay').classList.add('show');
@@ -4923,16 +4710,24 @@
             }
 
             // ================================================================
-            // 返回顶部
+            // 返回顶部 + 滚动进度 (新增)
             // ================================================================
             function initBackToTop() {
                 const btn = document.getElementById('backToTop');
                 if (!btn) return;
                 window.addEventListener('scroll', function () {
-                    if (window.scrollY > 400) {
+                    const scrollY = window.scrollY;
+                    if (scrollY > 400) {
                         btn.classList.add('show');
                     } else {
                         btn.classList.remove('show');
+                    }
+                    // 滚动进度条
+                    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+                    const progressEl = document.getElementById('scrollProgress');
+                    if (progressEl) {
+                        progressEl.style.width = progress + '%';
                     }
                 }, { passive: true });
                 btn.addEventListener('click', function (e) {
@@ -4942,7 +4737,7 @@
             }
 
             // ================================================================
-            // 公告栏
+            // 公告栏关闭逻辑 (保持不变)
             // ================================================================
             const ANNOUNCEMENT_STORAGE_KEY = 'heroineAnnouncementClosed';
 
@@ -5053,19 +4848,7 @@
             }
 
             // ================================================================
-            // ★ 新增：窗口 resize 自适应
-            // ================================================================
-            function handleResize() {
-                // 水波纹层自适应
-                const layers = document.querySelectorAll('.water-bg-layer');
-                layers.forEach((layer, i) => {
-                    const scale = 1 + i * 0.05;
-                    layer.style.transform = `scale(${scale})`;
-                });
-            }
-
-            // ================================================================
-            // 初始化
+            // ★ 初始化
             // ================================================================
             async function init() {
                 loadSettings();
@@ -5087,14 +4870,7 @@
                 initBackToTop();
                 initAnnouncementBar();
 
-                // ★ 新增：初始化鼠标跟踪、视差、滚动揭示
-                initMouseTracking();
-                initScrollParallax();
-                initScrollReveal();
-
-                window.addEventListener('resize', handleResize);
-
-                console.log('✅ Her Lens 初始化完成（玻璃质感 + 虹彩反射 + 仿水面 + 银白色光效）');
+                console.log('✅ Her Lens 初始化完成 (玻璃质感 + 虹彩 + 银光)');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
