@@ -11,29 +11,29 @@
     </script>
     <style>
         /* ================================================================
-           全局变量 & 渐变背景
+           全局变量 & 渐变背景（增强）
            ================================================================ */
         :root {
             --bg: #f3eff7;
-            --surface: #faf7fd;
-            --surface2: #f6f2fa;
+            --surface: rgba(250, 247, 253, 0.55);
+            --surface2: rgba(246, 242, 250, 0.6);
             --text: #3d3546;
             --text2: #665c72;
             --text3: #8c8099;
-            --border: #d5cfe0;
+            --border: rgba(213, 207, 224, 0.4);
             --accent: #9b8abd;
             --accent2: #7e6fa0;
-            --tag-bg: #ede7f2;
+            --tag-bg: rgba(237, 231, 242, 0.5);
             --tag-text: #5a4e66;
             --tag-active-bg: #9b8abd;
             --tag-active-text: #fff;
-            --shadow: 0 2px 12px rgba(60, 30, 80, 0.08);
-            --shadow-lg: 0 8px 40px rgba(60, 30, 80, 0.15);
-            --overlay: rgba(30, 15, 40, 0.6);
-            --card-hover: #f5f0f9;
-            --filter-bg: #faf7fd;
-            --modal-bg: #faf7fd;
-            --input-bg: #f5f0f9;
+            --shadow: 0 8px 32px rgba(60, 30, 80, 0.08);
+            --shadow-lg: 0 16px 64px rgba(60, 30, 80, 0.18);
+            --overlay: rgba(30, 15, 40, 0.5);
+            --card-hover: rgba(245, 240, 249, 0.6);
+            --filter-bg: rgba(250, 247, 253, 0.6);
+            --modal-bg: rgba(250, 247, 253, 0.75);
+            --input-bg: rgba(245, 240, 249, 0.5);
             --danger: #c0392b;
             --success: #5d8a5e;
             --scrollbar-thumb: #d0c4d8;
@@ -41,46 +41,52 @@
             --logo-gradient: linear-gradient(135deg, #9b8abd 0%, #7e6fa0 100%);
             --view-tab-active: #9b8abd;
             --view-tab-text: #fff;
-            --glass-bg-light: rgba(237, 231, 242, 0.65);
+            --glass-bg-light: rgba(237, 231, 242, 0.35);
             --coin-color: #f5b342;
             --sort-active-bg: #9b8abd;
             --sort-active-text: #fff;
-            --sync-status-bg: #f1f0f3;
-            --card-perspective: 1000px;
-            --glow-color: rgba(155, 138, 189, 0.15);
-            --glow-color2: rgba(125, 100, 160, 0.08);
+            --sync-status-bg: rgba(241, 240, 243, 0.5);
+            --card-perspective: 1200px;
+            --glow-color: rgba(155, 138, 189, 0.12);
+            --glow-color2: rgba(125, 100, 160, 0.06);
             --gold: #f5a623;
-            --gold-glow: rgba(245, 166, 35, 0.3);
-            /* 渐变背景色（浅色） */
+            --gold-glow: rgba(245, 166, 35, 0.2);
             --bg-gradient-start: #f8f4fc;
             --bg-gradient-end: #ede6f5;
-            /* 公告栏 */
-            --announcement-bg: rgba(155, 138, 189, 0.10);
-            --announcement-border: #d5cfe0;
+            --announcement-bg: rgba(155, 138, 189, 0.08);
+            --announcement-border: rgba(213, 207, 224, 0.3);
             --announcement-text: #3d3546;
+            /* 新增：虹彩 & 玻璃变量 */
+            --glass-blur: 24px;
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --glass-shadow: 0 8px 32px rgba(60, 30, 80, 0.10);
+            --iridescent-angle: 130deg;
+            --iridescent-speed: 12s;
+            --water-speed: 18s;
+            --silver-glow: rgba(220, 220, 240, 0.6);
         }
 
         [data-theme="dark"] {
             --bg: #1e1822;
-            --surface: #2a2330;
-            --surface2: #302836;
+            --surface: rgba(42, 35, 48, 0.6);
+            --surface2: rgba(48, 40, 54, 0.6);
             --text: #e2dae8;
             --text2: #b8a9c4;
             --text3: #8c7d9a;
-            --border: #453c4e;
+            --border: rgba(69, 60, 78, 0.4);
             --accent: #b8a2d6;
             --accent2: #9e8abf;
-            --tag-bg: #362f3e;
+            --tag-bg: rgba(54, 47, 62, 0.5);
             --tag-text: #c4b5d3;
             --tag-active-bg: #b8a2d6;
             --tag-active-text: #1e1822;
-            --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
-            --overlay: rgba(0, 0, 0, 0.75);
-            --card-hover: #302836;
-            --filter-bg: #221c26;
-            --modal-bg: #2a2330;
-            --input-bg: #302836;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.5);
+            --overlay: rgba(0, 0, 0, 0.7);
+            --card-hover: rgba(48, 40, 54, 0.6);
+            --filter-bg: rgba(34, 28, 38, 0.6);
+            --modal-bg: rgba(42, 35, 48, 0.75);
+            --input-bg: rgba(48, 40, 54, 0.5);
             --danger: #e74c3c;
             --success: #6a9b6c;
             --scrollbar-thumb: #4a3d55;
@@ -88,22 +94,24 @@
             --logo-gradient: linear-gradient(135deg, #b8a2d6 0%, #9e8abf 100%);
             --view-tab-active: #b8a2d6;
             --view-tab-text: #1e1822;
-            --glass-bg-light: rgba(54, 47, 62, 0.6);
+            --glass-bg-light: rgba(54, 47, 62, 0.35);
             --coin-color: #f5b342;
             --sort-active-bg: #b8a2d6;
             --sort-active-text: #1e1822;
-            --sync-status-bg: #2a2330;
-            --glow-color: rgba(155, 138, 189, 0.10);
-            --glow-color2: rgba(125, 100, 160, 0.05);
+            --sync-status-bg: rgba(42, 35, 48, 0.5);
+            --glow-color: rgba(155, 138, 189, 0.08);
+            --glow-color2: rgba(125, 100, 160, 0.04);
             --gold: #f5a623;
-            --gold-glow: rgba(245, 166, 35, 0.2);
-            /* 渐变背景色（深色） */
+            --gold-glow: rgba(245, 166, 35, 0.15);
             --bg-gradient-start: #1a1520;
             --bg-gradient-end: #241e2b;
-            /* 公告栏（深色） */
-            --announcement-bg: rgba(184, 162, 214, 0.08);
-            --announcement-border: #453c4e;
+            --announcement-bg: rgba(184, 162, 214, 0.06);
+            --announcement-border: rgba(69, 60, 78, 0.3);
             --announcement-text: #e2dae8;
+            --glass-blur: 24px;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --silver-glow: rgba(120, 120, 160, 0.4);
         }
 
         /* ===== 基础样式 ===== */
@@ -115,7 +123,6 @@
 
         body {
             font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
-            /* 渐变背景 */
             background: linear-gradient(145deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             color: var(--text);
             transition: background .5s ease, color .3s;
@@ -123,6 +130,7 @@
             line-height: 1.6;
             overflow-x: hidden;
             background-attachment: fixed;
+            position: relative;
         }
 
         ::-webkit-scrollbar {
@@ -140,7 +148,146 @@
         }
 
         /* ================================================================
-           背景光晕（保留并增强）
+           ★ 新增：仿水面背景（水波纹 + 虹彩光晕）
+           ================================================================ */
+        .water-bg-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .water-bg-layer {
+            position: absolute;
+            inset: -20%;
+            background:
+                radial-gradient(ellipse at 30% 40%, rgba(155, 138, 189, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(125, 100, 160, 0.05) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 80%, rgba(200, 180, 220, 0.04) 0%, transparent 40%);
+            animation: waterFlow var(--water-speed) ease-in-out infinite alternate;
+            will-change: transform;
+        }
+
+        .water-bg-layer:nth-child(2) {
+            animation-duration: calc(var(--water-speed) * 1.3);
+            animation-delay: -3s;
+            background:
+                radial-gradient(ellipse at 60% 30%, rgba(180, 160, 200, 0.05) 0%, transparent 55%),
+                radial-gradient(ellipse at 20% 70%, rgba(140, 120, 170, 0.04) 0%, transparent 50%);
+            transform: scale(1.1);
+        }
+
+        .water-bg-layer:nth-child(3) {
+            animation-duration: calc(var(--water-speed) * 0.8);
+            animation-delay: -6s;
+            background:
+                radial-gradient(ellipse at 80% 20%, rgba(200, 185, 220, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 10% 90%, rgba(160, 140, 190, 0.03) 0%, transparent 50%);
+            transform: scale(1.2);
+        }
+
+        @keyframes waterFlow {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            25% {
+                transform: translate(1.5%, 1%) scale(1.02) rotate(0.5deg);
+            }
+            50% {
+                transform: translate(-1%, 2%) scale(0.98) rotate(-0.3deg);
+            }
+            75% {
+                transform: translate(2%, -1%) scale(1.01) rotate(0.4deg);
+            }
+            100% {
+                transform: translate(-1.5%, -1.5%) scale(1.03) rotate(-0.2deg);
+            }
+        }
+
+        /* 水面高光条纹 */
+        .water-ripple {
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.015) 3%,
+                    transparent 6%,
+                    transparent 20%);
+            animation: rippleMove 14s linear infinite;
+            pointer-events: none;
+        }
+
+        .water-ripple:nth-child(4) {
+            transform: rotate(30deg) scale(1.5);
+            animation-duration: 22s;
+            animation-delay: -4s;
+            background:
+                repeating-linear-gradient(120deg,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.01) 4%,
+                    transparent 8%,
+                    transparent 25%);
+        }
+
+        @keyframes rippleMove {
+            0% {
+                transform: translateX(-30%) scale(1);
+            }
+            100% {
+                transform: translateX(30%) scale(1);
+            }
+        }
+
+        /* ================================================================
+           ★ 新增：虹彩反射叠加层（全局）
+           ================================================================ */
+        .iridescent-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.3;
+            background:
+                conic-gradient(from var(--iridescent-angle, 130deg) at 50% 50%,
+                    rgba(180, 140, 220, 0.08) 0%,
+                    rgba(100, 200, 255, 0.06) 25%,
+                    rgba(255, 180, 200, 0.08) 50%,
+                    rgba(200, 230, 150, 0.06) 75%,
+                    rgba(180, 140, 220, 0.08) 100%);
+            mix-blend-mode: overlay;
+            transition: opacity 0.8s ease;
+            will-change: transform;
+            animation: iridescentRotate var(--iridescent-speed) linear infinite;
+        }
+
+        @keyframes iridescentRotate {
+            0% {
+                --iridescent-angle: 0deg;
+            }
+            100% {
+                --iridescent-angle: 360deg;
+            }
+        }
+
+        /* 由于CSS无法直接动画自定义属性，用transform替代 */
+        .iridescent-overlay {
+            animation: iridescentSpin var(--iridescent-speed) linear infinite;
+        }
+
+        @keyframes iridescentSpin {
+            0% {
+                filter: hue-rotate(0deg) saturate(0.5);
+            }
+            100% {
+                filter: hue-rotate(360deg) saturate(0.5);
+            }
+        }
+
+        /* ================================================================
+           原有背景光晕（保留但减弱，与水波纹融合）
            ================================================================ */
         .bg-glow-container {
             position: fixed;
@@ -148,13 +295,14 @@
             pointer-events: none;
             z-index: 0;
             overflow: hidden;
+            opacity: 0.6;
         }
 
         .bg-glow {
             position: absolute;
             border-radius: 50%;
             filter: blur(120px);
-            opacity: 0.6;
+            opacity: 0.4;
             transition: transform 8s ease-in-out, opacity 4s ease-in-out;
             will-change: transform;
         }
@@ -185,14 +333,13 @@
             left: 50%;
             transform: translate(-50%, -50%);
             animation: floatGlow3 30s ease-in-out infinite alternate;
-            opacity: 0.3;
+            opacity: 0.2;
         }
 
         @keyframes floatGlow1 {
             0% {
                 transform: translate(0, 0) scale(1);
             }
-
             100% {
                 transform: translate(150px, 100px) scale(1.3);
             }
@@ -202,7 +349,6 @@
             0% {
                 transform: translate(0, 0) scale(1);
             }
-
             100% {
                 transform: translate(-100px, -80px) scale(1.4);
             }
@@ -212,14 +358,32 @@
             0% {
                 transform: translate(-50%, -50%) scale(1);
             }
-
             100% {
                 transform: translate(-40%, -60%) scale(1.6);
             }
         }
 
         /* ================================================================
-           返回顶部按钮
+           ★ 新增：玻璃质感通用类
+           ================================================================ */
+        .glass {
+            backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .glass-strong {
+            backdrop-filter: blur(32px) saturate(1.6);
+            -webkit-backdrop-filter: blur(32px) saturate(1.6);
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        /* ================================================================
+           返回顶部按钮（玻璃质感增强）
            ================================================================ */
         #backToTop {
             position: fixed;
@@ -228,10 +392,9 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: var(--accent);
             color: #fff;
-            border: none;
-            box-shadow: 0 4px 20px rgba(155, 138, 189, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 24px rgba(155, 138, 189, 0.3);
             font-size: 1.6rem;
             cursor: pointer;
             display: flex;
@@ -242,10 +405,9 @@
             opacity: 0;
             transform: translateY(20px) scale(0.8);
             pointer-events: none;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            background: rgba(155, 138, 189, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            background: rgba(155, 138, 189, 0.7);
             line-height: 1;
         }
 
@@ -258,7 +420,8 @@
         #backToTop:hover {
             transform: translateY(-4px) scale(1.08);
             background: var(--accent2);
-            box-shadow: 0 6px 30px rgba(155, 138, 189, 0.6);
+            box-shadow: 0 6px 32px rgba(155, 138, 189, 0.5);
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
         #backToTop:active {
@@ -274,43 +437,23 @@
             transform: translateY(-3px);
         }
 
-        /* 深色模式适配 */
         [data-theme="dark"] #backToTop {
-            background: rgba(184, 162, 214, 0.85);
-            box-shadow: 0 4px 20px rgba(184, 162, 214, 0.3);
+            background: rgba(184, 162, 214, 0.6);
+            box-shadow: 0 4px 24px rgba(184, 162, 214, 0.2);
         }
 
         [data-theme="dark"] #backToTop:hover {
             background: #9e8abf;
-            box-shadow: 0 6px 30px rgba(184, 162, 214, 0.5);
-        }
-
-        /* 响应式 */
-        @media (max-width: 768px) {
-            #backToTop {
-                bottom: 20px;
-                right: 20px;
-                width: 42px;
-                height: 42px;
-                font-size: 1.3rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #backToTop {
-                bottom: 16px;
-                right: 16px;
-                width: 38px;
-                height: 38px;
-                font-size: 1.1rem;
-            }
+            box-shadow: 0 6px 32px rgba(184, 162, 214, 0.4);
         }
 
         /* ================================================================
-           公告栏（新增）
+           公告栏（玻璃质感增强）
            ================================================================ */
         .announcement-bar {
             background: var(--announcement-bg);
+            backdrop-filter: blur(16px) saturate(1.3);
+            -webkit-backdrop-filter: blur(16px) saturate(1.3);
             border-bottom: 1.5px solid var(--announcement-border);
             padding: 10px 20px 10px 28px;
             display: flex;
@@ -320,8 +463,6 @@
             transition: all 0.4s ease;
             position: relative;
             z-index: 9;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
         }
 
         .announcement-bar.hidden {
@@ -353,11 +494,6 @@
             text-align: center;
         }
 
-        .announcement-bar .announcement-item .announcement-text {
-            flex: 1;
-            word-break: break-word;
-        }
-
         .announcement-bar .announcement-item .announcement-text strong {
             color: var(--accent);
             font-weight: 600;
@@ -368,78 +504,34 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            border: none;
-            background: transparent;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text3);
             cursor: pointer;
             font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.25s;
             margin-top: 2px;
             line-height: 1;
             padding: 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .announcement-bar .announcement-close:hover {
             background: var(--border);
             color: var(--text);
-            transform: rotate(90deg);
+            transform: rotate(90deg) scale(1.05);
         }
 
         .announcement-bar .announcement-close:active {
             transform: scale(0.85) rotate(90deg);
         }
 
-        /* 公告栏响应式 */
-        @media (max-width: 768px) {
-            .announcement-bar {
-                padding: 8px 12px 8px 16px;
-                gap: 10px;
-            }
-
-            .announcement-bar .announcement-item {
-                font-size: 0.78rem;
-                gap: 6px;
-            }
-
-            .announcement-bar .announcement-item .announcement-icon {
-                font-size: 0.85rem;
-                width: 18px;
-            }
-
-            .announcement-bar .announcement-close {
-                width: 26px;
-                height: 26px;
-                font-size: 0.95rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .announcement-bar {
-                padding: 6px 8px 6px 12px;
-            }
-
-            .announcement-bar .announcement-item {
-                font-size: 0.72rem;
-                gap: 4px;
-            }
-
-            .announcement-bar .announcement-item .announcement-icon {
-                font-size: 0.75rem;
-                width: 16px;
-            }
-
-            .announcement-bar .announcement-close {
-                width: 22px;
-                height: 22px;
-                font-size: 0.8rem;
-            }
-        }
-
         /* ================================================================
-           投稿按钮（新增）
+           投稿按钮（玻璃质感）
            ================================================================ */
         .submit-link {
             display: inline-flex;
@@ -449,11 +541,13 @@
             color: var(--accent);
             font-weight: 600;
             text-decoration: none;
-            padding: 4px 10px;
-            border-radius: 14px;
+            padding: 4px 12px;
+            border-radius: 20px;
             border: 1.5px solid var(--accent);
-            background: transparent;
-            transition: all 0.25s ease;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             white-space: nowrap;
             cursor: pointer;
             letter-spacing: 0.02em;
@@ -462,8 +556,9 @@
         .submit-link:hover {
             background: var(--accent);
             color: #fff;
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 4px 16px rgba(155, 138, 189, 0.3);
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 4px 20px rgba(155, 138, 189, 0.35);
+            border-color: var(--accent);
         }
 
         .submit-link:active {
@@ -475,39 +570,13 @@
             line-height: 1;
         }
 
-        /* 投稿按钮响应式 */
-        @media (max-width: 768px) {
-            .submit-link {
-                font-size: 0.65rem;
-                padding: 3px 8px;
-                border-radius: 12px;
-            }
-
-            .submit-link .submit-icon {
-                font-size: 0.75rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .submit-link {
-                font-size: 0.6rem;
-                padding: 2px 6px;
-                border-radius: 10px;
-                border-width: 1.2px;
-            }
-
-            .submit-link .submit-icon {
-                font-size: 0.7rem;
-            }
-        }
-
         /* ================================================================
-           其余原有样式（筛选栏、卡片、弹窗等）
+           筛选栏（玻璃质感）
            ================================================================ */
         .filter-sticky {
             background: var(--filter-bg);
-            backdrop-filter: blur(16px) saturate(1.2);
-            -webkit-backdrop-filter: blur(16px) saturate(1.2);
+            backdrop-filter: blur(20px) saturate(1.3);
+            -webkit-backdrop-filter: blur(20px) saturate(1.3);
             border-bottom: 1px solid var(--border);
             padding: 14px 20px 10px;
             box-shadow: var(--shadow);
@@ -595,8 +664,10 @@
             cursor: pointer;
             border: 1.5px solid var(--border);
             background: var(--surface);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
-            transition: all .2s;
+            transition: all .25s;
             user-select: none;
         }
 
@@ -619,6 +690,7 @@
         .view-tab:hover:not(.active) {
             border-color: var(--accent);
             color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
         }
 
         .search-row {
@@ -637,15 +709,18 @@
             display: flex;
             align-items: center;
             background: var(--surface);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border: 1.5px solid var(--border);
             border-radius: 24px;
-            transition: border-color .25s, box-shadow .25s;
+            transition: border-color .25s, box-shadow .25s, background .3s;
             padding: 0 14px;
         }
 
         .search-row .search-input-wrap:focus-within {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.18);
+            box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.12);
+            background: var(--surface);
         }
 
         .search-row .search-input-wrap .search-icon {
@@ -670,7 +745,7 @@
 
         .search-row .search-input-wrap input::placeholder {
             color: var(--text3);
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         .search-row .search-clear-btn {
@@ -686,7 +761,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background .2s, color .2s;
+            transition: background .2s, color .2s, transform .2s;
             padding: 0;
             line-height: 1;
             visibility: hidden;
@@ -701,6 +776,7 @@
         .search-row .search-clear-btn:hover {
             background: var(--border);
             color: var(--text);
+            transform: scale(1.1);
         }
 
         .filter-row {
@@ -715,23 +791,23 @@
             padding: 7px 15px;
             border-radius: 20px;
             border: 1.5px solid var(--border);
-            background: var(--surface);
+            background: var(--glass-bg-light);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
             cursor: pointer;
             font-size: .85rem;
-            transition: all .2s;
+            transition: all .25s;
             white-space: nowrap;
             user-select: none;
             font-weight: 500;
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            background: var(--glass-bg-light);
         }
 
         .filter-cat-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.15);
+            transform: translateY(-1px);
         }
 
         .filter-cat-btn.active {
@@ -739,13 +815,12 @@
             color: #fff;
             border-color: var(--accent);
             font-weight: 600;
-            backdrop-filter: blur(8px);
         }
 
         .filter-cat-btn.has-selection {
             border-color: var(--accent);
             color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(155, 138, 189, 0.2);
+            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.15);
         }
 
         .filter-options-panel {
@@ -755,6 +830,8 @@
             padding: 10px 16px;
             margin-top: 8px;
             background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: 12px;
             border: 1px solid var(--border);
             flex-wrap: wrap;
@@ -772,20 +849,21 @@
             border-radius: 14px;
             border: 1px solid var(--border);
             background: var(--glass-bg-light);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--tag-text);
             cursor: pointer;
             font-size: .78rem;
-            transition: all .18s;
+            transition: all .2s;
             white-space: nowrap;
             user-select: none;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
         }
 
         .filter-option-tag:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.2);
+            transform: scale(1.04);
         }
 
         .filter-option-tag.selected {
@@ -793,7 +871,6 @@
             color: var(--tag-active-text);
             border-color: var(--tag-active-bg);
             font-weight: 600;
-            backdrop-filter: blur(8px);
         }
 
         .active-filters-bar {
@@ -826,10 +903,12 @@
             margin-left: 2px;
             opacity: .8;
             font-size: .85rem;
+            transition: transform .2s;
         }
 
         .active-filter-chip .remove-chip:hover {
             opacity: 1;
+            transform: scale(1.3);
         }
 
         .clear-all-filters {
@@ -840,12 +919,16 @@
             font-weight: 500;
             text-decoration: underline;
             white-space: nowrap;
+            transition: opacity .2s;
         }
 
         .clear-all-filters:hover {
-            opacity: .8;
+            opacity: .7;
         }
 
+        /* ================================================================
+           工具栏（玻璃质感）
+           ================================================================ */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -873,8 +956,10 @@
             cursor: pointer;
             font-size: .82rem;
             font-weight: 500;
-            transition: all .2s;
+            transition: all .25s cubic-bezier(0.34, 1.56, 0.64, 1);
             background: var(--surface);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             white-space: nowrap;
         }
@@ -882,6 +967,12 @@
         .btn:hover {
             border-color: var(--accent);
             color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
         }
 
         .btn-accent {
@@ -894,6 +985,7 @@
             background: var(--accent2);
             border-color: var(--accent2);
             color: #fff;
+            transform: translateY(-2px) scale(1.02);
         }
 
         .btn-sm {
@@ -913,13 +1005,12 @@
             color: #fff;
             border-color: #f5b342;
             font-weight: 600;
-            box-shadow: 0 2px 12px rgba(245, 179, 66, 0.25);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 16px rgba(245, 179, 66, 0.2);
         }
 
         .btn-random:hover {
             transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 4px 24px rgba(245, 179, 66, 0.4);
+            box-shadow: 0 4px 28px rgba(245, 179, 66, 0.35);
             border-color: #f5a623;
             color: #fff;
         }
@@ -999,8 +1090,8 @@
             }
 
             50% {
-                transform: scale(1.4);
-                opacity: 0.5;
+                transform: scale(1.6);
+                opacity: 0.4;
             }
         }
 
@@ -1010,6 +1101,8 @@
             border-radius: 14px;
             overflow: hidden;
             border: 1.5px solid var(--border);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .sort-btn {
@@ -1020,7 +1113,7 @@
             border: none;
             background: var(--surface);
             color: var(--text2);
-            transition: all .2s;
+            transition: all .25s;
             white-space: nowrap;
         }
 
@@ -1046,14 +1139,16 @@
             border-radius: 50%;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            transition: all .2s;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all .3s;
             line-height: 1;
         }
 
         .theme-toggle:hover {
             border-color: var(--accent);
             background: var(--card-hover);
-            transform: rotate(30deg);
+            transform: rotate(30deg) scale(1.05);
         }
 
         .watermark {
@@ -1092,12 +1187,10 @@
             0% {
                 transform: scale(1);
             }
-
             50% {
-                transform: scale(1.4);
+                transform: scale(1.5);
                 color: var(--accent);
             }
-
             100% {
                 transform: scale(1);
             }
@@ -1110,7 +1203,9 @@
             border-radius: 50%;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            transition: all .25s;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all .3s cubic-bezier(0.34, 1.56, 0.64, 1);
             line-height: 1;
             color: var(--coin-color);
             display: inline-flex;
@@ -1125,7 +1220,7 @@
             border-color: var(--coin-color);
             background: rgba(245, 179, 66, 0.12);
             transform: scale(1.08) rotate(-8deg);
-            box-shadow: 0 0 16px rgba(245, 179, 66, 0.25);
+            box-shadow: 0 0 24px rgba(245, 179, 66, 0.2);
         }
 
         .coin-tip-btn:active {
@@ -1138,14 +1233,18 @@
             gap: 4px;
             font-size: 0.65rem;
             color: var(--text3);
-            padding: 2px 8px;
-            border-radius: 8px;
+            padding: 2px 10px;
+            border-radius: 10px;
             background: var(--sync-status-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             white-space: nowrap;
+            border: 1px solid var(--border);
         }
 
         .sync-status.synced {
             color: var(--success);
+            border-color: rgba(93, 138, 94, 0.3);
         }
 
         .sync-status.syncing {
@@ -1155,6 +1254,7 @@
 
         .sync-status.error {
             color: var(--danger);
+            border-color: rgba(192, 57, 43, 0.3);
         }
 
         @keyframes pulse {
@@ -1169,7 +1269,9 @@
             }
         }
 
-        /* ===== 游戏卡片 ===== */
+        /* ================================================================
+           ★ 新增：卡片玻璃质感 + 虹彩反射 + 银白色光效
+           ================================================================ */
         .gallery-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -1181,30 +1283,34 @@
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 18px;
+            gap: 20px;
         }
 
         .gallery-card {
             background: var(--surface);
-            border-radius: 16px;
+            backdrop-filter: blur(16px) saturate(1.3);
+            -webkit-backdrop-filter: blur(16px) saturate(1.3);
+            border-radius: 18px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
             display: flex;
             flex-direction: column;
             perspective: var(--card-perspective);
             transform-style: preserve-3d;
             opacity: 0;
-            transform: translateY(30px) scale(0.96);
-            transition: opacity 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
-                transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.4s ease,
-                border-color 0.3s ease,
-                background 0.3s ease;
+            transform: translateY(40px) scale(0.96);
+            transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.5s ease,
+                border-color 0.4s ease,
+                background 0.4s ease;
             will-change: transform, opacity;
             position: relative;
+            /* 银白色光效默认状态 */
+            --silver-intensity: 0;
         }
 
         .gallery-card.visible {
@@ -1213,22 +1319,94 @@
         }
 
         .gallery-card:hover {
-            transform: translateY(-6px) scale(1.01);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-8px) scale(1.015);
+            box-shadow: var(--shadow-lg), 0 0 40px rgba(155, 138, 189, 0.08);
             border-color: var(--accent);
             background: var(--card-hover);
+            /* 悬停时银白色光效增强 */
+            --silver-intensity: 0.3;
+        }
+
+        /* ★ 银白色光效：使用伪元素 + box-shadow */
+        .gallery-card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 18px;
+            padding: 1.5px;
+            background: conic-gradient(from var(--iridescent-angle, 130deg),
+                    transparent 0%,
+                    var(--silver-glow) 20%,
+                    transparent 40%,
+                    var(--silver-glow) 60%,
+                    transparent 80%,
+                    transparent 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: calc(0.15 + var(--silver-intensity, 0) * 0.7);
+            transition: opacity 0.6s ease;
+            z-index: 0;
+            animation: iridescentBorder 8s linear infinite;
+        }
+
+        @keyframes iridescentBorder {
+            0% {
+                --iridescent-angle: 0deg;
+            }
+            100% {
+                --iridescent-angle: 360deg;
+            }
+        }
+
+        /* 由于CSS无法直接动画自定义属性，用filter替代 */
+        .gallery-card::before {
+            animation: borderIridescent 10s linear infinite;
+        }
+
+        @keyframes borderIridescent {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        /* ★ 虹彩反射层（卡片内部） */
+        .gallery-card .card-iridescent {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.2;
+            background:
+                conic-gradient(from var(--iridescent-angle, 130deg) at var(--shine-x, 50%) var(--shine-y, 50%),
+                    rgba(180, 140, 220, 0.06) 0%,
+                    rgba(100, 200, 255, 0.04) 25%,
+                    rgba(255, 180, 200, 0.06) 50%,
+                    rgba(200, 230, 150, 0.04) 75%,
+                    rgba(180, 140, 220, 0.06) 100%);
+            mix-blend-mode: overlay;
+            transition: opacity 0.6s ease;
+        }
+
+        .gallery-card:hover .card-iridescent {
+            opacity: 0.4;
         }
 
         .gallery-card .card-shine {
             position: absolute;
             inset: 0;
-            border-radius: 16px;
+            border-radius: 18px;
             pointer-events: none;
             background: radial-gradient(circle at var(--shine-x, 50%) var(--shine-y, 50%),
-                    rgba(255, 255, 255, 0.12) 0%,
+                    rgba(255, 255, 255, 0.15) 0%,
                     transparent 60%);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
             z-index: 1;
             mix-blend-mode: overlay;
         }
@@ -1239,33 +1417,61 @@
 
         [data-theme="dark"] .gallery-card .card-shine {
             background: radial-gradient(circle at var(--shine-x, 50%) var(--shine-y, 50%),
-                    rgba(255, 255, 255, 0.06) 0%,
+                    rgba(255, 255, 255, 0.08) 0%,
                     transparent 60%);
+        }
+
+        /* ★ 银白色光效 - 鼠标移出时触发闪烁 */
+        .gallery-card.silver-flash::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            background: radial-gradient(circle at center,
+                    rgba(220, 220, 255, 0.6) 0%,
+                    rgba(200, 200, 240, 0.2) 30%,
+                    transparent 70%);
+            pointer-events: none;
+            z-index: 5;
+            animation: silverFlash 0.6s ease-out forwards;
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes silverFlash {
+            0% {
+                opacity: 1;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.4);
+            }
         }
 
         .gallery-card.highlight {
             animation: highlightPulse 1.2s ease 3;
             border-color: var(--accent);
-            box-shadow: 0 0 40px rgba(155, 138, 189, 0.4);
-            transform: scale(1.02);
+            box-shadow: 0 0 50px rgba(155, 138, 189, 0.25);
+            transform: scale(1.03);
             z-index: 5;
+            --silver-intensity: 0.5;
         }
 
         [data-theme="dark"] .gallery-card.highlight {
-            box-shadow: 0 0 40px rgba(155, 138, 189, 0.25);
+            box-shadow: 0 0 50px rgba(155, 138, 189, 0.15);
         }
 
         @keyframes highlightPulse {
 
             0%,
             100% {
-                box-shadow: 0 0 20px rgba(155, 138, 189, 0.2);
-                transform: scale(1.02);
+                box-shadow: 0 0 20px rgba(155, 138, 189, 0.15);
+                transform: scale(1.03);
             }
 
             50% {
-                box-shadow: 0 0 60px rgba(155, 138, 189, 0.5);
-                transform: scale(1.06);
+                box-shadow: 0 0 60px rgba(155, 138, 189, 0.35);
+                transform: scale(1.07);
             }
         }
 
@@ -1276,6 +1482,7 @@
             overflow: hidden;
             background: var(--tag-bg);
             flex-shrink: 0;
+            z-index: 2;
         }
 
         .gallery-card .card-cover {
@@ -1284,9 +1491,13 @@
             object-fit: cover;
             display: block;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.6s ease, transform 0.6s ease;
             position: relative;
             z-index: 2;
+        }
+
+        .gallery-card:hover .card-cover {
+            transform: scale(1.03);
         }
 
         .gallery-card .card-cover.loaded {
@@ -1349,17 +1560,16 @@
             padding: 2px 7px;
             border-radius: 10px;
             background: var(--glass-bg-light);
-            color: var(--tag-text);
-            white-space: nowrap;
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
+            color: var(--tag-text);
+            white-space: nowrap;
         }
 
         .gallery-card .card-meta span.accent-tag {
             background: var(--accent);
             color: #fff;
             font-weight: 500;
-            backdrop-filter: blur(6px);
         }
 
         .gallery-card .card-user-actions {
@@ -1384,8 +1594,10 @@
             border: 1.5px solid var(--border);
             cursor: pointer;
             background: var(--surface);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
-            transition: all .2s;
+            transition: all .25s;
             user-select: none;
             font-weight: 500;
         }
@@ -1393,6 +1605,7 @@
         .gallery-card .card-user-actions .action-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
+            transform: scale(1.04);
         }
 
         .gallery-card .card-user-actions .action-btn.active-wish {
@@ -1428,13 +1641,16 @@
             border: 1px solid var(--border);
             cursor: pointer;
             background: var(--surface);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text2);
-            transition: all .15s;
+            transition: all .2s;
         }
 
         .gallery-card .card-admin-actions button:hover {
             border-color: var(--accent);
             color: var(--accent);
+            transform: scale(1.04);
         }
 
         .gallery-card .card-admin-actions button.btn-del:hover {
@@ -1454,88 +1670,73 @@
         .gallery-card:nth-child(1) {
             transition-delay: 0.02s;
         }
-
         .gallery-card:nth-child(2) {
             transition-delay: 0.04s;
         }
-
         .gallery-card:nth-child(3) {
             transition-delay: 0.06s;
         }
-
         .gallery-card:nth-child(4) {
             transition-delay: 0.08s;
         }
-
         .gallery-card:nth-child(5) {
             transition-delay: 0.10s;
         }
-
         .gallery-card:nth-child(6) {
             transition-delay: 0.12s;
         }
-
         .gallery-card:nth-child(7) {
             transition-delay: 0.14s;
         }
-
         .gallery-card:nth-child(8) {
             transition-delay: 0.16s;
         }
-
         .gallery-card:nth-child(9) {
             transition-delay: 0.18s;
         }
-
         .gallery-card:nth-child(10) {
             transition-delay: 0.20s;
         }
-
         .gallery-card:nth-child(11) {
             transition-delay: 0.22s;
         }
-
         .gallery-card:nth-child(12) {
             transition-delay: 0.24s;
         }
-
         .gallery-card:nth-child(13) {
             transition-delay: 0.26s;
         }
-
         .gallery-card:nth-child(14) {
             transition-delay: 0.28s;
         }
-
         .gallery-card:nth-child(15) {
             transition-delay: 0.30s;
         }
-
         .gallery-card:nth-child(16) {
             transition-delay: 0.32s;
         }
-
         .gallery-card:nth-child(17) {
             transition-delay: 0.34s;
         }
-
         .gallery-card:nth-child(18) {
             transition-delay: 0.36s;
         }
-
         .gallery-card:nth-child(19) {
             transition-delay: 0.38s;
         }
-
         .gallery-card:nth-child(20) {
             transition-delay: 0.40s;
         }
 
-        /* ===== 弹窗 ===== */
+        /* ================================================================
+           弹窗（玻璃质感增强）
+           ================================================================ */
         .modal-overlay {
             position: fixed;
             inset: 0;
             background: var(--overlay);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 200;
             display: flex;
             align-items: center;
@@ -1543,9 +1744,7 @@
             padding: 20px;
             opacity: 0;
             pointer-events: none;
-            transition: opacity .3s;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            transition: opacity .4s ease;
         }
 
         .modal-overlay.show {
@@ -1555,17 +1754,19 @@
 
         .modal {
             background: var(--modal-bg);
-            border-radius: 20px;
+            backdrop-filter: blur(32px) saturate(1.5);
+            -webkit-backdrop-filter: blur(32px) saturate(1.5);
+            border-radius: 24px;
             max-width: 800px;
             width: 100%;
             max-height: 85vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
             position: relative;
             padding: 28px 24px;
-            transform: scale(0.96) translateY(10px);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.96) translateY(20px);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .modal-overlay.show .modal {
@@ -1580,7 +1781,9 @@
             cursor: pointer;
             color: var(--text2);
             z-index: 10;
-            background: var(--modal-bg);
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -1588,7 +1791,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid var(--border);
-            transition: all .2s;
+            transition: all .3s;
             margin-left: 8px;
             margin-bottom: 4px;
         }
@@ -1596,16 +1799,17 @@
         .modal-close:hover {
             color: var(--danger);
             border-color: var(--danger);
-            transform: rotate(90deg);
+            transform: rotate(90deg) scale(1.05);
         }
 
         .modal .detail-cover {
             width: 100%;
             max-height: 300px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 16px;
             background: var(--tag-bg);
+            border: 1px solid var(--border);
         }
 
         .modal .detail-title {
@@ -1636,9 +1840,9 @@
             padding: 4px 10px;
             border-radius: 12px;
             background: var(--glass-bg-light);
-            color: var(--tag-text);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
+            color: var(--tag-text);
         }
 
         .modal .detail-info-table {
@@ -1683,22 +1887,27 @@
         }
 
         .modal .detail-screenshots img:hover {
-            transform: scale(1.03);
+            transform: scale(1.04);
         }
 
         .modal .detail-video-link {
             display: inline-block;
             padding: 6px 14px;
             background: var(--tag-bg);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             border-radius: 14px;
             color: var(--accent);
             text-decoration: none;
             font-size: .8rem;
             margin: 3px;
+            transition: all .2s;
         }
 
         .modal .detail-video-link:hover {
             text-decoration: underline;
+            background: var(--accent);
+            color: #fff;
         }
 
         .modal .detail-link-btn {
@@ -1711,13 +1920,13 @@
             font-weight: 600;
             font-size: .85rem;
             margin: 4px;
-            transition: all .2s;
+            transition: all .25s;
         }
 
         .modal .detail-link-btn:hover {
             background: var(--accent2);
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(155, 138, 189, 0.3);
+            box-shadow: 0 4px 20px rgba(155, 138, 189, 0.3);
         }
 
         /* 成就弹窗 */
@@ -1746,13 +1955,15 @@
             border-radius: 12px;
             border: 1.5px solid var(--border);
             background: var(--surface);
-            transition: all .2s;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all .25s;
         }
 
         .achievement-item.unlocked {
             border-color: var(--gold);
             background: rgba(245, 166, 35, 0.06);
-            box-shadow: 0 0 20px var(--gold-glow);
+            box-shadow: 0 0 30px var(--gold-glow);
         }
 
         .achievement-item .ach-icon {
@@ -1800,6 +2011,8 @@
             padding: 14px 16px;
             border-radius: 12px;
             background: var(--surface2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border: 1px solid var(--border);
             text-align: center;
         }
@@ -1862,6 +2075,8 @@
             border-radius: 10px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             font-size: .95rem;
             font-family: inherit;
@@ -1872,7 +2087,7 @@
         .key-input-group input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.15);
+            box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.12);
         }
 
         .key-input-group button {
@@ -1884,11 +2099,12 @@
             font-weight: 600;
             cursor: pointer;
             font-size: .95rem;
-            transition: background .2s;
+            transition: all .25s;
         }
 
         .key-input-group button:hover {
             background: var(--accent2);
+            transform: scale(1.04);
         }
 
         .key-error {
@@ -1934,10 +2150,12 @@
             border-radius: 8px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             font-size: .82rem;
             font-family: inherit;
-            transition: border-color .2s;
+            transition: border-color .2s, box-shadow .2s;
         }
 
         .form-group input:focus,
@@ -1945,6 +2163,7 @@
         .form-group textarea:focus {
             outline: none;
             border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.08);
         }
 
         .form-group textarea {
@@ -2001,11 +2220,11 @@
             cursor: pointer;
             font-size: .75rem;
             background: var(--glass-bg-light);
-            color: var(--tag-text);
-            user-select: none;
-            transition: all .15s;
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
+            color: var(--tag-text);
+            user-select: none;
+            transition: all .2s;
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -2016,11 +2235,11 @@
             color: #fff;
             border-color: var(--accent);
             font-weight: 600;
-            backdrop-filter: blur(6px);
         }
 
         .tag-select-panel .tag-option:hover {
             border-color: var(--accent);
+            transform: scale(1.04);
         }
 
         .tag-select-panel .tag-option .del-tag-btn {
@@ -2053,6 +2272,8 @@
             border-radius: 8px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text);
             font-size: .75rem;
         }
@@ -2060,6 +2281,8 @@
         .smart-paste-area {
             margin-bottom: 14px;
             background: var(--surface2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 12px;
             border-radius: 10px;
             border: 1px dashed var(--border);
@@ -2093,7 +2316,7 @@
             }
 
             50% {
-                transform: translateY(-10px);
+                transform: translateY(-12px);
             }
         }
 
@@ -2103,11 +2326,13 @@
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background: var(--glass-bg-light);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
             color: var(--text);
-            padding: 14px 28px;
-            border-radius: 16px;
-            border: 1px solid var(--accent);
-            box-shadow: var(--shadow-lg);
+            padding: 16px 32px;
+            border-radius: 18px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             z-index: 999;
             font-size: 1rem;
             font-weight: 600;
@@ -2115,8 +2340,6 @@
             text-align: center;
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
             opacity: 0;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
         }
 
         .toast-notification.show {
@@ -2127,15 +2350,32 @@
         .toast-notification.achievement-toast {
             border-color: var(--gold);
             background: rgba(245, 166, 35, 0.12);
-            box-shadow: 0 0 40px var(--gold-glow);
+            box-shadow: 0 0 50px var(--gold-glow);
             font-size: 1.05rem;
         }
 
-        /* ===== 响应式 ===== */
+        /* ================================================================
+           ★ 新增：滚动触发动画（视差 + 渐入）
+           ================================================================ */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px) scale(0.97);
+            transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* ================================================================
+           响应式
+           ================================================================ */
         @media (max-width: 768px) {
             .gallery-grid {
                 grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 10px;
+                gap: 12px;
             }
 
             .filter-sticky {
@@ -2210,7 +2450,7 @@
             .modal {
                 padding: 16px 12px;
                 max-height: 90vh;
-                border-radius: 12px;
+                border-radius: 16px;
             }
 
             .modal .detail-title {
@@ -2292,7 +2532,7 @@
             }
 
             .gallery-card {
-                border-radius: 12px;
+                border-radius: 14px;
             }
 
             .btn-random {
@@ -2333,6 +2573,28 @@
                 font-size: 1.4rem;
                 width: 34px;
             }
+
+            .submit-link {
+                font-size: 0.65rem;
+                padding: 3px 8px;
+                border-radius: 12px;
+            }
+
+            .submit-link .submit-icon {
+                font-size: 0.75rem;
+            }
+
+            .gallery-card .card-iridescent {
+                opacity: 0.1;
+            }
+
+            .gallery-card:hover .card-iridescent {
+                opacity: 0.25;
+            }
+
+            .iridescent-overlay {
+                opacity: 0.15;
+            }
         }
 
         @media (max-width: 480px) {
@@ -2348,13 +2610,78 @@
             .btn-random .dice-icon {
                 font-size: 0.9rem;
             }
+
+            .submit-link {
+                font-size: 0.6rem;
+                padding: 2px 6px;
+                border-radius: 10px;
+                border-width: 1.2px;
+            }
+
+            .submit-link .submit-icon {
+                font-size: 0.7rem;
+            }
+
+            .announcement-bar {
+                padding: 6px 8px 6px 12px;
+            }
+
+            .announcement-bar .announcement-item {
+                font-size: 0.72rem;
+                gap: 4px;
+            }
+
+            .announcement-bar .announcement-item .announcement-icon {
+                font-size: 0.75rem;
+                width: 16px;
+            }
+
+            .announcement-bar .announcement-close {
+                width: 22px;
+                height: 22px;
+                font-size: 0.8rem;
+            }
+
+            .gallery-card {
+                border-radius: 12px;
+            }
+
+            .gallery-card::before {
+                border-radius: 12px;
+            }
+
+            .gallery-card .card-iridescent {
+                border-radius: 12px;
+            }
+
+            .gallery-card .card-shine {
+                border-radius: 12px;
+            }
+
+            .gallery-card.silver-flash::after {
+                border-radius: 14px;
+            }
         }
     </style>
 </head>
 
 <body data-theme="light">
 
-    <!-- 背景光晕 -->
+    <!-- ================================================================
+    ★ 新增：仿水面背景层
+    ================================================================ -->
+    <div class="water-bg-container" aria-hidden="true">
+        <div class="water-bg-layer"></div>
+        <div class="water-bg-layer"></div>
+        <div class="water-bg-layer"></div>
+        <div class="water-ripple"></div>
+        <div class="water-ripple"></div>
+    </div>
+
+    <!-- ★ 新增：虹彩反射叠加层 -->
+    <div class="iridescent-overlay" aria-hidden="true"></div>
+
+    <!-- 原有背景光晕（保留，调整透明度） -->
     <div class="bg-glow-container" aria-hidden="true">
         <div class="bg-glow g1"></div>
         <div class="bg-glow g2"></div>
@@ -2365,6 +2692,21 @@
     <button id="backToTop" aria-label="返回顶部" title="返回顶部">
         <span class="arrow">↑</span>
     </button>
+
+    <!-- ===== 公告栏 ===== -->
+    <div class="announcement-bar" id="announcementBar">
+        <div class="announcement-content">
+            <div class="announcement-item">
+                <span class="announcement-icon">📢</span>
+                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
+            </div>
+            <div class="announcement-item">
+                <span class="announcement-icon">💾</span>
+                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和“玩过”标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
+            </div>
+        </div>
+        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
+    </div>
 
     <!-- ===== 筛选栏 ===== -->
     <div class="filter-sticky" id="filterSticky">
@@ -2392,23 +2734,6 @@
         <div class="filter-row" id="filterCategoryRow"></div>
         <div class="filter-options-panel" id="filterOptionsPanel"></div>
         <div class="active-filters-bar" id="activeFiltersBar"></div>
-    </div>
-
-    <!-- ================================================================ -->
-    <!-- 新增：公告栏 -->
-    <!-- ================================================================ -->
-    <div class="announcement-bar" id="announcementBar">
-        <div class="announcement-content">
-            <div class="announcement-item">
-                <span class="announcement-icon">📢</span>
-                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
-            </div>
-            <div class="announcement-item">
-                <span class="announcement-icon">💾</span>
-                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和“玩过”标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
-            </div>
-        </div>
-        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
     </div>
 
     <!-- ===== 工具栏 ===== -->
@@ -2445,7 +2770,6 @@
 
         <div style="display: flex; align-items: center; gap: 6px;">
             <span class="watermark">制作者 by Mega比格犬</span>
-            <!-- ===== 新增：投稿按钮 ===== -->
             <a href="https://gcn7znx9qc0z.feishu.cn/share/base/form/shrcnGpkv97cNzBIz73NCyDhFyd" target="_blank"
                 rel="noopener noreferrer" class="submit-link" title="我要投稿，推荐你喜欢的女性主角游戏">
                 <span class="submit-icon">📝</span> 我要投稿
@@ -2502,16 +2826,16 @@
                 感谢姊妹支持，你的鼓励是我持续更新网站的动力。
             </p>
             <div
-                style="background: var(--surface2); border-radius: 16px; padding: 24px 20px; border: 2px solid var(--accent); text-align: center;">
+                style="background: var(--surface2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 16px; padding: 24px 20px; border: 2px solid var(--accent); text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 8px;">⚡</div>
                 <h3 style="color: var(--text); margin-bottom: 6px; font-size: 1.1rem;">爱发电 · 订阅支持</h3>
                 <p style="color: var(--text2); font-size: 0.85rem; margin-bottom: 16px;">
                     选择你的发电方案，助力女性主角游戏持续更新
                 </p>
                 <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer"
-                    style="display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all .2s;"
-                    onmouseover="this.style.background='var(--accent2)'"
-                    onmouseout="this.style.background='var(--accent)'">
+                    style="display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all .25s;"
+                    onmouseover="this.style.background='var(--accent2)'; this.style.transform='scale(1.04)'"
+                    onmouseout="this.style.background='var(--accent)'; this.style.transform='scale(1)'">
                     🔗 前往支持
                 </a>
                 <p style="color: var(--text3); font-size: 0.7rem; margin-top: 14px;">
@@ -2590,6 +2914,108 @@
             let userData = { wishlist: [], played: [], achievements: [] };
 
             // ================================================================
+            // ★ 新增：鼠标跟随视差 & 银白色光效增强
+            // ================================================================
+            let mouseX = 0.5,
+                mouseY = 0.5;
+            let isMouseOnPage = false;
+
+            function initMouseTracking() {
+                document.addEventListener('mousemove', function (e) {
+                    const w = window.innerWidth,
+                        h = window.innerHeight;
+                    mouseX = e.clientX / w;
+                    mouseY = e.clientY / h;
+                    isMouseOnPage = true;
+
+                    // 更新虹彩叠加层角度跟随鼠标
+                    const overlay = document.querySelector('.iridescent-overlay');
+                    if (overlay) {
+                        const angle = (mouseX * 360 + mouseY * 180) % 360;
+                        overlay.style.setProperty('--iridescent-angle', angle + 'deg');
+                    }
+
+                    // 更新水波纹层跟随鼠标（轻微偏移）
+                    const layers = document.querySelectorAll('.water-bg-layer');
+                    layers.forEach((layer, i) => {
+                        const speed = 0.02 + i * 0.01;
+                        const x = (mouseX - 0.5) * 30 * speed;
+                        const y = (mouseY - 0.5) * 30 * speed;
+                        layer.style.transform = `translate(${x}px, ${y}px) scale(${1 + (i * 0.02)})`;
+                    });
+                });
+
+                document.addEventListener('mouseleave', function () {
+                    isMouseOnPage = false;
+                    // 鼠标离开页面时，平滑恢复
+                    const layers = document.querySelectorAll('.water-bg-layer');
+                    layers.forEach((layer) => {
+                        layer.style.transition = 'transform 1.2s ease-out';
+                        layer.style.transform = 'translate(0, 0) scale(1)';
+                        setTimeout(() => { layer.style.transition = ''; }, 1300);
+                    });
+                });
+            }
+
+            // ★ 银白色光效触发：鼠标移出卡片时
+            function triggerSilverFlash(card) {
+                if (!card) return;
+                // 移除已有动画，重新触发
+                card.classList.remove('silver-flash');
+                void card.offsetWidth;
+                card.classList.add('silver-flash');
+                setTimeout(() => {
+                    card.classList.remove('silver-flash');
+                }, 700);
+            }
+
+            // ★ 滚动视差：页面滚动时背景层缓慢移动
+            function initScrollParallax() {
+                const bgLayers = document.querySelectorAll('.water-bg-layer');
+                const glowContainer = document.querySelector('.bg-glow-container');
+
+                window.addEventListener('scroll', function () {
+                    const scrollY = window.scrollY;
+                    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
+
+                    // 水波纹层随滚动微移
+                    bgLayers.forEach((layer, i) => {
+                        const speed = 0.08 + i * 0.04;
+                        const yOffset = progress * 80 * speed;
+                        layer.style.transform =
+                            `translateY(${yOffset}px) scale(${1 + (i * 0.02)})`;
+                    });
+
+                    // 光晕随滚动移动
+                    if (glowContainer) {
+                        const g1 = glowContainer.querySelector('.g1');
+                        const g2 = glowContainer.querySelector('.g2');
+                        const g3 = glowContainer.querySelector('.g3');
+                        if (g1) g1.style.transform = `translate(${progress * 30}px, ${progress * 20}px) scale(1.1)`;
+                        if (g2) g2.style.transform = `translate(${-progress * 25}px, ${-progress * 15}px) scale(1.2)`;
+                        if (g3) g3.style.transform =
+                            `translate(${-50 + progress * 20}%, ${-50 + progress * 15}%) scale(${1 + progress * 0.3})`;
+                    }
+                }, { passive: true });
+            }
+
+            // ★ 滚动触发展示动画（卡片以外的元素）
+            function initScrollReveal() {
+                const revealElements = document.querySelectorAll('.scroll-reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+                revealElements.forEach(el => observer.observe(el));
+            }
+
+            // ================================================================
             // 工具
             // ================================================================
             function escapeHTML(s) {
@@ -2603,7 +3029,7 @@
             }
 
             // ================================================================
-            // 自定义标签（纯内存 + localStorage，无异步陷阱）
+            // 自定义标签
             // ================================================================
             function loadCustomTagsFromStorage() {
                 try {
@@ -2638,7 +3064,6 @@
                 }
             }
 
-            // 新增：从 Supabase 拉取自定义标签
             async function loadCustomTagsFromSupabase() {
                 const client = getSupabase();
                 if (!client) return;
@@ -2662,8 +3087,6 @@
                         genres: customGenres,
                         gameplays: customGameplays
                     }));
-
-                    // 🆕 刷新筛选区
                     updateFilterUI();
                 } catch (_) { }
             }
@@ -2705,7 +3128,7 @@
             }
 
             // ================================================================
-            // 用户数据（愿望单 / 玩过 / 成就）
+            // 用户数据
             // ================================================================
             const USER_DATA_KEY = 'heroineUserData';
 
@@ -2816,43 +3239,43 @@
                 const progress = getAchievementProgress();
                 const playedCount = userData.played.length;
                 let html = `
-                        <div class="achievement-progress">
-                            <div class="progress-text">
-                                已解锁 <strong>${unlocked.length}</strong> / ${ACHIEVEMENTS.length} 项成就
-                                （已标记 <strong>${playedCount}</strong> 款游戏为玩过）
+                            <div class="achievement-progress">
+                                <div class="progress-text">
+                                    已解锁 <strong>${unlocked.length}</strong> / ${ACHIEVEMENTS.length} 项成就
+                                    （已标记 <strong>${playedCount}</strong> 款游戏为玩过）
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="fill" style="width: ${progress.percent}%;"></div>
+                                </div>
                             </div>
-                            <div class="progress-bar">
-                                <div class="fill" style="width: ${progress.percent}%;"></div>
-                            </div>
-                        </div>
-                        <div class="achievement-list">
-                    `;
+                            <div class="achievement-list">
+                        `;
                 unlocked.forEach(ach => {
                     html += `
-                            <div class="achievement-item unlocked">
-                                <div class="ach-icon">${ach.icon}</div>
-                                <div class="ach-info">
-                                    <div class="ach-name">${ach.name}</div>
-                                    <div class="ach-desc">${ach.desc}</div>
+                                <div class="achievement-item unlocked">
+                                    <div class="ach-icon">${ach.icon}</div>
+                                    <div class="ach-info">
+                                        <div class="ach-name">${ach.name}</div>
+                                        <div class="ach-desc">${ach.desc}</div>
+                                    </div>
+                                    <div class="ach-status unlocked">✅ 已解锁</div>
                                 </div>
-                                <div class="ach-status unlocked">✅ 已解锁</div>
-                            </div>
-                        `;
+                            `;
                 });
                 locked.forEach(ach => {
                     const isReachable = playedCount >= ach.threshold;
                     html += `
-                            <div class="achievement-item">
-                                <div class="ach-icon">${ach.icon}</div>
-                                <div class="ach-info">
-                                    <div class="ach-name" style="${isReachable ? 'color:var(--gold);' : ''}">${ach.name}</div>
-                                    <div class="ach-desc">${ach.desc}</div>
+                                <div class="achievement-item">
+                                    <div class="ach-icon">${ach.icon}</div>
+                                    <div class="ach-info">
+                                        <div class="ach-name" style="${isReachable ? 'color:var(--gold);' : ''}">${ach.name}</div>
+                                        <div class="ach-desc">${ach.desc}</div>
+                                    </div>
+                                    <div class="ach-status locked">
+                                        ${isReachable ? '🔓 可解锁' : '🔒 未解锁'}
+                                    </div>
                                 </div>
-                                <div class="ach-status locked">
-                                    ${isReachable ? '🔓 可解锁' : '🔒 未解锁'}
-                                </div>
-                            </div>
-                        `;
+                            `;
                 });
                 html += `</div>`;
                 container.innerHTML = html;
@@ -2871,7 +3294,7 @@
             }
 
             // ================================================================
-            // 数据加载（Supabase + 本地）
+            // 数据加载
             // ================================================================
             const STORAGE_KEY = 'heroineGamesDataV2';
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
@@ -2903,7 +3326,6 @@
                 if (!client) return null;
                 setSyncStatus('syncing');
                 try {
-                    // 排除自定义标签的特殊记录
                     const { data, error } = await client
                         .from(TABLE_NAME)
                         .select('*')
@@ -3067,7 +3489,7 @@
             }];
 
             async function loadGames() {
-                loadCustomTagsFromStorage(); // 先加载本地（兜底）
+                loadCustomTagsFromStorage();
 
                 if (SUPABASE_ENABLED && supabaseClient) {
                     try {
@@ -3075,30 +3497,37 @@
                         if (remote && remote.length > 0) {
                             games = remote;
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-
-                            // 🆕 从云端加载自定义标签，覆盖本地
-                            await loadCustomTagsFromSupabase();
-
-                            return games;
+                        } else {
+                            const local = localStorage.getItem(STORAGE_KEY);
+                            if (local) {
+                                try {
+                                    games = JSON.parse(local);
+                                    if (!games || games.length === 0) games = [];
+                                } catch (_) { games = []; }
+                            } else {
+                                games = [];
+                            }
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+                            if (supabaseClient) await saveToSupabase(games);
                         }
-                    } catch (_) {
-                        // 忽略
-                    }
+
+                        await loadCustomTagsFromSupabase();
+                        return games;
+                    } catch (_) {}
                 }
 
-                // fallback：本地存储或默认数据
                 const s = localStorage.getItem(STORAGE_KEY);
                 if (s) {
                     try {
                         games = JSON.parse(s);
                         if (games && games.length > 0) return games;
-                    } catch (_) { }
+                    } catch (_) {}
                 }
 
-                games = [...DEFAULT_GAMES];
+                games = [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                 if (SUPABASE_ENABLED && supabaseClient) {
-                    try { await saveToSupabase(games); } catch (_) { }
+                    try { await saveToSupabase(games); } catch (_) {}
                 }
                 return games;
             }
@@ -3117,7 +3546,7 @@
                         isAdminMode = d.isAdminMode || false;
                         currentView = d.currentView || 'released';
                         currentSort = d.currentSort || 'newest';
-                    } catch (_) { }
+                    } catch (_) {}
                 }
                 applyTheme();
                 updateViewTabs();
@@ -3193,7 +3622,7 @@
             }
 
             // ================================================================
-            // 视图、排序、搜索等（沿用）
+            // 视图、排序、搜索
             // ================================================================
             function switchView(view) {
                 if (currentView === view) return;
@@ -3497,7 +3926,7 @@
             function isEditor() { return isKeyVerified; }
 
             // ================================================================
-            // 渲染卡片（含懒加载、3D、愿望单/玩过）
+            // ★ 增强：渲染卡片（含虹彩反射 + 银白色光效）
             // ================================================================
             let cardObserver = null;
             let cardShineListeners = [];
@@ -3612,6 +4041,14 @@
                             togglePlayed(id);
                         });
                     }
+
+                    // ★ 银白色光效：鼠标移出卡片时触发
+                    card.addEventListener('mouseleave', function (e) {
+                        // 只有在鼠标真正移出卡片时才触发
+                        const related = e.relatedTarget;
+                        if (related && card.contains(related)) return;
+                        triggerSilverFlash(card);
+                    });
                 });
 
                 grid.querySelectorAll('.gallery-card').forEach(card => {
@@ -3660,7 +4097,7 @@
             }
 
             // ================================================================
-            // 3D 卡片效果
+            // 3D 卡片效果（增强版：融入虹彩反射）
             // ================================================================
             function setupCard3D(card) {
                 const old = cardShineListeners.find(item => item.el === card);
@@ -3710,6 +4147,11 @@
                         shine.style.setProperty('--shine-x', '50%');
                         shine.style.setProperty('--shine-y', '50%');
                     }
+                    const iri = card.querySelector('.card-iridescent');
+                    if (iri) {
+                        iri.style.setProperty('--shine-x', '50%');
+                        iri.style.setProperty('--shine-y', '50%');
+                    }
                 };
 
                 const leaveHandler = function () {
@@ -3719,17 +4161,30 @@
                         shine.style.setProperty('--shine-x', '50%');
                         shine.style.setProperty('--shine-y', '50%');
                     }
+                    const iri = card.querySelector('.card-iridescent');
+                    if (iri) {
+                        iri.style.setProperty('--shine-x', '50%');
+                        iri.style.setProperty('--shine-y', '50%');
+                    }
                 };
 
                 function applyTransform(el, x, y) {
-                    const rotateX = (y - 0.5) * 2 * -4;
-                    const rotateY = (x - 0.5) * 2 * 4;
+                    const rotateX = (y - 0.5) * 2 * -5;
+                    const rotateY = (x - 0.5) * 2 * 5;
+                    const perspective = getComputedStyle(el).getPropertyValue('--card-perspective') || '1200px';
                     el.style.transform =
-                        `translateY(-6px) scale(1.01) perspective(${getComputedStyle(el).getPropertyValue('--card-perspective') || '1000px'}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                        `translateY(-8px) scale(1.015) perspective(${perspective}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
                     const shine = el.querySelector('.card-shine');
                     if (shine) {
                         shine.style.setProperty('--shine-x', x * 100 + '%');
                         shine.style.setProperty('--shine-y', y * 100 + '%');
+                    }
+                    const iri = el.querySelector('.card-iridescent');
+                    if (iri) {
+                        iri.style.setProperty('--shine-x', x * 100 + '%');
+                        iri.style.setProperty('--shine-y', y * 100 + '%');
+                        const angle = (x * 360 + y * 180) % 360;
+                        iri.style.setProperty('--iridescent-angle', angle + 'deg');
                     }
                 }
 
@@ -3750,7 +4205,7 @@
             }
 
             // ================================================================
-            // 创建卡片 HTML
+            // 创建卡片 HTML（新增虹彩反射层）
             // ================================================================
             function createCardHTML(game) {
                 const inWish = isInWishlist(game.id);
@@ -3759,15 +4214,15 @@
                 let coverHTML = '';
                 if (game.cover) {
                     coverHTML = `
-                            <div class="card-cover-wrap">
-                                <img class="card-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" />
-                                <div class="card-cover-placeholder">🎮</div>
-                            </div>`;
+                                <div class="card-cover-wrap">
+                                    <img class="card-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" />
+                                    <div class="card-cover-placeholder">🎮</div>
+                                </div>`;
                 } else {
                     coverHTML = `
-                            <div class="card-cover-wrap">
-                                <div class="card-cover-placeholder" style="position:relative;z-index:2;">🎮</div>
-                            </div>`;
+                                <div class="card-cover-wrap">
+                                    <div class="card-cover-placeholder" style="position:relative;z-index:2;">🎮</div>
+                                </div>`;
                 }
 
                 let meta = '';
@@ -3796,26 +4251,28 @@
                 const playLabel = inPlay ? '已玩过' : '标记玩过';
 
                 const userActions = `
-                        <div class="card-user-actions">
-                            <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}">
-                                <span class="icon">${wishIcon}</span> ${wishLabel}
-                            </button>
-                            <button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}">
-                                <span class="icon">${playIcon}</span> ${playLabel}
-                            </button>
-                        </div>`;
+                            <div class="card-user-actions">
+                                <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}">
+                                    <span class="icon">${wishIcon}</span> ${wishLabel}
+                                </button>
+                                <button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}">
+                                    <span class="icon">${playIcon}</span> ${playLabel}
+                                </button>
+                            </div>`;
 
+                // ★ 新增虹彩反射层
                 return `<div class="gallery-card" data-game-id="${game.id}">
-                            <div class="card-shine"></div>
-                            ${coverHTML}
-                            <div class="card-body">
-                                <div class="card-title">${escapeHTML(game.title)}</div>
-                                <div class="card-desc">${escapeHTML(game.description || '')}</div>
-                                <div class="card-meta">${meta}${dateDisplay}</div>
-                            </div>
-                            ${userActions}
-                            ${admin}
-                        </div>`;
+                                <div class="card-iridescent"></div>
+                                <div class="card-shine"></div>
+                                ${coverHTML}
+                                <div class="card-body">
+                                    <div class="card-title">${escapeHTML(game.title)}</div>
+                                    <div class="card-desc">${escapeHTML(game.description || '')}</div>
+                                    <div class="card-meta">${meta}${dateDisplay}</div>
+                                </div>
+                                ${userActions}
+                                ${admin}
+                            </div>`;
             }
 
             // ================================================================
@@ -3840,26 +4297,26 @@
                 if (game.isReleased) {
                     rows =
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
-                                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
-                                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                                  <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
-                                  <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
-                                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
-                                  <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
-                                  <tr><td>🍎 Mac</td><td>${escapeHTML(game.hasMacSupport || '—')}</td></tr>
-                                  <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                                  <tr><td>⏱ 时长</td><td>${escapeHTML(game.mainStoryDuration || '—')}</td></tr>
-                                  <tr><td>💰 最低价</td><td>${escapeHTML(game.lowestPrice || '—')}</td></tr>`;
+                                      <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
+                                      <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                                      <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
+                                      <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
+                                      <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                                      <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                                      <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
+                                      <tr><td>🍎 Mac</td><td>${escapeHTML(game.hasMacSupport || '—')}</td></tr>
+                                      <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                                      <tr><td>⏱ 时长</td><td>${escapeHTML(game.mainStoryDuration || '—')}</td></tr>
+                                      <tr><td>💰 最低价</td><td>${escapeHTML(game.lowestPrice || '—')}</td></tr>`;
                 } else {
                     rows =
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
-                                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
-                                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
-                                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                                  <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                                  <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>`;
+                                      <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
+                                      <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                                      <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                                      <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                                      <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                                      <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>`;
                 }
 
                 let releaseDateBadge = '';
@@ -3891,17 +4348,17 @@
 
                 modal.innerHTML =
                     `<button class="modal-close" id="detailModalClose">✕</button>${cover}<div class="detail-title">${escapeHTML(game.title)}</div>${releaseDateBadge}
-                                <div style="display:flex;gap:16px;font-size:.85rem;color:var(--text2);margin:6px 0 12px;flex-wrap:wrap;">
-                                    <span>${wishStatus}</span>
-                                    <span>${playStatus}</span>
-                                </div>
-                                <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
-                                <table class="detail-info-table">${rows}</table>${screens}${videos}
-                                <div style="margin-top:14px;">${links.join(' ')}</div>
-                                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                    <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
-                                    <button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>
-                                </div>`;
+                                    <div style="display:flex;gap:16px;font-size:.85rem;color:var(--text2);margin:6px 0 12px;flex-wrap:wrap;">
+                                        <span>${wishStatus}</span>
+                                        <span>${playStatus}</span>
+                                    </div>
+                                    <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
+                                    <table class="detail-info-table">${rows}</table>${screens}${videos}
+                                    <div style="margin-top:14px;">${links.join(' ')}</div>
+                                    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                                        <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
+                                        <button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>
+                                    </div>`;
 
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
@@ -3984,46 +4441,46 @@
 
             function buildEditFormHTML(data, isNew) {
                 return `
-                                <button class="modal-close" id="editModalClose">✕</button>
-                                <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
-                                <div class="smart-paste-area">
-                                    <label style="font-weight:600;font-size:.82rem;color:var(--text2);">📋 智能粘贴识别</label>
-                                    <textarea id="efSmartPaste" placeholder="粘贴游戏描述文本，点击识别自动填充…"></textarea>
-                                    <button type="button" class="btn btn-sm" id="btnSmartParse" style="margin-top:6px;">🔍 智能识别</button>
-                                </div>
-                                <form id="editGameForm" onsubmit="return false;">
-                                    <div class="form-row"><div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div>
-                                    <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div></div>
-                                    <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
-                                    <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}">
-                                    <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
-                                    <div class="form-group"><label>封面URL</label><div style="display:flex;gap:8px;"><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}" style="flex:1;">
-                                    <input type="file" id="efCoverFile" accept="image/*" hidden><button type="button" class="btn btn-sm" id="btnUploadCover">📁 上传</button></div>
-                                    ${data.cover ? `<img src="${escapeHTML(data.cover)}" style="max-width:200px;max-height:100px;margin-top:6px;border-radius:6px;" id="coverPreview">` : ''}</div>
-                                    <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
-                                    <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
-                                    <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel"></div>
-                                    <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="新题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋ 添加</button></div></div>
-                                    <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel"></div>
-                                    <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="新玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋ 添加</button></div></div>
-                                    <div class="form-row"><div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p => `<option value="${escapeHTML(p)}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-                                    <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h => `<option value="${escapeHTML(h)}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
-                                    <div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
-                                    <div class="form-row" id="efChineseMacRow"><div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${CHINESE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-                                    <div class="form-group"><label>🍎 Mac</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div></div>
-                                    <div class="form-row"><div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无Demo</option><option value="1" ${data.hasDemo ? 'selected' : ''}>提供Demo</option></select></div>
-                                    <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div>
-                                    <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div></div>
-                                    <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')).map(p => `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
-                                    <div class="form-row"><div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div>
-                                    <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div></div>
-                                    <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label>
-                                    <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
-                                    <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
-                                    <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
-                                    <div style="display:flex;gap:10px;margin-top:16px;"><button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
-                                    <button type="button" class="btn" id="btnCancelEdit">取消</button></div>
-                                </form>`;
+                                    <button class="modal-close" id="editModalClose">✕</button>
+                                    <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
+                                    <div class="smart-paste-area">
+                                        <label style="font-weight:600;font-size:.82rem;color:var(--text2);">📋 智能粘贴识别</label>
+                                        <textarea id="efSmartPaste" placeholder="粘贴游戏描述文本，点击识别自动填充…"></textarea>
+                                        <button type="button" class="btn btn-sm" id="btnSmartParse" style="margin-top:6px;">🔍 智能识别</button>
+                                    </div>
+                                    <form id="editGameForm" onsubmit="return false;">
+                                        <div class="form-row"><div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div>
+                                        <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div></div>
+                                        <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
+                                        <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}">
+                                        <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
+                                        <div class="form-group"><label>封面URL</label><div style="display:flex;gap:8px;"><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}" style="flex:1;">
+                                        <input type="file" id="efCoverFile" accept="image/*" hidden><button type="button" class="btn btn-sm" id="btnUploadCover">📁 上传</button></div>
+                                        ${data.cover ? `<img src="${escapeHTML(data.cover)}" style="max-width:200px;max-height:100px;margin-top:6px;border-radius:6px;" id="coverPreview">` : ''}</div>
+                                        <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
+                                        <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
+                                        <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel"></div>
+                                        <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="新题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋ 添加</button></div></div>
+                                        <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel"></div>
+                                        <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="新玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋ 添加</button></div></div>
+                                        <div class="form-row"><div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p => `<option value="${escapeHTML(p)}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
+                                        <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h => `<option value="${escapeHTML(h)}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
+                                        <div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+                                        <div class="form-row" id="efChineseMacRow"><div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${CHINESE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                                        <div class="form-group"><label>🍎 Mac</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div></div>
+                                        <div class="form-row"><div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无Demo</option><option value="1" ${data.hasDemo ? 'selected' : ''}>提供Demo</option></select></div>
+                                        <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div>
+                                        <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div></div>
+                                        <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')).map(p => `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
+                                        <div class="form-row"><div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div>
+                                        <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div></div>
+                                        <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label>
+                                        <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
+                                        <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
+                                        <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
+                                        <div style="display:flex;gap:10px;margin-top:16px;"><button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
+                                        <button type="button" class="btn" id="btnCancelEdit">取消</button></div>
+                                    </form>`;
             }
 
             function refreshTagPanel(modal, panelId, field, options, selectedValues, defaultOptions) {
@@ -4288,7 +4745,7 @@
             }
 
             // ================================================================
-            // CSV 导入（沿用）
+            // CSV 导入
             // ================================================================
             function importCSV(file) {
                 if (!isEditor()) { alert('请先验证密钥以导入数据。'); return; }
@@ -4372,8 +4829,8 @@
             }
 
             function splitAndTrim(str) {
-                if (!str) return []; return str.split(',').map(s => s.trim()).filter(s => s
-                    .length > 0);
+                if (!str) return [];
+                return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
             }
 
             function mapPerspective(v) {
@@ -4413,7 +4870,7 @@
                     if (parts.length === 3) {
                         return `${parts[0].padStart(4, '0')}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
                     }
-                } catch (_) { }
+                } catch (_) {}
                 return d;
             }
 
@@ -4466,12 +4923,11 @@
             }
 
             // ================================================================
-            // 返回顶部逻辑
+            // 返回顶部
             // ================================================================
             function initBackToTop() {
                 const btn = document.getElementById('backToTop');
                 if (!btn) return;
-
                 window.addEventListener('scroll', function () {
                     if (window.scrollY > 400) {
                         btn.classList.add('show');
@@ -4479,7 +4935,6 @@
                         btn.classList.remove('show');
                     }
                 }, { passive: true });
-
                 btn.addEventListener('click', function (e) {
                     e.preventDefault();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4487,7 +4942,7 @@
             }
 
             // ================================================================
-            // 公告栏关闭逻辑（新增）
+            // 公告栏
             // ================================================================
             const ANNOUNCEMENT_STORAGE_KEY = 'heroineAnnouncementClosed';
 
@@ -4495,22 +4950,15 @@
                 const bar = document.getElementById('announcementBar');
                 const closeBtn = document.getElementById('announcementClose');
                 if (!bar || !closeBtn) return;
-
-                // 检查是否已被关闭
                 const isClosed = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY) === 'true';
                 if (isClosed) {
                     bar.classList.add('hidden');
                 }
-
                 closeBtn.addEventListener('click', function () {
                     bar.classList.add('hidden');
                     localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, 'true');
-                    // 触发一个自定义事件，以便其他模块可以感知（如果有需要）
                     document.dispatchEvent(new CustomEvent('announcementClosed'));
                 });
-
-                // 如果用户通过其他方式清除了 localStorage，可以在这里重置
-                // 但不需要主动重置，因为用户关闭后我们希望保持关闭状态
             }
 
             // ================================================================
@@ -4601,9 +5049,19 @@
                     if (e.target === this) closeAchievementModal();
                 });
 
-                // 投稿按钮已经用 <a> 标签实现，无需额外事件
-
                 updateFilterUI();
+            }
+
+            // ================================================================
+            // ★ 新增：窗口 resize 自适应
+            // ================================================================
+            function handleResize() {
+                // 水波纹层自适应
+                const layers = document.querySelectorAll('.water-bg-layer');
+                layers.forEach((layer, i) => {
+                    const scale = 1 + i * 0.05;
+                    layer.style.transform = `scale(${scale})`;
+                });
             }
 
             // ================================================================
@@ -4622,14 +5080,21 @@
                 updateAdminUI();
                 bindGlobalEvents();
                 renderGallery();
-                updateFilterUI();  // 确保最后再调用一次
+                updateFilterUI();
                 document.getElementById('siteTitle').textContent = '🎮 女性主角游戏';
                 updateAchievementDot();
 
                 initBackToTop();
                 initAnnouncementBar();
 
-                console.log('✅ Her Lens 初始化完成（含公告栏 + 投稿入口）');
+                // ★ 新增：初始化鼠标跟踪、视差、滚动揭示
+                initMouseTracking();
+                initScrollParallax();
+                initScrollReveal();
+
+                window.addEventListener('resize', handleResize);
+
+                console.log('✅ Her Lens 初始化完成（玻璃质感 + 虹彩反射 + 仿水面 + 银白色光效）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
