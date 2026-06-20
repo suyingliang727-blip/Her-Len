@@ -2342,8 +2342,8 @@
             // 筛选 UI
             // ================================================================
             function updateFilterUI() {
-                // === 🆕 每次刷新筛选区时，重新加载最新的自定义标签 ===
-                loadCustomTags();
+                // === 🆕 强制从 localStorage 加载最新的自定义标签 ===
+                loadCustomTags();  // 或者 loadCustomTagsFromSupabase();
                 const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
                 const row = document.getElementById('filterCategoryRow');
                 row.innerHTML = Object.entries(map).map(([cat, info]) => {
