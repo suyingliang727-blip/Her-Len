@@ -2362,6 +2362,36 @@
             }
         }
 
+        // 新增：从 Supabase 拉取自定义标签
+        async function loadCustomTagsFromSupabase() {
+            const client = getSupabase();
+            if (!client) return;
+            try {
+                const { data, error } = await client
+                    .from(TABLE_NAME)
+                    .select('*')
+                    .in('id', [999999, 999998]);
+
+                if (error || !data) return;
+
+                for (const row of data) {
+                    if (row.id === 999999 && row.genre) {
+                        customGenres = row.genre || [];
+                    }
+                    if (row.id === 999998 && row.genre) {
+                        customGameplays = row.genre || [];
+                    }
+                }
+                // 同步到 localStorage
+                localStorage.setItem('heroineCustomTags', JSON.stringify({
+                    genres: customGenres,
+                    gameplays: customGameplays
+                }));
+            } catch (_) {
+                // 静默失败，不影响主流程
+            }
+        }
+
         function getAllGenres() { return [...DEFAULT_GENRE_OPTIONS, ...customGenres]; }
 
         function getAllGameplays() { return [...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays]; }
@@ -2591,8 +2621,18 @@
             if (!client) return null;
             setSyncStatus('syncing');
             try {
-                const { data, error } = await client.from(TABLE_NAME).select('*').order('id', { ascending: true });
-                if (error) { setSyncStatus('error', error.message); return null; }
+                // 排除自定义标签的特殊记录
+                const { data, error } = await client
+                    .from(TABLE_NAME)
+                    .select('*')
+                    .neq('id', 999999)
+                    .neq('id', 999998)
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    setSyncStatus('error', error.message);
+                    return null;
+                }
                 if (data && data.length > 0) {
                     const parsed = data.map(row => ({
                         ...row,
@@ -2612,7 +2652,10 @@
                 }
                 setSyncStatus('synced');
                 return null;
-            } catch (e) { setSyncStatus('error', e.message || '网络异常'); return null; }
+            } catch (e) {
+                setSyncStatus('error', e.message || '网络异常');
+                return null;
+            }
         }
 
         async function saveToSupabase(gameList) {
@@ -2740,24 +2783,39 @@
         }];
 
         async function loadGames() {
-            loadCustomTagsFromStorage();
+            loadCustomTagsFromStorage(); // 先加载本地（兜底）
+
             if (SUPABASE_ENABLED && supabaseClient) {
                 try {
                     const remote = await loadFromSupabase();
                     if (remote && remote.length > 0) {
                         games = remote;
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+
+                        // 🆕 从云端加载自定义标签，覆盖本地
+                        await loadCustomTagsFromSupabase();
+
                         return games;
                     }
-                } catch (_) {}
+                } catch (_) {
+                    // 忽略
+                }
             }
+
+            // fallback：本地存储或默认数据
             const s = localStorage.getItem(STORAGE_KEY);
             if (s) {
-                try { games = JSON.parse(s); if (games && games.length > 0) return games; } catch (_) {}
+                try {
+                    games = JSON.parse(s);
+                    if (games && games.length > 0) return games;
+                } catch (_) {}
             }
+
             games = [...DEFAULT_GAMES];
             localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-            if (SUPABASE_ENABLED && supabaseClient) { try { await saveToSupabase(games); } catch (_) {} }
+            if (SUPABASE_ENABLED && supabaseClient) {
+                try { await saveToSupabase(games); } catch (_) {}
+            }
             return games;
         }
 
