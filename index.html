@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,6 +49,7 @@
             --sync-status-bg: #f1f0f3;
             --sync-status-text: #3d3546;
         }
+
         [data-theme="dark"] {
             --bg: #1e1822;
             --surface: #2a2330;
@@ -85,11 +87,13 @@
             --sync-status-bg: #2a2330;
             --sync-status-text: #e2dae8;
         }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
             background: var(--bg);
@@ -98,13 +102,16 @@
             min-height: 100vh;
             line-height: 1.6;
         }
+
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: var(--scrollbar-track);
         }
+
         ::-webkit-scrollbar-thumb {
             background: var(--scrollbar-thumb);
             border-radius: 3px;
@@ -120,6 +127,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
+
         .filter-header {
             display: flex;
             align-items: center;
@@ -127,6 +135,7 @@
             min-height: 48px;
             position: relative;
         }
+
         .site-logo {
             font-size: 1.6rem;
             font-weight: 800;
@@ -144,6 +153,7 @@
             user-select: none;
             position: relative;
         }
+
         .site-logo::after {
             content: '🔑';
             font-size: 0.6rem;
@@ -155,9 +165,11 @@
             -webkit-text-fill-color: initial;
             color: var(--text3);
         }
+
         .site-logo:hover::after {
             opacity: 0.3;
         }
+
         .header-center {
             position: absolute;
             left: 50%;
@@ -166,12 +178,14 @@
             white-space: nowrap;
             z-index: 1;
         }
+
         .filter-header .site-title {
             font-size: 1.6rem;
             font-weight: 700;
             color: var(--accent);
             letter-spacing: .02em;
         }
+
         .filter-header .site-subtitle {
             font-size: .9rem;
             color: var(--text2);
@@ -186,6 +200,7 @@
             margin-bottom: 10px;
             justify-content: center;
         }
+
         .view-tab {
             padding: 8px 22px;
             font-size: .88rem;
@@ -197,19 +212,23 @@
             transition: all .2s;
             user-select: none;
         }
+
         .view-tab:first-child {
             border-radius: 20px 0 0 20px;
             border-right: none;
         }
+
         .view-tab:last-child {
             border-radius: 0 20px 20px 0;
         }
+
         .view-tab.active {
             background: var(--view-tab-active);
             color: var(--view-tab-text);
             border-color: var(--view-tab-active);
             z-index: 2;
         }
+
         .view-tab:hover:not(.active) {
             border-color: var(--accent);
             color: var(--accent);
@@ -225,6 +244,7 @@
             width: 100%;
             padding: 0 4px;
         }
+
         .search-row .search-input-wrap {
             flex: 1;
             position: relative;
@@ -236,10 +256,12 @@
             transition: border-color .25s, box-shadow .25s;
             padding: 0 14px;
         }
+
         .search-row .search-input-wrap:focus-within {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.18);
         }
+
         .search-row .search-input-wrap .search-icon {
             font-size: 1.05rem;
             color: var(--text3);
@@ -247,6 +269,7 @@
             user-select: none;
             flex-shrink: 0;
         }
+
         .search-row .search-input-wrap input {
             flex: 1;
             padding: 10px 4px 10px 0;
@@ -258,10 +281,12 @@
             outline: none;
             min-width: 0;
         }
+
         .search-row .search-input-wrap input::placeholder {
             color: var(--text3);
             opacity: 0.7;
         }
+
         .search-row .search-clear-btn {
             flex-shrink: 0;
             width: 28px;
@@ -281,10 +306,12 @@
             visibility: hidden;
             opacity: 0;
         }
+
         .search-row .search-clear-btn.visible {
             visibility: visible;
             opacity: 1;
         }
+
         .search-row .search-clear-btn:hover {
             background: var(--border);
             color: var(--text);
@@ -298,6 +325,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .filter-cat-btn {
             padding: 7px 15px;
             border-radius: 20px;
@@ -314,11 +342,13 @@
             -webkit-backdrop-filter: blur(6px);
             background: var(--glass-bg-light);
         }
+
         .filter-cat-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.15);
         }
+
         .filter-cat-btn.active {
             background: var(--accent);
             color: #fff;
@@ -326,11 +356,13 @@
             font-weight: 600;
             backdrop-filter: blur(8px);
         }
+
         .filter-cat-btn.has-selection {
             border-color: var(--accent);
             color: var(--accent);
             box-shadow: 0 0 0 2px rgba(155, 138, 189, 0.2);
         }
+
         .filter-options-panel {
             display: none;
             max-height: 220px;
@@ -345,9 +377,11 @@
             box-shadow: var(--shadow);
             justify-content: center;
         }
+
         .filter-options-panel.show {
             display: flex;
         }
+
         .filter-option-tag {
             padding: 5px 12px;
             border-radius: 14px;
@@ -362,11 +396,13 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
         }
+
         .filter-option-tag:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.2);
         }
+
         .filter-option-tag.selected {
             background: var(--tag-active-bg);
             color: var(--tag-active-text);
@@ -374,6 +410,7 @@
             font-weight: 600;
             backdrop-filter: blur(8px);
         }
+
         .active-filters-bar {
             display: flex;
             flex-wrap: wrap;
@@ -383,6 +420,7 @@
             min-height: 22px;
             justify-content: center;
         }
+
         .active-filter-chip {
             display: inline-flex;
             align-items: center;
@@ -396,6 +434,7 @@
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
         }
+
         .active-filter-chip .remove-chip {
             cursor: pointer;
             font-weight: 700;
@@ -403,9 +442,11 @@
             opacity: .8;
             font-size: .85rem;
         }
+
         .active-filter-chip .remove-chip:hover {
             opacity: 1;
         }
+
         .clear-all-filters {
             font-size: .75rem;
             color: var(--danger);
@@ -415,6 +456,7 @@
             text-decoration: underline;
             white-space: nowrap;
         }
+
         .clear-all-filters:hover {
             opacity: .8;
         }
@@ -430,12 +472,14 @@
             max-width: 1400px;
             margin: 0 auto;
         }
+
         .toolbar-left {
             display: flex;
             gap: 8px;
             align-items: center;
             flex-wrap: wrap;
         }
+
         .btn {
             padding: 8px 16px;
             border-radius: 20px;
@@ -448,33 +492,40 @@
             color: var(--text);
             white-space: nowrap;
         }
+
         .btn:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
+
         .btn-accent {
             background: var(--accent);
             color: #fff;
             border-color: var(--accent);
         }
+
         .btn-accent:hover {
             background: var(--accent2);
             border-color: var(--accent2);
             color: #fff;
         }
+
         .btn-danger {
             border-color: var(--danger);
             color: var(--danger);
         }
+
         .btn-danger:hover {
             background: var(--danger);
             color: #fff;
         }
+
         .btn-sm {
             padding: 5px 10px;
             font-size: .72rem;
             border-radius: 14px;
         }
+
         .btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
@@ -489,6 +540,7 @@
             overflow: hidden;
             border: 1.5px solid var(--border);
         }
+
         .sort-btn {
             padding: 5px 12px;
             font-size: .72rem;
@@ -500,15 +552,18 @@
             transition: all .2s;
             white-space: nowrap;
         }
+
         .sort-btn:hover {
             background: var(--card-hover);
             color: var(--accent);
         }
+
         .sort-btn.active {
             background: var(--sort-active-bg);
             color: var(--sort-active-text);
             font-weight: 600;
         }
+
         .sort-btn:first-child {
             border-right: 1.5px solid var(--border);
         }
@@ -523,10 +578,12 @@
             transition: all .2s;
             line-height: 1;
         }
+
         .theme-toggle:hover {
             border-color: var(--accent);
             background: var(--card-hover);
         }
+
         .watermark {
             font-size: 0.75rem;
             color: var(--text3);
@@ -536,11 +593,13 @@
             white-space: nowrap;
             letter-spacing: 0.02em;
         }
+
         .result-count {
             font-size: .82rem;
             color: var(--text3);
             font-weight: 500;
         }
+
         .result-count strong {
             color: var(--text);
             font-weight: 700;
@@ -564,12 +623,14 @@
             height: 40px;
             user-select: none;
         }
+
         .coin-tip-btn:hover {
             border-color: var(--coin-color);
             background: rgba(245, 179, 66, 0.12);
             transform: scale(1.08) rotate(-8deg);
             box-shadow: 0 0 16px rgba(245, 179, 66, 0.25);
         }
+
         .coin-tip-btn:active {
             transform: scale(0.92);
         }
@@ -586,21 +647,27 @@
             background: var(--sync-status-bg);
             white-space: nowrap;
         }
+
         .sync-status.synced {
             color: var(--success);
         }
+
         .sync-status.syncing {
             color: var(--accent);
             animation: pulse 1s ease-in-out infinite;
         }
+
         .sync-status.error {
             color: var(--danger);
         }
+
         @keyframes pulse {
+
             0%,
             100% {
                 opacity: 1;
             }
+
             50% {
                 opacity: 0.4;
             }
@@ -612,11 +679,13 @@
             margin: 0 auto;
             padding: 16px 20px 40px;
         }
+
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 18px;
         }
+
         .gallery-card {
             background: var(--surface);
             border-radius: 12px;
@@ -628,12 +697,14 @@
             display: flex;
             flex-direction: column;
         }
+
         .gallery-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-lg);
             border-color: var(--accent);
             background: var(--card-hover);
         }
+
         .gallery-card .card-cover {
             width: 100%;
             aspect-ratio: 460/215;
@@ -641,6 +712,7 @@
             background: var(--tag-bg);
             display: block;
         }
+
         .gallery-card .card-cover-placeholder {
             width: 100%;
             aspect-ratio: 460/215;
@@ -651,6 +723,7 @@
             color: var(--text3);
             font-size: 2.5rem;
         }
+
         .gallery-card .card-body {
             padding: 10px 14px 14px;
             flex: 1;
@@ -658,12 +731,14 @@
             flex-direction: column;
             gap: 4px;
         }
+
         .gallery-card .card-title {
             font-weight: 700;
             font-size: .95rem;
             color: var(--text);
             line-height: 1.3;
         }
+
         .gallery-card .card-desc {
             font-size: .75rem;
             color: var(--text2);
@@ -673,12 +748,14 @@
             overflow: hidden;
             line-height: 1.4;
         }
+
         .gallery-card .card-meta {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 4px;
         }
+
         .gallery-card .card-meta span {
             font-size: .68rem;
             padding: 2px 7px;
@@ -689,18 +766,21 @@
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
         }
+
         .gallery-card .card-meta span.accent-tag {
             background: var(--accent);
             color: #fff;
             font-weight: 500;
             backdrop-filter: blur(6px);
         }
+
         .gallery-card .card-admin-actions {
             display: flex;
             gap: 6px;
             padding: 0 14px 10px;
             flex-wrap: wrap;
         }
+
         .gallery-card .card-admin-actions button {
             font-size: .68rem;
             padding: 4px 10px;
@@ -711,14 +791,17 @@
             color: var(--text2);
             transition: all .15s;
         }
+
         .gallery-card .card-admin-actions button:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
+
         .gallery-card .card-admin-actions button.btn-del:hover {
             border-color: var(--danger);
             color: var(--danger);
         }
+
         .gallery-card .card-admin-actions .edit-locked {
             font-size: .65rem;
             color: var(--text3);
@@ -742,10 +825,12 @@
             pointer-events: none;
             transition: opacity .3s;
         }
+
         .modal-overlay.show {
             opacity: 1;
             pointer-events: auto;
         }
+
         .modal {
             background: var(--modal-bg);
             border-radius: 16px;
@@ -758,6 +843,7 @@
             position: relative;
             padding: 28px 24px;
         }
+
         .modal-close {
             position: sticky;
             top: 0;
@@ -778,10 +864,12 @@
             margin-left: 8px;
             margin-bottom: 4px;
         }
+
         .modal-close:hover {
             color: var(--danger);
             border-color: var(--danger);
         }
+
         .modal .detail-cover {
             width: 100%;
             max-height: 300px;
@@ -790,25 +878,30 @@
             margin-bottom: 16px;
             background: var(--tag-bg);
         }
+
         .modal .detail-title {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--text);
         }
+
         .modal .detail-section {
             margin: 12px 0;
         }
+
         .modal .detail-section h3 {
             font-size: .9rem;
             color: var(--accent);
             margin-bottom: 6px;
             font-weight: 600;
         }
+
         .modal .detail-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
         }
+
         .modal .detail-tags span {
             font-size: .75rem;
             padding: 4px 10px;
@@ -818,34 +911,40 @@
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
         }
+
         .modal .detail-info-table {
             width: 100%;
             border-collapse: collapse;
             font-size: .82rem;
         }
+
         .modal .detail-info-table td {
             padding: 6px 10px;
             border-bottom: 1px solid var(--border);
             vertical-align: top;
         }
+
         .modal .detail-info-table td:first-child {
             font-weight: 600;
             color: var(--text2);
             width: 30%;
             white-space: nowrap;
         }
+
         .modal .detail-description {
             font-size: .85rem;
             color: var(--text);
             line-height: 1.7;
             white-space: pre-wrap;
         }
+
         .modal .detail-screenshots {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 8px;
             margin-top: 8px;
         }
+
         .modal .detail-screenshots img {
             width: 100%;
             border-radius: 8px;
@@ -853,9 +952,11 @@
             cursor: pointer;
             transition: transform .2s;
         }
+
         .modal .detail-screenshots img:hover {
             transform: scale(1.03);
         }
+
         .modal .detail-video-link {
             display: inline-block;
             padding: 6px 14px;
@@ -866,9 +967,11 @@
             font-size: .8rem;
             margin: 3px;
         }
+
         .modal .detail-video-link:hover {
             text-decoration: underline;
         }
+
         .modal .detail-link-btn {
             display: inline-block;
             padding: 8px 18px;
@@ -881,6 +984,7 @@
             margin: 4px;
             transition: all .2s;
         }
+
         .modal .detail-link-btn:hover {
             background: var(--accent2);
         }
@@ -890,15 +994,18 @@
             max-width: 420px;
             text-align: center;
         }
+
         #keyModal .modal h2 {
             margin-bottom: 6px;
             color: var(--accent);
         }
+
         #keyModal .modal p {
             color: var(--text2);
             font-size: .9rem;
             margin-bottom: 18px;
         }
+
         .key-input-group {
             display: flex;
             gap: 10px;
@@ -906,6 +1013,7 @@
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .key-input-group input {
             flex: 1;
             min-width: 180px;
@@ -919,11 +1027,13 @@
             transition: border-color .2s;
             letter-spacing: 2px;
         }
+
         .key-input-group input:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.15);
         }
+
         .key-input-group button {
             padding: 10px 24px;
             border-radius: 10px;
@@ -935,20 +1045,24 @@
             font-size: .95rem;
             transition: background .2s;
         }
+
         .key-input-group button:hover {
             background: var(--accent2);
         }
+
         .key-error {
             color: var(--danger);
             font-size: .8rem;
             margin-top: 12px;
             min-height: 20px;
         }
+
         .key-success {
             color: var(--success);
             font-size: .9rem;
             margin-top: 12px;
         }
+
         .key-hint {
             font-size: .7rem;
             color: var(--text3);
@@ -962,6 +1076,7 @@
         .form-group {
             margin-bottom: 10px;
         }
+
         .form-group label {
             display: block;
             font-weight: 600;
@@ -969,6 +1084,7 @@
             color: var(--text2);
             margin-bottom: 4px;
         }
+
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -982,31 +1098,37 @@
             font-family: inherit;
             transition: border-color .2s;
         }
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: var(--accent);
         }
+
         .form-group textarea {
             resize: vertical;
             min-height: 60px;
         }
+
         .form-row {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
+
         .form-row .form-group {
             flex: 1;
             min-width: 140px;
         }
+
         .checkbox-group {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
         }
+
         .checkbox-group label {
             display: flex;
             align-items: center;
@@ -1016,10 +1138,12 @@
             font-size: .8rem;
             color: var(--text);
         }
+
         .checkbox-group input[type="checkbox"] {
             width: auto;
             accent-color: var(--accent);
         }
+
         .tag-select-panel {
             display: flex;
             flex-wrap: wrap;
@@ -1028,6 +1152,7 @@
             overflow-y: auto;
             padding: 6px 0;
         }
+
         .tag-select-panel .tag-option {
             padding: 4px 10px;
             border-radius: 12px;
@@ -1044,6 +1169,7 @@
             align-items: center;
             gap: 4px;
         }
+
         .tag-select-panel .tag-option.selected {
             background: var(--accent);
             color: #fff;
@@ -1051,9 +1177,11 @@
             font-weight: 600;
             backdrop-filter: blur(6px);
         }
+
         .tag-select-panel .tag-option:hover {
             border-color: var(--accent);
         }
+
         .tag-select-panel .tag-option .del-tag-btn {
             margin-left: 2px;
             cursor: pointer;
@@ -1065,9 +1193,11 @@
             border-radius: 50%;
             transition: background .2s;
         }
+
         .tag-select-panel .tag-option .del-tag-btn:hover {
             background: rgba(192, 57, 43, 0.15);
         }
+
         .add-tag-row {
             display: flex;
             gap: 6px;
@@ -1075,6 +1205,7 @@
             margin-top: 4px;
             margin-bottom: 6px;
         }
+
         .add-tag-row input {
             flex: 1;
             padding: 5px 10px;
@@ -1084,6 +1215,7 @@
             color: var(--text);
             font-size: .75rem;
         }
+
         .smart-paste-area {
             margin-bottom: 14px;
             background: var(--surface2);
@@ -1091,6 +1223,7 @@
             border-radius: 10px;
             border: 1px dashed var(--border);
         }
+
         .smart-paste-area textarea {
             width: 100%;
             font-size: .78rem;
@@ -1104,6 +1237,7 @@
             color: var(--text3);
             font-size: 1rem;
         }
+
         .no-results .icon {
             font-size: 3rem;
             display: block;
@@ -1116,109 +1250,136 @@
                 grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
                 gap: 10px;
             }
+
             .filter-sticky {
                 padding: 10px 8px 8px;
             }
+
             .filter-header {
                 flex-direction: column;
                 align-items: center;
                 min-height: auto;
                 margin-bottom: 6px;
             }
+
             .site-logo {
                 font-size: 1.2rem;
                 margin-right: 0;
                 margin-bottom: 4px;
             }
+
             .site-logo::after {
                 display: none;
             }
+
             .header-center {
                 position: static;
                 transform: none;
                 white-space: normal;
             }
+
             .filter-header .site-title {
                 font-size: 1.2rem;
             }
+
             .filter-header .site-subtitle {
                 font-size: .75rem;
             }
+
             .view-tab {
                 padding: 6px 16px;
                 font-size: .8rem;
             }
+
             .search-row {
                 padding: 0 2px;
                 max-width: 100%;
             }
+
             .search-row .search-input-wrap {
                 padding: 0 10px;
             }
+
             .search-row .search-input-wrap input {
                 font-size: .82rem;
                 padding: 8px 2px 8px 0;
             }
+
             .filter-cat-btn {
                 padding: 5px 10px;
                 font-size: .72rem;
             }
+
             .filter-options-panel {
                 max-height: 150px;
                 padding: 8px 10px;
             }
+
             .filter-option-tag {
                 font-size: .7rem;
                 padding: 4px 8px;
             }
+
             .modal {
                 padding: 16px 12px;
                 max-height: 90vh;
                 border-radius: 12px;
             }
+
             .modal .detail-title {
                 font-size: 1.2rem;
             }
+
             .form-row {
                 flex-direction: column;
                 gap: 6px;
             }
+
             .watermark {
                 margin-right: 4px;
                 font-size: 0.65rem;
             }
+
             .coin-tip-btn {
                 width: 36px;
                 height: 36px;
                 font-size: 1.2rem;
                 padding: 4px 6px;
             }
+
             .toolbar {
                 padding: 8px 10px;
                 gap: 6px;
             }
+
             .btn {
                 padding: 5px 10px;
                 font-size: .7rem;
             }
+
             .btn-sm {
                 padding: 3px 8px;
                 font-size: .65rem;
             }
+
             .theme-toggle {
                 font-size: 1.1rem;
                 padding: 4px 8px;
             }
+
             .result-count {
                 font-size: .7rem;
             }
+
             .sort-btn {
                 padding: 4px 8px;
                 font-size: .65rem;
             }
+
             .sort-btn-group {
                 border-radius: 10px;
             }
+
             .sync-status {
                 font-size: 0.55rem;
                 padding: 1px 6px;
@@ -1226,6 +1387,7 @@
         }
     </style>
 </head>
+
 <body data-theme="light">
 
     <!-- ===== 筛选栏 ===== -->
@@ -1292,8 +1454,12 @@
     </div>
 
     <!-- ===== 弹窗：详情 / 编辑 ===== -->
-    <div class="modal-overlay" id="detailModalOverlay"><div class="modal" id="detailModal"></div></div>
-    <div class="modal-overlay" id="editModalOverlay"><div class="modal" id="editModal"></div></div>
+    <div class="modal-overlay" id="detailModalOverlay">
+        <div class="modal" id="detailModal"></div>
+    </div>
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal" id="editModal"></div>
+    </div>
 
     <!-- ===== 密钥验证弹窗 ===== -->
     <div class="modal-overlay" id="keyModalOverlay">
@@ -1318,36 +1484,36 @@
             <p style="text-align:center; color:var(--text2); margin-bottom: 18px; font-size:0.95rem;">
                 感谢姊妹支持，你的鼓励是我持续更新网站的动力。
             </p>
-            <div style="background: var(--surface2); border-radius: 16px; padding: 24px 20px; border: 2px solid var(--accent); text-align: center;">
+            <div
+                style="background: var(--surface2); border-radius: 16px; padding: 24px 20px; border: 2px solid var(--accent); text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 8px;">⚡</div>
                 <h3 style="color: var(--text); margin-bottom: 6px; font-size: 1.1rem;">爱发电 · 订阅支持</h3>
                 <p style="color: var(--text2); font-size: 0.85rem; margin-bottom: 16px;">
                     选择你的发电方案，助力女性主角游戏持续更新
                 </p>
-                <a href="https://ifdian.net/a/HERLen/plan"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   style="display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all .2s;"
-                   onmouseover="this.style.background='var(--accent2)'"
-                   onmouseout="this.style.background='var(--accent)'">
+                <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer"
+                    style="display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all .2s;"
+                    onmouseover="this.style.background='var(--accent2)'"
+                    onmouseout="this.style.background='var(--accent)'">
                     🔗 前往支持
                 </a>
                 <p style="color: var(--text3); font-size: 0.7rem; margin-top: 14px;">
                     点击按钮将跳转至爱发电平台，你的支持安全可靠
                 </p>
             </div>
-            <div style="text-align: center; font-size: 0.7rem; color: var(--text3); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+            <div
+                style="text-align: center; font-size: 0.7rem; color: var(--text3); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
                 💡 打赏链接已内嵌，点击即可支持创作者
             </div>
         </div>
     </div>
 
     <script>
-        (function() {
+        (function () {
             'use strict';
 
             const SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g'; 
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
 
             const SUPABASE_ENABLED = SUPABASE_URL.includes('supabase.co') && SUPABASE_ANON_KEY.length > 10;
 
@@ -1557,40 +1723,67 @@
             function loadCustomTags() {
                 try {
                     const s = localStorage.getItem('heroineCustomTags');
-                    if (s) { const d = JSON.parse(s);
+                    if (s) {
+                        const d = JSON.parse(s);
                         customGenres = d.genres || [];
-                        customGameplays = d.gameplays || []; }
-                } catch (_) { customGenres = [];
-                    customGameplays = []; }
+                        customGameplays = d.gameplays || [];
+                    }
+                } catch (_) {
+                    customGenres = [];
+                    customGameplays = [];
+                }
             }
 
-            function saveCustomTags() {
-                localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
+            function getAllGenres() {
+                if (customGenres.length === 0) {
+                    loadCustomTags();
+                }
+                return [...DEFAULT_GENRE_OPTIONS, ...customGenres];
             }
 
-            function getAllGenres() { return [...DEFAULT_GENRE_OPTIONS, ...customGenres]; }
+            function getAllGameplays() {
+                if (customGameplays.length === 0) {
+                    loadCustomTags();
+                }
+                return [...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays];
+            }
+            // ===== 🆕 获取所有题材（默认 + 自定义） =====
+            function getAllGenres() {
+                // 如果 customGenres 还没加载，先从 localStorage 恢复
+                if (customGenres.length === 0) {
+                    loadCustomTags();
+                }
+                return [...DEFAULT_GENRE_OPTIONS, ...customGenres];
+            }
 
-            function getAllGameplays() { return [...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays]; }
+            // ===== 🆕 获取所有玩法（默认 + 自定义） =====
+            function getAllGameplays() {
+                if (customGameplays.length === 0) {
+                    loadCustomTags();
+                }
+                return [...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays];
+            }
 
             function addCustomGenre(tag) {
                 if (!tag || DEFAULT_GENRE_OPTIONS.includes(tag) || customGenres.includes(tag)) return false;
                 customGenres.push(tag);
-                saveCustomTags();
+                saveCustomTags(); // 调用新的异步版本
                 return true;
             }
 
             function addCustomGameplay(tag) {
                 if (!tag || DEFAULT_GAMEPLAY_OPTIONS.includes(tag) || customGameplays.includes(tag)) return false;
                 customGameplays.push(tag);
-                saveCustomTags();
+                saveCustomTags(); // 调用新的异步版本
                 return true;
             }
+
 
             function removeCustomGenre(tag) {
                 const idx = customGenres.indexOf(tag);
                 if (idx === -1) return false;
                 customGenres.splice(idx, 1);
-                saveCustomTags();
+                saveCustomTags(); // 同步到云端
                 return true;
             }
 
@@ -1598,7 +1791,7 @@
                 const idx = customGameplays.indexOf(tag);
                 if (idx === -1) return false;
                 customGameplays.splice(idx, 1);
-                saveCustomTags();
+                saveCustomTags(); // 同步到云端
                 return true;
             }
 
@@ -1606,10 +1799,14 @@
             function getReleasedFilterCats() {
                 return {
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
-                    gameplay: { label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
-                        field: 'gameplay' },
-                    platforms: { label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
-                        field: 'platforms' },
+                    gameplay: {
+                        label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
+                        field: 'gameplay'
+                    },
+                    platforms: {
+                        label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
+                        field: 'platforms'
+                    },
                     heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
                     costumeType: { label: '服设分类', options: COSTUME_TYPE_OPTIONS, field: 'costumeType' },
                     hasChinese: { label: '中文', options: CHINESE_OPTIONS, field: 'hasChinese' },
@@ -1621,10 +1818,14 @@
             function getUnreleasedFilterCats() {
                 return {
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
-                    gameplay: { label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
-                        field: 'gameplay' },
-                    platforms: { label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
-                        field: 'platforms' },
+                    gameplay: {
+                        label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')),
+                        field: 'gameplay'
+                    },
+                    platforms: {
+                        label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')),
+                        field: 'platforms'
+                    },
                     heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
                     perspective: { label: '视角', options: PERSPECTIVE_OPTIONS, field: 'perspective' },
                     hasDemo: { label: 'Demo试玩', options: DEMO_OPTIONS, field: 'hasDemo' }
@@ -1645,10 +1846,16 @@
                 const el = document.getElementById('syncStatus');
                 if (!el) return;
                 el.className = 'sync-status';
-                if (status === 'synced') { el.classList.add('synced');
-                    el.textContent = '☁️ 已同步'; } else if (status === 'syncing') { el.classList.add('syncing');
-                    el.textContent = '⏳ 同步中…'; } else if (status === 'error') { el.classList.add('error');
-                    el.textContent = '⚠️ ' + (msg || '同步失败'); } else { el.textContent = '☁️ ' + (msg || '就绪'); }
+                if (status === 'synced') {
+                    el.classList.add('synced');
+                    el.textContent = '☁️ 已同步';
+                } else if (status === 'syncing') {
+                    el.classList.add('syncing');
+                    el.textContent = '⏳ 同步中…';
+                } else if (status === 'error') {
+                    el.classList.add('error');
+                    el.textContent = '⚠️ ' + (msg || '同步失败');
+                } else { el.textContent = '☁️ ' + (msg || '就绪'); }
             }
 
             async function loadFromSupabase() {
@@ -1749,28 +1956,102 @@
             }
 
             // ================================================================
-            // 数据加载 & 保存
+            // 数据加载 & 保存（含自定义标签云端同步）
             // ================================================================
-            async function loadGames() {
-                 // 1. 优先尝试从 Supabase 加载（增加 try-catch，防止网络错误导致崩溃）
-                 if (SUPABASE_ENABLED && supabaseClient) {
-                     try {
-                         const remoteData = await loadFromSupabase();
-                         if (remoteData && remoteData.length > 0) {
-                             // 云端有数据，直接使用并缓存到本地
-                             games = remoteData;
-                             localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                             console.log('✅ 从 Supabase 加载数据成功');
-                             return games;
-                         }
-                     } catch (e) {
-                         console.warn('⚠️ Supabase 查询失败，尝试本地加载', e);
-                     }
-                 }
 
-                 // 2. 从本地存储加载
-                 const s = localStorage.getItem(STORAGE_KEY);
-                 if (s) {
+            // ===== 🆕 从 Supabase 加载自定义标签 =====
+            async function loadCustomTagsFromSupabase() {
+                if (!SUPABASE_ENABLED || !supabaseClient) return;
+
+                try {
+                    // 约定：用 id = 999999 存储题材，id = 999998 存储玩法
+                    const { data: tagData, error } = await supabaseClient
+                        .from(TABLE_NAME)
+                        .select('id, genre')
+                        .in('id', [999999, 999998]);
+
+                    if (!error && tagData) {
+                        tagData.forEach(row => {
+                            if (row.id === 999999 && row.genre) {
+                                customGenres = row.genre; // 直接覆盖
+                            }
+                            if (row.id === 999998 && row.genre) {
+                                customGameplays = row.genre;
+                            }
+                        });
+                        // 同步到 localStorage
+                        localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
+                        console.log('✅ 自定义标签从云端加载完成');
+                    }
+                } catch (e) {
+                    console.warn('⚠️ 加载自定义标签失败，使用本地缓存', e);
+                }
+            }
+
+            // ===== 🆕 保存自定义标签到云端 =====
+            async function saveCustomTags() {
+                // 1. 保存到 localStorage（原有逻辑）
+                localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
+
+                // 2. 上传到 Supabase（用两条特殊记录）
+                if (SUPABASE_ENABLED && supabaseClient) {
+                    try {
+                        // 题材记录 (id = 999999)
+                        const { error: err1 } = await supabaseClient
+                            .from(TABLE_NAME)
+                            .upsert({
+                                id: 999999,
+                                title: '__custom_genres__',
+                                genre: customGenres,
+                                isReleased: true
+                            }, { onConflict: 'id' });
+
+                        // 玩法记录 (id = 999998)
+                        const { error: err2 } = await supabaseClient
+                            .from(TABLE_NAME)
+                            .upsert({
+                                id: 999998,
+                                title: '__custom_gameplays__',
+                                genre: customGameplays,
+                                isReleased: true
+                            }, { onConflict: 'id' });
+
+                        if (err1 || err2) {
+                            console.warn('⚠️ 自定义标签云端同步失败', err1 || err2);
+                        } else {
+                            console.log('☁️ 自定义标签已同步到云端');
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ 自定义标签上传异常', e);
+                    }
+                }
+            }
+
+            // ===== 加载游戏数据（含自定义标签） =====
+            async function loadGames() {
+                // 1. 优先尝试从 Supabase 加载（增加 try-catch，防止网络错误导致崩溃）
+                if (SUPABASE_ENABLED && supabaseClient) {
+                    try {
+                        const remoteData = await loadFromSupabase();
+                        if (remoteData && remoteData.length > 0) {
+                            // 云端有数据，直接使用并缓存到本地
+                            games = remoteData;
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+                            console.log('✅ 从 Supabase 加载数据成功');
+
+                            // 🆕 加载自定义标签（从 Supabase）
+                            await loadCustomTagsFromSupabase();
+
+                            return games;
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Supabase 查询失败，尝试本地加载', e);
+                    }
+                }
+
+                // 2. 从本地存储加载
+                const s = localStorage.getItem(STORAGE_KEY);
+                if (s) {
                     try {
                         games = JSON.parse(s);
                         if (games && games.length > 0) {
@@ -1787,10 +2068,14 @@
                                     console.warn('⚠️ 云端同步失败，但本地数据保留', e);
                                 }
                             }
+
+                            // 🆕 加载自定义标签（从 Supabase）
+                            await loadCustomTagsFromSupabase();
+
                             return games;
                         }
                     } catch (_) {
-                         console.warn('⚠️ 本地存储解析失败');
+                        console.warn('⚠️ 本地存储解析失败');
                     }
                 }
 
@@ -1806,23 +2091,32 @@
                         console.error('❌ 默认数据上传失败，但本地已保存', e);
                     }
                 }
-                 return games;
+
+                // 🆕 加载自定义标签（从 Supabase）
+                await loadCustomTagsFromSupabase();
+
+                return games;
             }
+
+            // ===== 保存游戏数据 =====
             async function saveGames() {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                 if (SUPABASE_ENABLED && supabaseClient) {
                     await saveToSupabase(games);
                 }
             }
-
             // ===== 设置 & 状态 =====
             function loadSettings() {
                 const s = localStorage.getItem(SETTINGS_KEY);
-                if (s) { try { const d = JSON.parse(s);
+                if (s) {
+                    try {
+                        const d = JSON.parse(s);
                         currentTheme = d.theme || 'light';
                         isAdminMode = d.isAdminMode || false;
                         currentView = d.currentView || 'released';
-                        currentSort = d.currentSort || 'newest'; } catch (_) {} }
+                        currentSort = d.currentSort || 'newest';
+                    } catch (_) { }
+                }
                 applyTheme();
                 updateViewTabs();
                 resetActiveFilters();
@@ -1830,8 +2124,10 @@
             }
 
             function saveSettings() {
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: currentTheme, isAdminMode, currentView,
-                    currentSort }));
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+                    theme: currentTheme, isAdminMode, currentView,
+                    currentSort
+                }));
             }
 
             function resetActiveFilters() {
@@ -2067,7 +2363,7 @@
                     const info = map[activeFilterCat],
                         sel = activeFilters[activeFilterCat];
                     panel.innerHTML = info.options.map(o =>
-                        `<span class="filter-option-tag${sel.has(o)?' selected':''}" data-cat="${activeFilterCat}" data-value="${escapeHTML(o)}">${o}</span>`
+                        `<span class="filter-option-tag${sel.has(o) ? ' selected' : ''}" data-cat="${activeFilterCat}" data-value="${escapeHTML(o)}">${o}</span>`
                     ).join('');
                     panel.classList.add('show');
                 } else {
@@ -2088,12 +2384,12 @@
                 bar.innerHTML = chips.join('');
 
                 panel.querySelectorAll('.filter-option-tag').forEach(t =>
-                    t.addEventListener('click', function() {
+                    t.addEventListener('click', function () {
                         toggleFilterOption(this.dataset.cat, this.dataset.value);
                     })
                 );
                 bar.querySelectorAll('.remove-chip').forEach(c =>
-                    c.addEventListener('click', function(e) {
+                    c.addEventListener('click', function (e) {
                         e.stopPropagation();
                         removeFilter(this.dataset.cat, this.dataset.value);
                     })
@@ -2102,7 +2398,7 @@
                 if (clr) clr.addEventListener('click', clearAllFilters);
 
                 row.querySelectorAll('.filter-cat-btn').forEach(b =>
-                    b.addEventListener('click', function() {
+                    b.addEventListener('click', function () {
                         const c = this.dataset.cat;
                         activeFilterCat = activeFilterCat === c ? null : c;
                         updateFilterUI();
@@ -2130,7 +2426,7 @@
 
                 grid.querySelectorAll('.gallery-card').forEach(card => {
                     const id = +card.dataset.gameId;
-                    card.addEventListener('click', function(e) {
+                    card.addEventListener('click', function (e) {
                         if (e.target.closest('.card-admin-actions')) return;
                         const g = games.find(g => g.id === id);
                         if (g) showDetailModal(g);
@@ -2150,14 +2446,14 @@
 
                 if (isAdminMode && hasEdit) {
                     grid.querySelectorAll('.btn-edit-card').forEach(b =>
-                        b.addEventListener('click', function(e) {
+                        b.addEventListener('click', function (e) {
                             e.stopPropagation();
                             const g = games.find(g => g.id === +this.dataset.gameId);
                             if (g) showEditModal(g);
                         })
                     );
                     grid.querySelectorAll('.btn-del-card').forEach(b =>
-                        b.addEventListener('click', function(e) {
+                        b.addEventListener('click', function (e) {
                             e.stopPropagation();
                             const id = +this.dataset.gameId;
                             if (confirm('确定删除吗？')) {
@@ -2179,11 +2475,11 @@
                     const g = (game.genre || []).slice(0, 3).map(t => `<span>${escapeHTML(t)}</span>`).join('');
                     const p = (game.gameplay || []).slice(0, 2).map(t => `<span>${escapeHTML(t)}</span>`).join('');
                     meta =
-                        `<span class="accent-tag">${escapeHTML(game.heroineType||'')}</span>${game.hasChinese==='有中文'?'<span class="accent-tag">中文</span>':''}${g}${p}`;
+                        `<span class="accent-tag">${escapeHTML(game.heroineType || '')}</span>${game.hasChinese === '有中文' ? '<span class="accent-tag">中文</span>' : ''}${g}${p}`;
                 } else {
                     const g = (game.genre || []).slice(0, 3).map(t => `<span>${escapeHTML(t)}</span>`).join('');
                     meta =
-                        `<span class="accent-tag">${escapeHTML(game.heroineType||'')}</span>${game.hasDemo?'<span class="accent-tag">有Demo</span>':''}${g}`;
+                        `<span class="accent-tag">${escapeHTML(game.heroineType || '')}</span>${game.hasDemo ? '<span class="accent-tag">有Demo</span>' : ''}${g}`;
                 }
                 const dateDisplay = game.releaseDate ? `<span>${escapeHTML(game.releaseDate)}</span>` : '';
 
@@ -2192,9 +2488,9 @@
                 if (hasEdit && isAdminMode) {
                     admin =
                         `<div class="card-admin-actions"><button class="btn-edit-card" data-game-id="${game.id}">✏️ 编辑</button><button class="btn-del-card" data-game-id="${game.id}">🗑 删除</button></div>`;
-                } 
+                }
 
-                return `<div class="gallery-card" data-game-id="${game.id}">${cover}<div class="card-body"><div class="card-title">${escapeHTML(game.title)}</div><div class="card-desc">${escapeHTML(game.description||'')}</div><div class="card-meta">${meta}${dateDisplay}</div></div>${admin}</div>`;
+                return `<div class="gallery-card" data-game-id="${game.id}">${cover}<div class="card-body"><div class="card-title">${escapeHTML(game.title)}</div><div class="card-desc">${escapeHTML(game.description || '')}</div><div class="card-meta">${meta}${dateDisplay}</div></div>${admin}</div>`;
             }
 
             // ================================================================
@@ -2210,35 +2506,35 @@
                 const plays = (game.gameplay || []).map(g => `<span>${escapeHTML(g)}</span>`).join('');
                 const platforms = (game.platforms || []).map(p => `<span>${escapeHTML(p)}</span>`).join('');
                 const screens = (game.screenshots || []).length ?
-                    `<div class="detail-section"><h3>📸 释出画面</h3><div class="detail-screenshots">${game.screenshots.map(s=>`<img src="${escapeHTML(s)}" onerror="this.style.display='none';">`).join('')}</div></div>` :
+                    `<div class="detail-section"><h3>📸 释出画面</h3><div class="detail-screenshots">${game.screenshots.map(s => `<img src="${escapeHTML(s)}" onerror="this.style.display='none';">`).join('')}</div></div>` :
                     '';
                 const videos = (game.videos || []).length ?
-                    `<div class="detail-section"><h3>🎬 实机视频</h3>${game.videos.map(v=>`<a class="detail-video-link" href="${escapeHTML(v)}" target="_blank">▶ 观看视频</a>`).join('')}</div>` :
+                    `<div class="detail-section"><h3>🎬 实机视频</h3>${game.videos.map(v => `<a class="detail-video-link" href="${escapeHTML(v)}" target="_blank">▶ 观看视频</a>`).join('')}</div>` :
                     '';
                 let rows = '';
                 if (game.isReleased) {
                     rows =
-                        `<tr><td>📖 题材</td><td><div class="detail-tags">${genres||'—'}</div></td></tr>
-                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays||'—'}</div></td></tr>
-                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective||'—')}</td></tr>
-                  <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate||'—')}</td></tr>
-                  <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese||'—')}</td></tr>
-                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms||'—'}</div></td></tr>
-                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType||'—')}</td></tr>
-                  <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType||'—')}</td></tr>
-                  <tr><td>🍎 Mac</td><td>${escapeHTML(game.hasMacSupport||'—')}</td></tr>
-                  <tr><td>🎮 Demo</td><td>${game.hasDemo?'✅ 提供':'❌ 暂无'}</td></tr>
-                  <tr><td>⏱ 时长</td><td>${escapeHTML(game.mainStoryDuration||'—')}</td></tr>
-                  <tr><td>💰 最低价</td><td>${escapeHTML(game.lowestPrice||'—')}</td></tr>`;
+                        `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
+                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
+                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                  <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
+                  <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
+                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                  <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
+                  <tr><td>🍎 Mac</td><td>${escapeHTML(game.hasMacSupport || '—')}</td></tr>
+                  <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                  <tr><td>⏱ 时长</td><td>${escapeHTML(game.mainStoryDuration || '—')}</td></tr>
+                  <tr><td>💰 最低价</td><td>${escapeHTML(game.lowestPrice || '—')}</td></tr>`;
                 } else {
                     rows =
-                        `<tr><td>📖 题材</td><td><div class="detail-tags">${genres||'—'}</div></td></tr>
-                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays||'—'}</div></td></tr>
-                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective||'—')}</td></tr>
-                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType||'—')}</td></tr>
-                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms||'—'}</div></td></tr>
-                  <tr><td>🎮 Demo</td><td>${game.hasDemo?'✅ 提供':'❌ 暂无'}</td></tr>
-                  <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate||'—')}</td></tr>`;
+                        `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
+                  <tr><td>🎮 玩法</td><td><div class="detail-tags">${plays || '—'}</div></td></tr>
+                  <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                  <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                  <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                  <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                  <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>`;
                 }
 
                 let releaseDateBadge = '';
@@ -2257,7 +2553,7 @@
                 if (game.otherLinks) game.otherLinks.split('\n').filter(l => l.trim()).forEach(l => {
                     const p = l.split('|');
                     links.push(
-                        `<a class="detail-link-btn" href="${escapeHTML(p[0].trim())}" target="_blank">🔗 ${escapeHTML(p[1]?p[1].trim():'链接')}</a>`
+                        `<a class="detail-link-btn" href="${escapeHTML(p[0].trim())}" target="_blank">🔗 ${escapeHTML(p[1] ? p[1].trim() : '链接')}</a>`
                     );
                 });
                 if (game.isPSExclusive) links.push(
@@ -2266,12 +2562,12 @@
                     '<span class="detail-link-btn" style="background:#666;">🎮 NS独占</span>');
 
                 modal.innerHTML =
-                    `<button class="modal-close" id="detailModalClose">✕</button>${cover}<div class="detail-title">${escapeHTML(game.title)}</div>${releaseDateBadge}<p class="detail-description">${escapeHTML(game.fullDescription||game.description||'')}</p><table class="detail-info-table">${rows}</table>${screens}${videos}<div style="margin-top:14px;">${links.join(' ')}</div>`;
+                    `<button class="modal-close" id="detailModalClose">✕</button>${cover}<div class="detail-title">${escapeHTML(game.title)}</div>${releaseDateBadge}<p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p><table class="detail-info-table">${rows}</table>${screens}${videos}<div style="margin-top:14px;">${links.join(' ')}</div>`;
 
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
                 modal.querySelector('#detailModalClose').addEventListener('click', closeDetailModal);
-                overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDetailModal(); });
+                overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDetailModal(); });
             }
 
             function closeDetailModal() {
@@ -2298,45 +2594,47 @@
                 document.body.style.overflow = 'hidden';
                 bindEditFormEvents(modal, data);
                 modal.querySelector('#editModalClose').addEventListener('click', closeEditModal);
-                overlay.addEventListener('click', function(e) { if (e.target === overlay) closeEditModal(); });
+                overlay.addEventListener('click', function (e) { if (e.target === overlay) closeEditModal(); });
                 toggleReleasedFields(modal, data.isReleased);
             }
 
             function getDefaultGameData() {
-                return { id: Date.now(), title: '', cover: '', description: '', fullDescription: '', genre: [],
+                return {
+                    id: Date.now(), title: '', cover: '', description: '', fullDescription: '', genre: [],
                     gameplay: [], perspective: '第三人称', releaseDate: '', hasChinese: '有中文', platforms: ['PC'],
                     heroineType: '固定女主', costumeType: '服设合理', hasMacSupport: '不支持Mac', steamLink: '',
                     steamAppId: '', isPSExclusive: false, isNSExclusive: false, hasDemo: false,
                     mainStoryDuration: '', lowestPrice: '', videos: [], screenshots: [], otherLinks: '',
-                    isReleased: true };
+                    isReleased: true
+                };
             }
 
             function buildEditFormHTML(data, isNew) {
                 return `
         <button class="modal-close" id="editModalClose">✕</button>
-        <h2 style="margin-bottom:14px;color:var(--accent);">${isNew?'➕ 添加新游戏':'✏️ 编辑游戏'}</h2>
+        <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
         <div class="smart-paste-area">
             <label style="font-weight:600;font-size:.82rem;color:var(--text2);">📋 智能粘贴识别</label>
             <textarea id="efSmartPaste" placeholder="粘贴游戏描述文本，点击识别自动填充…"></textarea>
             <button type="button" class="btn btn-sm" id="btnSmartParse" style="margin-top:6px;">🔍 智能识别</button>
         </div>
         <form id="editGameForm" onsubmit="return false;">
-          <div class="form-row"><div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title||'')}" required></div><div class="form-group"><label>${data.isReleased?'发售日期':'预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate||'')}"></div></div>
-          <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased?'checked':''}> 已发售游戏</label></div>
-          <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId||'')}"><button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
-          <div class="form-group"><label>封面URL</label><div style="display:flex;gap:8px;"><input type="text" id="efCover" value="${escapeHTML(data.cover||'')}" style="flex:1;"><input type="file" id="efCoverFile" accept="image/*" hidden><button type="button" class="btn btn-sm" id="btnUploadCover">📁 上传</button></div>${data.cover?`<img src="${escapeHTML(data.cover)}" style="max-width:200px;max-height:100px;margin-top:6px;border-radius:6px;" id="coverPreview">`:''}</div>
-          <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description||'')}</textarea></div>
-          <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription||'')}</textarea></div>
+          <div class="form-row"><div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div><div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div></div>
+          <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
+          <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}"><button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
+          <div class="form-group"><label>封面URL</label><div style="display:flex;gap:8px;"><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}" style="flex:1;"><input type="file" id="efCoverFile" accept="image/*" hidden><button type="button" class="btn btn-sm" id="btnUploadCover">📁 上传</button></div>${data.cover ? `<img src="${escapeHTML(data.cover)}" style="max-width:200px;max-height:100px;margin-top:6px;border-radius:6px;" id="coverPreview">` : ''}</div>
+          <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
+          <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
           <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel"></div><div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="新题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋ 添加</button></div></div>
           <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel"></div><div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="新玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋ 添加</button></div></div>
-          <div class="form-row"><div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p=>`<option value="${escapeHTML(p)}" ${data.perspective===p?'selected':''}>${p}</option>`).join('')}</select></div><div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h=>`<option value="${escapeHTML(h)}" ${data.heroineType===h?'selected':''}>${h}</option>`).join('')}</select></div><div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c=>`<option value="${escapeHTML(c)}" ${data.costumeType===c?'selected':''}>${c}</option>`).join('')}</select></div></div>
-          <div class="form-row" id="efChineseMacRow"><div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${CHINESE_OPTIONS.map(c=>`<option value="${escapeHTML(c)}" ${data.hasChinese===c?'selected':''}>${c}</option>`).join('')}</select></div><div class="form-group"><label>🍎 Mac</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport==='支持Mac'?'selected':''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport==='不支持Mac'?'selected':''}>不支持Mac</option></select></div></div>
-          <div class="form-row"><div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo?'selected':''}>暂无Demo</option><option value="1" ${data.hasDemo?'selected':''}>提供Demo</option></select></div><div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration||'')}"></div><div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice||'')}"></div></div>
-          <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a,b)=>a.localeCompare(b,'zh')).map(p=>`<span class="tag-option${(data.platforms||[]).includes(p)?' selected':''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
-          <div class="form-row"><div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink||'')}"></div><div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks||'')}</textarea></div></div>
-          <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive?'checked':''}> PS独占</label><label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive?'checked':''}> NS独占</label></div>
-          <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos||[]).join('\n')}</textarea></div>
-          <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots||[]).join('\n')}</textarea></div>
+          <div class="form-row"><div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p => `<option value="${escapeHTML(p)}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div><div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h => `<option value="${escapeHTML(h)}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div><div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+          <div class="form-row" id="efChineseMacRow"><div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${CHINESE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div class="form-group"><label>🍎 Mac</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div></div>
+          <div class="form-row"><div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无Demo</option><option value="1" ${data.hasDemo ? 'selected' : ''}>提供Demo</option></select></div><div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div><div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div></div>
+          <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')).map(p => `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
+          <div class="form-row"><div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div><div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div></div>
+          <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label><label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
+          <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
+          <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
           <div style="display:flex;gap:10px;margin-top:16px;"><button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button><button type="button" class="btn" id="btnCancelEdit">取消</button></div>
         </form>`;
             }
@@ -2351,7 +2649,7 @@
                     const delBtn = isCustom ?
                         `<span class="del-tag-btn" data-field="${field}" data-value="${escapeHTML(o)}" title="删除此自定义标签">×</span>` :
                         '';
-                    return `<span class="tag-option${isSelected?' selected':''}" data-field="${field}" data-value="${escapeHTML(o)}">${escapeHTML(o)}${delBtn}</span>`;
+                    return `<span class="tag-option${isSelected ? ' selected' : ''}" data-field="${field}" data-value="${escapeHTML(o)}">${escapeHTML(o)}${delBtn}</span>`;
                 }).join('');
             }
 
@@ -2400,7 +2698,7 @@
                     DEFAULT_GAMEPLAY_OPTIONS);
 
                 modal.querySelectorAll('.tag-select-panel').forEach(p => {
-                    p.addEventListener('click', function(e) {
+                    p.addEventListener('click', function (e) {
                         const delBtn = e.target.closest('.del-tag-btn');
                         if (delBtn) {
                             const field = delBtn.dataset.field;
@@ -2414,7 +2712,7 @@
                     });
                 });
 
-                modal.querySelector('#btnAddGenre').addEventListener('click', function() {
+                modal.querySelector('#btnAddGenre').addEventListener('click', function () {
                     const inp = modal.querySelector('#efNewGenre');
                     const tag = inp.value.trim();
                     if (!tag) return;
@@ -2426,7 +2724,7 @@
                         updateFilterUI();
                     } else alert('标签已存在或无效');
                 });
-                modal.querySelector('#btnAddGameplay').addEventListener('click', function() {
+                modal.querySelector('#btnAddGameplay').addEventListener('click', function () {
                     const inp = modal.querySelector('#efNewGameplay');
                     const tag = inp.value.trim();
                     if (!tag) return;
@@ -2440,10 +2738,10 @@
                     } else alert('标签已存在或无效');
                 });
 
-                modal.querySelector('#efIsReleased')?.addEventListener('change', function() {
+                modal.querySelector('#efIsReleased')?.addEventListener('change', function () {
                     toggleReleasedFields(modal, this.checked);
                 });
-                modal.querySelector('#btnFetchCover')?.addEventListener('click', function() {
+                modal.querySelector('#btnFetchCover')?.addEventListener('click', function () {
                     const id = modal.querySelector('#efSteamAppId')?.value.trim();
                     if (!id) { alert('请输入App ID'); return; }
                     const url =
@@ -2454,11 +2752,11 @@
                 });
                 modal.querySelector('#btnUploadCover')?.addEventListener('click', () => modal.querySelector('#efCoverFile')
                     .click());
-                modal.querySelector('#efCoverFile')?.addEventListener('change', function() {
+                modal.querySelector('#efCoverFile')?.addEventListener('change', function () {
                     const f = this.files[0];
                     if (!f) return;
                     const r = new FileReader();
-                    r.onload = function(e) {
+                    r.onload = function (e) {
                         modal.querySelector('#efCover').value = e.target.result;
                         const prev = modal.querySelector('#coverPreview');
                         if (prev) prev.src = e.target.result;
@@ -2467,7 +2765,7 @@
                 });
                 modal.querySelector('#btnSaveGame')?.addEventListener('click', () => saveGameFromForm(modal));
                 modal.querySelector('#btnCancelEdit')?.addEventListener('click', closeEditModal);
-                modal.querySelector('#btnSmartParse').addEventListener('click', function() {
+                modal.querySelector('#btnSmartParse').addEventListener('click', function () {
                     const raw = modal.querySelector('#efSmartPaste').value.trim();
                     if (!raw) return;
                     const parsed = parseGameText(raw);
@@ -2500,8 +2798,10 @@
             }
 
             function parseGameText(text) {
-                const result = { title: '', genre: [], gameplay: [], platforms: [], heroineType: '', costumeType: '',
-                    perspective: '', hasChinese: '', releaseDate: '' };
+                const result = {
+                    title: '', genre: [], gameplay: [], platforms: [], heroineType: '', costumeType: '',
+                    perspective: '', hasChinese: '', releaseDate: ''
+                };
                 const titleMatch = text.match(/《(.+?)》/);
                 if (titleMatch) result.title = titleMatch[1].trim();
                 else {
@@ -2663,7 +2963,7 @@
                     return;
                 }
                 const reader = new FileReader();
-                reader.onload = function(ev) {
+                reader.onload = function (ev) {
                     const csvData = ev.target.result;
                     const results = Papa.parse(csvData, { header: true, skipEmptyLines: true, trimHeaders: true });
                     if (results.errors && results.errors.length) {
@@ -2809,7 +3109,7 @@
                         const day = parts[2].padStart(2, '0');
                         return `${year}-${month}-${day}`;
                     }
-                } catch (_) {}
+                } catch (_) { }
                 return d;
             }
 
@@ -2820,27 +3120,27 @@
                 document.getElementById('btnThemeToggle').addEventListener('click', toggleTheme);
                 document.getElementById('btnToggleAdmin').addEventListener('click', toggleAdminMode);
 
-                document.getElementById('btnAddGame').addEventListener('click', function() {
+                document.getElementById('btnAddGame').addEventListener('click', function () {
                     if (!isEditor()) { alert('请先验证密钥以添加游戏。'); return; }
                     showEditModal(null);
                 });
 
-                document.getElementById('btnImportCSV').addEventListener('click', function() {
+                document.getElementById('btnImportCSV').addEventListener('click', function () {
                     if (!isEditor()) { alert('请先验证密钥以导入数据。'); return; }
                     document.getElementById('csvFileInput').click();
                 });
-                document.getElementById('csvFileInput').addEventListener('change', function(e) {
+                document.getElementById('csvFileInput').addEventListener('change', function (e) {
                     const file = this.files[0];
                     if (!file) return;
                     importCSV(file);
                 });
 
                 document.querySelectorAll('.view-tab').forEach(t =>
-                    t.addEventListener('click', function() { switchView(this.dataset.view); })
+                    t.addEventListener('click', function () { switchView(this.dataset.view); })
                 );
 
                 document.querySelectorAll('.sort-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
+                    btn.addEventListener('click', function () {
                         setSort(this.dataset.sort);
                     });
                 });
@@ -2848,13 +3148,13 @@
                 // 搜索输入事件
                 const searchInput = document.getElementById('searchInput');
                 const clearBtn = document.getElementById('searchClearBtn');
-                searchInput.addEventListener('input', function() { setSearchQuery(this.value); });
-                clearBtn.addEventListener('click', function() {
+                searchInput.addEventListener('input', function () { setSearchQuery(this.value); });
+                clearBtn.addEventListener('click', function () {
                     searchInput.value = '';
                     setSearchQuery('');
                     searchInput.focus();
                 });
-                searchInput.addEventListener('keydown', function(e) {
+                searchInput.addEventListener('keydown', function (e) {
                     if (e.key === 'Escape') {
                         this.value = '';
                         setSearchQuery('');
@@ -2862,7 +3162,7 @@
                     }
                 });
 
-                document.addEventListener('keydown', function(e) {
+                document.addEventListener('keydown', function (e) {
                     if (e.key === 'Escape') {
                         closeDetailModal();
                         closeEditModal();
@@ -2873,12 +3173,12 @@
 
                 document.getElementById('btnTip').addEventListener('click', openTipModal);
                 document.getElementById('tipModalClose').addEventListener('click', closeTipModal);
-                document.getElementById('tipModalOverlay').addEventListener('click', function(e) {
+                document.getElementById('tipModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeTipModal();
                 });
 
                 // ---- 密钥验证 ----
-                document.getElementById('siteLogo').addEventListener('dblclick', function(e) {
+                document.getElementById('siteLogo').addEventListener('dblclick', function (e) {
                     e.preventDefault();
                     if (isEditor()) {
                         alert('✅ 当前已处于编辑模式。\n如需退出，请关闭浏览器标签页或清除会话数据。');
@@ -2888,13 +3188,15 @@
                 });
 
                 document.getElementById('keyModalClose').addEventListener('click', closeKeyModal);
-                document.getElementById('keyModalOverlay').addEventListener('click', function(e) {
+                document.getElementById('keyModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeKeyModal();
                 });
                 document.getElementById('keyConfirmBtn').addEventListener('click', handleKeySubmit);
-                document.getElementById('keyInput').addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') { e.preventDefault();
-                        handleKeySubmit(); }
+                document.getElementById('keyInput').addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleKeySubmit();
+                    }
                 });
 
                 updateFilterUI();
@@ -2929,4 +3231,5 @@
         })();
     </script>
 </body>
+
 </html>
