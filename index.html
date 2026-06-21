@@ -3024,12 +3024,14 @@
                 if (!client) return null;
                 setSyncStatus('syncing');
                 try {
+                    // ✅ 正确：排除自定义标签的特殊记录
                     const { data, error } = await client
                         .from(TABLE_NAME)
                         .select('*')
                         .neq('id', 999999)
                         .neq('id', 999998)
                         .order('id', { ascending: true });
+
                     if (error) {
                         setSyncStatus('error', error.message);
                         return null;
@@ -3429,6 +3431,14 @@
 
             function updateFilterUI() {
                 const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
+
+                // 🆕 添加调试日志
+                console.log('=== updateFilterUI 调试 ===');
+                console.log('当前视图:', currentView);
+                console.log('所有题材:', getAllGenres());
+                console.log('所有玩法:', getAllGameplays());
+                console.log('筛选分类 Map:', Object.keys(map));
+
                 const row = document.getElementById('filterCategoryRow');
                 row.innerHTML = Object.entries(map).map(([cat, info]) => {
                     const has = activeFilters[cat] && activeFilters[cat].size > 0;
@@ -3442,6 +3452,8 @@
                 if (activeFilterCat && map[activeFilterCat]) {
                     const info = map[activeFilterCat],
                         sel = activeFilters[activeFilterCat];
+                    // 🆕 打印当前分类的选项
+                    console.log(`当前分类 "${activeFilterCat}" 的选项:`, info.options);
                     panel.innerHTML = info.options.map(o =>
                         `<span class="filter-option-tag${sel.has(o) ? ' selected' : ''}" data-cat="${activeFilterCat}" data-value="${escapeHTML(o)}">${o}</span>`
                     ).join('');
