@@ -2768,25 +2768,38 @@
                 const client = getSupabase();
                 if (!client) return;
                 try {
+                    console.log('正在从 Supabase 加载自定义标签...');
                     const { data, error } = await client
                         .from(TABLE_NAME)
                         .select('*')
                         .in('id', [999999, 999998]);
-                    if (error || !data) return;
+
+                    if (error || !data) {
+                        console.log('无自定义标签数据');
+                        return;
+                    }
+
                     for (const row of data) {
-                        if (row.id === 999999 && row.genre) {
+                        if (row.id === 999999) {
                             customGenres = row.genre || [];
+                            console.log('✅ 加载题材:', customGenres);
                         }
-                        if (row.id === 999998 && row.genre) {
-                            customGameplays = row.genre || [];
+                        if (row.id === 999998) {
+                            customGameplays = row.gameplay || [];  // ✅ 修复：使用 gameplay
+                            console.log('✅ 加载玩法:', customGameplays);
                         }
                     }
+
                     localStorage.setItem('heroineCustomTags', JSON.stringify({
                         genres: customGenres,
                         gameplays: customGameplays
                     }));
+
                     updateFilterUI();
-                } catch (_) { }
+                    console.log('✅ 自定义标签加载完成');
+                } catch (e) {
+                    console.error('加载自定义标签出错:', e);
+                }
             }
 
             function getAllGenres() { return [...DEFAULT_GENRE_OPTIONS, ...customGenres]; }
