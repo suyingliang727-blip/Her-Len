@@ -2748,16 +2748,18 @@
                 localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
                 if (SUPABASE_ENABLED && supabaseClient) {
                     Promise.all([
+                        // 题材：id=999999，使用 genre 字段
                         supabaseClient.from('games').upsert({
                             id: 999999,
                             title: '__custom_genres__',
                             genre: customGenres,
                             isReleased: true
                         }, { onConflict: 'id' }),
+                        // 玩法：id=999998，使用 gameplay 字段 ✅
                         supabaseClient.from('games').upsert({
                             id: 999998,
                             title: '__custom_gameplays__',
-                            genre: customGameplays,
+                            gameplay: customGameplays,  // ✅ 修复：使用 gameplay
                             isReleased: true
                         }, { onConflict: 'id' })
                     ]).catch(() => { });
