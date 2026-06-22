@@ -3719,7 +3719,10 @@
                         cardObserver.disconnect();
                         cardObserver = null;
                     }
-                    cardShineListeners.forEach(({ el, handler }) => el.removeEventListener('mousemove', handler));
+                    cardShineListeners.forEach(({ el, handler, leave }) => {
+                        el.removeEventListener('mousemove', handler);
+                        el.removeEventListener('mouseleave', leave);
+                    });
                     cardShineListeners = [];
                     return;
                 }
@@ -3852,25 +3855,20 @@
             }
 
             // ================================================================
-            // 增强版卡片3D交互
+            // 增强版卡片3D交互（仅桌面悬停，无触摸）
             // ================================================================
             function setupCardEnhanced(card) {
+                // 清除旧监听
                 const old = cardShineListeners.find(item => item.el === card);
                 if (old) {
                     card.removeEventListener('mousemove', old.handler);
                     card.removeEventListener('mouseleave', old.leave);
-                    card.removeEventListener('touchstart', old.touchStart);
-                    card.removeEventListener('touchmove', old.touchMove);
-                    card.removeEventListener('touchend', old.touchEnd);
-                    card.removeEventListener('touchcancel', old.touchEnd);
                     cardShineListeners = cardShineListeners.filter(item => item.el !== card);
                 }
 
                 const iridescent = card.querySelector('.card-iridescent');
                 const shine = card.querySelector('.card-shine');
                 const silver = card.querySelector('.card-silver-sweep');
-
-                let isTouching = false;
                 let timeoutId = null;
 
                 const handleMove = function (e) {
@@ -3926,103 +3924,13 @@
                     }
                 };
 
-                const handleTouchStart = function (e) {
-                    const touch = e.touches[0];
-                    if (!touch) return;
-                    isTouching = true;
-                    const rect = card.getBoundingClientRect();
-                    const x = (touch.clientX - rect.left) / rect.width;
-                    const y = (touch.clientY - rect.top) / rect.height;
-                    const clampedX = Math.max(0, Math.min(1, x));
-                    const clampedY = Math.max(0, Math.min(1, y));
-
-                    const rotateX = (clampedY - 0.5) * 2 * -6;
-                    const rotateY = (clampedX - 0.5) * 2 * 6;
-                    card.style.transform =
-                        `translateY(-8px) scale(1.015) perspective(${getComputedStyle(card).getPropertyValue('--card-perspective') || '1200px'}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                    if (iridescent) {
-                        iridescent.style.setProperty('--iridescent-angle', clampedX * 360 + 'deg');
-                    }
-                    if (shine) {
-                        shine.style.setProperty('--shine-x', clampedX * 100 + '%');
-                        shine.style.setProperty('--shine-y', clampedY * 100 + '%');
-                    }
-                    const parallax = card.querySelector('.card-parallax-bg');
-                    if (parallax) {
-                        parallax.style.setProperty('--parallax-x', clampedX * 100 + '%');
-                        parallax.style.setProperty('--parallax-y', clampedY * 100 + '%');
-                    }
-                };
-
-                const handleTouchMove = function (e) {
-                    if (!isTouching) return;
-                    const touch = e.touches[0];
-                    if (!touch) return;
-                    const rect = card.getBoundingClientRect();
-                    const x = (touch.clientX - rect.left) / rect.width;
-                    const y = (touch.clientY - rect.top) / rect.height;
-                    const clampedX = Math.max(0, Math.min(1, x));
-                    const clampedY = Math.max(0, Math.min(1, y));
-
-                    const rotateX = (clampedY - 0.5) * 2 * -6;
-                    const rotateY = (clampedX - 0.5) * 2 * 6;
-                    card.style.transform =
-                        `translateY(-8px) scale(1.015) perspective(${getComputedStyle(card).getPropertyValue('--card-perspective') || '1200px'}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                    if (iridescent) {
-                        iridescent.style.setProperty('--iridescent-angle', clampedX * 360 + 'deg');
-                    }
-                    if (shine) {
-                        shine.style.setProperty('--shine-x', clampedX * 100 + '%');
-                        shine.style.setProperty('--shine-y', clampedY * 100 + '%');
-                    }
-                    const parallax = card.querySelector('.card-parallax-bg');
-                    if (parallax) {
-                        parallax.style.setProperty('--parallax-x', clampedX * 100 + '%');
-                        parallax.style.setProperty('--parallax-y', clampedY * 100 + '%');
-                    }
-                };
-
-                const handleTouchEnd = function () {
-                    isTouching = false;
-                    card.style.transform = '';
-                    if (iridescent) {
-                        iridescent.style.setProperty('--iridescent-angle', '0deg');
-                    }
-                    if (shine) {
-                        shine.style.setProperty('--shine-x', '50%');
-                        shine.style.setProperty('--shine-y', '50%');
-                    }
-                    const parallax = card.querySelector('.card-parallax-bg');
-                    if (parallax) {
-                        parallax.style.setProperty('--parallax-x', '50%');
-                        parallax.style.setProperty('--parallax-y', '50%');
-                    }
-                    if (silver) {
-                        silver.classList.remove('trigger');
-                        void silver.offsetWidth;
-                        silver.classList.add('trigger');
-                        if (timeoutId) clearTimeout(timeoutId);
-                        timeoutId = setTimeout(() => {
-                            silver.classList.remove('trigger');
-                            timeoutId = null;
-                        }, 800);
-                    }
-                };
-
                 card.addEventListener('mousemove', handleMove);
                 card.addEventListener('mouseleave', handleLeave);
-                card.addEventListener('touchstart', handleTouchStart, { passive: true });
-                card.addEventListener('touchmove', handleTouchMove, { passive: true });
-                card.addEventListener('touchend', handleTouchEnd, { passive: true });
-                card.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
                 cardShineListeners.push({
                     el: card,
                     handler: handleMove,
-                    leave: handleLeave,
-                    touchStart: handleTouchStart,
-                    touchMove: handleTouchMove,
-                    touchEnd: handleTouchEnd
+                    leave: handleLeave
                 });
             }
 
