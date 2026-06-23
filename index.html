@@ -2992,19 +2992,37 @@
                 if (!client) return false;
                 setSyncStatus('syncing');
                 try {
-                    await client.from('games').delete().neq('id', 0);
-                    const toInsert = gameList.map(g => ({
-                        ...g, genre: g.genre || [], gameplay: g.gameplay || [],
-                        platforms: g.platforms || [], videos: g.videos || [], screenshots: g.screenshots || []
-                    }));
+                    // 过滤掉特殊记录，避免误删
+                    const toInsert = gameList
+                        .filter(g => g.id !== 999999 && g.id !== 999998)
+                        .map(g => ({
+                            ...g,
+                            genre: g.genre || [],
+                            gameplay: g.gameplay || [],
+                            platforms: g.platforms || [],
+                            videos: g.videos || [],
+                            screenshots: g.screenshots || []
+                        }));
+
+                    // 使用 upsert 分批更新
                     for (let i = 0; i < toInsert.length; i += 50) {
                         const batch = toInsert.slice(i, i + 50);
-                        const { error } = await client.from('games').insert(batch);
-                        if (error) { setSyncStatus('error', error.message); return false; }
+                        const { error } = await client
+                            .from(TABLE_NAME)
+                            .upsert(batch, { onConflict: 'id' });
+                        if (error) {
+                            setSyncStatus('error', error.message);
+                            return false;
+                        }
                     }
+
+                    // 额外处理：如果有删除需求，应单独处理，而不是全量删除
                     setSyncStatus('synced');
                     return true;
-                } catch (e) { setSyncStatus('error', e.message || '保存失败'); return false; }
+                } catch (e) {
+                    setSyncStatus('error', e.message || '保存失败');
+                    return false;
+                }
             }
 
             const DEFAULT_GAMES = [{
@@ -3143,8 +3161,12 @@
             }
 
             async function saveGames() {
+                // 确认操作
+                if (!confirm('即将保存所有游戏数据到云端，确认吗？')) return;
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                if (SUPABASE_ENABLED && supabaseClient) { await saveToSupabase(games); }
+                if (SUPABASE_ENABLED && supabaseClient) {
+                    await saveToSupabase(games);
+                }
             }
 
             function loadSettings() {
