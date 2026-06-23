@@ -4288,8 +4288,23 @@
                 };
                 const title = getVal('efTitle');
                 if (!title) { alert('请输入游戏名称'); return; }
+
+                // ---- 🔥 新增去重逻辑 ----
+                // 如果是新增（editingGameId 为空），检查是否已存在同标题的游戏
+                if (!editingGameId) {
+                    const existing = games.find(g => g.title === title);
+                    if (existing) {
+                        // 如果用户选择“确定”，则复用已有 ID，后续会更新该记录
+                        if (confirm(`已存在游戏 "${title}"，是否更新该游戏？\n点击“确定”更新，点击“取消”取消保存。`)) {
+                            editingGameId = existing.id;  // 复用 ID
+                        } else {
+                            return; // 取消保存
+                        }
+                    }
+                }
+
                 const gameData = {
-                    id: editingGameId || generateId(),
+                    id: editingGameId || generateId(),  // 如果上面设置了 editingGameId，就用它；否则生成新 ID
                     title,
                     cover: getVal('efCover'),
                     description: getVal('efDescription'),
@@ -4315,10 +4330,13 @@
                     otherLinks: getVal('efOtherLinks'),
                     isReleased: getCheck('efIsReleased')
                 };
+
                 if (editingGameId) {
                     const idx = games.findIndex(g => g.id === editingGameId);
                     if (idx >= 0) games[idx] = gameData;
-                } else games.push(gameData);
+                } else {
+                    games.push(gameData);
+                }
                 saveGames();
                 closeEditModal();
                 renderGallery();
