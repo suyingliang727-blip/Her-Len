@@ -5,7 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Her Lens · 女性主角游戏</title>
-    <!-- 预连接优化 -->
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
@@ -14,7 +13,7 @@
     </script>
     <style>
         /* ================================================================
-   全局变量 & 主题
+   全局变量 & 主题 (与原文一致，未改动)
    ================================================================ */
         :root {
             --bg: #f3eff7;
@@ -63,21 +62,17 @@
             --glass-shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
             --card-bg-glass: rgba(255, 255, 255, 0.65);
             --card-border-glass: rgba(213, 207, 224, 0.55);
-            /* 性能优化：默认禁用模糊，仅在桌面端启用 */
             --backdrop-blur-level: 0px;
             --card-3d-enabled: 0;
             --bg-animation-enabled: 0;
         }
 
-        /* 桌面端启用视觉效果（使用 prefers-reduced-motion 和媒体查询） */
         @media (hover: hover) and (prefers-reduced-motion: no-preference) {
             :root {
                 --backdrop-blur-level: 20px;
                 --card-3d-enabled: 1;
                 --bg-animation-enabled: 1;
             }
-
-            /* 仅桌面端启用 backdrop-filter */
             .filter-sticky,
             .announcement-bar,
             .modal,
@@ -92,7 +87,6 @@
             .btn,
             .sync-status,
             .card-user-actions .action-btn,
-            .card-admin-actions button,
             .modal .detail-tags span,
             .modal .detail-video-link,
             .modal .detail-link-btn,
@@ -108,12 +102,9 @@
                 backdrop-filter: blur(var(--backdrop-blur-level)) saturate(1.3) !important;
                 -webkit-backdrop-filter: blur(var(--backdrop-blur-level)) saturate(1.3) !important;
             }
-
             .gallery-card .card-parallax-bg {
                 display: block;
             }
-
-            /* 背景光晕动画仅在桌面端启用 */
             .bg-glow.g1,
             .bg-glow.g2,
             .bg-glow.g3 {
@@ -121,7 +112,6 @@
             }
         }
 
-        /* 移动端强制禁用高耗能效果 */
         @media (hover: none),
         (max-width: 768px) {
             :root {
@@ -129,8 +119,6 @@
                 --card-3d-enabled: 0 !important;
                 --bg-animation-enabled: 0 !important;
             }
-
-            /* 禁用所有 backdrop-filter */
             .filter-sticky,
             .announcement-bar,
             .modal,
@@ -145,7 +133,6 @@
             .btn,
             .sync-status,
             .card-user-actions .action-btn,
-            .card-admin-actions button,
             .modal .detail-tags span,
             .modal .detail-video-link,
             .modal .detail-link-btn,
@@ -161,118 +148,88 @@
                 backdrop-filter: none !important;
                 -webkit-backdrop-filter: none !important;
             }
-
-            /* 禁用背景光晕动画 */
             .bg-glow.g1,
             .bg-glow.g2,
             .bg-glow.g3 {
                 animation: none !important;
                 opacity: 0.2 !important;
             }
-
-            /* 禁用卡片3D效果 */
             .gallery-card {
                 perspective: none !important;
                 transform-style: flat !important;
             }
-
             .gallery-card:hover {
                 transform: translateY(-4px) scale(1.01) !important;
             }
-
             .gallery-card .card-parallax-bg {
                 display: none !important;
             }
-
-            /* 减少卡片入场动画复杂度 */
             .gallery-card {
                 opacity: 0;
                 transform: translateY(20px) scale(0.98);
                 transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
             }
-
             .gallery-card.visible {
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
-
-            /* 移动端卡片延迟更短 */
             .gallery-card:nth-child(1) {
                 transition-delay: 0.01s;
             }
-
             .gallery-card:nth-child(2) {
                 transition-delay: 0.02s;
             }
-
             .gallery-card:nth-child(3) {
                 transition-delay: 0.03s;
             }
-
             .gallery-card:nth-child(4) {
                 transition-delay: 0.04s;
             }
-
             .gallery-card:nth-child(5) {
                 transition-delay: 0.05s;
             }
-
             .gallery-card:nth-child(6) {
                 transition-delay: 0.06s;
             }
-
             .gallery-card:nth-child(7) {
                 transition-delay: 0.07s;
             }
-
             .gallery-card:nth-child(8) {
                 transition-delay: 0.08s;
             }
-
             .gallery-card:nth-child(9) {
                 transition-delay: 0.09s;
             }
-
             .gallery-card:nth-child(10) {
                 transition-delay: 0.10s;
             }
-
             .gallery-card:nth-child(11) {
                 transition-delay: 0.11s;
             }
-
             .gallery-card:nth-child(12) {
                 transition-delay: 0.12s;
             }
-
             .gallery-card:nth-child(13) {
                 transition-delay: 0.13s;
             }
-
             .gallery-card:nth-child(14) {
                 transition-delay: 0.14s;
             }
-
             .gallery-card:nth-child(15) {
                 transition-delay: 0.15s;
             }
-
             .gallery-card:nth-child(16) {
                 transition-delay: 0.16s;
             }
-
             .gallery-card:nth-child(17) {
                 transition-delay: 0.17s;
             }
-
             .gallery-card:nth-child(18) {
                 transition-delay: 0.18s;
             }
-
             .gallery-card:nth-child(19) {
                 transition-delay: 0.19s;
             }
-
             .gallery-card:nth-child(20) {
                 transition-delay: 0.20s;
             }
@@ -348,11 +305,9 @@
             width: 6px;
             height: 6px;
         }
-
         ::-webkit-scrollbar-track {
             background: var(--scrollbar-track);
         }
-
         ::-webkit-scrollbar-thumb {
             background: var(--scrollbar-thumb);
             border-radius: 3px;
@@ -366,7 +321,6 @@
             z-index: 0;
             overflow: hidden;
         }
-
         .bg-glow {
             position: absolute;
             border-radius: 50%;
@@ -374,7 +328,6 @@
             opacity: 0.4;
             transition: opacity 2s ease;
         }
-
         .bg-glow.g1 {
             width: 600px;
             height: 600px;
@@ -384,7 +337,6 @@
             animation: floatGlow1 20s ease-in-out infinite alternate;
             animation-play-state: var(--bg-animation-enabled, paused);
         }
-
         .bg-glow.g2 {
             width: 500px;
             height: 500px;
@@ -394,7 +346,6 @@
             animation: floatGlow2 25s ease-in-out infinite alternate;
             animation-play-state: var(--bg-animation-enabled, paused);
         }
-
         .bg-glow.g3 {
             width: 400px;
             height: 400px;
@@ -406,32 +357,26 @@
             animation-play-state: var(--bg-animation-enabled, paused);
             opacity: 0.2;
         }
-
         @keyframes floatGlow1 {
             0% {
                 transform: translate(0, 0) scale(1);
             }
-
             100% {
                 transform: translate(150px, 100px) scale(1.3);
             }
         }
-
         @keyframes floatGlow2 {
             0% {
                 transform: translate(0, 0) scale(1);
             }
-
             100% {
                 transform: translate(-100px, -80px) scale(1.4);
             }
         }
-
         @keyframes floatGlow3 {
             0% {
                 transform: translate(-50%, -50%) scale(1);
             }
-
             100% {
                 transform: translate(-40%, -60%) scale(1.6);
             }
@@ -461,38 +406,31 @@
             pointer-events: none;
             line-height: 1;
         }
-
         #backToTop.show {
             opacity: 1;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
-
         #backToTop:hover {
             transform: translateY(-4px) scale(1.08);
             background: rgba(155, 138, 189, 0.85);
             box-shadow: 0 6px 32px rgba(155, 138, 189, 0.45);
         }
-
         #backToTop .arrow {
             display: inline-block;
             transition: transform 0.3s ease;
         }
-
         #backToTop:hover .arrow {
             transform: translateY(-3px);
         }
-
         [data-theme="dark"] #backToTop {
             background: rgba(184, 162, 214, 0.70);
             box-shadow: 0 4px 24px rgba(184, 162, 214, 0.25);
         }
-
         [data-theme="dark"] #backToTop:hover {
             background: rgba(184, 162, 214, 0.85);
             box-shadow: 0 6px 32px rgba(184, 162, 214, 0.40);
         }
-
         @media (max-width:768px) {
             #backToTop {
                 bottom: 20px;
@@ -502,7 +440,6 @@
                 font-size: 1.3rem;
             }
         }
-
         @media (max-width:480px) {
             #backToTop {
                 bottom: 16px;
@@ -526,11 +463,9 @@
             position: relative;
             z-index: 9;
         }
-
         .announcement-bar.hidden {
             display: none;
         }
-
         .announcement-bar .announcement-content {
             flex: 1;
             display: flex;
@@ -538,7 +473,6 @@
             gap: 4px;
             padding-right: 8px;
         }
-
         .announcement-bar .announcement-item {
             display: flex;
             align-items: baseline;
@@ -547,7 +481,6 @@
             color: var(--announcement-text);
             line-height: 1.5;
         }
-
         .announcement-bar .announcement-item .announcement-icon {
             flex-shrink: 0;
             font-size: 1rem;
@@ -555,12 +488,10 @@
             width: 20px;
             text-align: center;
         }
-
         .announcement-bar .announcement-item .announcement-text strong {
             color: var(--accent);
             font-weight: 600;
         }
-
         .announcement-bar .announcement-close {
             flex-shrink: 0;
             width: 30px;
@@ -579,11 +510,26 @@
             line-height: 1;
             padding: 0;
         }
-
         .announcement-bar .announcement-close:hover {
             background: var(--border);
             color: var(--text);
             transform: rotate(90deg);
+        }
+
+        /* 展开公告按钮 */
+        #announcementToggle {
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 0.85rem;
+            border-bottom: 1.5px solid var(--border);
+            background: var(--announcement-bg);
+            transition: background 0.2s;
+            user-select: none;
+        }
+        #announcementToggle:hover {
+            background: var(--border);
         }
 
         @media (max-width:768px) {
@@ -591,12 +537,10 @@
                 padding: 8px 12px 8px 16px;
                 gap: 10px;
             }
-
             .announcement-bar .announcement-item {
                 font-size: 0.78rem;
                 gap: 6px;
             }
-
             .announcement-bar .announcement-close {
                 width: 26px;
                 height: 26px;
@@ -622,14 +566,12 @@
             cursor: pointer;
             letter-spacing: 0.02em;
         }
-
         .submit-link:hover {
             background: var(--accent);
             color: #fff;
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 4px 16px rgba(155, 138, 189, 0.30);
         }
-
         @media (max-width:768px) {
             .submit-link {
                 font-size: 0.65rem;
@@ -648,7 +590,6 @@
             position: relative;
             z-index: 10;
         }
-
         .filter-header {
             display: flex;
             align-items: center;
@@ -656,7 +597,6 @@
             min-height: 48px;
             position: relative;
         }
-
         .site-logo {
             font-size: 1.6rem;
             font-weight: 800;
@@ -674,7 +614,6 @@
             user-select: none;
             position: relative;
         }
-
         .site-logo::after {
             content: '🔑';
             font-size: 0.6rem;
@@ -686,11 +625,9 @@
             -webkit-text-fill-color: initial;
             color: var(--text3);
         }
-
         .site-logo:hover::after {
             opacity: 0.3;
         }
-
         .header-center {
             position: absolute;
             left: 50%;
@@ -699,14 +636,12 @@
             white-space: nowrap;
             z-index: 1;
         }
-
         .filter-header .site-title {
             font-size: 1.6rem;
             font-weight: 700;
             color: var(--accent);
             letter-spacing: .02em;
         }
-
         .filter-header .site-subtitle {
             font-size: .9rem;
             color: var(--text2);
@@ -720,7 +655,6 @@
             margin-bottom: 10px;
             justify-content: center;
         }
-
         .view-tab {
             padding: 8px 22px;
             font-size: .88rem;
@@ -732,23 +666,19 @@
             transition: all .2s;
             user-select: none;
         }
-
         .view-tab:first-child {
             border-radius: 20px 0 0 20px;
             border-right: none;
         }
-
         .view-tab:last-child {
             border-radius: 0 20px 20px 0;
         }
-
         .view-tab.active {
             background: var(--view-tab-active);
             color: var(--view-tab-text);
             border-color: var(--view-tab-active);
             z-index: 2;
         }
-
         .view-tab:hover:not(.active) {
             border-color: var(--accent);
             color: var(--accent);
@@ -763,7 +693,6 @@
             width: 100%;
             padding: 0 4px;
         }
-
         .search-row .search-input-wrap {
             flex: 1;
             position: relative;
@@ -775,12 +704,10 @@
             transition: border-color .25s, box-shadow .25s;
             padding: 0 14px;
         }
-
         .search-row .search-input-wrap:focus-within {
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(155, 138, 189, 0.12);
         }
-
         .search-row .search-input-wrap .search-icon {
             font-size: 1.05rem;
             color: var(--text3);
@@ -788,7 +715,6 @@
             user-select: none;
             flex-shrink: 0;
         }
-
         .search-row .search-input-wrap input {
             flex: 1;
             padding: 10px 4px 10px 0;
@@ -800,12 +726,10 @@
             outline: none;
             min-width: 0;
         }
-
         .search-row .search-input-wrap input::placeholder {
             color: var(--text3);
             opacity: 0.7;
         }
-
         .search-row .search-clear-btn {
             flex-shrink: 0;
             width: 28px;
@@ -825,12 +749,10 @@
             visibility: hidden;
             opacity: 0;
         }
-
         .search-row .search-clear-btn.visible {
             visibility: visible;
             opacity: 1;
         }
-
         .search-row .search-clear-btn:hover {
             background: var(--border);
             color: var(--text);
@@ -843,7 +765,6 @@
             align-items: center;
             justify-content: center;
         }
-
         .filter-cat-btn {
             padding: 7px 15px;
             border-radius: 20px;
@@ -857,20 +778,17 @@
             user-select: none;
             font-weight: 500;
         }
-
         .filter-cat-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.12);
         }
-
         .filter-cat-btn.active {
             background: var(--accent);
             color: #fff;
             border-color: var(--accent);
             font-weight: 600;
         }
-
         .filter-cat-btn.has-selection {
             border-color: var(--accent);
             color: var(--accent);
@@ -891,11 +809,9 @@
             box-shadow: var(--shadow);
             justify-content: center;
         }
-
         .filter-options-panel.show {
             display: flex;
         }
-
         .filter-option-tag {
             padding: 5px 12px;
             border-radius: 14px;
@@ -908,13 +824,11 @@
             white-space: nowrap;
             user-select: none;
         }
-
         .filter-option-tag:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.15);
         }
-
         .filter-option-tag.selected {
             background: var(--tag-active-bg);
             color: var(--tag-active-text);
@@ -931,7 +845,6 @@
             min-height: 22px;
             justify-content: center;
         }
-
         .active-filter-chip {
             display: inline-flex;
             align-items: center;
@@ -943,7 +856,6 @@
             font-size: .75rem;
             font-weight: 500;
         }
-
         .active-filter-chip .remove-chip {
             cursor: pointer;
             font-weight: 700;
@@ -951,11 +863,9 @@
             opacity: .8;
             font-size: .85rem;
         }
-
         .active-filter-chip .remove-chip:hover {
             opacity: 1;
         }
-
         .clear-all-filters {
             font-size: .75rem;
             color: var(--danger);
@@ -965,7 +875,6 @@
             text-decoration: underline;
             white-space: nowrap;
         }
-
         .clear-all-filters:hover {
             opacity: .8;
         }
@@ -982,7 +891,6 @@
             position: relative;
             z-index: 2;
         }
-
         .toolbar-left {
             display: flex;
             gap: 8px;
@@ -1002,36 +910,30 @@
             color: var(--text);
             white-space: nowrap;
         }
-
         .btn:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
-
         .btn-accent {
             background: var(--accent);
             color: #fff;
             border-color: var(--accent);
         }
-
         .btn-accent:hover {
             background: var(--accent2);
             border-color: var(--accent2);
             color: #fff;
         }
-
         .btn-sm {
             padding: 5px 10px;
             font-size: .72rem;
             border-radius: 14px;
         }
-
         .btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
             pointer-events: none;
         }
-
         .btn-random {
             background: linear-gradient(135deg, #f5b342, #f5a623);
             color: #fff;
@@ -1040,19 +942,16 @@
             box-shadow: 0 2px 12px rgba(245, 179, 66, 0.20);
             transition: all 0.3s ease;
         }
-
         .btn-random:hover {
             transform: scale(1.05) translateY(-2px);
             box-shadow: 0 4px 24px rgba(245, 179, 66, 0.35);
             border-color: #f5a623;
             color: #fff;
         }
-
         .btn-random .dice-icon {
             display: inline-block;
             transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
         .btn-random:active .dice-icon {
             transform: rotate(360deg) scale(1.2);
         }
@@ -1061,24 +960,20 @@
             border-color: #e74c3c;
             color: #e74c3c;
         }
-
         .btn-wishlist:hover {
             background: #e74c3c;
             color: #fff;
             border-color: #e74c3c;
         }
-
         .btn-wishlist.active {
             background: #e74c3c;
             color: #fff;
             border-color: #e74c3c;
         }
-
         .btn-wishlist .heart-icon {
             display: inline-block;
             transition: transform 0.3s ease;
         }
-
         .btn-wishlist:hover .heart-icon {
             transform: scale(1.2);
         }
@@ -1088,22 +983,18 @@
             color: var(--gold);
             font-weight: 600;
         }
-
         .btn-achievement:hover {
             background: var(--gold);
             color: #fff;
             border-color: var(--gold);
         }
-
         .btn-achievement .trophy-icon {
             display: inline-block;
             transition: transform 0.3s ease;
         }
-
         .btn-achievement:hover .trophy-icon {
             transform: scale(1.15) rotate(-8deg);
         }
-
         .btn-achievement .badge-dot {
             display: inline-block;
             width: 8px;
@@ -1113,15 +1004,12 @@
             margin-left: 4px;
             animation: pulse-dot 1.5s ease-in-out infinite;
         }
-
         @keyframes pulse-dot {
-
             0%,
             100% {
                 transform: scale(1);
                 opacity: 1;
             }
-
             50% {
                 transform: scale(1.4);
                 opacity: 0.5;
@@ -1135,7 +1023,6 @@
             overflow: hidden;
             border: 1.5px solid var(--border);
         }
-
         .sort-btn {
             padding: 5px 12px;
             font-size: .72rem;
@@ -1147,19 +1034,16 @@
             transition: all .2s;
             white-space: nowrap;
         }
-
         .sort-btn:hover {
             background: var(--card-hover);
             color: var(--accent);
         }
-
         .sort-btn.active {
             background: var(--sort-active-bg);
             color: var(--sort-active-text);
             font-weight: 600;
         }
-
-        .sort-btn:first-child {
+        .sort-btn:not(:last-child) {
             border-right: 1.5px solid var(--border);
         }
 
@@ -1173,7 +1057,6 @@
             transition: all .2s;
             line-height: 1;
         }
-
         .theme-toggle:hover {
             border-color: var(--accent);
             background: var(--card-hover);
@@ -1198,7 +1081,6 @@
             align-items: baseline;
             gap: 2px;
         }
-
         .result-count .count-number {
             display: inline-block;
             min-width: 1.2em;
@@ -1207,21 +1089,17 @@
             color: var(--text);
             transition: transform 0.15s ease;
         }
-
         .result-count .count-number.pop {
             animation: countPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
         @keyframes countPop {
             0% {
                 transform: scale(1);
             }
-
             50% {
                 transform: scale(1.4);
                 color: var(--accent);
             }
-
             100% {
                 transform: scale(1);
             }
@@ -1244,7 +1122,6 @@
             height: 40px;
             user-select: none;
         }
-
         .coin-tip-btn:hover {
             border-color: var(--coin-color);
             background: rgba(245, 179, 66, 0.10);
@@ -1263,27 +1140,21 @@
             background: var(--sync-status-bg);
             white-space: nowrap;
         }
-
         .sync-status.synced {
             color: var(--success);
         }
-
         .sync-status.syncing {
             color: var(--accent);
             animation: pulse 1s ease-in-out infinite;
         }
-
         .sync-status.error {
             color: var(--danger);
         }
-
         @keyframes pulse {
-
             0%,
             100% {
                 opacity: 1;
             }
-
             50% {
                 opacity: 0.4;
             }
@@ -1297,7 +1168,6 @@
             position: relative;
             z-index: 2;
         }
-
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -1319,13 +1189,10 @@
                 box-shadow 0.5s ease, border-color 0.4s ease, background 0.4s ease;
             will-change: transform, opacity;
         }
-
         .gallery-card.visible {
             opacity: 1;
             transform: translateY(0) scale(1);
         }
-
-        /* 桌面端 hover 效果仅在启用 3D 时生效 */
         @media (hover: hover) {
             .gallery-card:hover {
                 transform: translateY(-8px) scale(1.015);
@@ -1333,13 +1200,11 @@
                 border-color: rgba(155, 138, 189, 0.30);
                 background: rgba(255, 255, 255, 0.08);
             }
-
             [data-theme="dark"] .gallery-card:hover {
                 background: rgba(255, 255, 255, 0.05);
                 border-color: rgba(184, 162, 214, 0.25);
             }
         }
-
         .gallery-card.highlight {
             animation: highlightPulse 1.2s ease 3;
             border-color: var(--accent);
@@ -1347,26 +1212,21 @@
             transform: scale(1.02);
             z-index: 5;
         }
-
         [data-theme="dark"] .gallery-card.highlight {
             box-shadow: 0 0 60px rgba(155, 138, 189, 0.20);
         }
-
         @keyframes highlightPulse {
-
             0%,
             100% {
                 box-shadow: 0 0 20px rgba(155, 138, 189, 0.15);
                 transform: scale(1.02);
             }
-
             50% {
                 box-shadow: 0 0 60px rgba(155, 138, 189, 0.40);
                 transform: scale(1.06);
             }
         }
 
-        /* 卡片左上角女主分类标签 */
         .card-heroine-tag {
             position: absolute;
             top: 8px;
@@ -1385,7 +1245,6 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
             text-transform: uppercase;
         }
-
         [data-theme="dark"] .card-heroine-tag {
             background: linear-gradient(135deg, #8a77a8, #6a5a82);
             box-shadow: 0 2px 14px rgba(0, 0, 0, 0.50);
@@ -1401,7 +1260,6 @@
             flex-shrink: 0;
             z-index: 3;
         }
-
         .gallery-card .card-cover {
             width: 100%;
             height: 100%;
@@ -1412,11 +1270,9 @@
             position: relative;
             z-index: 2;
         }
-
         .gallery-card .card-cover.loaded {
             opacity: 1;
         }
-
         .gallery-card .card-cover-placeholder {
             position: absolute;
             inset: 0;
@@ -1429,7 +1285,6 @@
             z-index: 1;
             transition: opacity 0.5s ease;
         }
-
         .gallery-card .card-cover-placeholder.hidden {
             opacity: 0;
         }
@@ -1443,14 +1298,12 @@
             position: relative;
             z-index: 3;
         }
-
         .gallery-card .card-title {
             font-weight: 700;
             font-size: .95rem;
             color: var(--text);
             line-height: 1.3;
         }
-
         .gallery-card .card-desc {
             font-size: .75rem;
             color: var(--text2);
@@ -1460,14 +1313,12 @@
             overflow: hidden;
             line-height: 1.4;
         }
-
         .gallery-card .card-meta {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 4px;
         }
-
         .gallery-card .card-meta span {
             font-size: .68rem;
             padding: 2px 7px;
@@ -1476,13 +1327,11 @@
             color: var(--tag-text);
             white-space: nowrap;
         }
-
         .gallery-card .card-meta span.accent-tag {
             background: var(--accent);
             color: #fff;
             font-weight: 500;
         }
-
         .gallery-card .card-meta span.tag-muted {
             background: var(--text3);
             color: #fff;
@@ -1500,7 +1349,6 @@
             border-top: 1px solid var(--border);
             margin-top: 4px;
         }
-
         .gallery-card .card-user-actions .action-btn {
             display: inline-flex;
             align-items: center;
@@ -1516,66 +1364,23 @@
             user-select: none;
             font-weight: 500;
         }
-
         .gallery-card .card-user-actions .action-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
-
         .gallery-card .card-user-actions .action-btn.active-wish {
             background: #e74c3c;
             color: #fff;
             border-color: #e74c3c;
         }
-
         .gallery-card .card-user-actions .action-btn.active-played {
             background: var(--success);
             color: #fff;
             border-color: var(--success);
         }
-
         .gallery-card .card-user-actions .action-btn .icon {
             font-size: .85rem;
             line-height: 1;
-        }
-
-        .gallery-card .card-admin-actions {
-            display: flex;
-            gap: 6px;
-            padding: 0 14px 10px;
-            flex-wrap: wrap;
-            position: relative;
-            z-index: 3;
-        }
-
-        .gallery-card .card-admin-actions button {
-            font-size: .68rem;
-            padding: 4px 10px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            background: var(--surface);
-            color: var(--text2);
-            transition: all .15s;
-        }
-
-        .gallery-card .card-admin-actions button:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .gallery-card .card-admin-actions button.btn-del:hover {
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-
-        .gallery-card .card-admin-actions .edit-locked {
-            font-size: .65rem;
-            color: var(--text3);
-            padding: 4px 8px;
-            background: var(--tag-bg);
-            border-radius: 8px;
-            border: 1px dashed var(--border);
         }
 
         .gallery-card .card-parallax-bg {
@@ -1590,17 +1395,13 @@
             transition: background 0.6s ease;
             opacity: 0.5;
         }
-
-        /* 桌面端启用视差背景 */
         @media (hover: hover) and (prefers-reduced-motion: no-preference) {
             .gallery-card .card-parallax-bg {
                 display: block;
             }
-
             .gallery-card:hover .card-parallax-bg {
                 opacity: 1;
             }
-
             [data-theme="dark"] .gallery-card .card-parallax-bg {
                 background: radial-gradient(ellipse at var(--parallax-x, 50%) var(--parallax-y, 50%),
                         rgba(184, 162, 214, 0.04) 0%, transparent 70%);
@@ -1612,7 +1413,7 @@
             position: fixed;
             inset: 0;
             background: var(--overlay);
-            z-index: 1000; /* 提升至 1000，确保覆盖筛选栏 (z-index:10) */
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1621,12 +1422,10 @@
             pointer-events: none;
             transition: opacity .3s;
         }
-
         .modal-overlay.show {
             opacity: 1;
             pointer-events: auto;
         }
-
         .modal {
             background: var(--modal-bg);
             border-radius: 24px;
@@ -1641,11 +1440,9 @@
             transform: scale(0.96) translateY(10px);
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
         .modal-overlay.show .modal {
             transform: scale(1) translateY(0);
         }
-
         .modal-close {
             position: sticky;
             top: 0;
@@ -1666,7 +1463,6 @@
             margin-left: 8px;
             margin-bottom: 4px;
         }
-
         .modal-close:hover {
             color: var(--danger);
             border-color: var(--danger);
@@ -1681,30 +1477,25 @@
             margin-bottom: 16px;
             background: var(--tag-bg);
         }
-
         .modal .detail-title {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--text);
         }
-
         .modal .detail-section {
             margin: 12px 0;
         }
-
         .modal .detail-section h3 {
             font-size: .9rem;
             color: var(--accent);
             margin-bottom: 6px;
             font-weight: 600;
         }
-
         .modal .detail-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
         }
-
         .modal .detail-tags span {
             font-size: .75rem;
             padding: 4px 10px;
@@ -1712,40 +1503,34 @@
             background: var(--glass-bg-light);
             color: var(--tag-text);
         }
-
         .modal .detail-info-table {
             width: 100%;
             border-collapse: collapse;
             font-size: .82rem;
         }
-
         .modal .detail-info-table td {
             padding: 6px 10px;
             border-bottom: 1px solid var(--border);
             vertical-align: top;
         }
-
         .modal .detail-info-table td:first-child {
             font-weight: 600;
             color: var(--text2);
             width: 30%;
             white-space: nowrap;
         }
-
         .modal .detail-description {
             font-size: .85rem;
             color: var(--text);
             line-height: 1.7;
             white-space: pre-wrap;
         }
-
         .modal .detail-screenshots {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 8px;
             margin-top: 8px;
         }
-
         .modal .detail-screenshots img {
             width: 100%;
             border-radius: 8px;
@@ -1753,11 +1538,9 @@
             cursor: pointer;
             transition: transform .2s;
         }
-
         .modal .detail-screenshots img:hover {
             transform: scale(1.03);
         }
-
         .modal .detail-video-link {
             display: inline-block;
             padding: 6px 14px;
@@ -1768,11 +1551,9 @@
             font-size: .8rem;
             margin: 3px;
         }
-
         .modal .detail-video-link:hover {
             text-decoration: underline;
         }
-
         .modal .detail-link-btn {
             display: inline-block;
             padding: 8px 18px;
@@ -1785,7 +1566,6 @@
             margin: 4px;
             transition: all .2s;
         }
-
         .modal .detail-link-btn:hover {
             background: var(--accent2);
             transform: translateY(-2px);
@@ -1796,20 +1576,17 @@
         #achievementModal .modal {
             max-width: 600px;
         }
-
         #achievementModal .modal h2 {
             text-align: center;
             margin-bottom: 16px;
             color: var(--gold);
         }
-
         .achievement-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
             margin-top: 8px;
         }
-
         .achievement-item {
             display: flex;
             align-items: center;
@@ -1820,35 +1597,29 @@
             background: var(--surface);
             transition: all .2s;
         }
-
         .achievement-item.unlocked {
             border-color: var(--gold);
             background: rgba(245, 166, 35, 0.06);
             box-shadow: 0 0 20px var(--gold-glow);
         }
-
         .achievement-item .ach-icon {
             font-size: 1.8rem;
             flex-shrink: 0;
             width: 44px;
             text-align: center;
         }
-
         .achievement-item .ach-info {
             flex: 1;
         }
-
         .achievement-item .ach-name {
             font-weight: 600;
             font-size: .95rem;
             color: var(--text);
         }
-
         .achievement-item .ach-desc {
             font-size: .78rem;
             color: var(--text2);
         }
-
         .achievement-item .ach-status {
             font-size: .85rem;
             flex-shrink: 0;
@@ -1856,17 +1627,14 @@
             border-radius: 10px;
             font-weight: 500;
         }
-
         .achievement-item .ach-status.locked {
             color: var(--text3);
             background: var(--tag-bg);
         }
-
         .achievement-item .ach-status.unlocked {
             color: var(--gold);
             background: rgba(245, 166, 35, 0.15);
         }
-
         .achievement-progress {
             margin-top: 16px;
             padding: 14px 16px;
@@ -1875,16 +1643,13 @@
             border: 1px solid var(--border);
             text-align: center;
         }
-
         .achievement-progress .progress-text {
             font-size: .9rem;
             color: var(--text2);
         }
-
         .achievement-progress .progress-text strong {
             color: var(--text);
         }
-
         .achievement-progress .progress-bar {
             width: 100%;
             height: 6px;
@@ -1893,7 +1658,6 @@
             margin-top: 8px;
             overflow: hidden;
         }
-
         .achievement-progress .progress-bar .fill {
             height: 100%;
             background: linear-gradient(90deg, var(--gold), #f7c948);
@@ -1902,265 +1666,83 @@
             width: 0%;
         }
 
-        /* 密钥弹窗 */
-        #keyModal .modal {
-            max-width: 420px;
+        /* 打赏弹窗 */
+        #tipModal {
+            max-width: 560px;
+        }
+        #tipModal h2 {
+            text-align: center;
+            margin-bottom: 2px;
+            color: var(--coin-color);
+        }
+        #tipModal .tip-sub {
+            text-align: center;
+            color: var(--text2);
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+        }
+        #tipModal .tip-card {
+            background: var(--surface2);
+            border-radius: 16px;
+            padding: 24px 20px;
+            border: 2px solid var(--accent);
             text-align: center;
         }
-
-        #keyModal .modal h2 {
-            margin-bottom: 6px;
-            color: var(--accent);
+        #tipModal .tip-card .big-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
         }
-
-        #keyModal .modal p {
-            color: var(--text2);
-            font-size: .9rem;
-            margin-bottom: 18px;
-        }
-
-        .key-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .key-input-group input {
-            flex: 1;
-            min-width: 180px;
-            padding: 10px 16px;
-            border-radius: 10px;
-            border: 1.5px solid var(--border);
-            background: var(--input-bg);
+        #tipModal .tip-card h3 {
             color: var(--text);
-            font-size: .95rem;
-            font-family: inherit;
-            transition: border-color .2s;
-            letter-spacing: 2px;
+            margin-bottom: 6px;
+            font-size: 1.1rem;
         }
-
-        .key-input-group input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.12);
+        #tipModal .tip-card p {
+            color: var(--text2);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
         }
-
-        .key-input-group button {
-            padding: 10px 24px;
-            border-radius: 10px;
-            border: none;
+        #tipModal .tip-card .tip-btn {
+            display: inline-block;
+            padding: 12px 32px;
             background: var(--accent);
             color: #fff;
+            border-radius: 30px;
+            text-decoration: none;
             font-weight: 600;
-            cursor: pointer;
-            font-size: .95rem;
-            transition: background .2s;
+            font-size: 1rem;
+            transition: all .2s;
         }
-
-        .key-input-group button:hover {
+        #tipModal .tip-card .tip-btn:hover {
             background: var(--accent2);
         }
-
-        .key-error {
-            color: var(--danger);
-            font-size: .8rem;
-            margin-top: 12px;
-            min-height: 20px;
-        }
-
-        .key-success {
-            color: var(--success);
-            font-size: .9rem;
-            margin-top: 12px;
-        }
-
-        .key-hint {
-            font-size: .7rem;
+        #tipModal .tip-footer {
+            text-align: center;
+            font-size: 0.7rem;
             color: var(--text3);
-            margin-top: 12px;
-            opacity: 0.5;
-            cursor: default;
-            user-select: none;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
         }
 
-        /* 编辑表单 */
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            font-size: .82rem;
-            color: var(--text2);
-            margin-bottom: 4px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1.5px solid var(--border);
-            background: var(--input-bg);
-            color: var(--text);
-            font-size: .82rem;
-            font-family: inherit;
-            transition: border-color .2s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-            min-width: 140px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 400;
-            cursor: pointer;
-            font-size: .8rem;
-            color: var(--text);
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-            accent-color: var(--accent);
-        }
-
-        .tag-select-panel {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            max-height: 150px;
-            overflow-y: auto;
-            padding: 6px 0;
-        }
-
-        .tag-select-panel .tag-option {
-            padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            font-size: .75rem;
-            background: var(--glass-bg-light);
-            color: var(--tag-text);
-            user-select: none;
-            transition: all .15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .tag-select-panel .tag-option.selected {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-            font-weight: 600;
-        }
-
-        .tag-select-panel .tag-option:hover {
-            border-color: var(--accent);
-        }
-
-        .tag-select-panel .tag-option .del-tag-btn {
-            margin-left: 2px;
-            cursor: pointer;
-            color: var(--danger);
-            font-weight: 700;
-            font-size: .8rem;
-            line-height: 1;
-            padding: 0 2px;
-            border-radius: 50%;
-            transition: background .2s;
-        }
-
-        .tag-select-panel .tag-option .del-tag-btn:hover {
-            background: rgba(192, 57, 43, 0.12);
-        }
-
-        .add-tag-row {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            margin-top: 4px;
-            margin-bottom: 6px;
-        }
-
-        .add-tag-row input {
-            flex: 1;
-            padding: 5px 10px;
-            border-radius: 8px;
-            border: 1.5px solid var(--border);
-            background: var(--input-bg);
-            color: var(--text);
-            font-size: .75rem;
-        }
-
-        .smart-paste-area {
-            margin-bottom: 14px;
-            background: var(--surface2);
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px dashed var(--border);
-        }
-
-        .smart-paste-area textarea {
-            width: 100%;
-            font-size: .78rem;
-            min-height: 80px;
-        }
-
+        /* ===== 其他工具类 ===== */
         .no-results {
             text-align: center;
             padding: 60px 20px;
             color: var(--text3);
             font-size: 1rem;
         }
-
         .no-results .icon {
             font-size: 3rem;
             display: block;
             margin-bottom: 10px;
             animation: floatEmoji 3s ease-in-out infinite;
         }
-
         @keyframes floatEmoji {
-
             0%,
             100% {
                 transform: translateY(0);
             }
-
             50% {
                 transform: translateY(-10px);
             }
@@ -2185,12 +1767,10 @@
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
             opacity: 0;
         }
-
         .toast-notification.show {
             transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
-
         .toast-notification.achievement-toast {
             border-color: var(--gold);
             background: rgba(245, 166, 35, 0.10);
@@ -2210,7 +1790,6 @@
             box-shadow: 0 0 12px rgba(155, 138, 189, 0.30);
             border-radius: 0 2px 2px 0;
         }
-
         [data-theme="dark"] .scroll-progress {
             box-shadow: 0 0 12px rgba(184, 162, 214, 0.20);
         }
@@ -2221,203 +1800,159 @@
                 grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
                 gap: 12px;
             }
-
             .filter-sticky {
                 padding: 10px 8px 8px;
             }
-
             .filter-header {
                 flex-direction: column;
                 align-items: center;
                 min-height: auto;
                 margin-bottom: 6px;
             }
-
             .site-logo {
                 font-size: 1.2rem;
                 margin-right: 0;
                 margin-bottom: 4px;
             }
-
             .site-logo::after {
                 display: none;
             }
-
             .header-center {
                 position: static;
                 transform: none;
                 white-space: normal;
             }
-
             .filter-header .site-title {
                 font-size: 1.2rem;
             }
-
             .filter-header .site-subtitle {
                 font-size: .75rem;
             }
-
             .view-tab {
                 padding: 6px 16px;
                 font-size: .8rem;
             }
-
             .search-row {
                 padding: 0 2px;
                 max-width: 100%;
             }
-
             .search-row .search-input-wrap {
                 padding: 0 10px;
             }
-
             .search-row .search-input-wrap input {
                 font-size: .82rem;
                 padding: 8px 2px 8px 0;
             }
-
             .filter-cat-btn {
                 padding: 5px 10px;
                 font-size: .72rem;
             }
-
             .filter-options-panel {
                 max-height: 150px;
                 padding: 8px 10px;
             }
-
             .filter-option-tag {
                 font-size: .7rem;
                 padding: 4px 8px;
             }
-
             .modal {
                 padding: 16px 12px;
                 max-height: 90vh;
                 border-radius: 16px;
             }
-
             .modal .detail-title {
                 font-size: 1.2rem;
             }
-
-            .form-row {
-                flex-direction: column;
-                gap: 6px;
-            }
-
             .watermark {
                 margin-right: 4px;
                 font-size: 0.65rem;
             }
-
             .coin-tip-btn {
                 width: 36px;
                 height: 36px;
                 font-size: 1.2rem;
                 padding: 4px 6px;
             }
-
             .toolbar {
                 padding: 8px 10px;
                 gap: 6px;
             }
-
             .btn {
                 padding: 5px 10px;
                 font-size: .7rem;
             }
-
             .btn-sm {
                 padding: 3px 8px;
                 font-size: .65rem;
             }
-
             .theme-toggle {
                 font-size: 1.1rem;
                 padding: 4px 8px;
             }
-
             .result-count {
                 font-size: .7rem;
             }
-
             .sort-btn {
                 padding: 4px 8px;
                 font-size: .65rem;
             }
-
             .sort-btn-group {
                 border-radius: 10px;
             }
-
             .sync-status {
                 font-size: 0.55rem;
                 padding: 1px 6px;
             }
-
             .bg-glow.g1 {
                 width: 250px;
                 height: 250px;
                 top: -80px;
                 left: -60px;
             }
-
             .bg-glow.g2 {
                 width: 200px;
                 height: 200px;
                 bottom: -60px;
                 right: -40px;
             }
-
             .bg-glow.g3 {
                 width: 180px;
                 height: 180px;
             }
-
             .gallery-card {
                 border-radius: 16px;
             }
-
             .btn-random {
                 padding: 4px 10px;
                 font-size: .7rem;
             }
-
             .gallery-card .card-user-actions .action-btn {
                 font-size: .6rem;
                 padding: 3px 8px;
             }
-
             .gallery-card .card-user-actions .action-btn .icon {
                 font-size: .75rem;
             }
-
             .btn-wishlist {
                 padding: 4px 8px;
                 font-size: .65rem;
             }
-
             .btn-achievement {
                 padding: 4px 8px;
                 font-size: .65rem;
             }
-
             #achievementModal .modal {
                 max-width: 100%;
                 margin: 10px;
             }
-
             .achievement-item {
                 padding: 10px 12px;
                 gap: 10px;
             }
-
             .achievement-item .ach-icon {
                 font-size: 1.4rem;
                 width: 34px;
             }
-
             .card-heroine-tag {
                 font-size: 0.6rem;
                 padding: 1px 10px;
@@ -2425,25 +1960,20 @@
                 left: 6px;
             }
         }
-
         @media (max-width:480px) {
             .gallery-grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
                 gap: 10px;
             }
-
             .toolbar-left {
                 gap: 4px;
             }
-
             .btn-random .dice-icon {
                 font-size: 0.9rem;
             }
-
             .gallery-card {
                 border-radius: 14px;
             }
-
             .card-heroine-tag {
                 font-size: 0.55rem;
                 padding: 1px 8px;
@@ -2463,18 +1993,41 @@
         <div class="bg-glow g3"></div>
     </div>
 
-    <!-- ===== 滚动进度条 ===== -->
+    <!-- 滚动进度条 -->
     <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
-    <!-- ===== 返回顶部按钮 ===== -->
+    <!-- 返回顶部 -->
     <button id="backToTop" aria-label="返回顶部" title="返回顶部">
         <span class="arrow">↑</span>
     </button>
 
+    <!-- ===== 公告栏 ===== -->
+    <div class="announcement-bar" id="announcementBar">
+        <div class="announcement-content">
+            <div class="announcement-item">
+                <span class="announcement-icon">📢</span>
+                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
+            </div>
+            <div class="announcement-item">
+                <span class="announcement-icon">💾</span>
+                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和"玩过"标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
+            </div>
+            <div class="announcement-item">
+                <span class="announcement-icon">💖</span>
+                <span class="announcement-text">用户的打赏将用于维护本网页运行，感谢各位姊妹的大力支持，今后也将持续录入更多女性主角游戏。</span>
+            </div>
+        </div>
+        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
+    </div>
+    <!-- 展开公告按钮（默认隐藏） -->
+    <div id="announcementToggle" style="display:none; text-align:center; padding:8px; cursor:pointer; color:var(--accent); font-size:0.85rem; border-bottom:1.5px solid var(--border); background:var(--announcement-bg); user-select:none;">
+        📢 展开公告
+    </div>
+
     <!-- ===== 筛选栏 ===== -->
     <div class="filter-sticky" id="filterSticky">
         <div class="filter-header">
-            <div class="site-logo" id="siteLogo" title="双击验证密钥">Her Lens</div>
+            <div class="site-logo" id="siteLogo">Her Lens</div>
             <div class="header-center">
                 <div class="site-title" id="siteTitle">🎮 女性主角游戏</div>
                 <div class="site-subtitle">*请从中选择你的下一场冒险*</div>
@@ -2499,28 +2052,14 @@
         <div class="active-filters-bar" id="activeFiltersBar"></div>
     </div>
 
-    <!-- 公告栏 -->
-    <div class="announcement-bar" id="announcementBar">
-        <div class="announcement-content">
-            <div class="announcement-item">
-                <span class="announcement-icon">📢</span>
-                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
-            </div>
-            <div class="announcement-item">
-                <span class="announcement-icon">💾</span>
-                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和"玩过"标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
-            </div>
-        </div>
-        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
-    </div>
-
     <!-- ===== 工具栏 ===== -->
     <div class="toolbar" id="toolbar">
         <div class="toolbar-left">
             <span class="result-count" id="resultCount">共 <span class="count-number" id="countNumber">0</span>款游戏</span>
 
             <div class="sort-btn-group" id="sortBtnGroup">
-                <button class="sort-btn active" data-sort="newest">📅 最新</button>
+                <button class="sort-btn active" data-sort="default">📋 默认</button>
+                <button class="sort-btn" data-sort="newest">📅 最新</button>
                 <button class="sort-btn" data-sort="oldest">📅 最早</button>
             </div>
 
@@ -2536,11 +2075,6 @@
                 <span class="trophy-icon">🏆</span> 成就
                 <span class="badge-dot" id="achievementDot" style="display:none;"></span>
             </button>
-
-            <button class="btn btn-sm" id="btnAddGame" title="手动添加游戏" style="display:none;">＋ 添加</button>
-            <button class="btn btn-sm" id="btnImportCSV" title="从CSV批量导入" style="display:none;">📂 导入</button>
-            <button class="btn btn-sm" id="btnToggleAdmin" title="切换管理模式" style="display:none;">🔧 管理</button>
-            <input type="file" id="csvFileInput" accept=".csv" style="display:none;" />
 
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
         </div>
@@ -2571,18 +2105,10 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
-    <!-- 所有弹窗已移出 .toolbar，作为 body 的直接子元素，确保不被遮挡 -->
-    <!-- ============================================================= -->
-
+    <!-- ===== 弹窗 ===== -->
     <!-- 详情弹窗 -->
     <div class="modal-overlay" id="detailModalOverlay">
         <div class="modal" id="detailModal"></div>
-    </div>
-
-    <!-- 编辑弹窗 -->
-    <div class="modal-overlay" id="editModalOverlay">
-        <div class="modal" id="editModal"></div>
     </div>
 
     <!-- 成就弹窗 -->
@@ -2594,58 +2120,35 @@
         </div>
     </div>
 
-    <!-- 密钥弹窗 -->
-    <div class="modal-overlay" id="keyModalOverlay">
-        <div class="modal" id="keyModal">
-            <button class="modal-close" id="keyModalClose">✕</button>
-            <h2>🔑 验证编辑权限</h2>
-            <p>请输入密钥以激活编辑模式，只有网站管理者可编辑数据。</p>
-            <div class="key-input-group">
-                <input type="password" id="keyInput" placeholder="请输入密钥…" autocomplete="off" />
-                <button id="keyConfirmBtn">验证</button>
-            </div>
-            <div id="keyMessage" class="key-error"></div>
-            <div class="key-hint">提示：密钥由网站管理者持有</div>
-        </div>
-    </div>
-
     <!-- 打赏弹窗 -->
     <div class="modal-overlay" id="tipModalOverlay">
-        <div class="modal" id="tipModal" style="max-width:560px;">
+        <div class="modal" id="tipModal">
             <button class="modal-close" id="tipModalClose">✕</button>
-            <h2 style="text-align:center;margin-bottom:2px;color:var(--coin-color);">🪙 支持创作者</h2>
-            <p style="text-align:center;color:var(--text2);margin-bottom:18px;font-size:0.95rem;">
-                感谢姊妹支持，你的鼓励是我持续更新网站的动力。
-            </p>
-            <div style="background:var(--surface2);border-radius:16px;padding:24px 20px;border:2px solid var(--accent);text-align:center;">
-                <div style="font-size:3rem;margin-bottom:8px;">⚡</div>
-                <h3 style="color:var(--text);margin-bottom:6px;font-size:1.1rem;">爱发电 · 订阅支持</h3>
-                <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">选择你的发电方案，助力女性主角游戏持续更新</p>
-                <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer"
-                    style="display:inline-block;padding:12px 32px;background:var(--accent);color:#fff;border-radius:30px;text-decoration:none;font-weight:600;font-size:1rem;transition:all .2s;"
-                    onmouseover="this.style.background='var(--accent2)'"
-                    onmouseout="this.style.background='var(--accent)'">
+            <h2>🪙 支持创作者</h2>
+            <p class="tip-sub">感谢姊妹支持，你的鼓励是我持续更新网站的动力。</p>
+            <div class="tip-card">
+                <div class="big-icon">⚡</div>
+                <h3>爱发电 · 订阅支持</h3>
+                <p>选择你的发电方案，助力女性主角游戏持续更新</p>
+                <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer" class="tip-btn">
                     🔗 前往支持
                 </a>
                 <p style="color:var(--text3);font-size:0.7rem;margin-top:14px;">点击按钮将跳转至爱发电平台，你的支持安全可靠</p>
             </div>
-            <div style="text-align:center;font-size:0.7rem;color:var(--text3);margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
-                💡 打赏链接已内嵌，点击即可支持创作者
-            </div>
+            <div class="tip-footer">💡 打赏链接已内嵌，点击即可支持创作者</div>
         </div>
     </div>
 
     <script>
-        (function () {
+        (function() {
             'use strict';
 
             // ================================================================
-            // 配置与状态
+            // 配置与状态（只读版本：移除了所有编辑功能）
             // ================================================================
             const SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
             const SUPABASE_ENABLED = SUPABASE_URL.includes('supabase.co') && SUPABASE_ANON_KEY.length > 10;
-            const MASTER_KEY = '0618Kise.';
 
             const DEFAULT_GENRE_OPTIONS = ['丧尸', '悬疑/推理', '恐怖/生存恐怖', '乙女/女性向', '后末日', '百合', '权谋', '魔法', '偶像/娱乐圈',
                 '日常/生活', '校园', '职场', '战争/军事', '犯罪/黑帮', '体育', '艺术/音乐', '烹饪', '动物', '童话/寓言', '神话', '机械生物',
@@ -2685,12 +2188,9 @@
             let games = [];
             let activeFilters = {};
             let activeFilterCat = null;
-            let isAdminMode = false;
             let currentTheme = 'light';
-            let editingGameId = null;
             let currentView = 'released';
-            let currentSort = 'newest';
-            let isKeyVerified = false;
+            let currentSort = 'default'; // 新增默认排序
             let searchQuery = '';
             let wishlistMode = false;
             let userData = { wishlist: [], played: [], achievements: [] };
@@ -2717,7 +2217,7 @@
             }
 
             // ================================================================
-            // 自定义标签
+            // 自定义标签（保留，但只读版本不提供编辑，仅用于显示）
             // ================================================================
             function loadCustomTagsFromStorage() {
                 try {
@@ -2737,86 +2237,8 @@
                 }
             }
 
-            function saveCustomTagsToStorage() {
-                customGenres = customGenres.filter(tag => !DEFAULT_GENRE_OPTIONS.includes(tag));
-                customGameplays = customGameplays.filter(tag => !DEFAULT_GAMEPLAY_OPTIONS.includes(tag));
-                customGenres = [...new Set(customGenres)];
-                customGameplays = [...new Set(customGameplays)];
-                localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
-                if (SUPABASE_ENABLED && supabaseClient) {
-                    Promise.all([
-                        supabaseClient.from('games').upsert({ id: 999999, title: '__custom_genres__', genre: customGenres, isReleased: true }, { onConflict: 'id' }),
-                        supabaseClient.from('games').upsert({ id: 999998, title: '__custom_gameplays__', gameplay: customGameplays, isReleased: true }, { onConflict: 'id' })
-                    ]).catch(() => { });
-                }
-            }
-
-            async function loadCustomTagsFromSupabase() {
-                const client = getSupabase();
-                if (!client) return;
-                try {
-                    const { data, error } = await client.from('games').select('*').in('id', [999999, 999998]);
-                    if (error || !data) return;
-                    let hasUpdate = false;
-                    for (const row of data) {
-                        if (row.id === 999999 && row.genre && row.genre.length > 0) {
-                            customGenres = row.genre;
-                            hasUpdate = true;
-                        }
-                        if (row.id === 999998 && row.gameplay && row.gameplay.length > 0) {
-                            customGameplays = row.gameplay;
-                            hasUpdate = true;
-                        }
-                    }
-                    if (hasUpdate) {
-                        localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
-                    }
-                    updateFilterUI();
-                } catch (_) { }
-            }
-
             function getAllGenres() { return [...new Set([...DEFAULT_GENRE_OPTIONS, ...customGenres])]; }
             function getAllGameplays() { return [...new Set([...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays])]; }
-
-            function addCustomGenre(tag) {
-                tag = tag.trim();
-                if (!tag) { alert('请输入标签名称'); return false; }
-                if (DEFAULT_GENRE_OPTIONS.includes(tag)) { alert('已是默认题材'); return false; }
-                if (customGenres.includes(tag)) { alert('已存在'); return false; }
-                customGenres.push(tag);
-                saveCustomTagsToStorage();
-                updateFilterUI();
-                return true;
-            }
-
-            function addCustomGameplay(tag) {
-                tag = tag.trim();
-                if (!tag) { alert('请输入标签名称'); return false; }
-                if (DEFAULT_GAMEPLAY_OPTIONS.includes(tag)) { alert('已是默认玩法'); return false; }
-                if (customGameplays.includes(tag)) { alert('已存在'); return false; }
-                customGameplays.push(tag);
-                saveCustomTagsToStorage();
-                updateFilterUI();
-                return true;
-            }
-
-            function removeCustomGenre(tag) {
-                const idx = customGenres.indexOf(tag);
-                if (idx === -1) return false;
-                customGenres.splice(idx, 1);
-                saveCustomTagsToStorage();
-                updateFilterUI();
-                return true;
-            }
-
-            function removeCustomGameplay(tag) {
-                const idx = customGameplays.indexOf(tag);
-                if (idx === -1) return false;
-                customGameplays.splice(idx, 1);
-                saveCustomTagsToStorage();
-                updateFilterUI();
-                return true;
-            }
 
             // ================================================================
             // 用户数据
@@ -2850,7 +2272,8 @@
 
             function togglePlayed(gameId) {
                 const idx = userData.played.indexOf(gameId);
-                if (idx >= 0) { userData.played.splice(idx, 1); } else { userData.played.push(gameId); checkAchievements(); }
+                if (idx >= 0) { userData.played.splice(idx, 1); } else { userData.played.push(gameId);
+                    checkAchievements(); }
                 saveUserData();
                 renderGallery();
             }
@@ -2944,7 +2367,7 @@
             }
 
             // ================================================================
-            // 数据加载
+            // 数据加载（只读：仅从 Supabase 读取，不写入）
             // ================================================================
             const STORAGE_KEY = 'heroineGamesDataV2';
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
@@ -3001,71 +2424,7 @@
                 } catch (e) { setSyncStatus('error', e.message || '网络异常'); return null; }
             }
 
-            async function saveToSupabase(gameList) {
-                const client = getSupabase();
-                if (!client) return false;
-                setSyncStatus('syncing');
-                try {
-                    // 1️⃣ 先获取数据库中所有记录的 id（排除特殊标签记录）
-                    const { data: existing, error: fetchError } = await client
-                        .from(TABLE_NAME)
-                        .select('id')
-                        .not('id', 'in', '(999999,999998)');
-
-                    if (fetchError) {
-                        setSyncStatus('error', fetchError.message);
-                        return false;
-                    }
-
-                    // 2️⃣ 计算需要删除的 id（在 DB 中但不在传入列表中的）
-                    const existingIds = existing.map(r => r.id);
-                    const currentIds = gameList.map(g => g.id);
-                    const toDelete = existingIds.filter(id => !currentIds.includes(id));
-
-                    // 3️⃣ 执行删除
-                    if (toDelete.length > 0) {
-                        const { error: delError } = await client
-                            .from(TABLE_NAME)
-                            .delete()
-                            .in('id', toDelete);
-                        if (delError) {
-                            setSyncStatus('error', delError.message);
-                            return false;
-                        }
-                    }
-
-                    // 4️⃣ 过滤掉特殊记录，准备 upsert
-                    const toInsert = gameList
-                        .filter(g => g.id !== 999999 && g.id !== 999998)
-                        .map(g => ({
-                            ...g,
-                            genre: g.genre || [],
-                            gameplay: g.gameplay || [],
-                            platforms: g.platforms || [],
-                            videos: g.videos || [],
-                            screenshots: g.screenshots || []
-                        }));
-
-                    // 5️⃣ 分批 upsert
-                    for (let i = 0; i < toInsert.length; i += 50) {
-                        const batch = toInsert.slice(i, i + 50);
-                        const { error } = await client
-                            .from(TABLE_NAME)
-                            .upsert(batch, { onConflict: 'id' });
-                        if (error) {
-                            setSyncStatus('error', error.message);
-                            return false;
-                        }
-                    }
-
-                    setSyncStatus('synced');
-                    return true;
-                } catch (e) {
-                    setSyncStatus('error', e.message || '保存失败');
-                    return false;
-                }
-            }
-
+            // 默认示例数据（仅当 Supabase 无数据时作为备用）
             const DEFAULT_GAMES = [{
                 id: 1,
                 title: '地平线 零之曙光',
@@ -3174,51 +2533,40 @@
 
             async function loadGames() {
                 loadCustomTagsFromStorage();
+                let data = null;
                 if (SUPABASE_ENABLED && supabaseClient) {
                     try {
-                        const remote = await loadFromSupabase();
-                        if (remote && remote.length > 0) {
-                            games = remote;
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                        } else {
-                            const local = localStorage.getItem(STORAGE_KEY);
-                            if (local) {
-                                try { games = JSON.parse(local); if (!games || games.length === 0) games = []; } catch (
-                                _) { games = []; }
-                            } else { games = []; }
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                            if (supabaseClient) await saveToSupabase(games);
-                        }
-                        await loadCustomTagsFromSupabase();
-                        return games;
-                    } catch (_) { }
+                        data = await loadFromSupabase();
+                    } catch (_) { data = null; }
                 }
-                const s = localStorage.getItem(STORAGE_KEY);
-                if (s) { try { games = JSON.parse(s); if (games && games.length > 0) return games; } catch (_) { } }
-                games = [];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                if (SUPABASE_ENABLED && supabaseClient) { try { await saveToSupabase(games); } catch (_) { } }
+                if (data && data.length > 0) {
+                    games = data;
+                } else {
+                    // 回退到 localStorage 或默认数据
+                    const local = localStorage.getItem(STORAGE_KEY);
+                    if (local) {
+                        try { games = JSON.parse(local); } catch (_) { games = []; }
+                    } else {
+                        games = DEFAULT_GAMES; // 仅作为初始展示，不写入 Supabase
+                    }
+                }
+                // 只读版本：绝不调用 saveToSupabase
                 return games;
             }
 
-            async function saveGames() {
-                // 直接保存，不再弹窗确认（删除操作已有 confirm，编辑/添加有保存按钮）
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                if (SUPABASE_ENABLED && supabaseClient) {
-                    await saveToSupabase(games);
-                }
-            }
-
+            // ================================================================
+            // 设置管理（只读版本只保存主题、视图、排序）
+            // ================================================================
             function loadSettings() {
                 const s = localStorage.getItem(SETTINGS_KEY);
                 if (s) {
                     try {
                         const d = JSON.parse(s);
                         currentTheme = d.theme || 'light';
-                        isAdminMode = d.isAdminMode || false;
                         currentView = d.currentView || 'released';
-                        currentSort = d.currentSort || 'newest';
-                    } catch (_) { }
+                        currentSort = d.currentSort || 'default';
+                        if (!['default', 'newest', 'oldest'].includes(currentSort)) currentSort = 'default';
+                    } catch (_) {}
                 }
                 applyTheme();
                 updateViewTabs();
@@ -3227,7 +2575,7 @@
             }
 
             function saveSettings() {
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: currentTheme, isAdminMode, currentView, currentSort }));
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: currentTheme, currentView, currentSort }));
             }
 
             function resetActiveFilters() {
@@ -3237,7 +2585,7 @@
             }
 
             // ================================================================
-            // 筛选分类
+            // 筛选分类（与原文相同，保留）
             // ================================================================
             function getReleasedFilterCats() {
                 return {
@@ -3260,7 +2608,7 @@
                     heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
                     perspective: { label: '视角', options: PERSPECTIVE_OPTIONS, field: 'perspective' },
                     hasDemo: { label: 'Demo试玩', options: DEMO_OPTIONS, field: 'hasDemo' },
-                    hasChinese: { label: '中文', options: CHINESE_OPTIONS, field: 'hasChinese' }   // ← 新增
+                    hasChinese: { label: '中文', options: CHINESE_OPTIONS, field: 'hasChinese' }
                 };
             }
 
@@ -3291,7 +2639,6 @@
                 updateFilterUI();
                 renderGallery();
                 saveSettings();
-                document.getElementById('siteTitle').textContent = '🎮 女性主角游戏';
             }
 
             function updateViewTabs() {
@@ -3315,11 +2662,13 @@
 
             function sortGames(gameList) {
                 const sorted = [...gameList];
-                sorted.sort((a, b) => {
-                    const dateA = a.releaseDate || '1970-01-01';
-                    const dateB = b.releaseDate || '1970-01-01';
-                    return currentSort === 'newest' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB);
-                });
+                if (currentSort === 'default') {
+                    sorted.sort((a, b) => a.id - b.id); // 按 id 升序（录入顺序）
+                } else if (currentSort === 'newest') {
+                    sorted.sort((a, b) => (b.releaseDate || '1970-01-01').localeCompare(a.releaseDate || '1970-01-01'));
+                } else if (currentSort === 'oldest') {
+                    sorted.sort((a, b) => (a.releaseDate || '1970-01-01').localeCompare(b.releaseDate || '1970-01-01'));
+                }
                 return sorted;
             }
 
@@ -3327,8 +2676,8 @@
                 if (!query) return true;
                 const q = query.toLowerCase();
                 const fields = [game.title, game.description, game.fullDescription,
-                game.heroineType, game.perspective, game.costumeType,
-                ...(game.genre || []), ...(game.gameplay || []), ...(game.platforms || [])
+                    game.heroineType, game.perspective, game.costumeType,
+                    ...(game.genre || []), ...(game.gameplay || []), ...(game.platforms || [])
                 ];
                 return fields.some(f => f && f.toLowerCase().includes(q));
             }
@@ -3419,12 +2768,12 @@
                 bar.innerHTML = chips.join('');
 
                 panel.querySelectorAll('.filter-option-tag').forEach(t =>
-                    t.addEventListener('click', function () {
+                    t.addEventListener('click', function() {
                         toggleFilterOption(this.dataset.cat, this.dataset.value);
                     })
                 );
                 bar.querySelectorAll('.remove-chip').forEach(c =>
-                    c.addEventListener('click', function (e) {
+                    c.addEventListener('click', function(e) {
                         e.stopPropagation();
                         removeFilter(this.dataset.cat, this.dataset.value);
                     })
@@ -3433,7 +2782,7 @@
                 if (clr) clr.addEventListener('click', clearAllFilters);
 
                 row.querySelectorAll('.filter-cat-btn').forEach(b =>
-                    b.addEventListener('click', function () {
+                    b.addEventListener('click', function() {
                         const c = this.dataset.cat;
                         activeFilterCat = activeFilterCat === c ? null : c;
                         updateFilterUI();
@@ -3514,82 +2863,7 @@
             }
 
             // ================================================================
-            // 管理 UI
-            // ================================================================
-            function toggleAdminMode() {
-                if (!isEditor()) { alert('请先验证密钥以开启编辑权限。\n双击 "Her Lens" 标题即可验证。'); return; }
-                isAdminMode = !isAdminMode;
-                saveSettings();
-                updateAdminUI();
-                renderGallery();
-            }
-
-            function updateUIAfterKeyChange() {
-                const hasEdit = isEditor();
-                const addBtn = document.getElementById('btnAddGame');
-                const impBtn = document.getElementById('btnImportCSV');
-                const adminBtn = document.getElementById('btnToggleAdmin');
-                if (hasEdit) {
-                    addBtn.style.display = '';
-                    impBtn.style.display = '';
-                    adminBtn.style.display = '';
-                    if (isAdminMode) {
-                        adminBtn.textContent = '🔧 管理(开)';
-                        adminBtn.classList.add('btn-accent');
-                    } else {
-                        adminBtn.textContent = '🔧 管理';
-                        adminBtn.classList.remove('btn-accent');
-                    }
-                    adminBtn.disabled = false;
-                    addBtn.disabled = false;
-                    impBtn.disabled = false;
-                } else {
-                    addBtn.style.display = 'none';
-                    impBtn.style.display = 'none';
-                    adminBtn.style.display = 'none';
-                    if (isAdminMode) {
-                        isAdminMode = false;
-                        saveSettings();
-                    }
-                }
-                renderGallery();
-            }
-
-            function updateAdminUI() {
-                const adminBtn = document.getElementById('btnToggleAdmin');
-                if (adminBtn && isEditor()) {
-                    if (isAdminMode) {
-                        adminBtn.textContent = '🔧 管理(开)';
-                        adminBtn.classList.add('btn-accent');
-                    } else {
-                        adminBtn.textContent = '🔧 管理';
-                        adminBtn.classList.remove('btn-accent');
-                    }
-                }
-                renderGallery();
-            }
-
-            function checkKeyStatus() {
-                isKeyVerified = sessionStorage.getItem('heroine_key_verified') === 'true';
-                return isKeyVerified;
-            }
-
-            function setKeyVerified(v) {
-                isKeyVerified = v;
-                if (v) sessionStorage.setItem('heroine_key_verified', 'true');
-                else sessionStorage.removeItem('heroine_key_verified');
-                updateUIAfterKeyChange();
-            }
-
-            function verifyKey(input) {
-                if (input === MASTER_KEY) { setKeyVerified(true); return true; }
-                return false;
-            }
-
-            function isEditor() { return isKeyVerified; }
-
-            // ================================================================
-            // 渲染卡片 - 性能优化版
+            // 渲染卡片（只读版本：不生成编辑/删除按钮）
             // ================================================================
             function renderGallery() {
                 const filtered = getFilteredGames();
@@ -3640,13 +2914,13 @@
                                     const ph = entry.target.querySelector('.card-cover-placeholder');
                                     if (ph) ph.classList.add('hidden');
                                 } else {
-                                    img.onload = function () {
+                                    img.onload = function() {
                                         this.classList.add('loaded');
                                         const ph = this.closest('.gallery-card')?.querySelector(
                                             '.card-cover-placeholder');
                                         if (ph) ph.classList.add('hidden');
                                     };
-                                    img.onerror = function () {
+                                    img.onerror = function() {
                                         const ph = this.closest('.gallery-card')?.querySelector(
                                             '.card-cover-placeholder');
                                         if (ph) ph.classList.remove('hidden');
@@ -3671,13 +2945,13 @@
                                 const ph = card.querySelector('.card-cover-placeholder');
                                 if (ph) ph.classList.add('hidden');
                             } else {
-                                img.onload = function () {
+                                img.onload = function() {
                                     this.classList.add('loaded');
                                     const ph = this.closest('.gallery-card')?.querySelector(
                                         '.card-cover-placeholder');
                                     if (ph) ph.classList.add('hidden');
                                 };
-                                img.onerror = function () {
+                                img.onerror = function() {
                                     const ph = this.closest('.gallery-card')?.querySelector(
                                         '.card-cover-placeholder');
                                     if (ph) ph.classList.remove('hidden');
@@ -3691,14 +2965,14 @@
                     const wishBtn = card.querySelector('.action-wish');
                     const playBtn = card.querySelector('.action-play');
                     if (wishBtn) {
-                        wishBtn.addEventListener('click', function (e) {
+                        wishBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const id = +this.dataset.gameId;
                             toggleWishlist(id);
                         });
                     }
                     if (playBtn) {
-                        playBtn.addEventListener('click', function (e) {
+                        playBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const id = +this.dataset.gameId;
                             togglePlayed(id);
@@ -3708,53 +2982,18 @@
 
                 grid.querySelectorAll('.gallery-card').forEach(card => {
                     const id = +card.dataset.gameId;
-                    card.addEventListener('click', function (e) {
-                        if (e.target.closest('.card-admin-actions') || e.target.closest(
-                            '.card-user-actions')) return;
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.card-user-actions')) return;
                         const g = games.find(g => g.id === id);
                         if (g) showDetailModal(g);
                     });
                 });
 
-                const hasEdit = isEditor();
-                grid.querySelectorAll('.btn-edit-card').forEach(b => {
-                    b.style.display = hasEdit && isAdminMode ? '' :
-                        'none';
-                });
-                grid.querySelectorAll('.btn-del-card').forEach(b => {
-                    b.style.display = hasEdit && isAdminMode ? '' :
-                        'none';
-                });
-                grid.querySelectorAll('.edit-locked').forEach(b => {
-                    b.style.display = (hasEdit && isAdminMode) ?
-                        'none' : '';
-                });
-
-                if (isAdminMode && hasEdit) {
-                    grid.querySelectorAll('.btn-edit-card').forEach(b =>
-                        b.addEventListener('click', function (e) {
-                            e.stopPropagation();
-                            const g = games.find(g => g.id === +this.dataset.gameId);
-                            if (g) showEditModal(g);
-                        })
-                    );
-                    grid.querySelectorAll('.btn-del-card').forEach(b =>
-                        b.addEventListener('click', async function (e) {
-                            e.stopPropagation();
-                            const id = +this.dataset.gameId;
-                            if (confirm('确定删除吗？')) {
-                                games = games.filter(g => g.id !== id);
-                                await saveGames();
-                                renderGallery();
-                            }
-                        })
-                    );
-                }
                 updateAchievementDot();
             }
 
             // ================================================================
-            // 创建卡片 DOM 元素
+            // 创建卡片 DOM（不包含管理按钮）
             // ================================================================
             function createCardElement(game) {
                 const card = document.createElement('div');
@@ -3880,28 +3119,13 @@
 
                 card.appendChild(ua);
 
-                const hasEdit = isEditor();
-                if (hasEdit && isAdminMode) {
-                    const admin = document.createElement('div');
-                    admin.className = 'card-admin-actions';
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'btn-edit-card';
-                    editBtn.dataset.gameId = game.id;
-                    editBtn.textContent = '✏️ 编辑';
-                    admin.appendChild(editBtn);
-                    const delBtn = document.createElement('button');
-                    delBtn.className = 'btn-del-card';
-                    delBtn.dataset.gameId = game.id;
-                    delBtn.textContent = '🗑 删除';
-                    admin.appendChild(delBtn);
-                    card.appendChild(admin);
-                }
+                // 只读版本：不生成任何管理按钮
 
                 return card;
             }
 
             // ================================================================
-            // 3D 卡片交互 - 节流优化
+            // 3D 卡片交互（与原文相同）
             // ================================================================
             function setupCard3D(card) {
                 if (!window.matchMedia('(hover: hover)').matches) return;
@@ -3916,7 +3140,7 @@
                 const parallax = card.querySelector('.card-parallax-bg');
                 let rafId = null;
 
-                const handleMove = function (e) {
+                const handleMove = function(e) {
                     if (rafId) {
                         cancelAnimationFrame(rafId);
                         rafId = null;
@@ -3941,7 +3165,7 @@
                     });
                 };
 
-                const handleLeave = function () {
+                const handleLeave = function() {
                     if (rafId) {
                         cancelAnimationFrame(rafId);
                         rafId = null;
@@ -3964,7 +3188,7 @@
             }
 
             // ================================================================
-            // 详情弹窗
+            // 详情弹窗（与原文相同，仅调整了部分细节）
             // ================================================================
             function showDetailModal(game) {
                 const overlay = document.getElementById('detailModalOverlay'),
@@ -4026,31 +3250,31 @@
                 const playStatus = isPlayed(game.id) ? '✅ 已玩过' : '⬜ 未标记';
 
                 modal.innerHTML = `
-            <button class="modal-close" id="detailModalClose">✕</button>
-            ${cover}
-            <div class="detail-title">${escapeHTML(game.title)}</div>
-            <div style="display:flex;gap:16px;font-size:.85rem;color:var(--text2);margin:6px 0 12px;flex-wrap:wrap;">
-                <span>${wishStatus}</span>
-                <span>${playStatus}</span>
-            </div>
-            <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
-            <table class="detail-info-table">${rows}</table>
-            ${screenshotsHTML}
-            ${videosHTML}
-            <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">${links.join(' ')}</div>
-            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
-                <button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>
-            </div>
-        `;
+                <button class="modal-close" id="detailModalClose">✕</button>
+                ${cover}
+                <div class="detail-title">${escapeHTML(game.title)}</div>
+                <div style="display:flex;gap:16px;font-size:.85rem;color:var(--text2);margin:6px 0 12px;flex-wrap:wrap;">
+                    <span>${wishStatus}</span>
+                    <span>${playStatus}</span>
+                </div>
+                <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
+                <table class="detail-info-table">${rows}</table>
+                ${screenshotsHTML}
+                ${videosHTML}
+                <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">${links.join(' ')}</div>
+                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
+                    <button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>
+                </div>
+            `;
 
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
 
                 modal.querySelector('#detailModalClose').addEventListener('click', closeDetailModal);
-                overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDetailModal(); });
+                overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDetailModal(); });
 
-                modal.querySelector('#detailWishBtn').addEventListener('click', function (e) {
+                modal.querySelector('#detailWishBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     const id = +this.dataset.gameId;
                     toggleWishlist(id);
@@ -4058,7 +3282,7 @@
                     const g = games.find(g => g.id === id);
                     if (g) setTimeout(() => showDetailModal(g), 100);
                 });
-                modal.querySelector('#detailPlayBtn').addEventListener('click', function (e) {
+                modal.querySelector('#detailPlayBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     const id = +this.dataset.gameId;
                     togglePlayed(id);
@@ -4130,444 +3354,33 @@
             }
 
             // ================================================================
-            // 编辑弹窗
+            // 公告栏展开/折叠
             // ================================================================
-            function showEditModal(game) {
-                if (!isEditor()) { alert('请先验证密钥以编辑游戏数据。\n双击 "Her Lens" 标题即可验证。'); return; }
-                editingGameId = game ? game.id : null;
-                const overlay = document.getElementById('editModalOverlay'),
-                    modal = document.getElementById('editModal');
-                const isNew = !game,
-                    data = game || getDefaultGameData();
-                if (isNew) data.isReleased = currentView === 'released';
-                modal.innerHTML = buildEditFormHTML(data, isNew);
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-                bindEditFormEvents(modal, data);
-                modal.querySelector('#editModalClose').addEventListener('click', closeEditModal);
-                overlay.addEventListener('click', function (e) { if (e.target === overlay) closeEditModal(); });
-                toggleReleasedFields(modal, data.isReleased);
-            }
+            const ANNOUNCEMENT_STORAGE_KEY = 'heroineAnnouncementClosed';
 
-            function getDefaultGameData() {
-                return {
-                    id: generateId(), title: '', cover: '', description: '', fullDescription: '', genre: [],
-                    gameplay: [], perspective: '第三人称', releaseDate: '', hasChinese: '有中文', platforms: ['PC'],
-                    heroineType: '固定女主', costumeType: '服设合理', hasMacSupport: '不支持Mac', steamLink: '',
-                    steamAppId: '', isPSExclusive: false, isNSExclusive: false, hasDemo: false,
-                    mainStoryDuration: '', lowestPrice: '', videos: [], screenshots: [], otherLinks: '',
-                    isReleased: true
-                };
-            }
+            function initAnnouncementBar() {
+                const bar = document.getElementById('announcementBar');
+                const toggle = document.getElementById('announcementToggle');
+                const closeBtn = document.getElementById('announcementClose');
+                if (!bar || !toggle || !closeBtn) return;
 
-            function buildEditFormHTML(data, isNew) {
-                return `
-                <button class="modal-close" id="editModalClose">✕</button>
-                <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
-                <form id="editGameForm" onsubmit="return false;">
-                    <div class="form-row">
-                        <div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div>
-                        <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div>
-                    </div>
-                    <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
-                    <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}">
-                    <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
-                    <div class="form-group"><label>封面URL</label><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}"></div>
-                    <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
-                    <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
-                    <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel"></div>
-                    <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="新题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋ 添加</button></div></div>
-                    <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel"></div>
-                    <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="新玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋ 添加</button></div></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>👁 视角</label><select id="efPerspective">${PERSPECTIVE_OPTIONS.map(p => `<option value="${escapeHTML(p)}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-                        <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${HEROINE_TYPE_OPTIONS.map(h => `<option value="${escapeHTML(h)}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
-                        <div class="form-group" id="efCostumeGroup"><label>👕 服设分类</label><select id="efCostumeType">${COSTUME_TYPE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-                    </div>
-                    <!-- 中文行：始终显示 -->
-                    <div class="form-group" id="efChineseRow">
-                        <label>🌐 中文</label>
-                        <select id="efHasChinese">${CHINESE_OPTIONS.map(c => `<option value="${escapeHTML(c)}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
-                    </div>
-                    <!-- Mac适配行：仅已发售游戏显示（通过 style 控制） -->
-                    <div class="form-group" id="efMacRow" style="display:${data.isReleased ? '' : 'none'};">
-                        <label>🍎 Mac适配</label>
-                        <select id="efHasMacSupport">
-                            <option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option>
-                            <option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无Demo</option><option value="1" ${data.hasDemo ? 'selected' : ''}>提供Demo</option></select></div>
-                        <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div>
-                        <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div>
-                    </div>
-                    <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')).map(p => `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`).join('')}</div></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div>
-                        <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div>
-                    </div>
-                    <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label>
-                    <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
-                    <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
-                    <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
-                    <div style="display:flex;gap:10px;margin-top:16px;"><button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
-                    <button type="button" class="btn" id="btnCancelEdit">取消</button></div>
-                </form>`;
-            }
-
-            function refreshTagPanel(modal, panelId, field, options, selectedValues, defaultOptions) {
-                const panel = modal.querySelector('#' + panelId);
-                if (!panel) return;
-                const defaultSet = new Set(defaultOptions || []);
-                panel.innerHTML = options.map(o => {
-                    const isSelected = selectedValues.includes(o);
-                    const isCustom = !defaultSet.has(o);
-                    const delBtn = isCustom ?
-                        `<span class="del-tag-btn" data-field="${field}" data-value="${escapeHTML(o)}" title="删除此自定义标签">×</span>` :
-                        '';
-                    return `<span class="tag-option${isSelected ? ' selected' : ''}" data-field="${field}" data-value="${escapeHTML(o)}">${escapeHTML(o)}${delBtn}</span>`;
-                }).join('');
-            }
-
-            function deleteCustomTag(field, value, modal, data) {
-                if (!confirm(`确定要删除自定义标签"${value}"吗？\n该标签将从所有游戏中移除。`)) return;
-                let removed = false;
-                if (field === 'genre') { if (removeCustomGenre(value)) removed = true; } else if (field === 'gameplay') {
-                    if (removeCustomGameplay(value)) removed = true;
-                }
-                if (!removed) { alert('该标签不是自定义标签，无法删除。'); return; }
-                games.forEach(g => {
-                    if (field === 'genre') { const idx = g.genre.indexOf(value); if (idx !== -1) g.genre.splice(idx, 1); } else if (field === 'gameplay') {
-                        const idx = g.gameplay.indexOf(value); if (
-                            idx !== -1) g.gameplay.splice(idx, 1);
-                    }
-                });
-                saveGames();
-                if (data) {
-                    if (field === 'genre') { const idx = data.genre.indexOf(value); if (idx !== -1) data.genre.splice(idx, 1); } else if (field === 'gameplay') {
-                        const idx = data.gameplay.indexOf(value); if (
-                            idx !== -1) data.gameplay.splice(idx, 1);
-                    }
-                }
-                const allOpts = field === 'genre' ? getAllGenres() : getAllGameplays();
-                const defaultOpts = field === 'genre' ? DEFAULT_GENRE_OPTIONS : DEFAULT_GAMEPLAY_OPTIONS;
-                const selected = data ? (field === 'genre' ? data.genre : data.gameplay) : [];
-                refreshTagPanel(modal, field === 'genre' ? 'efGenrePanel' : 'efGameplayPanel', field, allOpts, selected,
-                    defaultOpts);
-                updateFilterUI();
-            }
-
-            function bindEditFormEvents(modal, data) {
-                refreshTagPanel(modal, 'efGenrePanel', 'genre', getAllGenres(), data.genre || [], DEFAULT_GENRE_OPTIONS);
-                refreshTagPanel(modal, 'efGameplayPanel', 'gameplay', getAllGameplays(), data.gameplay || [],
-                    DEFAULT_GAMEPLAY_OPTIONS);
-
-                modal.querySelectorAll('.tag-select-panel').forEach(p => {
-                    p.addEventListener('click', function (e) {
-                        const delBtn = e.target.closest('.del-tag-btn');
-                        if (delBtn) {
-                            const field = delBtn.dataset.field;
-                            const value = delBtn.dataset.value;
-                            deleteCustomTag(field, value, modal, data);
-                            e.stopPropagation();
-                            return;
-                        }
-                        const t = e.target.closest('.tag-option');
-                        if (t) t.classList.toggle('selected');
-                    });
-                });
-
-                modal.querySelector('#btnAddGenre').addEventListener('click', function () {
-                    const inp = modal.querySelector('#efNewGenre');
-                    const tag = inp.value.trim();
-                    if (!tag) return;
-                    if (addCustomGenre(tag)) {
-                        if (!data.genre.includes(tag)) data.genre.push(tag);
-                        const sorted = getAllGenres().sort((a, b) => a.localeCompare(b, 'zh'));
-                        refreshTagPanel(modal, 'efGenrePanel', 'genre', sorted, data.genre, DEFAULT_GENRE_OPTIONS);
-                        inp.value = '';
-                        updateFilterUI();
-                    } else alert('标签已存在或无效');
-                });
-                modal.querySelector('#btnAddGameplay').addEventListener('click', function () {
-                    const inp = modal.querySelector('#efNewGameplay');
-                    const tag = inp.value.trim();
-                    if (!tag) return;
-                    if (addCustomGameplay(tag)) {
-                        if (!data.gameplay.includes(tag)) data.gameplay.push(tag);
-                        const sorted = getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh'));
-                        refreshTagPanel(modal, 'efGameplayPanel', 'gameplay', sorted, data.gameplay,
-                            DEFAULT_GAMEPLAY_OPTIONS);
-                        inp.value = '';
-                        updateFilterUI();
-                    } else alert('标签已存在或无效');
-                });
-
-                modal.querySelector('#efIsReleased')?.addEventListener('change', function () {
-                    toggleReleasedFields(modal, this.checked);
-                });
-                modal.querySelector('#btnFetchCover')?.addEventListener('click', function () {
-                    const id = modal.querySelector('#efSteamAppId')?.value.trim();
-                    if (!id) { alert('请输入App ID'); return; }
-                    const url =
-                        `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`;
-                    modal.querySelector('#efCover').value = url;
-                });
-                modal.querySelector('#btnSaveGame')?.addEventListener('click', () => saveGameFromForm(modal));
-                modal.querySelector('#btnCancelEdit')?.addEventListener('click', closeEditModal);
-            }
-
-            function saveGameFromForm(modal) {
-                const getVal = id => modal.querySelector('#' + id)?.value.trim() || '';
-                const getCheck = id => modal.querySelector('#' + id)?.checked || false;
-                const getTags = id => {
-                    const p = modal.querySelector('#' + id);
-                    return p ? Array.from(p.querySelectorAll('.tag-option.selected')).map(t => t.dataset.value) : [];
-                };
-                const title = getVal('efTitle');
-                if (!title) { alert('请输入游戏名称'); return; }
-
-                // ---- 🔥 新增去重逻辑 ----
-                // 如果是新增（editingGameId 为空），检查是否已存在同标题的游戏
-                if (!editingGameId) {
-                    const existing = games.find(g => g.title === title);
-                    if (existing) {
-                        // 如果用户选择“确定”，则复用已有 ID，后续会更新该记录
-                        if (confirm(`已存在游戏 "${title}"，是否更新该游戏？\n点击“确定”更新，点击“取消”取消保存。`)) {
-                            editingGameId = existing.id;  // 复用 ID
-                        } else {
-                            return; // 取消保存
-                        }
-                    }
+                const isClosed = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY) === 'true';
+                if (isClosed) {
+                    bar.classList.add('hidden');
+                    toggle.style.display = 'block';
                 }
 
-                const gameData = {
-                    id: editingGameId || generateId(),  // 如果上面设置了 editingGameId，就用它；否则生成新 ID
-                    title,
-                    cover: getVal('efCover'),
-                    description: getVal('efDescription'),
-                    fullDescription: getVal('efFullDescription'),
-                    genre: getTags('efGenrePanel'),
-                    gameplay: getTags('efGameplayPanel'),
-                    perspective: getVal('efPerspective') || '第三人称',
-                    releaseDate: getVal('efReleaseDate'),
-                    hasChinese: getVal('efHasChinese') || '有中文',
-                    platforms: getTags('efPlatformsPanel'),
-                    heroineType: getVal('efHeroineType') || '固定女主',
-                    costumeType: getVal('efCostumeType') || '服设合理',
-                    hasMacSupport: getVal('efHasMacSupport') || '不支持Mac',
-                    steamLink: getVal('efSteamLink'),
-                    steamAppId: getVal('efSteamAppId'),
-                    isPSExclusive: getCheck('efPSExclusive'),
-                    isNSExclusive: getCheck('efNSExclusive'),
-                    hasDemo: getVal('efHasDemo') === '1',
-                    mainStoryDuration: getVal('efMainStoryDuration'),
-                    lowestPrice: getVal('efLowestPrice'),
-                    videos: getVal('efVideos').split('\n').filter(l => l.trim()),
-                    screenshots: getVal('efScreenshots').split('\n').filter(l => l.trim()),
-                    otherLinks: getVal('efOtherLinks'),
-                    isReleased: getCheck('efIsReleased')
-                };
+                closeBtn.addEventListener('click', function() {
+                    bar.classList.add('hidden');
+                    toggle.style.display = 'block';
+                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, 'true');
+                });
 
-                if (editingGameId) {
-                    const idx = games.findIndex(g => g.id === editingGameId);
-                    if (idx >= 0) games[idx] = gameData;
-                } else {
-                    games.push(gameData);
-                }
-                saveGames();
-                closeEditModal();
-                renderGallery();
-                updateFilterUI();
-            }
-
-            function toggleReleasedFields(modal, isReleased) {
-                const costume = modal.querySelector('#efCostumeGroup');
-                const macRow = modal.querySelector('#efMacRow');
-                const dur = modal.querySelector('#efDurationPriceGroup');
-                const price = modal.querySelector('#efPriceGroup');
-
-                // 服设分类：仅已发售游戏显示
-                if (costume) costume.style.display = isReleased ? '' : 'none';
-                // Mac适配：仅已发售游戏显示
-                if (macRow) macRow.style.display = isReleased ? '' : 'none';
-                // 时长：仅已发售游戏显示
-                if (dur) dur.style.display = isReleased ? '' : 'none';
-                // 最低价：仅已发售游戏显示
-                if (price) price.style.display = isReleased ? '' : 'none';
-
-                // 发售日标签切换
-                const label = modal.querySelector('label[for="efReleaseDate"]');
-                if (label) label.textContent = isReleased ? '发售日期' : '预计发售日';
-            }
-            function closeEditModal() {
-                document.getElementById('editModalOverlay').classList.remove('show');
-                document.body.style.overflow = '';
-                editingGameId = null;
-            }
-
-            // ================================================================
-            // CSV 导入
-            // ================================================================
-            function importCSV(file) {
-                if (!isEditor()) { alert('请先验证密钥以导入数据。'); return; }
-                const reader = new FileReader();
-                reader.onload = function (ev) {
-                    const results = Papa.parse(ev.target.result, {
-                        header: true, skipEmptyLines: true,
-                        trimHeaders: true
-                    });
-                    if (results.errors && results.errors.length) { alert('CSV 解析出错，请检查文件格式。'); return; }
-                    let added = 0;
-                    results.data.forEach(row => {
-                        const game = parseCSVRow(row);
-                        if (game && game.title) {
-                            game.isReleased = (currentView === 'released');
-                            games.push(game);
-                            added++;
-                        }
-                    });
-                    if (added > 0) {
-                        saveGames();
-                        renderGallery();
-                        updateFilterUI();
-                        alert(`✅ 成功导入 ${added} 款游戏。`);
-                    } else { alert('没有导入任何游戏，请确认 CSV 列名是否匹配。'); }
-                    document.getElementById('csvFileInput').value = '';
-                };
-                reader.readAsText(file);
-            }
-
-            function parseCSVRow(row) {
-                const title = row['游戏名']?.trim();
-                if (!title) return null;
-                return {
-                    id: generateId(),
-                    title,
-                    description: row['游戏简介']?.trim() || '',
-                    fullDescription: row['游戏简介']?.trim() || '',
-                    genre: splitAndTrim(row['题材']),
-                    gameplay: splitAndTrim(row['类型']),
-                    perspective: mapPerspective(row['游玩视角']?.trim()),
-                    hasChinese: mapChinese(row['是否支持中文（简/繁中）']?.trim()),
-                    heroineType: mapHeroineType(row['主角性别']?.trim()),
-                    releaseDate: formatDate(row['发售日']?.trim()),
-                    costumeType: mapCostume(row['服饰是否合理']?.trim()),
-                    lowestPrice: row['史低（含cdk售卖价格）']?.trim() || '',
-                    hasDemo: row['Demo试玩']?.trim() === '有',
-                    mainStoryDuration: row['主线通关时长']?.trim() || '',
-                    platforms: mapPlatformsFromCSV(row['游玩平台']),
-                    cover: '',
-                    steamLink: '',
-                    steamAppId: '',
-                    isPSExclusive: false,
-                    isNSExclusive: false,
-                    hasMacSupport: '',
-                    videos: [],
-                    screenshots: [],
-                    otherLinks: '',
-                    isReleased: true
-                };
-            }
-
-            function mapPlatformsFromCSV(raw) {
-                if (!raw) return [];
-                const parts = raw.split(',').map(s => s.trim());
-                const mapped = [];
-                for (let p of parts) {
-                    p = p.toLowerCase();
-                    if (p === 'steam' || p === 'pc') mapped.push('PC');
-                    else if (p === 'ps4' || p === 'ps5' || p === 'ps') mapped.push('PS');
-                    else if (p === 'xbox one' || p === 'xbox series x|s' || p === 'xbox') mapped.push('Xbox');
-                    else if (p === 'switch' || p === 'nintendo switch') mapped.push('Nintendo Switch');
-                    else if (p === '移动端' || p === 'mobile') mapped.push('移动端');
-                    else if (p === 'ns1') mapped.push('NS1');
-                    else if (p === 'ns2') mapped.push('NS2');
-                    else if (p === '全平台') mapped.push('全平台');
-                    else if (p === 'nds' || p === '3ds' || p === 'nds/3ds') mapped.push('nds/3ds');
-                    else mapped.push(p);
-                }
-                return [...new Set(mapped)];
-            }
-
-            function splitAndTrim(str) {
-                if (!str) return [];
-                return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
-            }
-
-            function mapPerspective(v) {
-                if (!v) return '第三人称';
-                if (v.includes('第一人称')) return '第一人称';
-                if (v.includes('第三人称')) return '第三人称';
-                if (v.includes('可切换人称') || v.includes('可切换')) return '可切换人称';
-                if (v.includes('横版')) return '横版';
-                return v;
-            }
-
-            function mapChinese(v) { if (!v) return '无中文'; if (v.includes('支持中文')) return '有中文'; return '无中文'; }
-
-            function mapHeroineType(v) {
-                if (!v) return '固定女主';
-                if (v.includes('固定女主')) return '固定女主';
-                if (v.includes('双女主')) return '双女主';
-                if (v.includes('可选女主')) return '可选女主';
-                if (v.includes('多主角') || v.includes('多视角')) return '多主角含女主';
-                return v;
-            }
-
-            function mapCostume(v) {
-                if (!v) return '服设合理';
-                if (v.includes('恶俗')) return '含恶俗设计';
-                if (v.includes('不合理')) return '服设不合理';
-                if (v.includes('可自选')) return '服设可自选';
-                return '服设合理';
-            }
-
-            function formatDate(v) {
-                if (!v) return '';
-                let d = v.replace(/\//g, '-');
-                if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
-                try {
-                    const parts = d.split('-');
-                    if (parts.length === 3) { return `${parts[0].padStart(4, '0')}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`; }
-                } catch (_) { }
-                return d;
-            }
-
-            // ================================================================
-            // 密钥弹窗
-            // ================================================================
-            function openKeyModal() {
-                const overlay = document.getElementById('keyModalOverlay');
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-                document.getElementById('keyInput').value = '';
-                document.getElementById('keyMessage').textContent = '';
-                document.getElementById('keyInput').focus();
-            }
-
-            function closeKeyModal() {
-                document.getElementById('keyModalOverlay').classList.remove('show');
-                document.body.style.overflow = '';
-            }
-
-            function handleKeySubmit() {
-                const input = document.getElementById('keyInput').value;
-                const msg = document.getElementById('keyMessage');
-                if (verifyKey(input)) {
-                    msg.className = 'key-success';
-                    msg.textContent = '✅ 验证成功！已进入编辑模式。';
-                    setTimeout(() => {
-                        closeKeyModal();
-                        updateUIAfterKeyChange();
-                    }, 600);
-                } else {
-                    msg.className = 'key-error';
-                    msg.textContent = '❌ 密钥错误，请重试。';
-                    document.getElementById('keyInput').value = '';
-                    document.getElementById('keyInput').focus();
-                }
+                toggle.addEventListener('click', function() {
+                    bar.classList.remove('hidden');
+                    toggle.style.display = 'none';
+                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, 'false');
+                });
             }
 
             // ================================================================
@@ -4590,9 +3403,9 @@
                 const btn = document.getElementById('backToTop');
                 if (!btn) return;
                 let ticking = false;
-                window.addEventListener('scroll', function () {
+                window.addEventListener('scroll', function() {
                     if (!ticking) {
-                        window.requestAnimationFrame(function () {
+                        window.requestAnimationFrame(function() {
                             const scrollY = window.scrollY;
                             if (scrollY > 400) { btn.classList.add('show'); } else { btn.classList.remove('show'); }
                             const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -4605,26 +3418,9 @@
                     }
                 }, { passive: true });
 
-                btn.addEventListener('click', function (e) {
+                btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-            }
-
-            // ================================================================
-            // 公告栏
-            // ================================================================
-            const ANNOUNCEMENT_STORAGE_KEY = 'heroineAnnouncementClosed';
-
-            function initAnnouncementBar() {
-                const bar = document.getElementById('announcementBar');
-                const closeBtn = document.getElementById('announcementClose');
-                if (!bar || !closeBtn) return;
-                const isClosed = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY) === 'true';
-                if (isClosed) { bar.classList.add('hidden'); }
-                closeBtn.addEventListener('click', function () {
-                    bar.classList.add('hidden');
-                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, 'true');
                 });
             }
 
@@ -4633,38 +3429,23 @@
             // ================================================================
             function bindGlobalEvents() {
                 document.getElementById('btnThemeToggle').addEventListener('click', toggleTheme);
-                document.getElementById('btnToggleAdmin').addEventListener('click', toggleAdminMode);
-
-                document.getElementById('btnAddGame').addEventListener('click', function () {
-                    if (!isEditor()) { alert('请先验证密钥以添加游戏。'); return; }
-                    showEditModal(null);
-                });
-                document.getElementById('btnImportCSV').addEventListener('click', function () {
-                    if (!isEditor()) { alert('请先验证密钥以导入数据。'); return; }
-                    document.getElementById('csvFileInput').click();
-                });
-                document.getElementById('csvFileInput').addEventListener('change', function (e) {
-                    const file = this.files[0];
-                    if (!file) return;
-                    importCSV(file);
-                });
 
                 document.querySelectorAll('.view-tab').forEach(t =>
-                    t.addEventListener('click', function () { switchView(this.dataset.view); })
+                    t.addEventListener('click', function() { switchView(this.dataset.view); })
                 );
                 document.querySelectorAll('.sort-btn').forEach(btn => {
-                    btn.addEventListener('click', function () { setSort(this.dataset.sort); });
+                    btn.addEventListener('click', function() { setSort(this.dataset.sort); });
                 });
 
                 const searchInput = document.getElementById('searchInput');
                 const clearBtn = document.getElementById('searchClearBtn');
-                searchInput.addEventListener('input', function () { setSearchQuery(this.value); });
-                clearBtn.addEventListener('click', function () {
+                searchInput.addEventListener('input', function() { setSearchQuery(this.value); });
+                clearBtn.addEventListener('click', function() {
                     searchInput.value = '';
                     setSearchQuery('');
                     searchInput.focus();
                 });
-                searchInput.addEventListener('keydown', function (e) {
+                searchInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
                         this.value = '';
                         setSearchQuery('');
@@ -4672,11 +3453,9 @@
                     }
                 });
 
-                document.addEventListener('keydown', function (e) {
+                document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
                         closeDetailModal();
-                        closeEditModal();
-                        closeKeyModal();
                         closeTipModal();
                         closeAchievementModal();
                     }
@@ -4684,32 +3463,15 @@
 
                 document.getElementById('btnTip').addEventListener('click', openTipModal);
                 document.getElementById('tipModalClose').addEventListener('click', closeTipModal);
-                document.getElementById('tipModalOverlay').addEventListener('click', function (e) {
+                document.getElementById('tipModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeTipModal();
-                });
-
-                document.getElementById('siteLogo').addEventListener('dblclick', function (e) {
-                    e.preventDefault();
-                    if (isEditor()) { alert('✅ 当前已处于编辑模式。\n如需退出，请关闭浏览器标签页或清除会话数据。'); return; }
-                    openKeyModal();
-                });
-                document.getElementById('keyModalClose').addEventListener('click', closeKeyModal);
-                document.getElementById('keyModalOverlay').addEventListener('click', function (e) {
-                    if (e.target === this) closeKeyModal();
-                });
-                document.getElementById('keyConfirmBtn').addEventListener('click', handleKeySubmit);
-                document.getElementById('keyInput').addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleKeySubmit();
-                    }
                 });
 
                 document.getElementById('btnRandomPick').addEventListener('click', randomPick);
                 document.getElementById('btnWishlistToggle').addEventListener('click', toggleWishlistMode);
                 document.getElementById('btnAchievement').addEventListener('click', openAchievementModal);
                 document.getElementById('achievementModalClose').addEventListener('click', closeAchievementModal);
-                document.getElementById('achievementModalOverlay').addEventListener('click', function (e) {
+                document.getElementById('achievementModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeAchievementModal();
                 });
 
@@ -4721,15 +3483,12 @@
             // ================================================================
             async function init() {
                 loadSettings();
-                checkKeyStatus();
                 loadUserData();
                 loadCustomTagsFromStorage();
 
                 await loadGames();
 
                 resetActiveFilters();
-                updateUIAfterKeyChange();
-                updateAdminUI();
                 bindGlobalEvents();
                 renderGallery();
                 updateFilterUI();
@@ -4739,7 +3498,7 @@
                 initBackToTop();
                 initAnnouncementBar();
 
-                console.log('✅ Her Lens 初始化完成 (性能优化版)');
+                console.log('✅ Her Lens 只读版本已启动');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
