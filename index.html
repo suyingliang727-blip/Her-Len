@@ -7,13 +7,16 @@
     <title>Her Lens · 女性主角游戏</title>
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
+    <!-- Supabase & PapaParse -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js">
     </script>
+    <!-- Cloudflare Turnstile (人机验证) -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         /* ================================================================
-   全局变量 & 主题 (与原文一致，未改动)
+   全局变量 & 主题 (与原版完全一致，未改动)
    ================================================================ */
         :root {
             --bg: #f3eff7;
@@ -1725,6 +1728,92 @@
             border-top: 1px solid var(--border);
         }
 
+        /* ===== 登录/注册弹窗专用样式 ===== */
+        #authModal .modal {
+            max-width: 440px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text2);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color .25s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.15);
+        }
+        #authModal .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        #authModal .btn-accent:hover {
+            background: var(--accent2);
+        }
+        #authModal .btn {
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+        #authTabLogin,
+        #authTabRegister {
+            flex: 1;
+            max-width: 120px;
+            text-align: center;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text2);
+            transition: all .2s;
+            cursor: pointer;
+        }
+        #authTabLogin.active,
+        #authTabRegister.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        #authTabLogin:not(.active):hover,
+        #authTabRegister:not(.active):hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        #authModal .user-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text2);
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: var(--surface);
+        }
+        /* Turnstile 容器自适应 */
+        .turnstile-container {
+            margin: 12px 0;
+            min-height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         /* ===== 其他工具类 ===== */
         .no-results {
             text-align: center;
@@ -1959,6 +2048,13 @@
                 top: 6px;
                 left: 6px;
             }
+            #authModal .modal {
+                max-width: 95%;
+                padding: 20px 16px;
+            }
+            .turnstile-container {
+                min-height: 60px;
+            }
         }
         @media (max-width:480px) {
             .gallery-grid {
@@ -1979,6 +2075,9 @@
                 padding: 1px 8px;
                 top: 4px;
                 left: 4px;
+            }
+            #authModal .modal {
+                padding: 16px 12px;
             }
         }
     </style>
@@ -2079,7 +2178,7 @@
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
         </div>
 
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:6px; flex-wrap:wrap;">
             <span class="watermark">制作者 by Mega比格犬</span>
             <a href="https://gcn7znx9qc0z.feishu.cn/share/base/form/shrcnGpkv97cNzBIz73NCyDhFyd" target="_blank"
                 rel="noopener noreferrer" class="submit-link" title="我要投稿，推荐你喜欢的女性主角游戏">
@@ -2093,6 +2192,8 @@
                 <button class="theme-toggle" id="btnThemeToggle" title="切换深色/浅色模式">🌓</button>
                 <span style="font-size:0.55rem;color:var(--text3);line-height:1.2;">切换主题</span>
             </div>
+            <!-- 登录/用户状态将动态插入此处 -->
+            <div id="authStatusContainer" style="display:inline-flex;align-items:center;gap:6px;"></div>
         </div>
     </div>
 
@@ -2139,16 +2240,78 @@
         </div>
     </div>
 
+    <!-- ===== 登录/注册弹窗 ===== -->
+    <div class="modal-overlay" id="authModalOverlay">
+        <div class="modal" id="authModal">
+            <button class="modal-close" id="authModalClose">✕</button>
+            <div style="display:flex; gap:12px; margin-bottom:16px; justify-content:center;">
+                <button class="btn" id="authTabLogin" style="border-radius:20px 0 0 20px; border-right:none;">登录</button>
+                <button class="btn" id="authTabRegister" style="border-radius:0 20px 20px 0;">注册</button>
+            </div>
+
+            <!-- 登录表单 -->
+            <div id="loginForm">
+                <h2 style="text-align:center; margin-bottom:8px;">欢迎回来</h2>
+                <p style="text-align:center; color:var(--text2); margin-bottom:20px;">登录以同步你的游戏数据</p>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="密码" />
+                </div>
+                <div class="turnstile-container" id="loginTurnstileContainer"></div>
+                <button class="btn btn-accent" id="loginBtn" style="width:100%; padding:12px;">登录</button>
+                <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
+                    还没有账号？ <a href="#" id="switchToRegister" style="color:var(--accent);">立即注册</a>
+                </p>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="registerForm" style="display:none;">
+                <h2 style="text-align:center; margin-bottom:8px;">创建你的账号</h2>
+                <p style="text-align:center; color:var(--text2); margin-bottom:20px;">注册后即可跨设备同步游戏数据</p>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="registerEmail" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>密码（至少6位）</label>
+                    <input type="password" id="registerPassword" placeholder="设置密码" />
+                </div>
+                <div class="turnstile-container" id="registerTurnstileContainer"></div>
+                <button class="btn btn-accent" id="registerBtn" style="width:100%; padding:12px;">注册</button>
+                <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
+                    已有账号？ <a href="#" id="switchToLogin" style="color:var(--accent);">去登录</a>
+                </p>
+            </div>
+
+            <!-- 验证邮件提示（注册后显示） -->
+            <div id="emailConfirmMessage" style="display:none; text-align:center; padding:20px;">
+                <div style="font-size:3rem;">📨</div>
+                <h3>验证邮件已发送</h3>
+                <p style="color:var(--text2);">请查收你的邮箱，点击验证链接完成注册。</p>
+                <button class="btn" id="resendConfirmBtn" style="margin-top:12px;">重新发送验证邮件</button>
+            </div>
+
+            <div style="margin-top: 12px; color:var(--danger); font-size:0.85rem; text-align:center;" id="authErrorMsg"></div>
+        </div>
+    </div>
+
     <script>
         (function() {
             'use strict';
 
             // ================================================================
-            // 配置与状态（只读版本：移除了所有编辑功能）
+            // 配置与状态
             // ================================================================
             const SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
             const SUPABASE_ENABLED = SUPABASE_URL.includes('supabase.co') && SUPABASE_ANON_KEY.length > 10;
+
+            // Cloudflare Turnstile Site Key — 请替换为你的实际 Site Key
+            const TURNSTILE_SITEKEY = '0x4AAAAAADr2wfmpWE2-tfFr'; // ← 在此处填入你的 Turnstile Site Key
 
             const DEFAULT_GENRE_OPTIONS = ['丧尸', '悬疑/推理', '恐怖/生存恐怖', '乙女/女性向', '后末日', '百合', '权谋', '魔法', '偶像/娱乐圈',
                 '日常/生活', '校园', '职场', '战争/军事', '犯罪/黑帮', '体育', '艺术/音乐', '烹饪', '动物', '童话/寓言', '神话', '机械生物',
@@ -2190,7 +2353,7 @@
             let activeFilterCat = null;
             let currentTheme = 'light';
             let currentView = 'released';
-            let currentSort = 'default'; // 新增默认排序
+            let currentSort = 'default';
             let searchQuery = '';
             let wishlistMode = false;
             let userData = { wishlist: [], played: [], achievements: [] };
@@ -2198,6 +2361,11 @@
             let cardObserver = null;
             let card3DListeners = [];
             let isTouchDevice = false;
+
+            // --- 认证相关状态 ---
+            let currentUser = null;
+            let turnstileWidgetId = null;
+            let currentCaptchaToken = null;
 
             if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) {
                 isTouchDevice = true;
@@ -2217,7 +2385,7 @@
             }
 
             // ================================================================
-            // 自定义标签（保留，但只读版本不提供编辑，仅用于显示）
+            // 自定义标签（保留）
             // ================================================================
             function loadCustomTagsFromStorage() {
                 try {
@@ -2241,7 +2409,7 @@
             function getAllGameplays() { return [...new Set([...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays])]; }
 
             // ================================================================
-            // 用户数据
+            // 用户数据（本地存储，暂不同步云端）
             // ================================================================
             const USER_DATA_KEY = 'heroineUserData';
 
@@ -2367,7 +2535,7 @@
             }
 
             // ================================================================
-            // 数据加载（只读：仅从 Supabase 读取，不写入）
+            // 数据加载（只读）
             // ================================================================
             const STORAGE_KEY = 'heroineGamesDataV2';
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
@@ -2424,7 +2592,6 @@
                 } catch (e) { setSyncStatus('error', e.message || '网络异常'); return null; }
             }
 
-            // 默认示例数据（仅当 Supabase 无数据时作为备用）
             const DEFAULT_GAMES = [{
                 id: 1,
                 title: '地平线 零之曙光',
@@ -2542,20 +2709,18 @@
                 if (data && data.length > 0) {
                     games = data;
                 } else {
-                    // 回退到 localStorage 或默认数据
                     const local = localStorage.getItem(STORAGE_KEY);
                     if (local) {
                         try { games = JSON.parse(local); } catch (_) { games = []; }
                     } else {
-                        games = DEFAULT_GAMES; // 仅作为初始展示，不写入 Supabase
+                        games = DEFAULT_GAMES;
                     }
                 }
-                // 只读版本：绝不调用 saveToSupabase
                 return games;
             }
 
             // ================================================================
-            // 设置管理（只读版本只保存主题、视图、排序）
+            // 设置管理
             // ================================================================
             function loadSettings() {
                 const s = localStorage.getItem(SETTINGS_KEY);
@@ -2585,7 +2750,7 @@
             }
 
             // ================================================================
-            // 筛选分类（与原文相同，保留）
+            // 筛选分类
             // ================================================================
             function getReleasedFilterCats() {
                 return {
@@ -2663,7 +2828,7 @@
             function sortGames(gameList) {
                 const sorted = [...gameList];
                 if (currentSort === 'default') {
-                    sorted.sort((a, b) => a.id - b.id); // 按 id 升序（录入顺序）
+                    sorted.sort((a, b) => a.id - b.id);
                 } else if (currentSort === 'newest') {
                     sorted.sort((a, b) => (b.releaseDate || '1970-01-01').localeCompare(a.releaseDate || '1970-01-01'));
                 } else if (currentSort === 'oldest') {
@@ -2863,7 +3028,7 @@
             }
 
             // ================================================================
-            // 渲染卡片（只读版本：不生成编辑/删除按钮）
+            // 渲染卡片
             // ================================================================
             function renderGallery() {
                 const filtered = getFilteredGames();
@@ -2993,7 +3158,7 @@
             }
 
             // ================================================================
-            // 创建卡片 DOM（不包含管理按钮）
+            // 创建卡片 DOM
             // ================================================================
             function createCardElement(game) {
                 const card = document.createElement('div');
@@ -3119,13 +3284,11 @@
 
                 card.appendChild(ua);
 
-                // 只读版本：不生成任何管理按钮
-
                 return card;
             }
 
             // ================================================================
-            // 3D 卡片交互（与原文相同）
+            // 3D 卡片交互
             // ================================================================
             function setupCard3D(card) {
                 if (!window.matchMedia('(hover: hover)').matches) return;
@@ -3188,7 +3351,7 @@
             }
 
             // ================================================================
-            // 详情弹窗（与原文相同，仅调整了部分细节）
+            // 详情弹窗
             // ================================================================
             function showDetailModal(game) {
                 const overlay = document.getElementById('detailModalOverlay'),
@@ -3425,6 +3588,272 @@
             }
 
             // ================================================================
+            // 认证相关函数
+            // ================================================================
+
+            // 渲染 Turnstile
+            function renderTurnstile(containerId, callback) {
+                if (typeof turnstile === 'undefined') {
+                    console.warn('Turnstile 脚本未加载，请检查网络');
+                    return;
+                }
+                // 如果已存在 widget，先移除
+                if (turnstileWidgetId) {
+                    try {
+                        turnstile.remove(turnstileWidgetId);
+                    } catch (_) {}
+                    turnstileWidgetId = null;
+                }
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                // 清空容器
+                container.innerHTML = '';
+                turnstileWidgetId = turnstile.render(container, {
+                    sitekey: TURNSTILE_SITEKEY,
+                    callback: function(token) {
+                        currentCaptchaToken = token;
+                        if (callback) callback(token);
+                    },
+                    'expired-callback': function() {
+                        showToast('人机验证已过期，请重新验证', 2000);
+                        currentCaptchaToken = null;
+                        if (callback) callback(null);
+                    }
+                });
+            }
+
+            // 重置 Turnstile（用于重新验证）
+            function resetTurnstile(containerId) {
+                if (turnstileWidgetId) {
+                    try {
+                        turnstile.reset(turnstileWidgetId);
+                        currentCaptchaToken = null;
+                    } catch (_) {
+                        // 如果 reset 失败，重新渲染
+                        renderTurnstile(containerId, () => {});
+                    }
+                } else {
+                    renderTurnstile(containerId, () => {});
+                }
+            }
+
+            // 登录
+            function handleLogin() {
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                const errorEl = document.getElementById('authErrorMsg');
+
+                if (!email || !password) {
+                    errorEl.textContent = '请填写完整信息';
+                    return;
+                }
+                if (!currentCaptchaToken) {
+                    errorEl.textContent = '请完成人机验证';
+                    return;
+                }
+
+                errorEl.textContent = '';
+                const loginBtn = document.getElementById('loginBtn');
+                loginBtn.disabled = true;
+                loginBtn.textContent = '登录中...';
+
+                if (!supabaseClient) {
+                    errorEl.textContent = 'Supabase 未初始化';
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '登录';
+                    return;
+                }
+
+                supabaseClient.auth.signInWithPassword({
+                    email,
+                    password,
+                    options: {
+                        captchaToken: currentCaptchaToken
+                    }
+                }).then(({ data, error }) => {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '登录';
+                    if (error) {
+                        errorEl.textContent = error.message;
+                        resetTurnstile('loginTurnstileContainer');
+                        currentCaptchaToken = null;
+                    } else {
+                        // 登录成功，onAuthStateChange 会处理 UI
+                        closeAuthModal();
+                        showToast('👋 登录成功！', 2000);
+                    }
+                }).catch(err => {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '登录';
+                    errorEl.textContent = err.message || '登录失败，请重试';
+                    resetTurnstile('loginTurnstileContainer');
+                    currentCaptchaToken = null;
+                });
+            }
+
+            // 注册
+            function handleRegister() {
+                const email = document.getElementById('registerEmail').value.trim();
+                const password = document.getElementById('registerPassword').value;
+                const errorEl = document.getElementById('authErrorMsg');
+
+                if (!email || !password) {
+                    errorEl.textContent = '请填写完整信息';
+                    return;
+                }
+                if (password.length < 6) {
+                    errorEl.textContent = '密码至少6位';
+                    return;
+                }
+                if (!currentCaptchaToken) {
+                    errorEl.textContent = '请完成人机验证';
+                    return;
+                }
+
+                errorEl.textContent = '';
+                const registerBtn = document.getElementById('registerBtn');
+                registerBtn.disabled = true;
+                registerBtn.textContent = '注册中...';
+
+                if (!supabaseClient) {
+                    errorEl.textContent = 'Supabase 未初始化';
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = '注册';
+                    return;
+                }
+
+                supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        captchaToken: currentCaptchaToken,
+                        emailRedirectTo: window.location.origin
+                    }
+                }).then(({ data, error }) => {
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = '注册';
+                    if (error) {
+                        errorEl.textContent = error.message;
+                        resetTurnstile('registerTurnstileContainer');
+                        currentCaptchaToken = null;
+                    } else {
+                        // 显示验证邮件提示
+                        document.getElementById('registerForm').style.display = 'none';
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('emailConfirmMessage').style.display = 'block';
+                        showToast('📨 验证邮件已发送，请查收邮箱', 3000);
+                    }
+                }).catch(err => {
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = '注册';
+                    errorEl.textContent = err.message || '注册失败，请重试';
+                    resetTurnstile('registerTurnstileContainer');
+                    currentCaptchaToken = null;
+                });
+            }
+
+            // 登出
+            function handleLogout() {
+                if (!supabaseClient) return;
+                supabaseClient.auth.signOut().then(() => {
+                    showToast('已登出', 1500);
+                }).catch(() => {
+                    showToast('登出失败', 1500);
+                });
+            }
+
+            // 打开认证弹窗
+            function openAuthModal() {
+                const overlay = document.getElementById('authModalOverlay');
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+
+                // 默认显示登录
+                switchAuthTab('login');
+                // 清空错误
+                document.getElementById('authErrorMsg').textContent = '';
+                document.getElementById('emailConfirmMessage').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+
+                // 渲染 Turnstile（登录容器）
+                renderTurnstile('loginTurnstileContainer', (token) => {
+                    currentCaptchaToken = token;
+                });
+            }
+
+            // 关闭认证弹窗
+            function closeAuthModal() {
+                document.getElementById('authModalOverlay').classList.remove('show');
+                document.body.style.overflow = '';
+                // 销毁 Turnstile
+                if (turnstileWidgetId) {
+                    try {
+                        turnstile.remove(turnstileWidgetId);
+                    } catch (_) {}
+                    turnstileWidgetId = null;
+                }
+                currentCaptchaToken = null;
+            }
+
+            // 切换 Tab
+            function switchAuthTab(tab) {
+                const loginTab = document.getElementById('authTabLogin');
+                const registerTab = document.getElementById('authTabRegister');
+                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
+                const confirmMsg = document.getElementById('emailConfirmMessage');
+                const errorEl = document.getElementById('authErrorMsg');
+                errorEl.textContent = '';
+
+                if (tab === 'login') {
+                    loginTab.classList.add('active');
+                    registerTab.classList.remove('active');
+                    loginForm.style.display = 'block';
+                    registerForm.style.display = 'none';
+                    confirmMsg.style.display = 'none';
+                    // 渲染 Turnstile 到登录容器
+                    renderTurnstile('loginTurnstileContainer', (token) => {
+                        currentCaptchaToken = token;
+                    });
+                } else {
+                    registerTab.classList.add('active');
+                    loginTab.classList.remove('active');
+                    registerForm.style.display = 'block';
+                    loginForm.style.display = 'none';
+                    confirmMsg.style.display = 'none';
+                    renderTurnstile('registerTurnstileContainer', (token) => {
+                        currentCaptchaToken = token;
+                    });
+                }
+            }
+
+            // 更新 UI 以反映登录状态
+            function updateUIForLoggedIn(user) {
+                const container = document.getElementById('authStatusContainer');
+                if (!container) return;
+                container.innerHTML = `
+                    <span style="display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text2);background:var(--surface);padding:2px 10px;border-radius:14px;border:1px solid var(--border);">
+                        <span>👤 ${user.email}</span>
+                        <button class="btn btn-sm" id="logoutBtn" style="padding:2px 8px;font-size:0.7rem;">登出</button>
+                    </span>
+                `;
+                document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+                // 隐藏可能存在的登录按钮（如果有手动添加的）
+                const loginBtn = container.querySelector('#showLoginBtn');
+                if (loginBtn) loginBtn.remove();
+            }
+
+            function updateUIForLoggedOut() {
+                const container = document.getElementById('authStatusContainer');
+                if (!container) return;
+                container.innerHTML = `
+                    <button class="btn btn-sm btn-accent" id="showLoginBtn" style="padding:2px 12px;">🔑 登录</button>
+                `;
+                document.getElementById('showLoginBtn').addEventListener('click', openAuthModal);
+            }
+
+            // ================================================================
             // 全局事件绑定
             // ================================================================
             function bindGlobalEvents() {
@@ -3458,6 +3887,7 @@
                         closeDetailModal();
                         closeTipModal();
                         closeAchievementModal();
+                        closeAuthModal();
                     }
                 });
 
@@ -3473,6 +3903,55 @@
                 document.getElementById('achievementModalClose').addEventListener('click', closeAchievementModal);
                 document.getElementById('achievementModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeAchievementModal();
+                });
+
+                // ===== 认证相关事件绑定 =====
+                document.getElementById('authModalClose').addEventListener('click', closeAuthModal);
+                document.getElementById('authModalOverlay').addEventListener('click', function(e) {
+                    if (e.target === this) closeAuthModal();
+                });
+
+                document.getElementById('authTabLogin').addEventListener('click', () => switchAuthTab('login'));
+                document.getElementById('authTabRegister').addEventListener('click', () => switchAuthTab('register'));
+                document.getElementById('switchToRegister').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchAuthTab('register');
+                });
+                document.getElementById('switchToLogin').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchAuthTab('login');
+                });
+
+                document.getElementById('loginBtn').addEventListener('click', handleLogin);
+                document.getElementById('registerBtn').addEventListener('click', handleRegister);
+
+                document.getElementById('resendConfirmBtn').addEventListener('click', function() {
+                    const email = document.getElementById('registerEmail').value.trim();
+                    if (!email) {
+                        showToast('请先输入邮箱地址', 2000);
+                        return;
+                    }
+                    if (!supabaseClient) {
+                        showToast('Supabase 未初始化', 2000);
+                        return;
+                    }
+                    supabaseClient.auth.resend({
+                        type: 'signup',
+                        email: email,
+                        options: { emailRedirectTo: window.location.origin }
+                    }).then(() => {
+                        showToast('验证邮件已重新发送，请查收', 2000);
+                    }).catch((err) => {
+                        showToast('发送失败：' + (err.message || '请稍后重试'), 2000);
+                    });
+                });
+
+                // 键盘支持回车提交
+                document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleLogin();
+                });
+                document.getElementById('registerPassword').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleRegister();
                 });
 
                 updateFilterUI();
@@ -3498,11 +3977,45 @@
                 initBackToTop();
                 initAnnouncementBar();
 
-                console.log('✅ Her Lens 只读版本已启动');
+                // ===== 认证初始化 =====
+                if (supabaseClient) {
+                    // 监听认证状态变化
+                    supabaseClient.auth.onAuthStateChange((event, session) => {
+                        if (session) {
+                            currentUser = session.user;
+                            updateUIForLoggedIn(currentUser);
+                            // 登录成功后关闭弹窗（如果打开）
+                            const overlay = document.getElementById('authModalOverlay');
+                            if (overlay.classList.contains('show')) {
+                                closeAuthModal();
+                            }
+                            // 可在此触发数据同步（阶段二）
+                        } else {
+                            currentUser = null;
+                            updateUIForLoggedOut();
+                        }
+                    });
+
+                    // 检查当前是否有会话
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session) {
+                        currentUser = session.user;
+                        updateUIForLoggedIn(currentUser);
+                    } else {
+                        updateUIForLoggedOut();
+                    }
+                } else {
+                    // 没有 Supabase 时，显示提示
+                    updateUIForLoggedOut();
+                    console.warn('Supabase 未启用，认证功能不可用');
+                }
+
+                console.log('✅ Her Lens 已启动（含用户认证）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
                 console.log(`📱 触摸设备: ${isTouchDevice ? '是 (已禁用高耗能特效)' : '否'}`);
+                console.log(`🔐 认证状态: ${currentUser ? '已登录 (' + currentUser.email + ')' : '未登录'}`);
             }
 
             // 启动
