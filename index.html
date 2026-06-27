@@ -16,7 +16,7 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         /* ================================================================
-   全局变量 & 主题 (与原版完全一致，未改动)
+   全局变量 & 主题 (与原版完全一致)
    ================================================================ */
         :root {
             --bg: #f3eff7;
@@ -1814,6 +1814,146 @@
             align-items: center;
         }
 
+        /* ===== 个人资料弹窗专用样式 ===== */
+        #profileModal .modal {
+            max-width: 480px;
+        }
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--tag-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s;
+            margin: 4px auto;
+        }
+        .profile-avatar-wrapper:hover {
+            border-color: var(--accent);
+        }
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .profile-avatar-upload-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            font-size: 1.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            border-radius: 50%;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .profile-avatar-wrapper:hover .profile-avatar-upload-label {
+            opacity: 1;
+        }
+        /* 工具栏头像微缩 */
+        .toolbar-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border);
+            background: var(--tag-bg);
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+            transition: border-color 0.2s;
+        }
+        .toolbar-avatar:hover {
+            border-color: var(--accent);
+        }
+        .toolbar-user-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            padding: 3px 10px 3px 6px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+            position: relative;
+        }
+        .toolbar-user-info:hover {
+            border-color: var(--accent);
+        }
+        .toolbar-user-info .user-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text);
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .toolbar-user-info .dropdown-btn {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0 2px;
+            line-height: 1;
+        }
+        .toolbar-user-info .dropdown-btn:hover {
+            color: var(--accent);
+        }
+        /* 下拉菜单 */
+        #userDropdownMenu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: var(--modal-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px 0;
+            min-width: 150px;
+            box-shadow: var(--shadow-lg);
+            z-index: 20;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        #userDropdownMenu .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.15s;
+            font-family: inherit;
+        }
+        #userDropdownMenu .dropdown-item:hover {
+            background: var(--card-hover);
+        }
+        #userDropdownMenu .dropdown-item.danger {
+            color: var(--danger);
+        }
+        #userDropdownMenu .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 4px 8px;
+        }
+
         /* ===== 其他工具类 ===== */
         .no-results {
             text-align: center;
@@ -2055,6 +2195,22 @@
             .turnstile-container {
                 min-height: 60px;
             }
+            .profile-avatar-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+            .toolbar-avatar {
+                width: 26px;
+                height: 26px;
+            }
+            .toolbar-user-info .user-name {
+                max-width: 60px;
+                font-size: 0.7rem;
+            }
+            #profileModal .modal {
+                max-width: 95%;
+                padding: 20px 16px;
+            }
         }
         @media (max-width:480px) {
             .gallery-grid {
@@ -2078,6 +2234,12 @@
             }
             #authModal .modal {
                 padding: 16px 12px;
+            }
+            #profileModal .modal {
+                padding: 16px 12px;
+            }
+            .toolbar-user-info .user-name {
+                max-width: 40px;
             }
         }
     </style>
@@ -2299,6 +2461,35 @@
         </div>
     </div>
 
+    <!-- ===== 个人资料编辑弹窗 ===== -->
+    <div class="modal-overlay" id="profileModalOverlay">
+        <div class="modal" id="profileModal" style="max-width:480px;">
+            <button class="modal-close" id="profileModalClose">✕</button>
+            <h2 style="text-align:center; margin-bottom:12px;">✏️ 编辑个人资料</h2>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+                <!-- 头像区域 -->
+                <div class="profile-avatar-wrapper" id="profileAvatarWrapper">
+                    <img id="profileAvatarPreview" src="" alt="头像" class="profile-avatar-img" />
+                    <label for="avatarInput" class="profile-avatar-upload-label" title="点击上传头像（≤2MB）">
+                        <span>📸</span>
+                    </label>
+                    <input type="file" id="avatarInput" accept="image/png, image/jpeg, image/webp, image/gif" style="display:none;" />
+                </div>
+                <p style="font-size:0.75rem; color:var(--text3); margin-top:-4px;">支持 JPG / PNG / WebP，大小不超过 2MB</p>
+
+                <!-- 用户名 -->
+                <div class="form-group" style="width:100%;">
+                    <label>显示名称</label>
+                    <input type="text" id="profileDisplayName" placeholder="请输入你的昵称" maxlength="30" />
+                </div>
+
+                <button class="btn btn-accent" id="profileSaveBtn" style="width:100%; padding:10px;">💾 保存资料</button>
+                <div id="profileErrorMsg" style="color:var(--danger); font-size:0.85rem; text-align:center; min-height:20px;"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function() {
             'use strict';
@@ -2366,6 +2557,10 @@
             let currentUser = null;
             let turnstileWidgetId = null;
             let currentCaptchaToken = null;
+
+            // --- 个人资料相关 ---
+            let currentAvatarFile = null;
+            let avatarPreviewUrl = null;
 
             if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) {
                 isTouchDevice = true;
@@ -3597,16 +3792,12 @@
                     console.warn('Turnstile 脚本未加载，请检查网络');
                     return;
                 }
-                // 如果已存在 widget，先移除
                 if (turnstileWidgetId) {
-                    try {
-                        turnstile.remove(turnstileWidgetId);
-                    } catch (_) {}
+                    try { turnstile.remove(turnstileWidgetId); } catch (_) {}
                     turnstileWidgetId = null;
                 }
                 const container = document.getElementById(containerId);
                 if (!container) return;
-                // 清空容器
                 container.innerHTML = '';
                 turnstileWidgetId = turnstile.render(container, {
                     sitekey: TURNSTILE_SITEKEY,
@@ -3622,16 +3813,11 @@
                 });
             }
 
-            // 重置 Turnstile（用于重新验证）
+            // 重置 Turnstile
             function resetTurnstile(containerId) {
                 if (turnstileWidgetId) {
-                    try {
-                        turnstile.reset(turnstileWidgetId);
-                        currentCaptchaToken = null;
-                    } catch (_) {
-                        // 如果 reset 失败，重新渲染
-                        renderTurnstile(containerId, () => {});
-                    }
+                    try { turnstile.reset(turnstileWidgetId);
+                        currentCaptchaToken = null; } catch (_) { renderTurnstile(containerId, () => {}); }
                 } else {
                     renderTurnstile(containerId, () => {});
                 }
@@ -3643,14 +3829,8 @@
                 const password = document.getElementById('loginPassword').value;
                 const errorEl = document.getElementById('authErrorMsg');
 
-                if (!email || !password) {
-                    errorEl.textContent = '请填写完整信息';
-                    return;
-                }
-                if (!currentCaptchaToken) {
-                    errorEl.textContent = '请完成人机验证';
-                    return;
-                }
+                if (!email || !password) { errorEl.textContent = '请填写完整信息'; return; }
+                if (!currentCaptchaToken) { errorEl.textContent = '请完成人机验证'; return; }
 
                 errorEl.textContent = '';
                 const loginBtn = document.getElementById('loginBtn');
@@ -3667,9 +3847,7 @@
                 supabaseClient.auth.signInWithPassword({
                     email,
                     password,
-                    options: {
-                        captchaToken: currentCaptchaToken
-                    }
+                    options: { captchaToken: currentCaptchaToken }
                 }).then(({ data, error }) => {
                     loginBtn.disabled = false;
                     loginBtn.textContent = '登录';
@@ -3678,7 +3856,6 @@
                         resetTurnstile('loginTurnstileContainer');
                         currentCaptchaToken = null;
                     } else {
-                        // 登录成功，onAuthStateChange 会处理 UI
                         closeAuthModal();
                         showToast('👋 登录成功！', 2000);
                     }
@@ -3697,18 +3874,9 @@
                 const password = document.getElementById('registerPassword').value;
                 const errorEl = document.getElementById('authErrorMsg');
 
-                if (!email || !password) {
-                    errorEl.textContent = '请填写完整信息';
-                    return;
-                }
-                if (password.length < 6) {
-                    errorEl.textContent = '密码至少6位';
-                    return;
-                }
-                if (!currentCaptchaToken) {
-                    errorEl.textContent = '请完成人机验证';
-                    return;
-                }
+                if (!email || !password) { errorEl.textContent = '请填写完整信息'; return; }
+                if (password.length < 6) { errorEl.textContent = '密码至少6位'; return; }
+                if (!currentCaptchaToken) { errorEl.textContent = '请完成人机验证'; return; }
 
                 errorEl.textContent = '';
                 const registerBtn = document.getElementById('registerBtn');
@@ -3737,7 +3905,6 @@
                         resetTurnstile('registerTurnstileContainer');
                         currentCaptchaToken = null;
                     } else {
-                        // 显示验证邮件提示
                         document.getElementById('registerForm').style.display = 'none';
                         document.getElementById('loginForm').style.display = 'none';
                         document.getElementById('emailConfirmMessage').style.display = 'block';
@@ -3767,32 +3934,20 @@
                 const overlay = document.getElementById('authModalOverlay');
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
-
-                // 默认显示登录
                 switchAuthTab('login');
-                // 清空错误
                 document.getElementById('authErrorMsg').textContent = '';
                 document.getElementById('emailConfirmMessage').style.display = 'none';
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('registerForm').style.display = 'none';
-
-                // 渲染 Turnstile（登录容器）
-                renderTurnstile('loginTurnstileContainer', (token) => {
-                    currentCaptchaToken = token;
-                });
+                renderTurnstile('loginTurnstileContainer', (token) => { currentCaptchaToken = token; });
             }
 
             // 关闭认证弹窗
             function closeAuthModal() {
                 document.getElementById('authModalOverlay').classList.remove('show');
                 document.body.style.overflow = '';
-                // 销毁 Turnstile
-                if (turnstileWidgetId) {
-                    try {
-                        turnstile.remove(turnstileWidgetId);
-                    } catch (_) {}
-                    turnstileWidgetId = null;
-                }
+                if (turnstileWidgetId) { try { turnstile.remove(turnstileWidgetId); } catch (_) {}
+                    turnstileWidgetId = null; }
                 currentCaptchaToken = null;
             }
 
@@ -3812,36 +3967,223 @@
                     loginForm.style.display = 'block';
                     registerForm.style.display = 'none';
                     confirmMsg.style.display = 'none';
-                    // 渲染 Turnstile 到登录容器
-                    renderTurnstile('loginTurnstileContainer', (token) => {
-                        currentCaptchaToken = token;
-                    });
+                    renderTurnstile('loginTurnstileContainer', (token) => { currentCaptchaToken = token; });
                 } else {
                     registerTab.classList.add('active');
                     loginTab.classList.remove('active');
                     registerForm.style.display = 'block';
                     loginForm.style.display = 'none';
                     confirmMsg.style.display = 'none';
-                    renderTurnstile('registerTurnstileContainer', (token) => {
-                        currentCaptchaToken = token;
-                    });
+                    renderTurnstile('registerTurnstileContainer', (token) => { currentCaptchaToken = token; });
                 }
             }
 
-            // 更新 UI 以反映登录状态
+            // ================================================================
+            // 个人资料相关函数
+            // ================================================================
+
+            function openProfileModal() {
+                if (!currentUser) {
+                    showToast('请先登录', 1500);
+                    return;
+                }
+                const overlay = document.getElementById('profileModalOverlay');
+                const nameInput = document.getElementById('profileDisplayName');
+                const avatarImg = document.getElementById('profileAvatarPreview');
+
+                const metadata = currentUser.user_metadata || {};
+                nameInput.value = metadata.display_name || '';
+                // 设置头像预览
+                if (metadata.avatar_url) {
+                    avatarImg.src = metadata.avatar_url;
+                } else {
+                    avatarImg.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%23ddd"/%3E%3Ctext x="50" y="58" font-size="40" text-anchor="middle" fill="%23999"%3E👤%3C/text%3E%3C/svg%3E';
+                }
+                // 重置文件输入
+                document.getElementById('avatarInput').value = '';
+                currentAvatarFile = null;
+                if (avatarPreviewUrl) {
+                    URL.revokeObjectURL(avatarPreviewUrl);
+                    avatarPreviewUrl = null;
+                }
+                document.getElementById('profileErrorMsg').textContent = '';
+
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeProfileModal() {
+                document.getElementById('profileModalOverlay').classList.remove('show');
+                document.body.style.overflow = '';
+                if (avatarPreviewUrl) {
+                    URL.revokeObjectURL(avatarPreviewUrl);
+                    avatarPreviewUrl = null;
+                }
+                currentAvatarFile = null;
+            }
+
+            function handleAvatarFileSelect(file) {
+                const errorEl = document.getElementById('profileErrorMsg');
+                if (file.size > 2 * 1024 * 1024) {
+                    errorEl.textContent = '❌ 图片大小超过 2MB，请压缩后重新上传';
+                    document.getElementById('avatarInput').value = '';
+                    return;
+                }
+                const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    errorEl.textContent = '❌ 不支持的图片格式，请上传 JPG / PNG / WebP / GIF';
+                    document.getElementById('avatarInput').value = '';
+                    return;
+                }
+                errorEl.textContent = '';
+                currentAvatarFile = file;
+
+                if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+                avatarPreviewUrl = URL.createObjectURL(file);
+                document.getElementById('profileAvatarPreview').src = avatarPreviewUrl;
+            }
+
+            async function saveProfile() {
+                const errorEl = document.getElementById('profileErrorMsg');
+                const saveBtn = document.getElementById('profileSaveBtn');
+                const displayName = document.getElementById('profileDisplayName').value.trim();
+
+                if (!displayName) {
+                    errorEl.textContent = '❌ 请输入显示名称';
+                    return;
+                }
+                if (!supabaseClient) {
+                    errorEl.textContent = '❌ 系统未连接';
+                    return;
+                }
+
+                saveBtn.disabled = true;
+                saveBtn.textContent = '保存中...';
+                errorEl.textContent = '';
+
+                try {
+                    let avatarUrl = currentUser.user_metadata?.avatar_url || null;
+
+                    if (currentAvatarFile) {
+                        const fileExt = currentAvatarFile.name.split('.').pop();
+                        const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
+
+                        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                            .from('avatars')
+                            .upload(fileName, currentAvatarFile, {
+                                cacheControl: '3600',
+                                upsert: true,
+                            });
+
+                        if (uploadError) {
+                            errorEl.textContent = '❌ 头像上传失败：' + uploadError.message;
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = '💾 保存资料';
+                            return;
+                        }
+
+                        const { data: urlData } = supabaseClient.storage
+                            .from('avatars')
+                            .getPublicUrl(fileName);
+                        avatarUrl = urlData.publicUrl;
+                    }
+
+                    const { data, error } = await supabaseClient.auth.updateUser({
+                        data: {
+                            display_name: displayName,
+                            avatar_url: avatarUrl,
+                        }
+                    });
+
+                    if (error) {
+                        errorEl.textContent = '❌ 更新资料失败：' + error.message;
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '💾 保存资料';
+                        return;
+                    }
+
+                    if (data && data.user) {
+                        currentUser = data.user;
+                        updateUIForLoggedIn(currentUser);
+                    }
+
+                    showToast('✅ 个人资料已更新！', 2000);
+                    closeProfileModal();
+
+                } catch (err) {
+                    errorEl.textContent = '❌ 操作异常：' + (err.message || '未知错误');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 保存资料';
+                }
+            }
+
+            // ================================================================
+            // UI 更新函数（重写以支持头像和下拉菜单）
+            // ================================================================
+
             function updateUIForLoggedIn(user) {
                 const container = document.getElementById('authStatusContainer');
                 if (!container) return;
+
+                const metadata = user.user_metadata || {};
+                const displayName = metadata.display_name || user.email || '用户';
+                const avatarUrl = metadata.avatar_url || null;
+
+                let avatarHTML = '';
+                if (avatarUrl) {
+                    avatarHTML = `<img src="${escapeHTML(avatarUrl)}" alt="头像" class="toolbar-avatar" referrerpolicy="no-referrer" />`;
+                } else {
+                    avatarHTML = `<span style="font-size:1.2rem; line-height:1;">👤</span>`;
+                }
+
                 container.innerHTML = `
-                    <span style="display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text2);background:var(--surface);padding:2px 10px;border-radius:14px;border:1px solid var(--border);">
-                        <span>👤 ${user.email}</span>
-                        <button class="btn btn-sm" id="logoutBtn" style="padding:2px 8px;font-size:0.7rem;">登出</button>
-                    </span>
+                    <div class="toolbar-user-info" id="userMenuWrapper">
+                        ${avatarHTML}
+                        <span class="user-name" title="${escapeHTML(displayName)}">${escapeHTML(displayName)}</span>
+                        <button class="dropdown-btn" id="userMenuToggle" title="个人设置">▼</button>
+                        <div id="userDropdownMenu">
+                            <button class="dropdown-item" id="profileEditBtn">✏️ 编辑资料</button>
+                            <hr class="divider" />
+                            <button class="dropdown-item danger" id="logoutBtn">🚪 登出</button>
+                        </div>
+                    </div>
                 `;
-                document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-                // 隐藏可能存在的登录按钮（如果有手动添加的）
-                const loginBtn = container.querySelector('#showLoginBtn');
-                if (loginBtn) loginBtn.remove();
+
+                // 下拉菜单交互
+                const toggleBtn = document.getElementById('userMenuToggle');
+                const dropdown = document.getElementById('userDropdownMenu');
+                if (toggleBtn && dropdown) {
+                    toggleBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const isOpen = dropdown.style.display === 'block';
+                        dropdown.style.display = isOpen ? 'none' : 'block';
+                    });
+                    document.addEventListener('click', function closeDropdown(e) {
+                        if (!dropdown.contains(e.target) && e.target !== toggleBtn) {
+                            dropdown.style.display = 'none';
+                        }
+                    });
+                    dropdown.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                }
+
+                // 绑定事件
+                const editBtn = document.getElementById('profileEditBtn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', function() {
+                        document.getElementById('userDropdownMenu').style.display = 'none';
+                        openProfileModal();
+                    });
+                }
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function() {
+                        document.getElementById('userDropdownMenu').style.display = 'none';
+                        handleLogout();
+                    });
+                }
             }
 
             function updateUIForLoggedOut() {
@@ -3888,6 +4230,7 @@
                         closeTipModal();
                         closeAchievementModal();
                         closeAuthModal();
+                        closeProfileModal();
                     }
                 });
 
@@ -3910,7 +4253,6 @@
                 document.getElementById('authModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeAuthModal();
                 });
-
                 document.getElementById('authTabLogin').addEventListener('click', () => switchAuthTab('login'));
                 document.getElementById('authTabRegister').addEventListener('click', () => switchAuthTab('register'));
                 document.getElementById('switchToRegister').addEventListener('click', (e) => {
@@ -3921,20 +4263,12 @@
                     e.preventDefault();
                     switchAuthTab('login');
                 });
-
                 document.getElementById('loginBtn').addEventListener('click', handleLogin);
                 document.getElementById('registerBtn').addEventListener('click', handleRegister);
-
                 document.getElementById('resendConfirmBtn').addEventListener('click', function() {
                     const email = document.getElementById('registerEmail').value.trim();
-                    if (!email) {
-                        showToast('请先输入邮箱地址', 2000);
-                        return;
-                    }
-                    if (!supabaseClient) {
-                        showToast('Supabase 未初始化', 2000);
-                        return;
-                    }
+                    if (!email) { showToast('请先输入邮箱地址', 2000); return; }
+                    if (!supabaseClient) { showToast('Supabase 未初始化', 2000); return; }
                     supabaseClient.auth.resend({
                         type: 'signup',
                         email: email,
@@ -3945,13 +4279,29 @@
                         showToast('发送失败：' + (err.message || '请稍后重试'), 2000);
                     });
                 });
-
-                // 键盘支持回车提交
                 document.getElementById('loginPassword').addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') handleLogin();
                 });
                 document.getElementById('registerPassword').addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') handleRegister();
+                });
+
+                // ===== 个人资料事件绑定 =====
+                document.getElementById('profileModalClose').addEventListener('click', closeProfileModal);
+                document.getElementById('profileModalOverlay').addEventListener('click', function(e) {
+                    if (e.target === this) closeProfileModal();
+                });
+                document.getElementById('avatarInput').addEventListener('change', function(e) {
+                    if (this.files && this.files.length > 0) {
+                        handleAvatarFileSelect(this.files[0]);
+                    }
+                });
+                document.getElementById('profileSaveBtn').addEventListener('click', saveProfile);
+                document.getElementById('profileDisplayName').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        saveProfile();
+                    }
                 });
 
                 updateFilterUI();
@@ -3979,24 +4329,20 @@
 
                 // ===== 认证初始化 =====
                 if (supabaseClient) {
-                    // 监听认证状态变化
                     supabaseClient.auth.onAuthStateChange((event, session) => {
                         if (session) {
                             currentUser = session.user;
                             updateUIForLoggedIn(currentUser);
-                            // 登录成功后关闭弹窗（如果打开）
                             const overlay = document.getElementById('authModalOverlay');
                             if (overlay.classList.contains('show')) {
                                 closeAuthModal();
                             }
-                            // 可在此触发数据同步（阶段二）
                         } else {
                             currentUser = null;
                             updateUIForLoggedOut();
                         }
                     });
 
-                    // 检查当前是否有会话
                     const { data: { session } } = await supabaseClient.auth.getSession();
                     if (session) {
                         currentUser = session.user;
@@ -4005,12 +4351,11 @@
                         updateUIForLoggedOut();
                     }
                 } else {
-                    // 没有 Supabase 时，显示提示
                     updateUIForLoggedOut();
                     console.warn('Supabase 未启用，认证功能不可用');
                 }
 
-                console.log('✅ Her Lens 已启动（含用户认证）');
+                console.log('✅ Her Lens 已启动（含用户认证 + 个人资料）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
