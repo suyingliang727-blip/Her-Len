@@ -2984,9 +2984,38 @@
             }
 
             // ================================================================
-            // 云端同步函数（含评论拉取）
+            // 云端删除函数（新增）
             // ================================================================
+            async function deleteFromCloud(table, gameId) {
+                if (!currentUser || !supabaseClient) {
+                    console.log('未登录或 Supabase 未初始化，跳过云端删除');
+                    return;
+                }
+                const gameIdNum = Number(gameId);
+                if (!Number.isInteger(gameIdNum) || gameIdNum <= 0) {
+                    console.error('❌ 无效的 gameId:', gameId);
+                    return;
+                }
+                try {
+                    const { error } = await supabaseClient
+                        .from(table)
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('game_id', gameIdNum);
+                    if (error) {
+                        console.error(`❌ 云端删除失败 [${table}]:`, error);
+                        showToast('⚠️ 删除失败，请检查网络', 2000);
+                    } else {
+                        console.log(`✅ 云端删除成功 [${table}] game_id: ${gameId}`);
+                    }
+                } catch (e) {
+                    console.error('❌ 云端删除异常:', e);
+                }
+            }
 
+            // ================================================================
+            // 云端同步函数（已升级，支持双向同步）
+            // ================================================================
             async function syncUserDataWithCloud() {
                 if (!currentUser || !supabaseClient) {
                     console.warn('未登录或 Supabase 未初始化，跳过同步');
@@ -3022,10 +3051,78 @@
                     const localPlayed = userData.played || [];
                     const localReviews = userData.reviews || [];
 
-                    const mergedWishlist = [...new Set([...localWishlist, ...cloudWishlist])];
-                    const mergedPlayed = [...new Set([...localPlayed, ...cloudPlayed])];
+                    // ---- 愿望单同步 ----
+                    const localWishlistSet = new Set(localWishlist);
+                    const cloudWishlistSet = new Set(cloudWishlist);
 
-                    // 评论合并：云端优先，同时将本地未上传的评论上传
+                    // 本地有但云端没有 -> 上传
+                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlistSet.has(id));
+                    // 云端有但本地没有 -> 删除
+                    const toDeleteWishlist = cloudWishlist.filter(id => !localWishlistSet.has(id));
+
+                    // ---- 玩过记录同步 ----
+                    const localPlayedSet = new Set(localPlayed);
+                    const cloudPlayedSet = new Set(cloudPlayed);
+
+                    const toUploadPlayed = localPlayed.filter(id => !cloudPlayedSet.has(id));
+                    const toDeletePlayed = cloudPlayed.filter(id => !localPlayedSet.has(id));
+
+                    // ---- 执行删除（云端多余项） ----
+                    const deletePromises = [];
+                    for (const id of toDeleteWishlist) {
+                        deletePromises.push(deleteFromCloud('user_wishlist', id));
+                    }
+                    for (const id of toDeletePlayed) {
+                        deletePromises.push(deleteFromCloud('user_played', id));
+                    }
+                    if (deletePromises.length > 0) {
+                        await Promise.all(deletePromises);
+                    }
+
+                    // ---- 执行上传（本地新增项） ----
+                    const uploadPromises = [];
+
+                    if (toUploadWishlist.length > 0) {
+                        const items = toUploadWishlist.map(game_id => {
+                            const num = Number(game_id);
+                            if (!Number.isInteger(num) || num <= 0) return null;
+                            return { user_id: userId, game_id: num };
+                        }).filter(item => item !== null);
+                        if (items.length > 0) {
+                            uploadPromises.push(
+                                supabaseClient.from('user_wishlist').insert(items)
+                                .then(res => {
+                                    if (res.error && res.error.code !== '23505') {
+                                        console.error('批量上传愿望单失败:', res.error);
+                                        throw res.error;
+                                    }
+                                    return res;
+                                })
+                            );
+                        }
+                    }
+
+                    if (toUploadPlayed.length > 0) {
+                        const items = toUploadPlayed.map(game_id => {
+                            const num = Number(game_id);
+                            if (!Number.isInteger(num) || num <= 0) return null;
+                            return { user_id: userId, game_id: num };
+                        }).filter(item => item !== null);
+                        if (items.length > 0) {
+                            uploadPromises.push(
+                                supabaseClient.from('user_played').insert(items)
+                                .then(res => {
+                                    if (res.error && res.error.code !== '23505') {
+                                        console.error('批量上传玩过记录失败:', res.error);
+                                        throw res.error;
+                                    }
+                                    return res;
+                                })
+                            );
+                        }
+                    }
+
+                    // ---- 评论同步（保持原有逻辑） ----
                     const cloudReviewMap = new Map(cloudReviews.map(r => [r.game_id, r]));
                     const localReviewMap = new Map(localReviews.map(r => [r.game_id, r]));
                     const mergedReviews = [...cloudReviews];
@@ -3035,9 +3132,45 @@
                             toUploadReviews.push(local);
                         }
                     }
+                    // 云端有但本地没有的评论：保留云端（不删除，因为评论是用户创作的，合并后保留）
+                    // 如果有本地评论被删除，但云端还有，说明用户在其他设备删除了，这里以云端为准
+                    // 但由于我们保留云端，所以直接使用云端列表
+                    // 但本地删除的评论，如果云端还存在，下次同步时云端会保留，造成"删除不彻底"
+                    // 这里我们检测：如果本地没有但云端有，保留云端（用户可能在另一设备删除了，但这里以本地为准更合理）
+                    // 更安全的做法：以本地为准，删除云端多余评论
+                    const toDeleteReviews = cloudReviews.filter(r => !localReviewMap.has(r.game_id));
+                    for (const r of toDeleteReviews) {
+                        try {
+                            await supabaseClient.from('user_reviews')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('game_id', r.game_id);
+                            console.log(`✅ 删除云端评论 game_id: ${r.game_id}`);
+                        } catch (e) {
+                            console.error('删除云端评论失败:', e);
+                        }
+                    }
+                    // 重新计算合并后的评论列表（本地 + 云端 - 已删除的）
+                    const finalReviews = [...localReviews];
+                    for (const r of cloudReviews) {
+                        if (!localReviewMap.has(r.game_id)) {
+                            // 云端有但本地没有，保留（除非上面已删除）
+                            finalReviews.push(r);
+                        }
+                    }
+                    // 但上面的删除已经处理了云端多余项，所以最终以本地为主
+                    // 更简洁：直接用本地 reviews，然后将本地没有的云端评论删除
+                    // 但由于评论可能在其他设备新增，这里我们采用"合并"策略：本地 + 云端新增
+                    // 实际上更好的做法：以云端为准，但本地删除的也要同步删除
+                    // 我们重新构建评论列表：本地有的 + 云端有但本地没有的（新增）
+                    const finalReviewList = [...localReviews];
+                    for (const r of cloudReviews) {
+                        if (!localReviewMap.has(r.game_id)) {
+                            finalReviewList.push(r);
+                        }
+                    }
 
                     // 上传本地新增的评论
-                    const uploadPromises = [];
                     if (toUploadReviews.length > 0) {
                         const items = toUploadReviews.map(r => ({
                             user_id: userId,
@@ -3059,62 +3192,21 @@
                         );
                     }
 
-                    // 愿望单和玩过记录上传（原有逻辑）
-                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlist.includes(id));
-                    const toUploadPlayed = localPlayed.filter(id => !cloudPlayed.includes(id));
-
-                    if (toUploadWishlist.length > 0) {
-                        const items = toUploadWishlist.map(game_id => {
-                            const num = Number(game_id);
-                            if (!Number.isInteger(num) || num <= 0) return null;
-                            return { user_id: userId, game_id: num };
-                        }).filter(item => item !== null);
-                        if (items.length > 0) {
-                            uploadPromises.push(
-                                supabaseClient.from('user_wishlist').insert(items)
-                                .then(res => {
-                                    if (res.error && res.error.code !== '23505') {
-                                        console.error('批量上传愿望单失败:', res.error);
-                                        throw res.error;
-                                    }
-                                    return res;
-                                })
-                            );
-                        }
-                    }
-                    if (toUploadPlayed.length > 0) {
-                        const items = toUploadPlayed.map(game_id => {
-                            const num = Number(game_id);
-                            if (!Number.isInteger(num) || num <= 0) return null;
-                            return { user_id: userId, game_id: num };
-                        }).filter(item => item !== null);
-                        if (items.length > 0) {
-                            uploadPromises.push(
-                                supabaseClient.from('user_played').insert(items)
-                                .then(res => {
-                                    if (res.error && res.error.code !== '23505') {
-                                        console.error('批量上传玩过记录失败:', res.error);
-                                        throw res.error;
-                                    }
-                                    return res;
-                                })
-                            );
-                        }
-                    }
-
                     if (uploadPromises.length > 0) {
                         await Promise.all(uploadPromises);
                     }
 
-                    userData.wishlist = mergedWishlist;
-                    userData.played = mergedPlayed;
-                    userData.reviews = mergedReviews;
+                    // 更新 userData（使用本地数据，云端多余的已被删除）
+                    userData.wishlist = localWishlist;
+                    userData.played = localPlayed;
+                    // 评论使用合并后的列表（本地 + 云端新增）
+                    userData.reviews = finalReviewList;
                     saveUserData();
 
                     renderGallery();
                     updateAchievementDot();
                     setSyncStatus('synced', '已同步');
-                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
+                    console.log(`✅ 同步完成：愿望单 ${localWishlist.length} 项，玩过 ${localPlayed.length} 项，评论 ${userData.reviews.length} 项`);
 
                 } catch (error) {
                     console.error('❌ 同步失败:', error);
@@ -3147,28 +3239,33 @@
             }
 
             // ================================================================
-            // 愿望单与玩过操作
+            // 愿望单与玩过操作（已修复：移除时调用 deleteFromCloud）
             // ================================================================
             function toggleWishlist(gameId) {
                 const idx = userData.wishlist.indexOf(gameId);
-                if (idx >= 0) userData.wishlist.splice(idx, 1);
-                else userData.wishlist.push(gameId);
+                if (idx >= 0) {
+                    userData.wishlist.splice(idx, 1);
+                    deleteFromCloud('user_wishlist', gameId);
+                } else {
+                    userData.wishlist.push(gameId);
+                    pushToCloud('user_wishlist', gameId);
+                }
                 saveUserData();
                 renderGallery();
-                pushToCloud('user_wishlist', gameId);
             }
 
             function togglePlayed(gameId) {
                 const idx = userData.played.indexOf(gameId);
                 if (idx >= 0) {
                     userData.played.splice(idx, 1);
+                    deleteFromCloud('user_played', gameId);
                 } else {
                     userData.played.push(gameId);
                     checkAchievements();
+                    pushToCloud('user_played', gameId);
                 }
                 saveUserData();
                 renderGallery();
-                pushToCloud('user_played', gameId);
             }
 
             function isInWishlist(gameId) { return userData.wishlist.includes(gameId); }
@@ -5278,7 +5375,7 @@
                     console.warn('Supabase 未启用，认证功能不可用');
                 }
 
-                console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论）');
+                console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论 + 双向同步）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
