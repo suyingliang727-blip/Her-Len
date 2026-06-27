@@ -7,16 +7,14 @@
     <title>Her Lens · 女性主角游戏</title>
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
-    <!-- Supabase & PapaParse -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js">
     </script>
-    <!-- Cloudflare Turnstile (人机验证) -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         /* ================================================================
-   全局变量 & 主题
+   全局变量 & 主题 (与原版完全一致)
    ================================================================ */
         :root {
             --bg: #f3eff7;
@@ -101,7 +99,8 @@
             .key-input-group input,
             .key-input-group button,
             .achievement-item,
-            .toast-notification {
+            .toast-notification,
+            .comment-item {
                 backdrop-filter: blur(var(--backdrop-blur-level)) saturate(1.3) !important;
                 -webkit-backdrop-filter: blur(var(--backdrop-blur-level)) saturate(1.3) !important;
             }
@@ -147,7 +146,8 @@
             .key-input-group input,
             .key-input-group button,
             .achievement-item,
-            .toast-notification {
+            .toast-notification,
+            .comment-item {
                 backdrop-filter: none !important;
                 -webkit-backdrop-filter: none !important;
             }
@@ -2121,6 +2121,141 @@
             box-shadow: 0 4px 16px rgba(155, 138, 189, 0.30);
         }
 
+        /* ===== 评分与评论相关样式 ===== */
+        .star-rating {
+            display: inline-flex;
+            gap: 2px;
+            font-size: 1.6rem;
+            user-select: none;
+        }
+        .star-rating .star {
+            cursor: pointer;
+            color: var(--text3);
+            transition: color 0.15s, transform 0.15s;
+            line-height: 1;
+        }
+        .star-rating .star.active {
+            color: var(--gold);
+        }
+        .star-rating .star.hover {
+            color: var(--gold);
+        }
+        .star-rating .star:hover {
+            color: var(--gold);
+            transform: scale(1.15);
+        }
+        .comment-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+        .comment-item:last-child {
+            border-bottom: 1px solid var(--border);
+        }
+        .comment-item .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .comment-item .comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+        }
+        .comment-item .comment-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .comment-item .comment-stars {
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+        .comment-item .comment-time {
+            font-size: 0.7rem;
+            color: var(--text3);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .comment-item .comment-text {
+            font-size: 0.85rem;
+            color: var(--text2);
+            word-break: break-word;
+            line-height: 1.5;
+            margin-top: 2px;
+        }
+        .review-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 2px solid var(--border);
+        }
+        .review-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .review-user-area {
+            background: var(--surface2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+        .review-community-area {
+            margin-top: 12px;
+        }
+        .review-community-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .review-stats {
+            font-size: 0.9rem;
+            color: var(--text2);
+        }
+        .review-stats strong {
+            color: var(--text);
+        }
+        .comment-input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            transition: border-color 0.2s;
+        }
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .comment-char-count {
+            font-size: 0.75rem;
+            color: var(--text3);
+        }
+        .review-login-prompt {
+            text-align: center;
+            color: var(--text3);
+            padding: 10px 0;
+        }
+
         /* ===== 其他工具类 ===== */
         .no-results {
             text-align: center;
@@ -2412,6 +2547,13 @@
                 padding: 8px 16px;
                 font-size: 0.9rem;
             }
+            .star-rating {
+                font-size: 1.3rem;
+                gap: 1px;
+            }
+            .comment-item .comment-time {
+                font-size: 0.6rem;
+            }
         }
         @media (max-width:480px) {
             .gallery-grid {
@@ -2450,6 +2592,9 @@
                 font-size: 0.7rem;
                 padding: 4px 6px;
             }
+            .star-rating {
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
@@ -2480,7 +2625,7 @@
             </div>
             <div class="announcement-item">
                 <span class="announcement-icon">💾</span>
-                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和"玩过"标记等数据已支持云端同步，登录后自动合并，跨设备无缝使用。</span>
+                <span class="announcement-text"><strong>温馨提示：</strong>愿望单、玩过记录、评分和评论等数据已支持云端同步，登录后自动合并，跨设备无缝使用。</span>
             </div>
             <div class="announcement-item">
                 <span class="announcement-icon">💖</span>
@@ -2503,7 +2648,6 @@
                 <div class="site-subtitle">*请从中选择你的下一场冒险*</div>
             </div>
             <div class="header-right">
-                <!-- 用户状态将动态插入此处 -->
                 <div id="authStatusContainer"></div>
             </div>
         </div>
@@ -2589,16 +2733,13 @@
     <div class="modal-overlay" id="achievementModalOverlay">
         <div class="modal" id="achievementModal">
             <button class="modal-close" id="achievementModalClose">✕</button>
-            <!-- Tab 切换 -->
             <div class="achievement-tabs" id="achievementTabs">
                 <button class="achievement-tab-btn active" data-tab="achievements">🏆 我的成就</button>
                 <button class="achievement-tab-btn" data-tab="played">📖 玩过记录</button>
             </div>
-            <!-- 成就内容 -->
             <div class="achievement-tab-content active" id="tabAchievements">
                 <div id="achievementContent"></div>
             </div>
-            <!-- 玩过记录内容 -->
             <div class="achievement-tab-content" id="tabPlayed">
                 <div id="playedContent"></div>
             </div>
@@ -2633,7 +2774,6 @@
                 <button class="btn" id="authTabRegister" style="border-radius:0 20px 20px 0;">注册</button>
             </div>
 
-            <!-- 登录表单 -->
             <div id="loginForm">
                 <h2 style="text-align:center; margin-bottom:8px;">欢迎回来</h2>
                 <p style="text-align:center; color:var(--text2); margin-bottom:20px;">登录以同步你的游戏数据</p>
@@ -2652,7 +2792,6 @@
                 </p>
             </div>
 
-            <!-- 注册表单 -->
             <div id="registerForm" style="display:none;">
                 <h2 style="text-align:center; margin-bottom:8px;">创建你的账号</h2>
                 <p style="text-align:center; color:var(--text2); margin-bottom:20px;">注册后即可跨设备同步游戏数据</p>
@@ -2671,7 +2810,6 @@
                 </p>
             </div>
 
-            <!-- 验证邮件提示（注册后显示） -->
             <div id="emailConfirmMessage" style="display:none; text-align:center; padding:20px;">
                 <div style="font-size:3rem;">📨</div>
                 <h3>验证邮件已发送</h3>
@@ -2690,7 +2828,6 @@
             <h2 style="text-align:center; margin-bottom:12px;">✏️ 编辑个人资料</h2>
 
             <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
-                <!-- 头像区域 -->
                 <div class="profile-avatar-wrapper" id="profileAvatarWrapper">
                     <img id="profileAvatarPreview" src="" alt="头像" class="profile-avatar-img" />
                     <label for="avatarInput" class="profile-avatar-upload-label" title="点击上传头像（≤2MB）">
@@ -2700,7 +2837,6 @@
                 </div>
                 <p style="font-size:0.75rem; color:var(--text3); margin-top:-4px;">支持 JPG / PNG / WebP，大小不超过 2MB</p>
 
-                <!-- 用户名 -->
                 <div class="form-group" style="width:100%;">
                     <label>显示名称</label>
                     <input type="text" id="profileDisplayName" placeholder="请输入你的昵称" maxlength="30" />
@@ -2723,7 +2859,6 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
             const SUPABASE_ENABLED = SUPABASE_URL.includes('supabase.co') && SUPABASE_ANON_KEY.length > 10;
 
-            // Cloudflare Turnstile Site Key — 请替换为你的实际 Site Key
             const TURNSTILE_SITEKEY = '0x4AAAAAADr2wfmpWE2-tfFr';
 
             const DEFAULT_GENRE_OPTIONS = ['丧尸', '悬疑/推理', '恐怖/生存恐怖', '乙女/女性向', '后末日', '百合', '权谋', '魔法', '偶像/娱乐圈',
@@ -2769,7 +2904,7 @@
             let currentSort = 'default';
             let searchQuery = '';
             let wishlistMode = false;
-            let userData = { wishlist: [], played: [], achievements: [] };
+            let userData = { wishlist: [], played: [], achievements: [], reviews: [] };
             let searchTimeout = null;
             let cardObserver = null;
             let card3DListeners = [];
@@ -2838,8 +2973,9 @@
                         userData.wishlist = parsed.wishlist || [];
                         userData.played = parsed.played || [];
                         userData.achievements = parsed.achievements || [];
-                    } else { userData = { wishlist: [], played: [], achievements: [] }; }
-                } catch (_) { userData = { wishlist: [], played: [], achievements: [] }; }
+                        userData.reviews = parsed.reviews || [];
+                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
+                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
             }
 
             function saveUserData() {
@@ -2848,7 +2984,7 @@
             }
 
             // ================================================================
-            // 云端同步函数
+            // 云端同步函数（含评论拉取）
             // ================================================================
 
             async function syncUserDataWithCloud() {
@@ -2861,34 +2997,76 @@
                 setSyncStatus('syncing', '同步中...');
 
                 try {
-                    const [wishlistRes, playedRes] = await Promise.all([
+                    const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
                         supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_played').select('game_id').eq('user_id', userId)
+                        supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
+                        supabaseClient.from('user_reviews').select('game_id, rating, comment, created_at, updated_at').eq(
+                            'user_id', userId)
                     ]);
 
                     if (wishlistRes.error) throw new Error(wishlistRes.error.message);
                     if (playedRes.error) throw new Error(playedRes.error.message);
+                    if (reviewsRes.error) throw new Error(reviewsRes.error.message);
 
                     const cloudWishlist = wishlistRes.data.map(item => item.game_id);
                     const cloudPlayed = playedRes.data.map(item => item.game_id);
+                    const cloudReviews = reviewsRes.data.map(item => ({
+                        game_id: item.game_id,
+                        rating: item.rating,
+                        comment: item.comment,
+                        created_at: item.created_at,
+                        updated_at: item.updated_at
+                    }));
 
                     const localWishlist = userData.wishlist || [];
                     const localPlayed = userData.played || [];
+                    const localReviews = userData.reviews || [];
 
                     const mergedWishlist = [...new Set([...localWishlist, ...cloudWishlist])];
                     const mergedPlayed = [...new Set([...localPlayed, ...cloudPlayed])];
 
+                    // 评论合并：云端优先，同时将本地未上传的评论上传
+                    const cloudReviewMap = new Map(cloudReviews.map(r => [r.game_id, r]));
+                    const localReviewMap = new Map(localReviews.map(r => [r.game_id, r]));
+                    const mergedReviews = [...cloudReviews];
+                    const toUploadReviews = [];
+                    for (const [gameId, local] of localReviewMap) {
+                        if (!cloudReviewMap.has(gameId)) {
+                            toUploadReviews.push(local);
+                        }
+                    }
+
+                    // 上传本地新增的评论
+                    const uploadPromises = [];
+                    if (toUploadReviews.length > 0) {
+                        const items = toUploadReviews.map(r => ({
+                            user_id: userId,
+                            game_id: r.game_id,
+                            rating: r.rating || null,
+                            comment: r.comment || null,
+                            display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                            avatar_url: currentUser.user_metadata?.avatar_url || null
+                        }));
+                        uploadPromises.push(
+                            supabaseClient.from('user_reviews').upsert(items, { onConflict: 'user_id, game_id' })
+                            .then(res => {
+                                if (res.error && res.error.code !== '23505') {
+                                    console.error('批量上传评论失败:', res.error);
+                                    throw res.error;
+                                }
+                                return res;
+                            })
+                        );
+                    }
+
+                    // 愿望单和玩过记录上传（原有逻辑）
                     const toUploadWishlist = localWishlist.filter(id => !cloudWishlist.includes(id));
                     const toUploadPlayed = localPlayed.filter(id => !cloudPlayed.includes(id));
 
-                    const uploadPromises = [];
                     if (toUploadWishlist.length > 0) {
                         const items = toUploadWishlist.map(game_id => {
                             const num = Number(game_id);
-                            if (!Number.isInteger(num) || num <= 0) {
-                                console.warn('⚠️ 跳过无效 game_id:', game_id);
-                                return null;
-                            }
+                            if (!Number.isInteger(num) || num <= 0) return null;
                             return { user_id: userId, game_id: num };
                         }).filter(item => item !== null);
                         if (items.length > 0) {
@@ -2896,7 +3074,7 @@
                                 supabaseClient.from('user_wishlist').insert(items)
                                 .then(res => {
                                     if (res.error && res.error.code !== '23505') {
-                                        console.error('批量上传愿望单失败:', JSON.stringify(res.error, null, 2));
+                                        console.error('批量上传愿望单失败:', res.error);
                                         throw res.error;
                                     }
                                     return res;
@@ -2907,10 +3085,7 @@
                     if (toUploadPlayed.length > 0) {
                         const items = toUploadPlayed.map(game_id => {
                             const num = Number(game_id);
-                            if (!Number.isInteger(num) || num <= 0) {
-                                console.warn('⚠️ 跳过无效 game_id:', game_id);
-                                return null;
-                            }
+                            if (!Number.isInteger(num) || num <= 0) return null;
                             return { user_id: userId, game_id: num };
                         }).filter(item => item !== null);
                         if (items.length > 0) {
@@ -2918,7 +3093,7 @@
                                 supabaseClient.from('user_played').insert(items)
                                 .then(res => {
                                     if (res.error && res.error.code !== '23505') {
-                                        console.error('批量上传玩过记录失败:', JSON.stringify(res.error, null, 2));
+                                        console.error('批量上传玩过记录失败:', res.error);
                                         throw res.error;
                                     }
                                     return res;
@@ -2933,12 +3108,13 @@
 
                     userData.wishlist = mergedWishlist;
                     userData.played = mergedPlayed;
+                    userData.reviews = mergedReviews;
                     saveUserData();
 
                     renderGallery();
                     updateAchievementDot();
                     setSyncStatus('synced', '已同步');
-                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项`);
+                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
 
                 } catch (error) {
                     console.error('❌ 同步失败:', error);
@@ -2948,30 +3124,17 @@
             }
 
             async function pushToCloud(table, gameId) {
-                if (!currentUser || !supabaseClient) {
-                    return;
-                }
-
+                if (!currentUser || !supabaseClient) return;
                 const gameIdNum = Number(gameId);
                 if (!Number.isInteger(gameIdNum) || gameIdNum <= 0) {
-                    console.error('❌ 无效的 gameId:', gameId, '类型:', typeof gameId);
+                    console.error('❌ 无效的 gameId:', gameId);
                     return;
                 }
-
                 try {
-                    const { data, error } = await supabaseClient
-                        .from(table)
-                        .insert({
-                            user_id: currentUser.id,
-                            game_id: gameIdNum
-                        });
-
+                    const { error } = await supabaseClient.from(table).insert({ user_id: currentUser.id, game_id: gameIdNum });
                     if (error) {
-                        if (error.code === '23505') {
-                            console.log(`📌 ${table} 已存在 (game_id: ${gameId})，跳过`);
-                            return;
-                        }
-                        console.error(`❌ 云端写入失败 [${table}]:`, JSON.stringify(error, null, 2));
+                        if (error.code === '23505') { console.log(`📌 ${table} 已存在 (game_id: ${gameId})，跳过`); return; }
+                        console.error(`❌ 云端写入失败 [${table}]:`, error);
                         showToast('⚠️ 数据未同步到云端，请检查网络', 2000);
                         setSyncStatus('error', '未同步');
                     } else {
@@ -2980,9 +3143,7 @@
                             setSyncStatus('synced', '已同步');
                         }
                     }
-                } catch (e) {
-                    console.error('❌ 云端写入异常:', e);
-                }
+                } catch (e) { console.error('❌ 云端写入异常:', e); }
             }
 
             // ================================================================
@@ -3065,10 +3226,9 @@
             }
 
             // ================================================================
-            // 成就弹窗渲染（含 Tab 切换）
+            // 成就弹窗渲染
             // ================================================================
             function renderAchievementModal() {
-                // 渲染成就内容
                 const container = document.getElementById('achievementContent');
                 if (!container) return;
                 const unlocked = getUnlockedAchievements();
@@ -3088,77 +3248,43 @@
                 });
                 html += `</div>`;
                 container.innerHTML = html;
-
-                // 渲染玩过记录
                 renderPlayedGrid();
             }
 
-            // ================================================================
-            // 玩过记录渲染
-            // ================================================================
             function renderPlayedGrid() {
                 const container = document.getElementById('playedContent');
                 if (!container) return;
-
                 const playedIds = userData.played || [];
-                const playedGames = playedIds
-                    .map(id => games.find(g => g.id === id))
-                    .filter(g => g !== undefined);
-
+                const playedGames = playedIds.map(id => games.find(g => g.id === id)).filter(g => g !== undefined);
                 if (playedGames.length === 0) {
-                    container.innerHTML = `
-                        <div class="played-grid-empty">
-                            <span class="empty-icon">📭</span>
-                            还没有标记任何游戏，快去体验吧！
-                        </div>
-                    `;
+                    container.innerHTML =
+                        `<div class="played-grid-empty"><span class="empty-icon">📭</span>还没有标记任何游戏，快去体验吧！</div>`;
                     return;
                 }
-
-                let gridHtml = `
-                    <div class="played-grid-header">🎮 我的游戏足迹 · 共 ${playedGames.length} 款</div>
-                    <div class="played-grid">
-                `;
-
+                let gridHtml =
+                    `<div class="played-grid-header">🎮 我的游戏足迹 · 共 ${playedGames.length} 款</div><div class="played-grid">`;
                 playedGames.forEach(game => {
                     const coverHtml = game.cover ?
                         `<img class="item-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" />` :
                         `<div class="item-cover-placeholder">🎮</div>`;
-                    gridHtml += `
-                        <div class="played-grid-item" data-game-id="${game.id}">
-                            ${coverHtml}
-                            <div class="item-title">${escapeHTML(game.title)}</div>
-                        </div>
-                    `;
+                    gridHtml +=
+                        `<div class="played-grid-item" data-game-id="${game.id}">${coverHtml}<div class="item-title">${escapeHTML(game.title)}</div></div>`;
                 });
-
-                gridHtml += `
-                    </div>
-                    <div class="played-footer">Her-Lens</div>
-                `;
+                gridHtml += `</div><div class="played-footer">Her-Lens</div>`;
                 container.innerHTML = gridHtml;
-
-                // 绑定点击事件：跳转到游戏详情
                 container.querySelectorAll('.played-grid-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const id = parseInt(this.dataset.gameId);
                         const game = games.find(g => g.id === id);
-                        if (game) {
-                            // 关闭成就弹窗，打开详情弹窗
-                            closeAchievementModal();
-                            setTimeout(() => showDetailModal(game), 100);
-                        }
+                        if (game) { closeAchievementModal();
+                            setTimeout(() => showDetailModal(game), 100); }
                     });
                 });
             }
 
-            // ================================================================
-            // 成就弹窗打开/关闭
-            // ================================================================
             function openAchievementModal() {
                 const overlay = document.getElementById('achievementModalOverlay');
                 renderAchievementModal();
-                // 默认激活成就 tab
                 switchAchievementTab('achievements');
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
@@ -3169,18 +3295,121 @@
                 document.body.style.overflow = '';
             }
 
-            // ================================================================
-            // Tab 切换逻辑
-            // ================================================================
             function switchAchievementTab(tabId) {
-                // 更新 tab 按钮样式
                 document.querySelectorAll('.achievement-tab-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.tab === tabId);
                 });
-                // 更新内容显示
                 document.querySelectorAll('.achievement-tab-content').forEach(content => {
-                    content.classList.toggle('active', content.id === 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+                    content.classList.toggle('active', content.id === 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(
+                    1));
                 });
+            }
+
+            // ================================================================
+            // 评分与评论相关函数（阶段四）
+            // ================================================================
+
+            async function saveReview(gameId, rating, comment) {
+                if (!currentUser) { showToast('请先登录才能评分和评论', 2000); return; }
+                if (rating === null && !comment) {
+                    await deleteReview(gameId);
+                    return;
+                }
+                const reviewData = {
+                    game_id: gameId,
+                    user_id: currentUser.id,
+                    rating: rating,
+                    comment: comment || null,
+                    display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                    avatar_url: currentUser.user_metadata?.avatar_url || null
+                };
+                // 乐观更新本地
+                const existingIdx = userData.reviews.findIndex(r => r.game_id === gameId);
+                if (existingIdx >= 0) {
+                    userData.reviews[existingIdx] = {
+                        ...userData.reviews[existingIdx],
+                        rating: rating,
+                        comment: comment || null,
+                        updated_at: new Date().toISOString()
+                    };
+                } else {
+                    userData.reviews.push({
+                        game_id: gameId,
+                        rating: rating,
+                        comment: comment || null,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    });
+                }
+                saveUserData();
+                // 刷新当前详情弹窗
+                const detailModal = document.getElementById('detailModal');
+                if (detailModal && detailModal.closest('.modal-overlay.show')) {
+                    const currentGameId = detailModal.dataset.gameId;
+                    if (currentGameId && parseInt(currentGameId) === gameId) {
+                        const game = games.find(g => g.id === gameId);
+                        if (game) showDetailModal(game);
+                    }
+                }
+                // 写入云端
+                if (!supabaseClient) return;
+                try {
+                    const { error } = await supabaseClient.from('user_reviews').upsert(reviewData, { onConflict: 'user_id, game_id' });
+                    if (error) {
+                        console.error('❌ 保存评论失败:', error);
+                        showToast('⚠️ 评论保存失败，请检查网络', 2000);
+                    } else {
+                        console.log('✅ 评论保存成功');
+                    }
+                } catch (e) { console.error('❌ 保存评论异常:', e); }
+            }
+
+            async function deleteReview(gameId) {
+                if (!currentUser) { showToast('请先登录', 2000); return; }
+                userData.reviews = userData.reviews.filter(r => r.game_id !== gameId);
+                saveUserData();
+                const detailModal = document.getElementById('detailModal');
+                if (detailModal && detailModal.closest('.modal-overlay.show')) {
+                    const currentGameId = detailModal.dataset.gameId;
+                    if (currentGameId && parseInt(currentGameId) === gameId) {
+                        const game = games.find(g => g.id === gameId);
+                        if (game) showDetailModal(game);
+                    }
+                }
+                if (!supabaseClient) return;
+                try {
+                    const { error } = await supabaseClient.from('user_reviews').delete().eq('user_id', currentUser.id).eq(
+                        'game_id', gameId);
+                    if (error) {
+                        console.error('❌ 删除评论失败:', error);
+                        showToast('⚠️ 删除失败，请重试', 2000);
+                    } else {
+                        console.log('✅ 评论删除成功');
+                    }
+                } catch (e) { console.error('❌ 删除评论异常:', e); }
+            }
+
+            async function fetchGameReviews(gameId, limit = 20) {
+                if (!supabaseClient) return [];
+                try {
+                    const { data, error } = await supabaseClient.from('user_reviews').select('*').eq('game_id', gameId).order(
+                        'created_at', { ascending: false }).limit(limit);
+                    if (error) throw error;
+                    return data || [];
+                } catch (e) { console.error('❌ 获取评论失败:', e); return []; }
+            }
+
+            async function fetchGameRatingStats(gameId) {
+                if (!supabaseClient) return { average: null, count: 0 };
+                try {
+                    const { data, error } = await supabaseClient.from('user_reviews').select('rating').eq('game_id', gameId)
+                        .not('rating', 'is', null);
+                    if (error) throw error;
+                    const ratings = data.map(r => r.rating).filter(r => r !== null);
+                    const count = ratings.length;
+                    const average = count > 0 ? (ratings.reduce((a, b) => a + b, 0) / count) : null;
+                    return { average, count };
+                } catch (e) { console.error('❌ 获取评分统计失败:', e); return { average: null, count: 0 }; }
             }
 
             // ================================================================
@@ -3996,7 +4225,7 @@
             }
 
             // ================================================================
-            // 详情弹窗
+            // 详情弹窗（已重构，包含评分与评论 + 时长/史低）
             // ================================================================
             function showDetailModal(game) {
                 const overlay = document.getElementById('detailModalOverlay'),
@@ -4032,7 +4261,9 @@
                       <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
                       <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                       <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
-                      <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>`;
+                      <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
+                      ${game.mainStoryDuration ? `<tr><td>⏱ 游戏时长</td><td>${escapeHTML(game.mainStoryDuration)}</td></tr>` : ''}
+                      ${game.lowestPrice ? `<tr><td>💸 史低价格</td><td>${escapeHTML(game.lowestPrice)}</td></tr>` : ''}`;
                 } else {
                     rows =
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
@@ -4041,7 +4272,9 @@
                       <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                       <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
                       <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                      <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>`;
+                      <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
+                      ${game.mainStoryDuration ? `<tr><td>⏱ 游戏时长</td><td>${escapeHTML(game.mainStoryDuration)}</td></tr>` : ''}
+                      ${game.lowestPrice ? `<tr><td>💸 史低价格</td><td>${escapeHTML(game.lowestPrice)}</td></tr>` : ''}`;
                 }
 
                 const links = [];
@@ -4057,6 +4290,92 @@
                 const wishStatus = isInWishlist(game.id) ? '❤️ 已加入愿望单' : '🤍 未加入愿望单';
                 const playStatus = isPlayed(game.id) ? '✅ 已玩过' : '⬜ 未标记';
 
+                // ---- 构建评分与评论部分 ----
+                const userReview = userData.reviews.find(r => r.game_id === game.id);
+                const userRating = userReview?.rating ?? null;
+                const userComment = userReview?.comment ?? null;
+
+                // 生成星星 HTML（用于展示或交互）
+                function renderStars(rating, interactive = false, gameId = null) {
+                    let html = '';
+                    for (let i = 1; i <= 10; i++) {
+                        const isActive = rating !== null && rating >= i;
+                        const cls = isActive ? 'star active' : 'star';
+                        const dataAttr = interactive ? `data-value="${i}" data-game="${gameId}"` : '';
+                        html += `<span class="${cls}" ${dataAttr}>${isActive ? '★' : '☆'}</span>`;
+                    }
+                    return html;
+                }
+
+                let reviewHTML = '';
+                if (!currentUser) {
+                    reviewHTML = `<div class="review-login-prompt">🔑 登录后即可评分和评论</div>`;
+                } else {
+                    // 用户评分区域
+                    let userRatingHtml = '';
+                    if (userRating !== null) {
+                        userRatingHtml = `
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                                <span style="font-weight:600;">我的评分：</span>
+                                <span class="star-rating" style="font-size:1.4rem;">${renderStars(userRating)}</span>
+                                <span style="font-size:0.9rem;color:var(--text2);">${userRating}/10</span>
+                                <button class="btn btn-sm" id="editRatingBtn" style="padding:2px 10px;">修改</button>
+                            </div>
+                        `;
+                    } else {
+                        userRatingHtml = `
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                                <span style="font-weight:600;">我的评分：</span>
+                                <span class="star-rating" id="ratingStarsContainer" data-game="${game.id}" style="font-size:1.4rem;cursor:pointer;">
+                                    ${renderStars(null, true, game.id)}
+                                </span>
+                                <span style="font-size:0.8rem;color:var(--text3);">（点击星星评分）</span>
+                            </div>
+                        `;
+                    }
+
+                    // 用户评论区域
+                    let userCommentHtml = '';
+                    if (userComment) {
+                        userCommentHtml = `
+                            <div style="margin-top:6px;">
+                                <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
+                                    <span style="font-weight:600;">我的评论：</span>
+                                    <span style="flex:1;word-break:break-word;">${escapeHTML(userComment)}</span>
+                                    <button class="btn btn-sm" id="editCommentBtn" style="padding:2px 10px;">编辑</button>
+                                    <button class="btn btn-sm" id="deleteCommentBtn" style="padding:2px 10px;color:var(--danger);border-color:var(--danger);">删除</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        userCommentHtml = `
+                            <div style="margin-top:6px;">
+                                <textarea id="commentInput" placeholder="写下你的评价（最多500字）…" maxlength="500" class="comment-input"></textarea>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                                    <span class="comment-char-count"><span id="commentCharCount">0</span>/500</span>
+                                    <button class="btn btn-sm btn-accent" id="submitCommentBtn">提交评论</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    reviewHTML = `
+                        <div class="review-user-area">
+                            ${userRatingHtml}
+                            ${userCommentHtml}
+                        </div>
+                        <div class="review-community-area">
+                            <div class="review-community-header">
+                                <span>📊 社区评分</span>
+                                <span class="review-stats" id="ratingStatsDisplay">⏳ 加载中...</span>
+                            </div>
+                            <div id="communityCommentsList" style="margin-top:6px;max-height:300px;overflow-y:auto;">
+                                <div style="text-align:center;color:var(--text3);padding:12px;">⏳ 加载评论中...</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 modal.innerHTML = `
                 <button class="modal-close" id="detailModalClose">✕</button>
                 ${cover}
@@ -4067,6 +4386,11 @@
                 </div>
                 <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
                 <table class="detail-info-table">${rows}</table>
+                <!-- 评分与评论区域 -->
+                <div class="review-section">
+                    <div class="review-section-title">✏️ 评价</div>
+                    ${reviewHTML}
+                </div>
                 ${screenshotsHTML}
                 ${videosHTML}
                 <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">${links.join(' ')}</div>
@@ -4078,7 +4402,10 @@
 
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
+                // 保存当前游戏ID到modal，用于刷新
+                modal.dataset.gameId = game.id;
 
+                // ---- 事件绑定 ----
                 modal.querySelector('#detailModalClose').addEventListener('click', closeDetailModal);
                 overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDetailModal(); });
 
@@ -4098,6 +4425,156 @@
                     const g = games.find(g => g.id === id);
                     if (g) setTimeout(() => showDetailModal(g), 100);
                 });
+
+                // ---- 评分星星交互 ----
+                if (currentUser) {
+                    const starsContainer = modal.querySelector('#ratingStarsContainer');
+                    if (starsContainer) {
+                        const stars = starsContainer.querySelectorAll('.star');
+                        let selectedRating = null;
+                        stars.forEach(star => {
+                            star.addEventListener('click', function() {
+                                const val = parseInt(this.dataset.value);
+                                // 如果点击的是同一颗星，取消选中（即取消评分）
+                                if (selectedRating === val) {
+                                    selectedRating = null;
+                                    // 清空高亮
+                                    stars.forEach(s => s.classList.remove('active'));
+                                    // 调用保存，传入 null 表示取消评分
+                                    saveReview(game.id, null, userComment);
+                                } else {
+                                    selectedRating = val;
+                                    stars.forEach(s => {
+                                        const sv = parseInt(s.dataset.value);
+                                        s.classList.toggle('active', sv <= val);
+                                    });
+                                    saveReview(game.id, val, userComment);
+                                }
+                            });
+                            star.addEventListener('mouseenter', function() {
+                                const val = parseInt(this.dataset.value);
+                                stars.forEach(s => {
+                                    const sv = parseInt(s.dataset.value);
+                                    s.classList.toggle('hover', sv <= val);
+                                });
+                            });
+                            star.addEventListener('mouseleave', function() {
+                                stars.forEach(s => s.classList.remove('hover'));
+                            });
+                        });
+                    }
+
+                    // 编辑评分按钮（已评分时）
+                    const editRatingBtn = modal.querySelector('#editRatingBtn');
+                    if (editRatingBtn) {
+                        editRatingBtn.addEventListener('click', function() {
+                            // 简单处理：清除评分，让用户重新选
+                            saveReview(game.id, null, userComment);
+                            closeDetailModal();
+                            setTimeout(() => showDetailModal(game), 100);
+                        });
+                    }
+
+                    // 评论字数统计
+                    const commentInput = modal.querySelector('#commentInput');
+                    const charCount = modal.querySelector('#commentCharCount');
+                    if (commentInput && charCount) {
+                        commentInput.addEventListener('input', function() {
+                            charCount.textContent = this.value.length;
+                        });
+                    }
+
+                    // 提交评论
+                    const submitBtn = modal.querySelector('#submitCommentBtn');
+                    if (submitBtn && commentInput) {
+                        submitBtn.addEventListener('click', function() {
+                            const text = commentInput.value.trim();
+                            if (!text) { showToast('评论内容不能为空', 1500); return; }
+                            saveReview(game.id, userRating, text);
+                        });
+                        // 回车提交（Ctrl+Enter）
+                        commentInput.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                e.preventDefault();
+                                submitBtn.click();
+                            }
+                        });
+                    }
+
+                    // 编辑评论（已评论时）
+                    const editCommentBtn = modal.querySelector('#editCommentBtn');
+                    if (editCommentBtn) {
+                        editCommentBtn.addEventListener('click', function() {
+                            // 弹出输入框让用户修改（简易实现：用 prompt）
+                            const newComment = prompt('修改你的评论：', userComment);
+                            if (newComment !== null) {
+                                const trimmed = newComment.trim();
+                                if (trimmed === '') {
+                                    showToast('评论不能为空', 1500);
+                                    return;
+                                }
+                                saveReview(game.id, userRating, trimmed);
+                            }
+                        });
+                    }
+
+                    // 删除评论
+                    const deleteCommentBtn = modal.querySelector('#deleteCommentBtn');
+                    if (deleteCommentBtn) {
+                        deleteCommentBtn.addEventListener('click', function() {
+                            if (confirm('确定要删除这条评论吗？')) {
+                                deleteReview(game.id);
+                            }
+                        });
+                    }
+                }
+
+                // ---- 加载社区评论和评分统计 ----
+                loadCommunityReviews(game.id);
+            }
+
+            async function loadCommunityReviews(gameId) {
+                const statsDisplay = document.getElementById('ratingStatsDisplay');
+                const commentsList = document.getElementById('communityCommentsList');
+                if (!statsDisplay || !commentsList) return;
+
+                // 获取评分统计
+                const stats = await fetchGameRatingStats(gameId);
+                if (stats.average !== null) {
+                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 10 （共 <strong>${stats.count}</strong> 人评分）`;
+                } else {
+                    statsDisplay.textContent = '暂无评分';
+                }
+
+                // 获取评论列表
+                const reviews = await fetchGameReviews(gameId);
+                if (reviews.length === 0) {
+                    commentsList.innerHTML = `<div style="text-align:center;color:var(--text3);padding:12px;">暂无评论，快来写下你的第一条吧！</div>`;
+                    return;
+                }
+
+                let html = '';
+                reviews.forEach(r => {
+                    const avatar = r.avatar_url ?
+                        `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
+                        `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
+                    const stars = r.rating ? `<span class="comment-stars">${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}</span>` :
+                        '';
+                    const time = r.created_at ? new Date(r.created_at).toLocaleDateString('zh-CN', { year: 'numeric',
+                        month: 'long', day: 'numeric' }) : '';
+                    html += `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                ${avatar}
+                                <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
+                                ${stars}
+                                <span class="comment-time">${time}</span>
+                            </div>
+                            ${r.comment ? `<div class="comment-text">${escapeHTML(r.comment)}</div>` : ''}
+                        </div>
+                    `;
+                });
+                commentsList.innerHTML = html;
             }
 
             function closeDetailModal() {
@@ -4685,14 +5162,12 @@
                     if (e.target === this) closeAchievementModal();
                 });
 
-                // ===== 成就 Tab 切换事件 =====
                 document.querySelectorAll('.achievement-tab-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         switchAchievementTab(this.dataset.tab);
                     });
                 });
 
-                // ===== 认证相关事件绑定 =====
                 document.getElementById('authModalClose').addEventListener('click', closeAuthModal);
                 document.getElementById('authModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeAuthModal();
@@ -4730,7 +5205,6 @@
                     if (e.key === 'Enter') handleRegister();
                 });
 
-                // ===== 个人资料事件绑定 =====
                 document.getElementById('profileModalClose').addEventListener('click', closeProfileModal);
                 document.getElementById('profileModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeProfileModal();
@@ -4771,7 +5245,6 @@
                 initBackToTop();
                 initAnnouncementBar();
 
-                // ===== 认证初始化 =====
                 if (supabaseClient) {
                     supabaseClient.auth.onAuthStateChange((event, session) => {
                         if (session) {
@@ -4805,10 +5278,11 @@
                     console.warn('Supabase 未启用，认证功能不可用');
                 }
 
-                console.log('✅ Her Lens 已启动（含用户认证 + 个人资料 + 云端同步 + 玩过记录）');
+                console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
+                console.log(`📝 已评论 ${userData.reviews.length} 款游戏`);
                 console.log(`📱 触摸设备: ${isTouchDevice ? '是 (已禁用高耗能特效)' : '否'}`);
                 console.log(`🔐 认证状态: ${currentUser ? '已登录 (' + currentUser.email + ')' : '未登录'}`);
             }
