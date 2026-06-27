@@ -3043,7 +3043,7 @@
                 <span class="badge-dot" id="achievementDot" style="display:none;"></span>
             </button>
 
-            <!-- ===== 新增：手动刷新按钮 ===== -->
+            <!-- 手动刷新按钮 -->
             <button class="btn btn-sm" id="btnManualSync" title="手动同步数据">🔄 刷新</button>
 
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
@@ -3288,8 +3288,9 @@
                 return d.innerHTML;
             }
 
+            // 生成整数 ID（仅用于本地临时创建，实际游戏 ID 从数据库获取）
             function generateId() {
-                return Date.now() + Math.random() * 1000;
+                return Date.now() + Math.floor(Math.random() * 1000);
             }
 
             // ================================================================
@@ -3340,7 +3341,7 @@
             }
 
             // ================================================================
-            // 云端删除函数
+            // 云端操作 - 使用整数 ID
             // ================================================================
             async function deleteFromCloud(table, gameId) {
                 if (!currentUser || !supabaseClient) {
@@ -3349,7 +3350,7 @@
                 }
                 const gameIdNum = Number(gameId);
                 if (!Number.isInteger(gameIdNum) || gameIdNum <= 0) {
-                    console.error('❌ 无效的 gameId:', gameId);
+                    console.error('❌ 无效的 gameId（应为正整数）:', gameId);
                     return;
                 }
                 try {
@@ -3362,172 +3363,10 @@
                         console.error(`❌ 云端删除失败 [${table}]:`, error);
                         showToast('⚠️ 删除失败，请检查网络', 2000);
                     } else {
-                        console.log(`✅ 云端删除成功 [${table}] game_id: ${gameId}`);
+                        console.log(`✅ 云端删除成功 [${table}] game_id: ${gameIdNum}`);
                     }
                 } catch (e) {
                     console.error('❌ 云端删除异常:', e);
-                }
-            }
-
-            // ================================================================
-            // 云端同步函数（已增加重试逻辑）
-            // ================================================================
-            async function syncUserDataWithCloud(retryCount = 0) {
-                if (!currentUser || !supabaseClient) {
-                    console.warn('未登录或 Supabase 未初始化，跳过同步');
-                    return;
-                }
-
-                const userId = currentUser.id;
-                setSyncStatus('syncing', '同步中...');
-
-                try {
-                    // 1. 拉取云端数据
-                    const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
-                        supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_reviews').select('game_id, rating, comment, created_at, updated_at').eq(
-                            'user_id', userId)
-                    ]);
-
-                    if (wishlistRes.error) throw new Error(wishlistRes.error.message);
-                    if (playedRes.error) throw new Error(playedRes.error.message);
-                    if (reviewsRes.error) throw new Error(reviewsRes.error.message);
-
-                    const cloudWishlist = wishlistRes.data.map(item => item.game_id);
-                    const cloudPlayed = playedRes.data.map(item => item.game_id);
-                    const cloudReviews = reviewsRes.data.map(item => ({
-                        game_id: item.game_id,
-                        rating: item.rating,
-                        comment: item.comment,
-                        created_at: item.created_at,
-                        updated_at: item.updated_at
-                    }));
-
-                    // 2. 本地数据
-                    const localWishlist = userData.wishlist || [];
-                    const localPlayed = userData.played || [];
-                    const localReviews = userData.reviews || [];
-
-                    // 3. 计算本地有但云端没有的项（需要上传）
-                    const cloudWishlistSet = new Set(cloudWishlist);
-                    const cloudPlayedSet = new Set(cloudPlayed);
-                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlistSet.has(id));
-                    const toUploadPlayed = localPlayed.filter(id => !cloudPlayedSet.has(id));
-
-                    // 4. 上传本地新增项到云端
-                    const uploadPromises = [];
-
-                    // 愿望单上传
-                    if (toUploadWishlist.length > 0) {
-                        const items = toUploadWishlist.map(game_id => {
-                            const num = Number(game_id);
-                            if (!Number.isInteger(num) || num <= 0) return null;
-                            return { user_id: userId, game_id: num };
-                        }).filter(item => item !== null);
-                        if (items.length > 0) {
-                            uploadPromises.push(
-                                supabaseClient.from('user_wishlist').insert(items)
-                                    .then(res => {
-                                        if (res.error && res.error.code !== '23505') {
-                                            console.error('批量上传愿望单失败:', res.error);
-                                            throw res.error;
-                                        }
-                                        return res;
-                                    })
-                            );
-                        }
-                    }
-
-                    // 玩过记录上传
-                    if (toUploadPlayed.length > 0) {
-                        const items = toUploadPlayed.map(game_id => {
-                            const num = Number(game_id);
-                            if (!Number.isInteger(num) || num <= 0) return null;
-                            return { user_id: userId, game_id: num };
-                        }).filter(item => item !== null);
-                        if (items.length > 0) {
-                            uploadPromises.push(
-                                supabaseClient.from('user_played').insert(items)
-                                    .then(res => {
-                                        if (res.error && res.error.code !== '23505') {
-                                            console.error('批量上传玩过记录失败:', res.error);
-                                            throw res.error;
-                                        }
-                                        return res;
-                                    })
-                            );
-                        }
-                    }
-
-                    // 评论上传（本地有但云端没有）
-                    const cloudReviewMap = new Map(cloudReviews.map(r => [r.game_id, r]));
-                    const localReviewMap = new Map(localReviews.map(r => [r.game_id, r]));
-                    const toUploadReviews = [];
-                    for (const [gameId, local] of localReviewMap) {
-                        if (!cloudReviewMap.has(gameId)) {
-                            toUploadReviews.push(local);
-                        }
-                    }
-                    if (toUploadReviews.length > 0) {
-                        const items = toUploadReviews.map(r => ({
-                            user_id: userId,
-                            game_id: r.game_id,
-                            rating: r.rating || null,
-                            comment: r.comment || null,
-                            display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
-                            avatar_url: currentUser.user_metadata?.avatar_url || null
-                        }));
-                        uploadPromises.push(
-                            supabaseClient.from('user_reviews').upsert(items, { onConflict: 'user_id, game_id' })
-                                .then(res => {
-                                    if (res.error && res.error.code !== '23505') {
-                                        console.error('批量上传评论失败:', res.error);
-                                        throw res.error;
-                                    }
-                                    return res;
-                                })
-                        );
-                    }
-
-                    if (uploadPromises.length > 0) {
-                        await Promise.all(uploadPromises);
-                    }
-
-                    // 5. 合并数据：云端 + 本地新增（去重）
-                    // 注意：这里以云端为基准，再加入本地独有的项
-                    const mergedWishlist = [...new Set([...cloudWishlist, ...localWishlist])];
-                    const mergedPlayed = [...new Set([...cloudPlayed, ...localPlayed])];
-                    const mergedReviews = [...cloudReviews];
-                    for (const [gameId, local] of localReviewMap) {
-                        if (!cloudReviewMap.has(gameId)) {
-                            mergedReviews.push(local);
-                        }
-                    }
-
-                    // 6. 更新 userData（使用合并后的数据，云端数据全部保留）
-                    userData.wishlist = mergedWishlist;
-                    userData.played = mergedPlayed;
-                    userData.reviews = mergedReviews;
-                    saveUserData();
-
-                    renderGallery();
-                    updateAchievementDot();
-                    setSyncStatus('synced', '已同步');
-                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
-
-                } catch (error) {
-                    console.error('❌ 同步失败:', error);
-                    if (retryCount < 3) {
-                        console.log(`🔄 重试同步 (${retryCount + 1}/3)...`);
-                        setSyncStatus('syncing', `重试 ${retryCount + 1}/3`);
-                        // 递增延迟：2s, 4s, 6s
-                        const delay = 2000 * (retryCount + 1);
-                        setTimeout(() => syncUserDataWithCloud(retryCount + 1), delay);
-                    } else {
-                        setSyncStatus('error', '同步失败');
-                        showToast('⚠️ 数据同步失败，请检查网络或手动刷新', 3000);
-                    }
                 }
             }
 
@@ -3535,57 +3374,63 @@
                 if (!currentUser || !supabaseClient) return;
                 const gameIdNum = Number(gameId);
                 if (!Number.isInteger(gameIdNum) || gameIdNum <= 0) {
-                    console.error('❌ 无效的 gameId:', gameId);
+                    console.error('❌ 无效的 gameId（应为正整数）:', gameId);
                     return;
                 }
                 try {
                     const { error } = await supabaseClient.from(table).insert({ user_id: currentUser.id, game_id: gameIdNum });
                     if (error) {
-                        if (error.code === '23505') { console.log(`📌 ${table} 已存在 (game_id: ${gameId})，跳过`); return; }
+                        if (error.code === '23505') { console.log(`📌 ${table} 已存在 (game_id: ${gameIdNum})，跳过`); return; }
                         console.error(`❌ 云端写入失败 [${table}]:`, error);
                         showToast('⚠️ 数据未同步到云端，请检查网络', 2000);
                         setSyncStatus('error', '未同步');
                     } else {
-                        console.log(`✅ 云端写入成功 [${table}] game_id: ${gameId}`);
+                        console.log(`✅ 云端写入成功 [${table}] game_id: ${gameIdNum}`);
                         if (document.getElementById('syncStatus').classList.contains('error')) {
                             setSyncStatus('synced', '已同步');
                         }
                     }
-                } catch (e) { console.error('❌ 云端写入异常:', e); }
+                } catch (e) {
+                    console.error('❌ 云端写入异常:', e);
+                }
             }
 
             // ================================================================
-            // 愿望单与玩过操作（移除时调用 deleteFromCloud）
+            // 愿望单与玩过操作
             // ================================================================
             function toggleWishlist(gameId) {
-                const idx = userData.wishlist.indexOf(gameId);
+                const id = Number(gameId);
+                if (!Number.isInteger(id) || id <= 0) return console.error('无效 ID:', gameId);
+                const idx = userData.wishlist.indexOf(id);
                 if (idx >= 0) {
                     userData.wishlist.splice(idx, 1);
-                    deleteFromCloud('user_wishlist', gameId);
+                    deleteFromCloud('user_wishlist', id);
                 } else {
-                    userData.wishlist.push(gameId);
-                    pushToCloud('user_wishlist', gameId);
+                    userData.wishlist.push(id);
+                    pushToCloud('user_wishlist', id);
                 }
                 saveUserData();
                 renderGallery();
             }
 
             function togglePlayed(gameId) {
-                const idx = userData.played.indexOf(gameId);
+                const id = Number(gameId);
+                if (!Number.isInteger(id) || id <= 0) return console.error('无效 ID:', gameId);
+                const idx = userData.played.indexOf(id);
                 if (idx >= 0) {
                     userData.played.splice(idx, 1);
-                    deleteFromCloud('user_played', gameId);
+                    deleteFromCloud('user_played', id);
                 } else {
-                    userData.played.push(gameId);
+                    userData.played.push(id);
                     checkAchievements();
-                    pushToCloud('user_played', gameId);
+                    pushToCloud('user_played', id);
                 }
                 saveUserData();
                 renderGallery();
             }
 
-            function isInWishlist(gameId) { return userData.wishlist.includes(gameId); }
-            function isPlayed(gameId) { return userData.played.includes(gameId); }
+            function isInWishlist(gameId) { return userData.wishlist.includes(Number(gameId)); }
+            function isPlayed(gameId) { return userData.played.includes(Number(gameId)); }
 
             // ================================================================
             // 成就系统
@@ -3687,11 +3532,13 @@
                 container.innerHTML = gridHtml;
                 container.querySelectorAll('.played-grid-item').forEach(item => {
                     item.addEventListener('click', function () {
-                        const id = parseInt(this.dataset.gameId);
-                        const game = games.find(g => g.id === id);
-                        if (game) {
-                            closeAchievementModal();
-                            setTimeout(() => showDetailModal(game), 100);
+                        const id = Number(this.dataset.gameId);
+                        if (!isNaN(id)) {
+                            const game = games.find(g => g.id === id);
+                            if (game) {
+                                closeAchievementModal();
+                                setTimeout(() => showDetailModal(game), 100);
+                            }
                         }
                     });
                 });
@@ -3731,7 +3578,7 @@
                     return;
                 }
                 const reviewData = {
-                    game_id: gameId,
+                    game_id: Number(gameId),
                     user_id: currentUser.id,
                     rating: rating,
                     comment: comment || null,
@@ -3749,7 +3596,7 @@
                     };
                 } else {
                     userData.reviews.push({
-                        game_id: gameId,
+                        game_id: Number(gameId),
                         rating: rating,
                         comment: comment || null,
                         created_at: new Date().toISOString(),
@@ -3761,8 +3608,8 @@
                 const detailModal = document.getElementById('detailModal');
                 if (detailModal && detailModal.closest('.modal-overlay.show')) {
                     const currentGameId = detailModal.dataset.gameId;
-                    if (currentGameId && parseInt(currentGameId) === gameId) {
-                        const game = games.find(g => g.id === gameId);
+                    if (currentGameId && Number(currentGameId) === Number(gameId)) {
+                        const game = games.find(g => g.id === Number(gameId));
                         if (game) showDetailModal(game);
                     }
                 }
@@ -3786,15 +3633,15 @@
                 const detailModal = document.getElementById('detailModal');
                 if (detailModal && detailModal.closest('.modal-overlay.show')) {
                     const currentGameId = detailModal.dataset.gameId;
-                    if (currentGameId && parseInt(currentGameId) === gameId) {
-                        const game = games.find(g => g.id === gameId);
+                    if (currentGameId && Number(currentGameId) === Number(gameId)) {
+                        const game = games.find(g => g.id === Number(gameId));
                         if (game) showDetailModal(game);
                     }
                 }
                 if (!supabaseClient) return;
                 try {
                     const { error } = await supabaseClient.from('user_reviews').delete().eq('user_id', currentUser.id).eq(
-                        'game_id', gameId);
+                        'game_id', Number(gameId));
                     if (error) {
                         console.error('❌ 删除评论失败:', error);
                         showToast('⚠️ 删除失败，请重试', 2000);
@@ -3807,8 +3654,8 @@
             async function fetchGameReviews(gameId, limit = 20) {
                 if (!supabaseClient) return [];
                 try {
-                    const { data, error } = await supabaseClient.from('user_reviews').select('*').eq('game_id', gameId).order(
-                        'created_at', { ascending: false }).limit(limit);
+                    const { data, error } = await supabaseClient.from('user_reviews').select('*').eq('game_id', Number(gameId))
+                        .order('created_at', { ascending: false }).limit(limit);
                     if (error) throw error;
                     return data || [];
                 } catch (e) { console.error('❌ 获取评论失败:', e); return []; }
@@ -3817,7 +3664,8 @@
             async function fetchGameRatingStats(gameId) {
                 if (!supabaseClient) return { average: null, count: 0 };
                 try {
-                    const { data, error } = await supabaseClient.from('user_reviews').select('rating').eq('game_id', gameId)
+                    const { data, error } = await supabaseClient.from('user_reviews').select('rating').eq('game_id', Number(
+                        gameId))
                         .not('rating', 'is', null);
                     if (error) throw error;
                     const ratings = data.map(r => r.rating).filter(r => r !== null);
@@ -3828,7 +3676,7 @@
             }
 
             // ================================================================
-            // 数据加载（只读）
+            // 数据加载（从 Supabase 获取，保留整数 ID）
             // ================================================================
             const STORAGE_KEY = 'heroineGamesDataV2';
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
@@ -3859,12 +3707,16 @@
                 if (!client) return null;
                 setSyncStatus('syncing');
                 try {
-                    const { data, error } = await client.from('games').select('*').neq('id', 999999).neq('id', 999998)
+                    const { data, error } = await client.from('games')
+                        .select('*')
+                        .neq('id', 1)   // 排除自定义标签占位游戏
+                        .neq('id', 2)
                         .order('id', { ascending: true });
                     if (error) { setSyncStatus('error', error.message); return null; }
                     if (data && data.length > 0) {
                         const parsed = data.map(row => ({
                             ...row,
+                            id: Number(row.id),
                             genre: row.genre || [],
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
@@ -3874,7 +3726,6 @@
                             hasDemo: row.hasDemo || false,
                             isPSExclusive: row.isPSExclusive || false,
                             isNSExclusive: row.isNSExclusive || false,
-                            id: row.id || generateId(),
                         }));
                         setSyncStatus('synced');
                         return parsed;
@@ -4003,9 +3854,12 @@
                 } else {
                     const local = localStorage.getItem(STORAGE_KEY);
                     if (local) {
-                        try { games = JSON.parse(local); } catch (_) { games = []; }
+                        try {
+                            const parsed = JSON.parse(local);
+                            games = parsed.map(g => ({ ...g, id: Number(g.id) }));
+                        } catch (_) { games = []; }
                     } else {
-                        games = DEFAULT_GAMES;
+                        games = DEFAULT_GAMES.map(g => ({ ...g, id: Number(g.id) }));
                     }
                 }
                 return games;
@@ -4294,7 +4148,7 @@
                 const pick = filtered[Math.floor(Math.random() * filtered.length)];
                 const cards = document.querySelectorAll('.gallery-card');
                 let target = null;
-                for (const c of cards) { if (+c.dataset.gameId === pick.id) { target = c; break; } }
+                for (const c of cards) { if (Number(c.dataset.gameId) === pick.id) { target = c; break; } }
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     target.classList.remove('highlight');
@@ -4424,26 +4278,28 @@
                     if (wishBtn) {
                         wishBtn.addEventListener('click', function (e) {
                             e.stopPropagation();
-                            const id = +this.dataset.gameId;
-                            toggleWishlist(id);
+                            const id = Number(this.dataset.gameId);
+                            if (!isNaN(id)) toggleWishlist(id);
                         });
                     }
                     if (playBtn) {
                         playBtn.addEventListener('click', function (e) {
                             e.stopPropagation();
-                            const id = +this.dataset.gameId;
-                            togglePlayed(id);
+                            const id = Number(this.dataset.gameId);
+                            if (!isNaN(id)) togglePlayed(id);
                         });
                     }
                 });
 
                 grid.querySelectorAll('.gallery-card').forEach(card => {
-                    const id = +card.dataset.gameId;
-                    card.addEventListener('click', function (e) {
-                        if (e.target.closest('.card-user-actions')) return;
-                        const g = games.find(g => g.id === id);
-                        if (g) showDetailModal(g);
-                    });
+                    const id = Number(card.dataset.gameId);
+                    if (!isNaN(id)) {
+                        card.addEventListener('click', function (e) {
+                            if (e.target.closest('.card-user-actions')) return;
+                            const g = games.find(g => g.id === id);
+                            if (g) showDetailModal(g);
+                        });
+                    }
                 });
 
                 updateAchievementDot();
@@ -4820,16 +4676,16 @@
 
                 modal.querySelector('#detailWishBtn').addEventListener('click', function (e) {
                     e.stopPropagation();
-                    const id = +this.dataset.gameId;
-                    toggleWishlist(id);
+                    const id = Number(this.dataset.gameId);
+                    if (!isNaN(id)) toggleWishlist(id);
                     closeDetailModal();
                     const g = games.find(g => g.id === id);
                     if (g) setTimeout(() => showDetailModal(g), 100);
                 });
                 modal.querySelector('#detailPlayBtn').addEventListener('click', function (e) {
                     e.stopPropagation();
-                    const id = +this.dataset.gameId;
-                    togglePlayed(id);
+                    const id = Number(this.dataset.gameId);
+                    if (!isNaN(id)) togglePlayed(id);
                     closeDetailModal();
                     const g = games.find(g => g.id === id);
                     if (g) setTimeout(() => showDetailModal(g), 100);
@@ -5623,7 +5479,7 @@
                     }
                 });
 
-                // ===== 新增：手动刷新按钮事件 =====
+                // 手动刷新按钮事件
                 document.getElementById('btnManualSync').addEventListener('click', function () {
                     if (currentUser) {
                         showToast('🔄 正在同步...', 1500);
@@ -5637,6 +5493,128 @@
                 });
 
                 updateFilterUI();
+            }
+
+            // ================================================================
+            // 云端同步函数（带重试）
+            // ================================================================
+            async function syncUserDataWithCloud(retryCount = 0) {
+                if (!currentUser || !supabaseClient) {
+                    console.warn('未登录或 Supabase 未初始化，跳过同步');
+                    return;
+                }
+
+                const userId = currentUser.id;
+                setSyncStatus('syncing', '同步中...');
+
+                try {
+                    // 1. 拉取云端数据
+                    const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
+                        supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
+                        supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
+                        supabaseClient.from('user_reviews').select('game_id, rating, comment, created_at, updated_at').eq(
+                            'user_id', userId)
+                    ]);
+
+                    if (wishlistRes.error) throw new Error(wishlistRes.error.message);
+                    if (playedRes.error) throw new Error(playedRes.error.message);
+                    if (reviewsRes.error) throw new Error(reviewsRes.error.message);
+
+                    const cloudWishlist = wishlistRes.data.map(item => Number(item.game_id));
+                    const cloudPlayed = playedRes.data.map(item => Number(item.game_id));
+                    const cloudReviews = reviewsRes.data.map(item => ({
+                        game_id: Number(item.game_id),
+                        rating: item.rating,
+                        comment: item.comment,
+                        created_at: item.created_at,
+                        updated_at: item.updated_at
+                    }));
+
+                    const localWishlist = userData.wishlist || [];
+                    const localPlayed = userData.played || [];
+                    const localReviews = userData.reviews || [];
+
+                    const cloudWishlistSet = new Set(cloudWishlist);
+                    const cloudPlayedSet = new Set(cloudPlayed);
+                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlistSet.has(id));
+                    const toUploadPlayed = localPlayed.filter(id => !cloudPlayedSet.has(id));
+
+                    const uploadPromises = [];
+
+                    if (toUploadWishlist.length > 0) {
+                        const items = toUploadWishlist.map(game_id => ({ user_id: userId, game_id: Number(game_id) }));
+                        uploadPromises.push(
+                            supabaseClient.from('user_wishlist').insert(items)
+                                .then(res => { if (res.error && res.error.code !== '23505') throw res.error; return res; })
+                        );
+                    }
+
+                    if (toUploadPlayed.length > 0) {
+                        const items = toUploadPlayed.map(game_id => ({ user_id: userId, game_id: Number(game_id) }));
+                        uploadPromises.push(
+                            supabaseClient.from('user_played').insert(items)
+                                .then(res => { if (res.error && res.error.code !== '23505') throw res.error; return res; })
+                        );
+                    }
+
+                    const cloudReviewMap = new Map(cloudReviews.map(r => [r.game_id, r]));
+                    const localReviewMap = new Map(localReviews.map(r => [r.game_id, r]));
+                    const toUploadReviews = [];
+                    for (const [gameId, local] of localReviewMap) {
+                        if (!cloudReviewMap.has(gameId)) {
+                            toUploadReviews.push({
+                                user_id: userId,
+                                game_id: Number(gameId),
+                                rating: local.rating || null,
+                                comment: local.comment || null,
+                                display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                                avatar_url: currentUser.user_metadata?.avatar_url || null
+                            });
+                        }
+                    }
+                    if (toUploadReviews.length > 0) {
+                        uploadPromises.push(
+                            supabaseClient.from('user_reviews').upsert(toUploadReviews, { onConflict: 'user_id, game_id' })
+                                .then(res => { if (res.error && res.error.code !== '23505') throw res.error; return res; })
+                        );
+                    }
+
+                    if (uploadPromises.length > 0) {
+                        await Promise.all(uploadPromises);
+                    }
+
+                    // 合并数据
+                    const mergedWishlist = [...new Set([...cloudWishlist, ...localWishlist])];
+                    const mergedPlayed = [...new Set([...cloudPlayed, ...localPlayed])];
+                    const mergedReviews = [...cloudReviews];
+                    for (const [gameId, local] of localReviewMap) {
+                        if (!cloudReviewMap.has(gameId)) {
+                            mergedReviews.push(local);
+                        }
+                    }
+
+                    userData.wishlist = mergedWishlist;
+                    userData.played = mergedPlayed;
+                    userData.reviews = mergedReviews;
+                    saveUserData();
+
+                    renderGallery();
+                    updateAchievementDot();
+                    setSyncStatus('synced', '已同步');
+                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
+
+                } catch (error) {
+                    console.error('❌ 同步失败:', error);
+                    if (retryCount < 3) {
+                        console.log(`🔄 重试同步 (${retryCount + 1}/3)...`);
+                        setSyncStatus('syncing', `重试 ${retryCount + 1}/3`);
+                        const delay = 2000 * (retryCount + 1);
+                        setTimeout(() => syncUserDataWithCloud(retryCount + 1), delay);
+                    } else {
+                        setSyncStatus('error', '同步失败');
+                        showToast('⚠️ 数据同步失败，请检查网络或手动刷新', 3000);
+                    }
+                }
             }
 
             // ================================================================
@@ -5703,12 +5681,12 @@
                 if (currentUser) {
                     // 登录后立即同步
                     await syncUserDataWithCloud();
-                    // 每 30 秒自动同步一次（仅当页面可见时）
+                    // 每 5 分钟（300000 毫秒）自动同步一次（仅当页面可见时）
                     setInterval(() => {
                         if (document.visibilityState === 'visible' && currentUser) {
                             syncUserDataWithCloud();
                         }
-                    }, 30000);
+                    }, 300000);
                 }
             }
 
