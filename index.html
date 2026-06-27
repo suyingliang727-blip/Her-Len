@@ -1924,7 +1924,7 @@
             padding: 6px 0;
             min-width: 150px;
             box-shadow: var(--shadow-lg);
-            z-index: 20;
+            z-index: 9999;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -2271,7 +2271,7 @@
             </div>
             <div class="announcement-item">
                 <span class="announcement-icon">💾</span>
-                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和"玩过"标记等数据均保存在本地浏览器中，清理缓存后将会消失，请注意备份。</span>
+                <span class="announcement-text"><strong>温馨提示：</strong>愿望单和"玩过"标记等数据已支持云端同步，登录后自动合并，跨设备无缝使用。</span>
             </div>
             <div class="announcement-item">
                 <span class="announcement-icon">💖</span>
@@ -2604,7 +2604,7 @@
             function getAllGameplays() { return [...new Set([...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays])]; }
 
             // ================================================================
-            // 用户数据（本地存储，暂不同步云端）
+            // 用户数据（本地存储）
             // ================================================================
             const USER_DATA_KEY = 'heroineUserData';
 
@@ -2625,20 +2625,141 @@
                 updateAchievementDot();
             }
 
+            // ================================================================
+            // 云端同步函数（阶段二新增）
+            // ================================================================
+
+            /**
+             * 登录后执行：合并本地与云端数据
+             */
+            async function syncUserDataWithCloud() {
+                if (!currentUser || !supabaseClient) {
+                    console.warn('未登录或 Supabase 未初始化，跳过同步');
+                    return;
+                }
+
+                const userId = currentUser.id;
+                setSyncStatus('syncing', '同步中...');
+
+                try {
+                    // 1. 拉取云端数据
+                    const [wishlistRes, playedRes] = await Promise.all([
+                        supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
+                        supabaseClient.from('user_played').select('game_id').eq('user_id', userId)
+                    ]);
+
+                    if (wishlistRes.error) throw new Error(wishlistRes.error.message);
+                    if (playedRes.error) throw new Error(playedRes.error.message);
+
+                    const cloudWishlist = wishlistRes.data.map(item => item.game_id);
+                    const cloudPlayed = playedRes.data.map(item => item.game_id);
+
+                    // 2. 获取本地数据
+                    const localWishlist = userData.wishlist || [];
+                    const localPlayed = userData.played || [];
+
+                    // 3. 合并：取并集（去重）
+                    const mergedWishlist = [...new Set([...localWishlist, ...cloudWishlist])];
+                    const mergedPlayed = [...new Set([...localPlayed, ...cloudPlayed])];
+
+                    // 4. 找出本地有但云端没有的项（需要上传到云端）
+                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlist.includes(id));
+                    const toUploadPlayed = localPlayed.filter(id => !cloudPlayed.includes(id));
+
+                    // 5. 上传缺失的数据到云端（批量）
+                    const uploadPromises = [];
+                    if (toUploadWishlist.length > 0) {
+                        const items = toUploadWishlist.map(game_id => ({ user_id: userId, game_id }));
+                        uploadPromises.push(
+                            supabaseClient.from('user_wishlist').upsert(items, { onConflict: 'user_id, game_id' })
+                        );
+                    }
+                    if (toUploadPlayed.length > 0) {
+                        const items = toUploadPlayed.map(game_id => ({ user_id: userId, game_id }));
+                        uploadPromises.push(
+                            supabaseClient.from('user_played').upsert(items, { onConflict: 'user_id, game_id' })
+                        );
+                    }
+
+                    if (uploadPromises.length > 0) {
+                        await Promise.all(uploadPromises);
+                    }
+
+                    // 6. 更新内存中的 userData 并保存到本地缓存
+                    userData.wishlist = mergedWishlist;
+                    userData.played = mergedPlayed;
+                    saveUserData();
+
+                    // 7. 刷新 UI
+                    renderGallery();
+                    updateAchievementDot();
+                    setSyncStatus('synced', '已同步');
+                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项`);
+
+                } catch (error) {
+                    console.error('❌ 同步失败:', error);
+                    setSyncStatus('error', '同步失败');
+                    showToast('⚠️ 数据同步失败，请检查网络', 2500);
+                }
+            }
+
+            /**
+             * 单条数据云端写入（用于 toggle 操作）
+             */
+            async function pushToCloud(table, gameId) {
+                if (!currentUser || !supabaseClient) {
+                    // 未登录则只存本地，静默返回
+                    return;
+                }
+
+                try {
+                    const { error } = await supabaseClient
+                        .from(table)
+                        .upsert(
+                            { user_id: currentUser.id, game_id: gameId },
+                            { onConflict: 'user_id, game_id' }
+                        );
+
+                    if (error) {
+                        console.error(`❌ 云端写入失败 [${table}]:`, error);
+                        showToast('⚠️ 数据未同步到云端，请检查网络', 2000);
+                        setSyncStatus('error', '未同步');
+                    } else {
+                        // 如果之前是 error 状态，恢复
+                        if (document.getElementById('syncStatus').classList.contains('error')) {
+                            setSyncStatus('synced', '已同步');
+                        }
+                    }
+                } catch (e) {
+                    console.error('❌ 云端写入异常:', e);
+                }
+            }
+
+            // ================================================================
+            // 愿望单与玩过操作（已增加云端同步）
+            // ================================================================
             function toggleWishlist(gameId) {
                 const idx = userData.wishlist.indexOf(gameId);
                 if (idx >= 0) userData.wishlist.splice(idx, 1);
                 else userData.wishlist.push(gameId);
                 saveUserData();
                 renderGallery();
+                // ✨ 新增：异步写入云端
+                pushToCloud('user_wishlist', gameId);
             }
 
             function togglePlayed(gameId) {
                 const idx = userData.played.indexOf(gameId);
-                if (idx >= 0) { userData.played.splice(idx, 1); } else { userData.played.push(gameId);
-                    checkAchievements(); }
+                if (idx >= 0) {
+                    userData.played.splice(idx, 1);
+                } else {
+                    userData.played.push(gameId);
+                    checkAchievements();
+                }
                 saveUserData();
                 renderGallery();
+                // ✨ 新增：异步写入云端
+                pushToCloud('user_played', gameId);
             }
 
             function isInWishlist(gameId) { return userData.wishlist.includes(gameId); }
@@ -3924,6 +4045,7 @@
                 if (!supabaseClient) return;
                 supabaseClient.auth.signOut().then(() => {
                     showToast('已登出', 1500);
+                    // 登出后保留本地数据，不清除
                 }).catch(() => {
                     showToast('登出失败', 1500);
                 });
@@ -4337,6 +4459,10 @@
                             if (overlay.classList.contains('show')) {
                                 closeAuthModal();
                             }
+                            // ✨ 登录后延迟执行云端同步
+                            setTimeout(() => {
+                                syncUserDataWithCloud();
+                            }, 300);
                         } else {
                             currentUser = null;
                             updateUIForLoggedOut();
@@ -4347,6 +4473,10 @@
                     if (session) {
                         currentUser = session.user;
                         updateUIForLoggedIn(currentUser);
+                        // 如果页面刷新时已有会话，也执行一次同步
+                        setTimeout(() => {
+                            syncUserDataWithCloud();
+                        }, 500);
                     } else {
                         updateUIForLoggedOut();
                     }
@@ -4355,7 +4485,7 @@
                     console.warn('Supabase 未启用，认证功能不可用');
                 }
 
-                console.log('✅ Her Lens 已启动（含用户认证 + 个人资料）');
+                console.log('✅ Her Lens 已启动（含用户认证 + 个人资料 + 云端同步）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
