@@ -2984,7 +2984,7 @@
             }
 
             // ================================================================
-            // 云端删除函数（新增）
+            // 云端删除函数
             // ================================================================
             async function deleteFromCloud(table, gameId) {
                 if (!currentUser || !supabaseClient) {
@@ -3014,7 +3014,7 @@
             }
 
             // ================================================================
-            // 云端同步函数（已升级，支持双向同步）
+            // 云端同步函数（已修复：只上传新增，不删除云端数据）
             // ================================================================
             async function syncUserDataWithCloud() {
                 if (!currentUser || !supabaseClient) {
@@ -3026,6 +3026,7 @@
                 setSyncStatus('syncing', '同步中...');
 
                 try {
+                    // 1. 拉取云端数据
                     const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
                         supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
                         supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
@@ -3047,41 +3048,21 @@
                         updated_at: item.updated_at
                     }));
 
+                    // 2. 本地数据
                     const localWishlist = userData.wishlist || [];
                     const localPlayed = userData.played || [];
                     const localReviews = userData.reviews || [];
 
-                    // ---- 愿望单同步 ----
-                    const localWishlistSet = new Set(localWishlist);
+                    // 3. 计算本地有但云端没有的项（需要上传）
                     const cloudWishlistSet = new Set(cloudWishlist);
-
-                    // 本地有但云端没有 -> 上传
-                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlistSet.has(id));
-                    // 云端有但本地没有 -> 删除
-                    const toDeleteWishlist = cloudWishlist.filter(id => !localWishlistSet.has(id));
-
-                    // ---- 玩过记录同步 ----
-                    const localPlayedSet = new Set(localPlayed);
                     const cloudPlayedSet = new Set(cloudPlayed);
-
+                    const toUploadWishlist = localWishlist.filter(id => !cloudWishlistSet.has(id));
                     const toUploadPlayed = localPlayed.filter(id => !cloudPlayedSet.has(id));
-                    const toDeletePlayed = cloudPlayed.filter(id => !localPlayedSet.has(id));
 
-                    // ---- 执行删除（云端多余项） ----
-                    const deletePromises = [];
-                    for (const id of toDeleteWishlist) {
-                        deletePromises.push(deleteFromCloud('user_wishlist', id));
-                    }
-                    for (const id of toDeletePlayed) {
-                        deletePromises.push(deleteFromCloud('user_played', id));
-                    }
-                    if (deletePromises.length > 0) {
-                        await Promise.all(deletePromises);
-                    }
-
-                    // ---- 执行上传（本地新增项） ----
+                    // 4. 上传本地新增项到云端
                     const uploadPromises = [];
 
+                    // 愿望单上传
                     if (toUploadWishlist.length > 0) {
                         const items = toUploadWishlist.map(game_id => {
                             const num = Number(game_id);
@@ -3102,6 +3083,7 @@
                         }
                     }
 
+                    // 玩过记录上传
                     if (toUploadPlayed.length > 0) {
                         const items = toUploadPlayed.map(game_id => {
                             const num = Number(game_id);
@@ -3122,55 +3104,15 @@
                         }
                     }
 
-                    // ---- 评论同步（保持原有逻辑） ----
+                    // 评论上传（本地有但云端没有）
                     const cloudReviewMap = new Map(cloudReviews.map(r => [r.game_id, r]));
                     const localReviewMap = new Map(localReviews.map(r => [r.game_id, r]));
-                    const mergedReviews = [...cloudReviews];
                     const toUploadReviews = [];
                     for (const [gameId, local] of localReviewMap) {
                         if (!cloudReviewMap.has(gameId)) {
                             toUploadReviews.push(local);
                         }
                     }
-                    // 云端有但本地没有的评论：保留云端（不删除，因为评论是用户创作的，合并后保留）
-                    // 如果有本地评论被删除，但云端还有，说明用户在其他设备删除了，这里以云端为准
-                    // 但由于我们保留云端，所以直接使用云端列表
-                    // 但本地删除的评论，如果云端还存在，下次同步时云端会保留，造成"删除不彻底"
-                    // 这里我们检测：如果本地没有但云端有，保留云端（用户可能在另一设备删除了，但这里以本地为准更合理）
-                    // 更安全的做法：以本地为准，删除云端多余评论
-                    const toDeleteReviews = cloudReviews.filter(r => !localReviewMap.has(r.game_id));
-                    for (const r of toDeleteReviews) {
-                        try {
-                            await supabaseClient.from('user_reviews')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('game_id', r.game_id);
-                            console.log(`✅ 删除云端评论 game_id: ${r.game_id}`);
-                        } catch (e) {
-                            console.error('删除云端评论失败:', e);
-                        }
-                    }
-                    // 重新计算合并后的评论列表（本地 + 云端 - 已删除的）
-                    const finalReviews = [...localReviews];
-                    for (const r of cloudReviews) {
-                        if (!localReviewMap.has(r.game_id)) {
-                            // 云端有但本地没有，保留（除非上面已删除）
-                            finalReviews.push(r);
-                        }
-                    }
-                    // 但上面的删除已经处理了云端多余项，所以最终以本地为主
-                    // 更简洁：直接用本地 reviews，然后将本地没有的云端评论删除
-                    // 但由于评论可能在其他设备新增，这里我们采用"合并"策略：本地 + 云端新增
-                    // 实际上更好的做法：以云端为准，但本地删除的也要同步删除
-                    // 我们重新构建评论列表：本地有的 + 云端有但本地没有的（新增）
-                    const finalReviewList = [...localReviews];
-                    for (const r of cloudReviews) {
-                        if (!localReviewMap.has(r.game_id)) {
-                            finalReviewList.push(r);
-                        }
-                    }
-
-                    // 上传本地新增的评论
                     if (toUploadReviews.length > 0) {
                         const items = toUploadReviews.map(r => ({
                             user_id: userId,
@@ -3196,17 +3138,27 @@
                         await Promise.all(uploadPromises);
                     }
 
-                    // 更新 userData（使用本地数据，云端多余的已被删除）
-                    userData.wishlist = localWishlist;
-                    userData.played = localPlayed;
-                    // 评论使用合并后的列表（本地 + 云端新增）
-                    userData.reviews = finalReviewList;
+                    // 5. 合并数据：云端 + 本地新增（去重）
+                    // 注意：这里以云端为基准，再加入本地独有的项
+                    const mergedWishlist = [...new Set([...cloudWishlist, ...localWishlist])];
+                    const mergedPlayed = [...new Set([...cloudPlayed, ...localPlayed])];
+                    const mergedReviews = [...cloudReviews];
+                    for (const [gameId, local] of localReviewMap) {
+                        if (!cloudReviewMap.has(gameId)) {
+                            mergedReviews.push(local);
+                        }
+                    }
+
+                    // 6. 更新 userData（使用合并后的数据，云端数据全部保留）
+                    userData.wishlist = mergedWishlist;
+                    userData.played = mergedPlayed;
+                    userData.reviews = mergedReviews;
                     saveUserData();
 
                     renderGallery();
                     updateAchievementDot();
                     setSyncStatus('synced', '已同步');
-                    console.log(`✅ 同步完成：愿望单 ${localWishlist.length} 项，玩过 ${localPlayed.length} 项，评论 ${userData.reviews.length} 项`);
+                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
 
                 } catch (error) {
                     console.error('❌ 同步失败:', error);
@@ -3239,7 +3191,7 @@
             }
 
             // ================================================================
-            // 愿望单与玩过操作（已修复：移除时调用 deleteFromCloud）
+            // 愿望单与玩过操作（移除时调用 deleteFromCloud）
             // ================================================================
             function toggleWishlist(gameId) {
                 const idx = userData.wishlist.indexOf(gameId);
@@ -3403,7 +3355,7 @@
             }
 
             // ================================================================
-            // 评分与评论相关函数（阶段四）
+            // 评分与评论相关函数
             // ================================================================
 
             async function saveReview(gameId, rating, comment) {
@@ -4322,7 +4274,7 @@
             }
 
             // ================================================================
-            // 详情弹窗（已重构，包含评分与评论 + 时长/史低）
+            // 详情弹窗（包含评分与评论 + 时长/史低）
             // ================================================================
             function showDetailModal(game) {
                 const overlay = document.getElementById('detailModalOverlay'),
@@ -4392,7 +4344,6 @@
                 const userRating = userReview?.rating ?? null;
                 const userComment = userReview?.comment ?? null;
 
-                // 生成星星 HTML（用于展示或交互）
                 function renderStars(rating, interactive = false, gameId = null) {
                     let html = '';
                     for (let i = 1; i <= 10; i++) {
@@ -4408,7 +4359,6 @@
                 if (!currentUser) {
                     reviewHTML = `<div class="review-login-prompt">🔑 登录后即可评分和评论</div>`;
                 } else {
-                    // 用户评分区域
                     let userRatingHtml = '';
                     if (userRating !== null) {
                         userRatingHtml = `
@@ -4431,7 +4381,6 @@
                         `;
                     }
 
-                    // 用户评论区域
                     let userCommentHtml = '';
                     if (userComment) {
                         userCommentHtml = `
@@ -4483,7 +4432,6 @@
                 </div>
                 <p class="detail-description">${escapeHTML(game.fullDescription || game.description || '')}</p>
                 <table class="detail-info-table">${rows}</table>
-                <!-- 评分与评论区域 -->
                 <div class="review-section">
                     <div class="review-section-title">✏️ 评价</div>
                     ${reviewHTML}
@@ -4499,10 +4447,8 @@
 
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
-                // 保存当前游戏ID到modal，用于刷新
                 modal.dataset.gameId = game.id;
 
-                // ---- 事件绑定 ----
                 modal.querySelector('#detailModalClose').addEventListener('click', closeDetailModal);
                 overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDetailModal(); });
 
@@ -4532,12 +4478,9 @@
                         stars.forEach(star => {
                             star.addEventListener('click', function() {
                                 const val = parseInt(this.dataset.value);
-                                // 如果点击的是同一颗星，取消选中（即取消评分）
                                 if (selectedRating === val) {
                                     selectedRating = null;
-                                    // 清空高亮
                                     stars.forEach(s => s.classList.remove('active'));
-                                    // 调用保存，传入 null 表示取消评分
                                     saveReview(game.id, null, userComment);
                                 } else {
                                     selectedRating = val;
@@ -4561,18 +4504,15 @@
                         });
                     }
 
-                    // 编辑评分按钮（已评分时）
                     const editRatingBtn = modal.querySelector('#editRatingBtn');
                     if (editRatingBtn) {
                         editRatingBtn.addEventListener('click', function() {
-                            // 简单处理：清除评分，让用户重新选
                             saveReview(game.id, null, userComment);
                             closeDetailModal();
                             setTimeout(() => showDetailModal(game), 100);
                         });
                     }
 
-                    // 评论字数统计
                     const commentInput = modal.querySelector('#commentInput');
                     const charCount = modal.querySelector('#commentCharCount');
                     if (commentInput && charCount) {
@@ -4581,7 +4521,6 @@
                         });
                     }
 
-                    // 提交评论
                     const submitBtn = modal.querySelector('#submitCommentBtn');
                     if (submitBtn && commentInput) {
                         submitBtn.addEventListener('click', function() {
@@ -4589,7 +4528,6 @@
                             if (!text) { showToast('评论内容不能为空', 1500); return; }
                             saveReview(game.id, userRating, text);
                         });
-                        // 回车提交（Ctrl+Enter）
                         commentInput.addEventListener('keydown', function(e) {
                             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                                 e.preventDefault();
@@ -4598,11 +4536,9 @@
                         });
                     }
 
-                    // 编辑评论（已评论时）
                     const editCommentBtn = modal.querySelector('#editCommentBtn');
                     if (editCommentBtn) {
                         editCommentBtn.addEventListener('click', function() {
-                            // 弹出输入框让用户修改（简易实现：用 prompt）
                             const newComment = prompt('修改你的评论：', userComment);
                             if (newComment !== null) {
                                 const trimmed = newComment.trim();
@@ -4615,7 +4551,6 @@
                         });
                     }
 
-                    // 删除评论
                     const deleteCommentBtn = modal.querySelector('#deleteCommentBtn');
                     if (deleteCommentBtn) {
                         deleteCommentBtn.addEventListener('click', function() {
@@ -4626,7 +4561,6 @@
                     }
                 }
 
-                // ---- 加载社区评论和评分统计 ----
                 loadCommunityReviews(game.id);
             }
 
@@ -4635,7 +4569,6 @@
                 const commentsList = document.getElementById('communityCommentsList');
                 if (!statsDisplay || !commentsList) return;
 
-                // 获取评分统计
                 const stats = await fetchGameRatingStats(gameId);
                 if (stats.average !== null) {
                     statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 10 （共 <strong>${stats.count}</strong> 人评分）`;
@@ -4643,7 +4576,6 @@
                     statsDisplay.textContent = '暂无评分';
                 }
 
-                // 获取评论列表
                 const reviews = await fetchGameReviews(gameId);
                 if (reviews.length === 0) {
                     commentsList.innerHTML = `<div style="text-align:center;color:var(--text3);padding:12px;">暂无评论，快来写下你的第一条吧！</div>`;
@@ -5375,7 +5307,7 @@
                     console.warn('Supabase 未启用，认证功能不可用');
                 }
 
-                console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论 + 双向同步）');
+                console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
