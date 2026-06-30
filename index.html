@@ -3566,114 +3566,10 @@
             } catch (e) { setSyncStatus('error', e.message || '网络异常'); return null; }
         }
 
-        const DEFAULT_GAMES = [{
-            id: 1,
-            title: '地平线 零之曙光',
-            cover: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1151640/header.jpg',
-            description: '化身埃洛伊，在机器统治的末日世界中探索奥秘。',
-            fullDescription: '地球已不属于我们。化身年轻的猎人埃洛伊，探索充满神秘与危险的机器世界。',
-            genre: ['后末日', '科幻', '机械生物'],
-            gameplay: ['动作', '角色扮演', '开放世界', '潜行'],
-            perspective: '第三人称',
-            releaseDate: '2020-08-07',
-            hasChinese: '有中文',
-            platforms: ['PC', 'PS'],
-            heroineType: '固定女主',
-            costumeType: '服设合理',
-            hasMacSupport: '不支持Mac',
-            steamLink: 'https://store.steampowered.com/app/1151640/',
-            steamAppId: '1151640',
-            isPSExclusive: false,
-            isNSExclusive: false,
-            hasDemo: false,
-            mainStoryDuration: '约30小时',
-            lowestPrice: '¥104',
-            videos: [],
-            screenshots: [],
-            otherLinks: '',
-            isReleased: true
-        }, {
-            id: 2,
-            title: '古墓丽影：暗影',
-            cover: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/750920/header.jpg',
-            description: '劳拉·克劳馥的终极冒险，深入玛雅遗迹。',
-            fullDescription: '在《古墓丽影：暗影》中，劳拉必须穿越致命丛林、探索恐怖古墓。',
-            genre: ['冒险', '探险', '古代'],
-            gameplay: ['动作', '冒险', '解谜'],
-            perspective: '第三人称',
-            releaseDate: '2018-09-14',
-            hasChinese: '有中文',
-            platforms: ['PC', 'PS', 'Xbox'],
-            heroineType: '固定女主',
-            costumeType: '服设可自选',
-            hasMacSupport: '不支持Mac',
-            steamLink: 'https://store.steampowered.com/app/750920/',
-            steamAppId: '750920',
-            isPSExclusive: false,
-            isNSExclusive: false,
-            hasDemo: true,
-            mainStoryDuration: '约15小时',
-            lowestPrice: '¥49',
-            videos: [],
-            screenshots: [],
-            otherLinks: '',
-            isReleased: true
-        }, {
-            id: 7,
-            title: '星辰之刃 (Stellar Blade)',
-            cover: '',
-            description: '在末日后的地球，与夏娃一起对抗未知的敌人。',
-            fullDescription: '人类逃离地球后，夏娃被派往地球执行任务，面对强大的敌人和隐藏的秘密。',
-            genre: ['科幻', '后末日', '动作'],
-            gameplay: ['动作', '冒险', '角色扮演'],
-            perspective: '第三人称',
-            releaseDate: '2025-12-31',
-            hasChinese: '无中文',
-            platforms: ['PS'],
-            heroineType: '固定女主',
-            costumeType: '服设合理',
-            hasMacSupport: '',
-            steamLink: '',
-            steamAppId: '',
-            isPSExclusive: true,
-            isNSExclusive: false,
-            hasDemo: false,
-            mainStoryDuration: '',
-            lowestPrice: '',
-            videos: [],
-            screenshots: [],
-            otherLinks: '',
-            isReleased: false
-        }, {
-            id: 8,
-            title: '无限暖暖',
-            cover: '',
-            description: '暖暖系列全新开放世界冒险，搭配与探索交织。',
-            fullDescription: '在奇迹大陆上自由探索，利用套装能力解开谜题。',
-            genre: ['奇幻', '日常/生活', '冒险'],
-            gameplay: ['开放世界', '冒险', '装饰', '解谜'],
-            perspective: '第三人称',
-            releaseDate: '2025-09-30',
-            hasChinese: '有中文',
-            platforms: ['PS', 'PC', '移动端'],
-            heroineType: '固定女主',
-            costumeType: '服设可自选',
-            hasMacSupport: '',
-            steamLink: '',
-            steamAppId: '',
-            isPSExclusive: false,
-            isNSExclusive: false,
-            hasDemo: true,
-            mainStoryDuration: '',
-            lowestPrice: '',
-            videos: [],
-            screenshots: [],
-            otherLinks: '',
-            isReleased: false
-        }];
-
+        // ================================================================
+        // 已删除 DEFAULT_GAMES，完全依赖 Supabase + localStorage 缓存
+        // ================================================================
         async function loadGames() {
-            // 注意：自定义标签已在 loadCustomTagsFromStorage 中加载，此处不再重复
             let data = null;
             if (SUPABASE_ENABLED && supabaseClient) {
                 try {
@@ -3690,11 +3586,11 @@
                         games = parsed.map(g => ({ ...g, id: Number(g.id) }));
                     } catch (_) { games = []; }
                 } else {
-                    games = DEFAULT_GAMES.map(g => ({ ...g, id: Number(g.id) }));
+                    games = [];
                 }
             }
             // 强制过滤掉 id 为 1 和 2 的占位游戏（无论数据来源）
-            games = games.filter(g => g.id !== 1 && g.id !== 2);
+            games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
             return games;
         }
 
@@ -3829,6 +3725,10 @@
         function getFilteredGames() {
             const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
             const filtered = games.filter(game => {
+                // ✅ 额外安全保障：排除占位游戏（使用 Number 转换）
+                const id = Number(game.id);
+                if (id === 1 || id === 2) return false;
+
                 if (game.isReleased !== (currentView === 'released')) return false;
                 if (searchQuery && !gameMatchesSearch(game, searchQuery)) return false;
                 if (wishlistMode && !isInWishlist(game.id)) return false;
@@ -4007,9 +3907,12 @@
         }
 
         // ================================================================
-        // 渲染卡片
+        // 渲染卡片 - 增加强制过滤
         // ================================================================
         function renderGallery() {
+            // ✅ 强制过滤掉占位游戏（最底层保障）
+            games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
+
             const filtered = getFilteredGames();
             const grid = document.getElementById('galleryGrid');
             const no = document.getElementById('noResults');
