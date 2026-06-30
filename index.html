@@ -3081,23 +3081,67 @@
         }
 
         // ================================================================
-        // 自定义标签
+        // 自定义标签 - 从数据库同步（以数据库为准，localStorage 为缓存）
         // ================================================================
-        function loadCustomTagsFromStorage() {
+        async function loadCustomTagsFromStorage() {
+            // 默认值
+            let fallbackGenres = ['太空', '乐高'];
+            let fallbackGameplays = ['自定义角色', '调查', '打字'];
+
+            // 1. 先尝试读取 localStorage 作为缓存
             try {
                 const s = localStorage.getItem('heroineCustomTags');
                 if (s) {
                     const d = JSON.parse(s);
-                    customGenres = d.genres || [];
-                    customGameplays = d.gameplays || [];
-                } else {
-                    customGenres = ['太空', '乐高'];
-                    customGameplays = ['自定义角色', '调查', '打字'];
-                    localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
+                    if (d.genres && d.genres.length) fallbackGenres = d.genres;
+                    if (d.gameplays && d.gameplays.length) fallbackGameplays = d.gameplays;
                 }
-            } catch (_) {
-                customGenres = ['太空', '乐高'];
-                customGameplays = ['自定义角色', '调查', '打字'];
+            } catch (_) { }
+
+            // 2. 从数据库读取最新数据（若可用）
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('games')
+                        .select('id, genre, gameplay')
+                        .in('id', [1, 2]);
+                    if (!error && data) {
+                        const genreRecord = data.find(r => r.id === 1);
+                        const gameplayRecord = data.find(r => r.id === 2);
+                        if (genreRecord && genreRecord.genre && Array.isArray(genreRecord.genre)) {
+                            customGenres = genreRecord.genre;
+                        } else {
+                            customGenres = fallbackGenres;
+                        }
+                        if (gameplayRecord && gameplayRecord.gameplay && Array.isArray(gameplayRecord.gameplay)) {
+                            customGameplays = gameplayRecord.gameplay;
+                        } else {
+                            customGameplays = fallbackGameplays;
+                        }
+                        // 更新 localStorage 缓存
+                        localStorage.setItem('heroineCustomTags', JSON.stringify({
+                            genres: customGenres,
+                            gameplays: customGameplays
+                        }));
+                        console.log('✅ 自定义标签已从数据库同步');
+                        return;
+                    } else {
+                        console.warn('⚠️ 从数据库读取自定义标签失败，使用缓存数据');
+                    }
+                } catch (e) {
+                    console.warn('⚠️ 数据库读取异常，使用缓存数据', e);
+                }
+            }
+
+            // 3. 如果数据库不可用，使用缓存或默认值
+            customGenres = fallbackGenres;
+            customGameplays = fallbackGameplays;
+            // 确保 localStorage 有默认值
+            if (!localStorage.getItem('heroineCustomTags')) {
+                localStorage.setItem('heroineCustomTags', JSON.stringify({
+                    genres: customGenres,
+                    gameplays: customGameplays
+                }));
             }
         }
 
@@ -3629,7 +3673,7 @@
         }];
 
         async function loadGames() {
-            loadCustomTagsFromStorage();
+            // 注意：自定义标签已在 loadCustomTagsFromStorage 中加载，此处不再重复
             let data = null;
             if (SUPABASE_ENABLED && supabaseClient) {
                 try {
@@ -3649,6 +3693,8 @@
                     games = DEFAULT_GAMES.map(g => ({ ...g, id: Number(g.id) }));
                 }
             }
+            // 强制过滤掉 id 为 1 和 2 的占位游戏（无论数据来源）
+            games = games.filter(g => g.id !== 1 && g.id !== 2);
             return games;
         }
 
@@ -4208,7 +4254,7 @@
             wishBtn.innerHTML = `<span class="icon">${inWish ? '❤️' : '🤍'}</span> ${inWish ? '已加入' : '加入愿望单'}`;
             ua.appendChild(wishBtn);
 
-            // ===== 【修改1】只在已发售游戏中显示「标记玩过」按钮 =====
+            // 只在已发售游戏中显示「标记玩过」按钮
             if (game.isReleased) {
                 const playBtn = document.createElement('button');
                 playBtn.className = `action-btn action-play ${inPlay ? 'active-played' : ''}`;
@@ -4434,7 +4480,7 @@
                         `;
             }
 
-            // ===== 【修改2】只在已发售游戏中显示「标记为玩过」按钮 =====
+            // 只在已发售游戏中显示「标记为玩过」按钮
             const detailPlayBtnHtml = game.isReleased ?
                 `<button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>` :
                 '';
@@ -5421,7 +5467,9 @@
         async function init() {
             loadSettings();
             loadUserData();
-            loadCustomTagsFromStorage();
+
+            // 加载自定义标签（从数据库同步）
+            await loadCustomTagsFromStorage();
 
             await loadGames();
 
@@ -5468,7 +5516,7 @@
                 console.warn('Supabase 未启用，认证功能不可用');
             }
 
-            console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论）');
+            console.log('✅ Her Lens 已启动（含认证 + 个人资料 + 云端同步 + 玩过记录 + 评分评论 + 自定义标签云同步）');
             console.log(`📊 共加载 ${games.length} 款游戏`);
             console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
             console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
