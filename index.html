@@ -5471,7 +5471,7 @@
             // 加载自定义标签（从数据库同步）
             await loadCustomTagsFromStorage();
 
-            await loadGames();
+            games = await loadGames();
 
             resetActiveFilters();
             bindGlobalEvents();
