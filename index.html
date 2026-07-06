@@ -12,14 +12,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js">
     </script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <!-- 分享功能依赖库 -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
     </script>
     <style>
         /* ================================================================
-   全局变量 & 主题
+   全局变量 & 主题 (与原版一致)
    ================================================================ */
         :root {
             --bg: #f3eff7;
@@ -2075,7 +2074,7 @@
         }
 
         /* ================================================================
-   ★★★ 分享浮层 — 浮动在详情页上方 ★★★
+   ★★★ 分享浮层 — 直接展示生成的图片 (移动端可长按保存) ★★★
    ================================================================ */
         #shareFloatOverlay {
             position: fixed;
@@ -2113,6 +2112,9 @@
             animation: slideUpCard 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             padding: 20px 20px 24px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         @keyframes slideUpCard {
             from {
@@ -2132,6 +2134,7 @@
             font-weight: 600;
             color: var(--text2);
             font-size: 0.95rem;
+            width: 100%;
         }
         #shareFloatOverlay .share-float-header .close-float-btn {
             background: none;
@@ -2147,152 +2150,31 @@
             color: var(--danger);
             transform: rotate(90deg);
         }
-        /* 卡片内容与主页面卡片风格一致 */
-        #shareFloatOverlay .share-preview-card {
-            background: var(--card-bg-glass);
-            border: 1px solid var(--card-border-glass);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--glass-shadow);
-            margin-bottom: 12px;
-        }
-        #shareFloatOverlay .share-preview-card .card-cover-wrap {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 460/215;
-            overflow: hidden;
-            background: var(--tag-bg);
-        }
-        #shareFloatOverlay .share-preview-card .card-cover-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        #shareFloatOverlay .share-preview-card .card-cover-wrap .cover-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+        #shareFloatOverlay .share-float-header .hint-text {
+            font-size: 0.8rem;
             color: var(--text3);
-            background: var(--tag-bg);
         }
-        #shareFloatOverlay .share-preview-card .card-heroine-tag {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            z-index: 5;
-            background: linear-gradient(135deg, #6b5a8a, #4a3a66);
-            color: #fff;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            border: 1px solid rgba(255, 255, 255, 0.20);
-            box-shadow: 0 2px 14px rgba(60, 40, 80, 0.45);
-            pointer-events: none;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-            text-transform: uppercase;
-        }
-        [data-theme="dark"] #shareFloatOverlay .share-preview-card .card-heroine-tag {
-            background: linear-gradient(135deg, #8a77a8, #6a5a82);
-            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.50);
-            border-color: rgba(255, 255, 255, 0.12);
-        }
-        #shareFloatOverlay .share-preview-card .card-body {
-            padding: 10px 14px 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        #shareFloatOverlay .share-preview-card .card-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text);
-            line-height: 1.3;
-        }
-        #shareFloatOverlay .share-preview-card .card-desc {
-            font-size: 0.75rem;
-            color: var(--text2);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+        #shareFloatOverlay .share-image-container {
+            width: 100%;
+            border-radius: 16px;
             overflow: hidden;
-            line-height: 1.4;
-        }
-        #shareFloatOverlay .share-preview-card .card-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 4px;
-        }
-        #shareFloatOverlay .share-preview-card .card-meta span {
-            font-size: 0.68rem;
-            padding: 2px 7px;
-            border-radius: 10px;
-            background: var(--glass-bg-light);
-            color: var(--tag-text);
-            white-space: nowrap;
-        }
-        #shareFloatOverlay .share-preview-card .card-meta span.accent-tag {
-            background: var(--accent);
-            color: #fff;
-            font-weight: 500;
-        }
-        #shareFloatOverlay .share-preview-card .card-meta span.tag-muted {
-            background: var(--text3);
-            color: #fff;
-            font-weight: 500;
-        }
-
-        /* 卡片底部：二维码 + 品牌标识 */
-        #shareFloatOverlay .share-preview-card .share-card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px 12px;
-            border-top: 1px solid var(--border);
-            gap: 12px;
-            flex-wrap: wrap;
-            background: var(--surface);
-            border-radius: 0 0 20px 20px;
-        }
-        #shareFloatOverlay .share-preview-card .share-card-footer .qr-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #shareFloatOverlay .share-preview-card .share-card-footer .qr-wrapper #shareFloatQR {
-            width: 64px;
-            height: 64px;
-            flex-shrink: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             background: #fff;
-            border-radius: 8px;
-            padding: 4px;
-            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
         }
-        #shareFloatOverlay .share-preview-card .share-card-footer .qr-wrapper .qr-label {
-            font-size: 0.65rem;
-            color: var(--text3);
-            line-height: 1.3;
-            max-width: 80px;
+        #shareFloatOverlay .share-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 16px;
+            -webkit-user-drag: none;
+            user-drag: none;
         }
-        #shareFloatOverlay .share-preview-card .share-card-footer .share-site {
-            font-size: 0.7rem;
-            color: var(--accent);
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        /* 下载按钮 */
         #shareFloatOverlay .share-float-download-wrap {
             text-align: center;
-            margin-top: 4px;
+            margin-top: 12px;
+            width: 100%;
         }
         #shareFloatOverlay .share-float-download-wrap .btn {
             padding: 8px 28px;
@@ -2303,12 +2185,43 @@
             border-color: var(--accent);
             font-weight: 600;
             transition: all 0.3s ease;
+            width: 100%;
+            max-width: 240px;
         }
         #shareFloatOverlay .share-float-download-wrap .btn:hover {
             background: var(--accent2);
             border-color: var(--accent2);
             transform: translateY(-2px);
             box-shadow: 0 4px 20px rgba(155, 138, 189, 0.30);
+        }
+        /* 移动端长按提示 */
+        .long-press-hint {
+            font-size: 0.7rem;
+            color: var(--text3);
+            text-align: center;
+            margin-top: 6px;
+        }
+        @media (max-width: 768px) {
+            #shareFloatOverlay .share-float-card {
+                padding: 16px 14px 20px;
+                border-radius: 20px;
+            }
+            #shareFloatOverlay .share-float-header .hint-text {
+                font-size: 0.7rem;
+            }
+        }
+        @media (max-width: 480px) {
+            #shareFloatOverlay .share-float-card {
+                padding: 12px 10px 16px;
+                border-radius: 16px;
+            }
+            #shareFloatOverlay .share-float-header .hint-text {
+                font-size: 0.65rem;
+            }
+            #shareFloatOverlay .share-float-download-wrap .btn {
+                font-size: 0.8rem;
+                padding: 6px 20px;
+            }
         }
 
         /* ================================================================
@@ -3476,36 +3389,6 @@
             .star-rating[style*="font-size:1.4rem;"] {
                 font-size: 1.2rem !important;
             }
-
-            /* 分享浮层移动端适配 */
-            #shareFloatOverlay {
-                padding: 12px;
-            }
-            #shareFloatOverlay .share-float-card {
-                max-width: 100%;
-                margin: 0;
-                padding: 16px 14px 20px;
-                border-radius: 20px;
-                max-height: 95vh;
-            }
-            #shareFloatOverlay .share-preview-card .share-card-footer {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-            #shareFloatOverlay .share-preview-card .share-card-footer .qr-wrapper {
-                justify-content: center;
-            }
-            #shareFloatOverlay .share-preview-card .share-card-footer .share-site {
-                text-align: center;
-            }
-            #shareFloatOverlay .share-preview-card .card-cover-wrap {
-                aspect-ratio: 460/215;
-            }
-            #shareFloatOverlay .share-float-download-wrap .btn {
-                font-size: 0.82rem;
-                padding: 8px 20px;
-            }
         }
 
         @media (max-width:480px) {
@@ -3593,45 +3476,199 @@
                 font-size: 0.6rem;
                 padding: 2px 6px;
             }
+        }
 
-            /* 分享浮层极小屏适配 */
-            #shareFloatOverlay {
-                padding: 8px;
+        /* ===== 详情页移动端额外优化 ===== */
+        @media (max-width: 768px) {
+            .modal {
+                padding: 14px 12px 40px;
             }
-            #shareFloatOverlay .share-float-card {
-                padding: 12px 10px 16px;
-                border-radius: 16px;
+
+            .detail-container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "main"
+                    "desc"
+                    "other"
+                    "screenshots"
+                    "reviews"
+                    "actions";
+                gap: 14px;
             }
-            #shareFloatOverlay .share-preview-card .card-title {
+
+            .detail-main {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .detail-cover-wrapper {
+                aspect-ratio: 16/9;
+                max-height: 260px;
+            }
+            .detail-cover-wrapper img {
+                object-fit: cover;
+            }
+            .detail-title {
+                font-size: 1.4rem;
+            }
+            .detail-info-wrapper {
+                gap: 4px;
+            }
+            .detail-meta-row {
+                font-size: 0.82rem;
+                gap: 6px 14px;
+            }
+            .detail-tags-row .detail-tag {
+                font-size: 0.72rem;
+                padding: 2px 10px;
+            }
+            .detail-short-desc {
+                font-size: 0.82rem;
+            }
+            .detail-description {
                 font-size: 0.85rem;
+                padding: 12px 16px;
             }
-            #shareFloatOverlay .share-preview-card .card-desc {
-                font-size: 0.68rem;
+            .detail-other-info {
+                padding: 12px 14px;
             }
-            #shareFloatOverlay .share-preview-card .card-meta span {
-                font-size: 0.6rem;
-                padding: 1px 6px;
+            .detail-other-info .detail-info-table {
+                font-size: 1rem;
             }
-            #shareFloatOverlay .share-preview-card .share-card-footer .qr-wrapper #shareFloatQR {
-                width: 50px;
-                height: 50px;
+            .detail-other-info .detail-info-table td {
+                padding: 5px 6px;
             }
-            #shareFloatOverlay .share-preview-card .share-card-footer .qr-wrapper .qr-label {
-                font-size: 0.55rem;
-                max-width: 60px;
+            .detail-screenshots {
+                padding: 12px 14px;
             }
-            #shareFloatOverlay .share-preview-card .share-card-footer .share-site {
-                font-size: 0.6rem;
+            .detail-screenshots-grid {
+                gap: 6px;
             }
-            #shareFloatOverlay .share-float-download-wrap .btn {
-                font-size: 0.75rem;
-                padding: 6px 16px;
+            .detail-screenshots-grid img {
+                max-height: 160px;
             }
-            #shareFloatOverlay .share-float-header {
+            .detail-screenshots-grid.screenshots-2 img {
+                max-height: none;
+            }
+            .detail-header {
+                gap: 8px;
+                padding: 4px 0 10px;
+            }
+            .detail-back-btn {
                 font-size: 0.8rem;
+                padding: 4px 12px 4px 8px;
             }
-            #shareFloatOverlay .share-float-header .close-float-btn {
+            .detail-share-btn {
+                font-size: 0.78rem;
+                padding: 4px 10px;
+            }
+            .detail-status-label {
+                font-size: 0.75rem;
+                padding: 1px 10px;
+            }
+            .detail-id {
+                font-size: 0.7rem;
+            }
+            .detail-actions {
+                gap: 8px;
+            }
+            .detail-links .detail-link-btn {
+                font-size: 0.9rem;
+                padding: 4px 14px;
+            }
+
+            .review-section {
+                margin-top: 0;
+                padding-top: 10px;
+            }
+            #imageViewerOverlay img {
+                max-width: 100vw;
+                max-height: 80vh;
+            }
+            #imageViewerClose {
+                top: 12px;
+                right: 16px;
+                font-size: 1.6rem;
+                padding: 0 12px;
+            }
+
+            /* 打赏弹窗移动端适配 */
+            #tipModalOverlay .modal {
+                max-width: 95%;
+                padding: 24px 16px 28px;
+                border-radius: 24px;
+            }
+            #tipModalOverlay .tip-card {
+                padding: 18px 14px 22px;
+            }
+            #tipModalOverlay .tip-card .big-icon {
+                font-size: 2.8rem;
+            }
+            #tipModalOverlay .tip-card h3 {
                 font-size: 1.1rem;
+            }
+            #tipModalOverlay .tip-card .tip-btn {
+                padding: 10px 28px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal {
+                padding: 10px 8px 32px;
+            }
+            .detail-title {
+                font-size: 1.2rem;
+            }
+            .detail-cover-wrapper {
+                max-height: 180px;
+            }
+            .detail-short-desc {
+                font-size: 0.78rem;
+            }
+            .detail-description {
+                font-size: 0.8rem;
+                padding: 10px 12px;
+            }
+            .detail-other-info .detail-info-table {
+                font-size: 0.9rem;
+            }
+            .detail-other-info .detail-info-table td {
+                padding: 4px 4px;
+            }
+            .detail-other-info .detail-info-table td:first-child {
+                width: 34%;
+            }
+            .detail-back-btn {
+                font-size: 0.72rem;
+                padding: 3px 8px 3px 6px;
+            }
+            .detail-share-btn {
+                font-size: 0.7rem;
+                padding: 3px 8px;
+            }
+            .detail-status-label {
+                font-size: 0.68rem;
+                padding: 1px 8px;
+            }
+            .detail-links .detail-link-btn {
+                font-size: 0.8rem;
+                padding: 3px 12px;
+            }
+            .detail-screenshots-grid img {
+                max-height: 120px;
+            }
+            .detail-screenshots-grid.screenshots-2 img {
+                max-height: none;
+            }
+            #imageViewerOverlay img {
+                max-height: 70vh;
+            }
+            #imageViewerClose {
+                top: 10px;
+                right: 12px;
+                font-size: 1.4rem;
+                padding: 0 10px;
             }
         }
     </style>
@@ -3661,10 +3698,7 @@
                 <span class="announcement-icon">📢</span>
                 <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
             </div>
-            <div class="announcement-item">
-                <span class="announcement-icon">💾</span>
-                <span class="announcement-text"><strong>温馨提示：</strong>愿望单、玩过记录、评分和评论等数据已支持云端同步，登录后自动合并，跨设备无缝使用。</span>
-            </div>
+            <!-- 已删除第二条公告（关于云端同步） -->
             <div class="announcement-item">
                 <span class="announcement-icon">💖</span>
                 <span class="announcement-text">用户的打赏将用于维护本网页运行，感谢各位姊妹的大力支持，今后也将持续录入更多女性主角游戏。</span>
@@ -3764,39 +3798,23 @@
     </div>
 
     <!-- ================================================================
-   ★ 详情页 — 全屏独立子页面 (全新排版)
+   ★ 详情页 — 全屏独立子页面
    ================================================================ -->
     <div class="modal-overlay" id="detailModalOverlay">
         <div class="modal" id="detailModal"></div>
-        <!-- ===== 分享浮层 (浮动在详情页上方) ===== -->
+        <!-- ===== 分享浮层 (展示生成图片) ===== -->
         <div id="shareFloatOverlay">
             <div class="share-float-card">
                 <div class="share-float-header">
-                    <span>📤 分享卡片预览</span>
+                    <span class="hint-text">📤 分享图片</span>
                     <button class="close-float-btn" id="shareFloatClose">✕</button>
                 </div>
-                <!-- 卡片内容 -->
-                <div class="share-preview-card">
-                    <div class="card-cover-wrap">
-                        <img src="" alt="游戏封面" style="display:none;" />
-                        <div class="cover-placeholder" style="display:flex;">🎮</div>
-                        <div class="card-heroine-tag" style="display:none;"></div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-title"></div>
-                        <div class="card-desc"></div>
-                        <div class="card-meta"></div>
-                    </div>
-                    <div class="share-card-footer">
-                        <div class="qr-wrapper">
-                            <div id="shareFloatQR"></div>
-                            <span class="qr-label">扫码查看<br />游戏详情</span>
-                        </div>
-                        <span class="share-site">Her-Lens · 女性主角游戏</span>
-                    </div>
+                <div class="share-image-container" id="shareImageContainer">
+                    <!-- 由 js 动态生成 img -->
                 </div>
+                <div class="long-press-hint" id="longPressHint">📱 长按图片即可保存</div>
                 <div class="share-float-download-wrap">
-                    <button class="btn" id="shareFloatDownloadBtn">📥 保存分享图片</button>
+                    <button class="btn" id="shareFloatDownloadBtn">📥 下载图片</button>
                 </div>
             </div>
         </div>
@@ -3830,7 +3848,7 @@
     </div>
 
     <!-- ================================================================
-   ★ 打赏弹窗 — 经典设计
+   ★ 打赏弹窗
    ================================================================ -->
     <div class="modal-overlay" id="tipModalOverlay">
         <div class="modal" id="tipModal">
@@ -3949,36 +3967,6 @@
         </div>
     </div>
 
-    <!-- ================================================================
-   ★ 分享卡片生成器 (隐藏，用于 html2canvas 渲染高质量图片)
-   ================================================================ -->
-    <div id="shareCardGenerator" style="position:fixed;left:-9999px;top:0;width:600px;background:#fff;border-radius:20px;padding:24px 28px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.30);z-index:9999;font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;color:#1e1822;pointer-events:none;opacity:0;">
-        <div class="share-card-inner" id="shareCardInner">
-            <div class="share-card-header" style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #f0ebf5;padding-bottom:12px;">
-                <span style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#9b8abd,#7e6fa0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.04em;">Her Lens</span>
-                <span style="font-size:0.7rem;background:#9b8abd;color:#fff;padding:2px 12px;border-radius:20px;font-weight:600;-webkit-text-fill-color:#fff;">女性主角游戏</span>
-            </div>
-            <div class="share-card-body" style="display:flex;gap:18px;align-items:flex-start;padding-top:12px;">
-                <div class="share-card-cover" style="width:180px;flex-shrink:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#e8e2ee;border:1px solid #ddd6e4;">
-                    <img id="shareCardCoverImg" src="" alt="游戏封面" style="width:100%;height:100%;object-fit:cover;display:block;" />
-                </div>
-                <div class="share-card-info" style="flex:1;min-width:0;">
-                    <div class="game-title" id="shareCardTitle" style="font-size:1.25rem;font-weight:700;color:#1e1822;line-height:1.2;margin-bottom:2px;">游戏名称</div>
-                    <div class="game-desc" id="shareCardDesc" style="font-size:0.82rem;color:#665c72;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">游戏简介</div>
-                    <div class="game-meta" id="shareCardMeta" style="display:flex;flex-wrap:wrap;gap:4px 10px;font-size:0.75rem;color:#8c8099;margin-top:4px;"></div>
-                    <div class="game-tags" id="shareCardTags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;"></div>
-                </div>
-            </div>
-            <div class="share-card-footer" style="display:flex;align-items:center;justify-content:space-between;border-top:2px solid #f0ebf5;padding-top:12px;margin-top:2px;gap:16px;">
-                <div class="qr-wrapper" style="display:flex;align-items:center;gap:10px;">
-                    <div id="shareQRCode" style="width:80px;height:80px;flex-shrink:0;background:#fff;border-radius:8px;padding:4px;border:1px solid #ddd6e4;"></div>
-                    <span style="font-size:0.7rem;color:#8c8099;line-height:1.3;max-width:100px;">扫码查看<br />游戏详情</span>
-                </div>
-                <span style="font-size:0.7rem;color:#9b8abd;font-weight:600;letter-spacing:0.04em;text-align:right;flex-shrink:0;">Her-Lens · 女性主角游戏</span>
-            </div>
-        </div>
-    </div>
-
     <script>
         (function() {
             'use strict';
@@ -4047,7 +4035,7 @@
             let avatarPreviewUrl = null;
 
             // 分享相关
-            let shareFloatQRInstance = null;
+            let shareQRInstance = null;
 
             if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) {
                 isTouchDevice = true;
@@ -4497,7 +4485,7 @@
                     el.textContent = '☁️ 已同步';
                 } else if (status === 'syncing') {
                     el.classList.add('syncing');
-                    el.textContent = '⏳ 同步中…';
+                    el.textContent = '⏳ ' + (msg || '正在展开地图');
                 } else if (status === 'error') {
                     el.classList.add('error');
                     el.textContent = '⚠️ ' + (msg || '同步失败');
@@ -4507,7 +4495,7 @@
             async function loadFromSupabase() {
                 const client = getSupabase();
                 if (!client) return null;
-                setSyncStatus('syncing');
+                setSyncStatus('syncing', '正在展开地图');
                 try {
                     const { data, error } = await client.from('games')
                         .select('*')
@@ -5217,131 +5205,268 @@
             }
 
             // ================================================================
-            // ★ 分享功能 — 浮层预览 + 下载
+            // ★ 分享功能 — 生成图片，显示在浮层中 (移动端长按保存)
             // ================================================================
 
-            // 当前正在分享的游戏
             let currentShareGame = null;
+            let shareImageDataURL = null;
 
-            function buildShareFloat(game) {
-                currentShareGame = game;
-                const overlay = document.getElementById('shareFloatOverlay');
-                if (!overlay) return;
-
-                // 获取卡片内元素
-                const card = overlay.querySelector('.share-preview-card');
-                if (!card) return;
+            // 构建分享卡片 DOM (用于截图)
+            function buildShareCardDOM(game) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText =
+                    'width:400px;background:#ffffff;border-radius:20px;overflow:hidden;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1e1822;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:0;';
 
                 // 封面
-                const coverImg = card.querySelector('.card-cover-wrap img');
-                const coverPlaceholder = card.querySelector('.card-cover-wrap .cover-placeholder');
-                const heroineTag = card.querySelector('.card-heroine-tag');
-
+                const coverWrap = document.createElement('div');
+                coverWrap.style.cssText = 'width:100%;aspect-ratio:460/215;background:#e8e2ee;position:relative;';
                 if (game.cover) {
-                    coverImg.src = game.cover;
-                    coverImg.style.display = 'block';
-                    coverPlaceholder.style.display = 'none';
+                    const img = document.createElement('img');
+                    img.src = game.cover;
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+                    img.crossOrigin = 'anonymous';
+                    coverWrap.appendChild(img);
                 } else {
-                    coverImg.style.display = 'none';
-                    coverPlaceholder.style.display = 'flex';
+                    const ph = document.createElement('div');
+                    ph.style.cssText =
+                        'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#8c8099;background:#e8e2ee;';
+                    ph.textContent = '🎮';
+                    coverWrap.appendChild(ph);
                 }
-
                 if (game.heroineType) {
-                    heroineTag.textContent = game.heroineType;
-                    heroineTag.style.display = 'block';
+                    const tag = document.createElement('div');
+                    tag.style.cssText =
+                        'position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#6b5a8a,#4a3a66);color:#fff;padding:2px 12px;border-radius:20px;font-size:0.65rem;font-weight:700;letter-spacing:0.04em;border:1px solid rgba(255,255,255,0.2);box-shadow:0 2px 14px rgba(60,40,80,0.45);text-shadow:0 1px 3px rgba(0,0,0,0.25);text-transform:uppercase;';
+                    tag.textContent = game.heroineType;
+                    coverWrap.appendChild(tag);
+                }
+                wrapper.appendChild(coverWrap);
+
+                // 信息区
+                const body = document.createElement('div');
+                body.style.cssText = 'padding:14px 16px 10px;';
+                const title = document.createElement('div');
+                title.style.cssText = 'font-size:1.15rem;font-weight:700;color:#1e1822;line-height:1.3;margin-bottom:2px;';
+                title.textContent = game.title || '';
+                body.appendChild(title);
+
+                const desc = document.createElement('div');
+                desc.style.cssText =
+                    'font-size:0.78rem;color:#665c72;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px;';
+                desc.textContent = game.description || '';
+                body.appendChild(desc);
+
+                const meta = document.createElement('div');
+                meta.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+                if (game.hasChinese === '有中文') {
+                    const sp = document.createElement('span');
+                    sp.style.cssText =
+                        'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#9b8abd;color:#fff;font-weight:500;';
+                    sp.textContent = '中文';
+                    meta.appendChild(sp);
+                } else if (game.hasChinese === '无中文') {
+                    const sp = document.createElement('span');
+                    sp.style.cssText =
+                        'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#8c8099;color:#fff;font-weight:500;';
+                    sp.textContent = '无中文';
+                    meta.appendChild(sp);
+                }
+                if (game.isReleased) {
+                    (game.genre || []).slice(0, 3).forEach(t => {
+                        const sp = document.createElement('span');
+                        sp.style.cssText =
+                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                        sp.textContent = t;
+                        meta.appendChild(sp);
+                    });
+                    (game.gameplay || []).slice(0, 2).forEach(t => {
+                        const sp = document.createElement('span');
+                        sp.style.cssText =
+                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                        sp.textContent = t;
+                        meta.appendChild(sp);
+                    });
                 } else {
-                    heroineTag.style.display = 'none';
+                    if (game.hasDemo) {
+                        const sp = document.createElement('span');
+                        sp.style.cssText =
+                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#9b8abd;color:#fff;font-weight:500;';
+                        sp.textContent = '有Demo';
+                        meta.appendChild(sp);
+                    }
+                    (game.genre || []).slice(0, 3).forEach(t => {
+                        const sp = document.createElement('span');
+                        sp.style.cssText =
+                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                        sp.textContent = t;
+                        meta.appendChild(sp);
+                    });
                 }
-
-                // 标题
-                const titleEl = card.querySelector('.card-title');
-                if (titleEl) titleEl.textContent = game.title || '';
-
-                // 简介
-                const descEl = card.querySelector('.card-desc');
-                if (descEl) descEl.textContent = game.description || '';
-
-                // 元信息
-                const metaEl = card.querySelector('.card-meta');
-                if (metaEl) {
-                    let metaHTML = '';
-                    if (game.hasChinese === '有中文') {
-                        metaHTML += `<span class="accent-tag">中文</span>`;
-                    } else if (game.hasChinese === '无中文') {
-                        metaHTML += `<span class="tag-muted">无中文</span>`;
-                    }
-                    if (game.isReleased) {
-                        (game.genre || []).slice(0, 3).forEach(t => {
-                            metaHTML += `<span>${escapeHTML(t)}</span>`;
-                        });
-                        (game.gameplay || []).slice(0, 2).forEach(t => {
-                            metaHTML += `<span>${escapeHTML(t)}</span>`;
-                        });
-                    } else {
-                        if (game.hasDemo) {
-                            metaHTML += `<span class="accent-tag">有Demo</span>`;
-                        }
-                        (game.genre || []).slice(0, 3).forEach(t => {
-                            metaHTML += `<span>${escapeHTML(t)}</span>`;
-                        });
-                    }
-                    if (game.releaseDate) {
-                        metaHTML += `<span>${escapeHTML(game.releaseDate)}</span>`;
-                    }
-                    metaEl.innerHTML = metaHTML;
+                if (game.releaseDate) {
+                    const sp = document.createElement('span');
+                    sp.style.cssText =
+                        'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                    sp.textContent = game.releaseDate;
+                    meta.appendChild(sp);
                 }
+                body.appendChild(meta);
+                wrapper.appendChild(body);
 
-                // 二维码
-                const qrContainer = document.getElementById('shareFloatQR');
-                if (qrContainer) {
-                    const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
-                    qrContainer.innerHTML = '';
-                    if (typeof QRCode !== 'undefined') {
+                // 底部：二维码 + 品牌
+                const footer = document.createElement('div');
+                footer.style.cssText =
+                    'display:flex;align-items:center;justify-content:space-between;padding:10px 16px 14px;border-top:1px solid #f0ebf5;gap:12px;background:#faf7fd;';
+
+                const qrWrap = document.createElement('div');
+                qrWrap.style.cssText = 'display:flex;align-items:center;gap:10px;';
+                const qrContainer = document.createElement('div');
+                qrContainer.id = 'shareCardQRContainer';
+                qrContainer.style.cssText = 'width:72px;height:72px;background:#fff;border-radius:8px;padding:4px;border:1px solid #ddd6e4;flex-shrink:0;';
+                qrWrap.appendChild(qrContainer);
+
+                const qrLabel = document.createElement('span');
+                qrLabel.style.cssText =
+                'font-size:0.6rem;color:#8c8099;line-height:1.3;max-width:80px;text-align:left;';
+                qrLabel.textContent = '扫码查看\n游戏详情';
+                qrWrap.appendChild(qrLabel);
+                footer.appendChild(qrWrap);
+
+                const brand = document.createElement('span');
+                brand.style.cssText =
+                    'font-size:0.65rem;color:#9b8abd;font-weight:600;letter-spacing:0.04em;text-align:right;flex-shrink:0;';
+                brand.textContent = 'Her-Lens · 女性主角游戏';
+                footer.appendChild(brand);
+
+                wrapper.appendChild(footer);
+
+                // 生成二维码
+                const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
+                setTimeout(() => {
+                    const qrEl = document.getElementById('shareCardQRContainer');
+                    if (qrEl && typeof QRCode !== 'undefined') {
                         try {
-                            shareFloatQRInstance = new QRCode(qrContainer, {
+                            new QRCode(qrEl, {
                                 text: shareUrl,
-                                width: 64,
-                                height: 64,
+                                width: 72,
+                                height: 72,
                                 colorDark: '#1e1822',
                                 colorLight: '#ffffff',
                                 correctLevel: QRCode.CorrectLevel.H
                             });
                         } catch (e) {
-                            qrContainer.innerHTML =
-                                `<div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
-                            console.warn('QRCode 生成失败:', e);
+                            qrEl.innerHTML =
+                                `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
                         }
-                    } else {
-                        qrContainer.innerHTML =
-                            `<div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">QR库未加载</div>`;
                     }
-                }
+                }, 50);
 
-                // 显示浮层
+                return wrapper;
+            }
+
+            async function generateShareImage(game) {
+                const wrapper = buildShareCardDOM(game);
+                // 暂时添加到页面中以便截图
+                wrapper.style.position = 'fixed';
+                wrapper.style.left = '-9999px';
+                wrapper.style.top = '0';
+                wrapper.style.zIndex = '9999';
+                wrapper.style.pointerEvents = 'none';
+                document.body.appendChild(wrapper);
+
+                // 等待二维码渲染
+                await new Promise(r => setTimeout(r, 300));
+
+                try {
+                    if (typeof html2canvas === 'undefined') {
+                        showToast('⚠️ 截图库未加载，请刷新页面', 2500);
+                        return null;
+                    }
+                    // 等待图片加载
+                    const imgs = wrapper.querySelectorAll('img');
+                    await Promise.all(Array.from(imgs).map(img =>
+                        new Promise((resolve) => {
+                            if (img.complete) resolve();
+                            else { img.onload = resolve;
+                                img.onerror = resolve; }
+                        })
+                    ));
+
+                    const canvas = await html2canvas(wrapper, {
+                        scale: 2.5,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff',
+                        allowTaint: false,
+                        foreignObjectRendering: false,
+                        width: 400,
+                        height: wrapper.scrollHeight,
+                    });
+                    return canvas.toDataURL('image/png');
+                } catch (err) {
+                    console.error('生成分享图片失败:', err);
+                    showToast('⚠️ 生成图片失败，请重试', 2000);
+                    return null;
+                } finally {
+                    wrapper.remove();
+                }
+            }
+
+            async function buildShareFloat(game) {
+                currentShareGame = game;
+                const overlay = document.getElementById('shareFloatOverlay');
+                const container = document.getElementById('shareImageContainer');
+                const downloadBtn = document.getElementById('shareFloatDownloadBtn');
+                const hint = document.getElementById('longPressHint');
+
+                // 显示加载提示
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">⏳ 生成分享图片...</div>';
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
 
-                // 绑定下载按钮
-                const downloadBtn = document.getElementById('shareFloatDownloadBtn');
-                if (downloadBtn) {
-                    // 移除旧监听，避免重复绑定
-                    const newBtn = downloadBtn.cloneNode(true);
-                    downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
-                    newBtn.addEventListener('click', function() {
-                        if (currentShareGame) {
-                            downloadShareImage(currentShareGame);
-                        }
-                    });
+                const dataUrl = await generateShareImage(game);
+                if (!dataUrl) {
+                    container.innerHTML =
+                        '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div>';
+                    return;
                 }
 
-                // 绑定关闭按钮
-                const closeBtn = document.getElementById('shareFloatClose');
-                if (closeBtn) {
-                    const newClose = closeBtn.cloneNode(true);
-                    closeBtn.parentNode.replaceChild(newClose, closeBtn);
-                    newClose.addEventListener('click', closeShareFloat);
+                shareImageDataURL = dataUrl;
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.alt = `${game.title} 分享图片`;
+                img.style.cssText = 'width:100%;height:auto;display:block;border-radius:16px;';
+                img.setAttribute('draggable', 'false');
+                container.innerHTML = '';
+                container.appendChild(img);
+
+                // 移动端显示长按提示，桌面端显示下载按钮
+                const isMobile = window.innerWidth <= 768 || isTouchDevice;
+                if (isMobile) {
+                    hint.style.display = 'block';
+                    downloadBtn.textContent = '📥 下载图片 (备用)';
+                } else {
+                    hint.style.display = 'none';
+                    downloadBtn.textContent = '📥 下载分享图片';
                 }
-                // 点击背景关闭
+
+                // 绑定下载按钮
+                const newBtn = downloadBtn.cloneNode(true);
+                downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+                newBtn.addEventListener('click', function() {
+                    if (shareImageDataURL) {
+                        const link = document.createElement('a');
+                        link.download = `HerLens_分享_${game.title || 'game'}_${Date.now()}.png`;
+                        link.href = shareImageDataURL;
+                        link.click();
+                        showToast('✅ 图片已下载！', 2000);
+                    }
+                });
+
+                // 绑定关闭
+                const closeBtn = document.getElementById('shareFloatClose');
+                const newClose = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newClose, closeBtn);
+                newClose.addEventListener('click', closeShareFloat);
                 overlay.addEventListener('click', function(e) {
                     if (e.target === overlay) {
                         closeShareFloat();
@@ -5354,108 +5479,12 @@
                 overlay.classList.remove('show');
                 document.body.style.overflow = '';
                 currentShareGame = null;
-            }
-
-            async function downloadShareImage(game) {
-                const generator = document.getElementById('shareCardGenerator');
-                if (!generator) return;
-
-                // 填充生成器
-                const coverImg = document.getElementById('shareCardCoverImg');
-                const titleEl = document.getElementById('shareCardTitle');
-                const descEl = document.getElementById('shareCardDesc');
-                const metaEl = document.getElementById('shareCardMeta');
-                const tagsEl = document.getElementById('shareCardTags');
-                const qrContainer = document.getElementById('shareQRCode');
-
-                titleEl.textContent = game.title || '游戏名称';
-                descEl.textContent = game.description || '';
-
-                let metaParts = [];
-                if (game.releaseDate) metaParts.push(`📅 ${game.releaseDate}`);
-                if (game.hasChinese) metaParts.push(`🌐 ${game.hasChinese}`);
-                if (game.heroineType) metaParts.push(`👤 ${game.heroineType}`);
-                if (game.isReleased) metaParts.push('✅ 已发售');
-                else metaParts.push('⏳ 未发售');
-                metaEl.textContent = metaParts.join(' · ');
-
-                const genreTags = (game.genre || []).slice(0, 4);
-                const gameplayTags = (game.gameplay || []).slice(0, 3);
-                const allTags = [...genreTags, ...gameplayTags];
-                tagsEl.innerHTML = allTags.map(t =>
-                    `<span style="font-size:0.68rem;padding:1px 10px;border-radius:12px;background:#f0ebf5;color:#5a4e66;display:inline-block;margin:2px;">${escapeHTML(t)}</span>`
-                ).join('');
-
-                if (game.cover) {
-                    coverImg.src = game.cover;
-                    coverImg.style.display = 'block';
-                } else {
-                    coverImg.style.display = 'none';
-                }
-
-                const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
-                qrContainer.innerHTML = '';
-                if (typeof QRCode !== 'undefined') {
-                    try {
-                        new QRCode(qrContainer, {
-                            text: shareUrl,
-                            width: 80,
-                            height: 80,
-                            colorDark: '#1e1822',
-                            colorLight: '#ffffff',
-                            correctLevel: QRCode.CorrectLevel.H
-                        });
-                    } catch (e) {
-                        qrContainer.innerHTML =
-                            `<div style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
-                    }
-                } else {
-                    qrContainer.innerHTML =
-                        `<div style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#999;background:#f5f0f8;border-radius:8px;">QR库未加载</div>`;
-                }
-
-                generator.style.opacity = '1';
-                generator.style.pointerEvents = 'none';
-
-                await new Promise(r => requestAnimationFrame(r));
-                await new Promise(r => setTimeout(r, 100));
-
-                try {
-                    if (typeof html2canvas === 'undefined') {
-                        showToast('⚠️ 分享功能依赖未加载，请刷新页面', 2500);
-                        generator.style.opacity = '0';
-                        return;
-                    }
-
-                    const canvas = await html2canvas(generator, {
-                        scale: 2.5,
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#ffffff',
-                        allowTaint: false,
-                        foreignObjectRendering: false,
-                        width: 600,
-                        height: generator.scrollHeight,
-                    });
-
-                    const link = document.createElement('a');
-                    link.download = `HerLens_分享_${game.title || 'game'}_${Date.now()}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-
-                    showToast('✅ 分享图片已保存！', 2200);
-
-                } catch (err) {
-                    console.error('生成分享图片失败:', err);
-                    showToast('⚠️ 生成图片失败，请重试', 2000);
-                } finally {
-                    generator.style.opacity = '0';
-                    generator.style.pointerEvents = 'none';
-                }
+                shareImageDataURL = null;
+                document.getElementById('shareImageContainer').innerHTML = '';
             }
 
             // ================================================================
-            // ★ 详情页 — 全新排版 (桌面端两栏 / 移动端单栏)
+            // ★ 详情页
             // ================================================================
 
             function showDetailModal(game, options) {
@@ -5471,7 +5500,6 @@
                 window.history.pushState({ gameId: game.id }, '', url.toString());
                 document.title = `${game.title} · Her Lens`;
 
-                // ---- 构建数据 ----
                 const genres = (game.genre || []).map(g => `<span class="detail-tag">${escapeHTML(g)}</span>`).join('');
                 const gameplays = (game.gameplay || []).map(g => `<span class="detail-tag">${escapeHTML(g)}</span>`).join('');
 
@@ -5503,7 +5531,6 @@
                           ${game.lowestPrice ? `<tr><td>💸 史低价格</td><td>${escapeHTML(game.lowestPrice)}</td></tr>` : ''}`;
                 }
 
-                // ★ 截图
                 const screenshotCount = (game.screenshots || []).length;
                 let screenshotsHTML = '';
                 if (screenshotCount > 0) {
@@ -5537,7 +5564,6 @@
                     `<div class="detail-links">${links.join(' ')}</div>` :
                     '';
 
-                // ---- 评分与评论 ----
                 const userReview = userData.reviews.find(r => r.game_id === game.id);
                 const userRating = userReview?.rating ?? null;
                 const userComment = userReview?.comment ?? null;
@@ -5624,11 +5650,9 @@
                     `<button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>` :
                     '';
 
-                // ---- 组装 HTML (移除原有的分享预览区域) ----
                 modal.innerHTML = `
                         <div class="detail-container">
 
-                            <!-- 顶部栏 -->
                             <div class="detail-header">
                                 <button class="detail-back-btn" id="detailBackBtn">
                                     <span class="back-icon">←</span> 返回列表
@@ -5638,7 +5662,6 @@
                                 <button class="detail-share-btn" id="detailShareBtn">📤 分享</button>
                             </div>
 
-                            <!-- 主区域：封面 + 基本信息 -->
                             <div class="detail-main">
                                 <div class="detail-cover-wrapper">
                                     ${game.cover ? `<img src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" onerror="this.style.display='none';" />` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:3rem;">🎮</div>'}
@@ -5660,12 +5683,10 @@
                                 </div>
                             </div>
 
-                            <!-- 详细简介 -->
                             <div class="detail-description">
                                 ${escapeHTML(game.fullDescription || game.description || '暂无简介')}
                             </div>
 
-                            <!-- 底部：其他信息 + 实机展示图 -->
                             <div class="detail-other-info">
                                 <table class="detail-info-table">
                                     ${otherRows}
@@ -5681,13 +5702,11 @@
                                 </div>
                             </div>
 
-                            <!-- 评论区 -->
                             <div class="review-section">
                                 <div class="review-section-title">✏️ 评价</div>
                                 ${reviewHTML}
                             </div>
 
-                            <!-- 操作按钮区域 -->
                             <div class="detail-actions">
                                 <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn">${isInWishlist(game.id) ? '❤️ 从愿望单移除' : '🤍 加入愿望单'}</button>
                                 ${detailPlayBtnHtml}
@@ -5701,14 +5720,11 @@
                 document.body.style.overflow = 'hidden';
                 overlay.scrollTop = 0;
 
-                // ---- 事件绑定 ----
-
                 modal.querySelector('#detailBackBtn').addEventListener('click', function(e) {
                     e.preventDefault();
                     closeDetailModal();
                 });
 
-                // ★ 分享按钮 — 弹出浮层
                 modal.querySelector('#detailShareBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     buildShareFloat(game);
@@ -5735,7 +5751,6 @@
                     });
                 }
 
-                // ---- 评分星星 ----
                 if (currentUser) {
                     const starsContainer = modal.querySelector('#ratingStarsContainer');
                     if (starsContainer) {
@@ -5827,7 +5842,6 @@
                     }
                 }
 
-                // 加载社区评论
                 loadCommunityReviews(game.id);
             }
 
@@ -5841,7 +5855,6 @@
                 window.history.pushState({ gameId: null }, '', url.toString());
                 document.title = 'Her Lens · 女性主角游戏';
 
-                // 关闭可能打开的分享浮层
                 closeShareFloat();
 
                 if (window._detailFrom === 'played') {
@@ -6722,7 +6735,6 @@
                     if (e.target === this) closeMyReviewsModal();
                 });
 
-                // 图片查看器关闭
                 document.getElementById('imageViewerClose').addEventListener('click', closeImageViewer);
                 document.getElementById('imageViewerOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeImageViewer();
@@ -6764,7 +6776,7 @@
                 }
 
                 const userId = currentUser.id;
-                setSyncStatus('syncing', '同步中...');
+                setSyncStatus('syncing', '正在展开地图');
 
                 try {
                     const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
@@ -6864,7 +6876,7 @@
                     console.error('❌ 同步失败:', error);
                     if (retryCount < 3) {
                         console.log(`🔄 重试同步 (${retryCount + 1}/3)...`);
-                        setSyncStatus('syncing', `重试 ${retryCount + 1}/3`);
+                        setSyncStatus('syncing', `正在展开地图 (${retryCount + 1}/3)`);
                         const delay = 2000 * (retryCount + 1);
                         setTimeout(() => syncUserDataWithCloud(retryCount + 1), delay);
                     } else {
@@ -6937,7 +6949,7 @@
                     }
                 }
 
-                console.log('✅ Her Lens 已启动（分享浮层 + 移动端适配优化）');
+                console.log('✅ Her Lens 已启动（分享图片生成 + 公告精简）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
@@ -6955,10 +6967,10 @@
                 }
             }
 
-            // 启动
             init();
         })();
     </script>
+
 </body>
 
 </html>
