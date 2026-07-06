@@ -3671,6 +3671,29 @@
                 padding: 0 10px;
             }
         }
+
+        /* ===== 评论分享按钮样式 ===== */
+        .comment-share-btn {
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .comment-share-btn:hover {
+            color: var(--accent);
+        }
+        .comment-item .comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
@@ -3698,7 +3721,6 @@
                 <span class="announcement-icon">📢</span>
                 <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
             </div>
-            <!-- 已删除第二条公告（关于云端同步） -->
             <div class="announcement-item">
                 <span class="announcement-icon">💖</span>
                 <span class="announcement-text">用户的打赏将用于维护本网页运行，感谢各位姊妹的大力支持，今后也将持续录入更多女性主角游戏。</span>
@@ -5206,16 +5228,36 @@
 
             // ================================================================
             // ★ 分享功能 — 生成图片，显示在浮层中 (移动端长按保存)
+            // ★ 优化速度：使用更简洁的 DOM，减少等待时间
+            // ★ 新增评论分享：生成带评论内容的图片
             // ================================================================
 
             let currentShareGame = null;
             let shareImageDataURL = null;
 
-            // 构建分享卡片 DOM (用于截图)
-            function buildShareCardDOM(game) {
+            // 快速生成分享卡片 DOM (用于截图)
+            function buildShareCardDOM(game, extraComment) {
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText =
                     'width:400px;background:#ffffff;border-radius:20px;overflow:hidden;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1e1822;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:0;';
+
+                // 如果有评论，在顶部显示
+                if (extraComment) {
+                    const commentArea = document.createElement('div');
+                    commentArea.style.cssText =
+                        'padding:16px 16px 12px;background:#f8f5fc;border-bottom:2px solid #f0ebf5;';
+                    const commentLabel = document.createElement('div');
+                    commentLabel.style.cssText =
+                        'font-size:0.7rem;font-weight:600;color:#9b8abd;letter-spacing:0.04em;margin-bottom:4px;';
+                    commentLabel.textContent = '💬 评论分享';
+                    commentArea.appendChild(commentLabel);
+                    const commentText = document.createElement('div');
+                    commentText.style.cssText =
+                        'font-size:0.9rem;color:#1e1822;line-height:1.6;word-break:break-word;white-space:pre-wrap;max-height:120px;overflow:hidden;';
+                    commentText.textContent = extraComment;
+                    commentArea.appendChild(commentText);
+                    wrapper.appendChild(commentArea);
+                }
 
                 // 封面
                 const coverWrap = document.createElement('div');
@@ -5339,58 +5381,44 @@
 
                 wrapper.appendChild(footer);
 
-                // 生成二维码
+                // 生成二维码（同步，用 setTimeout 0 延迟到下一帧，但为了速度，我们采用同步方式，但需要确保 QRCode 已加载）
                 const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
-                setTimeout(() => {
-                    const qrEl = document.getElementById('shareCardQRContainer');
-                    if (qrEl && typeof QRCode !== 'undefined') {
-                        try {
-                            new QRCode(qrEl, {
-                                text: shareUrl,
-                                width: 72,
-                                height: 72,
-                                colorDark: '#1e1822',
-                                colorLight: '#ffffff',
-                                correctLevel: QRCode.CorrectLevel.H
-                            });
-                        } catch (e) {
-                            qrEl.innerHTML =
-                                `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
-                        }
+                // 直接生成，因为 QRCode 是同步的
+                const qrEl = qrContainer;
+                if (typeof QRCode !== 'undefined') {
+                    try {
+                        new QRCode(qrEl, {
+                            text: shareUrl,
+                            width: 72,
+                            height: 72,
+                            colorDark: '#1e1822',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    } catch (e) {
+                        qrEl.innerHTML =
+                            `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
                     }
-                }, 50);
+                } else {
+                    qrEl.innerHTML =
+                        `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">QR库未加载</div>`;
+                }
 
                 return wrapper;
             }
 
-            async function generateShareImage(game) {
-                const wrapper = buildShareCardDOM(game);
-                // 暂时添加到页面中以便截图
-                wrapper.style.position = 'fixed';
-                wrapper.style.left = '-9999px';
-                wrapper.style.top = '0';
-                wrapper.style.zIndex = '9999';
-                wrapper.style.pointerEvents = 'none';
-                document.body.appendChild(wrapper);
-
-                // 等待二维码渲染
-                await new Promise(r => setTimeout(r, 300));
+            // 快速截图（无需等待额外延迟）
+            async function captureShareCard(wrapper) {
+                // 等待一帧让 DOM 渲染
+                await new Promise(r => requestAnimationFrame(r));
+                // 再等待 50ms 确保二维码渲染完成（QRCode 是同步的，但为了保险）
+                await new Promise(r => setTimeout(r, 50));
 
                 try {
                     if (typeof html2canvas === 'undefined') {
                         showToast('⚠️ 截图库未加载，请刷新页面', 2500);
                         return null;
                     }
-                    // 等待图片加载
-                    const imgs = wrapper.querySelectorAll('img');
-                    await Promise.all(Array.from(imgs).map(img =>
-                        new Promise((resolve) => {
-                            if (img.complete) resolve();
-                            else { img.onload = resolve;
-                                img.onerror = resolve; }
-                        })
-                    ));
-
                     const canvas = await html2canvas(wrapper, {
                         scale: 2.5,
                         useCORS: true,
@@ -5406,12 +5434,11 @@
                     console.error('生成分享图片失败:', err);
                     showToast('⚠️ 生成图片失败，请重试', 2000);
                     return null;
-                } finally {
-                    wrapper.remove();
                 }
             }
 
-            async function buildShareFloat(game) {
+            // 显示分享浮层
+            async function buildShareFloat(game, extraComment) {
                 currentShareGame = game;
                 const overlay = document.getElementById('shareFloatOverlay');
                 const container = document.getElementById('shareImageContainer');
@@ -5423,7 +5450,19 @@
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
 
-                const dataUrl = await generateShareImage(game);
+                // 构建 DOM 并截图
+                const wrapper = buildShareCardDOM(game, extraComment || null);
+                // 添加到页面中以便截图
+                wrapper.style.position = 'fixed';
+                wrapper.style.left = '-9999px';
+                wrapper.style.top = '0';
+                wrapper.style.zIndex = '9999';
+                wrapper.style.pointerEvents = 'none';
+                document.body.appendChild(wrapper);
+
+                const dataUrl = await captureShareCard(wrapper);
+                wrapper.remove();
+
                 if (!dataUrl) {
                     container.innerHTML =
                         '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div>';
@@ -5439,7 +5478,7 @@
                 container.innerHTML = '';
                 container.appendChild(img);
 
-                // 移动端显示长按提示，桌面端显示下载按钮
+                // 判断是否为移动端
                 const isMobile = window.innerWidth <= 768 || isTouchDevice;
                 if (isMobile) {
                     hint.style.display = 'block';
@@ -5727,7 +5766,7 @@
 
                 modal.querySelector('#detailShareBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
-                    buildShareFloat(game);
+                    buildShareFloat(game, null);
                 });
 
                 modal.querySelector('#detailWishBtn').addEventListener('click', function(e) {
@@ -5902,7 +5941,7 @@
             }
 
             // ================================================================
-            // 社区评论
+            // 社区评论 (带分享按钮)
             // ================================================================
             async function loadCommunityReviews(gameId) {
                 const statsDisplay = document.getElementById('ratingStatsDisplay');
@@ -5935,6 +5974,9 @@
                         month: 'long',
                         day: 'numeric'
                     }) : '';
+                    const commentText = r.comment || '';
+                    const shareBtnHtml =
+                        `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(commentText)}" data-username="${escapeHTML(r.display_name || '用户')}">📤 分享</button>`;
                     html += `
                             <div class="comment-item">
                                 <div class="comment-header">
@@ -5943,11 +5985,29 @@
                                     ${stars}
                                     <span class="comment-time">${time}</span>
                                 </div>
-                                ${r.comment ? `<div class="comment-text">${escapeHTML(r.comment)}</div>` : ''}
+                                ${commentText ? `<div class="comment-text">${escapeHTML(commentText)}</div>` : ''}
+                                <div class="comment-actions">
+                                    ${shareBtnHtml}
+                                </div>
                             </div>
                         `;
                 });
                 commentsList.innerHTML = html;
+
+                // 绑定分享按钮事件
+                commentsList.querySelectorAll('.comment-share-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const gameIdNum = Number(this.dataset.gameId);
+                        const comment = this.dataset.comment;
+                        if (!gameIdNum || !comment) return;
+                        const game = games.find(g => g.id === gameIdNum);
+                        if (!game) { showToast('未找到游戏信息', 1500); return; }
+                        // 构建分享内容：评论 + 游戏信息
+                        const extraText = `${comment}`;
+                        buildShareFloat(game, extraText);
+                    });
+                });
             }
 
             function extractVideoTitle(url) {
@@ -6949,7 +7009,7 @@
                     }
                 }
 
-                console.log('✅ Her Lens 已启动（分享图片生成 + 公告精简）');
+                console.log('✅ Her Lens 已启动（分享速度优化 + 评论分享功能）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
