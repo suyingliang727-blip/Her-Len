@@ -12,6 +12,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js">
     </script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <!-- 分享功能依赖库 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
+    </script>
     <style>
         /* ================================================================
    全局变量 & 主题 (与原版完全一致)
@@ -1629,9 +1634,7 @@
             line-height: 1.8;
             color: var(--text);
             white-space: pre-line;
-            /* ★ 保留换行但合并空格，去除开头缩进 */
             text-indent: 0;
-            /* 确保无首行缩进 */
         }
 
         /* ---------- 底部：其他信息 + 实机展示图 ---------- */
@@ -1744,7 +1747,6 @@
             background: var(--tag-bg);
             flex-shrink: 0;
         }
-        /* ★ 当截图数量为2时，取消高度限制 */
         .detail-screenshots-grid.screenshots-2 img {
             max-height: none;
             object-fit: contain;
@@ -1857,6 +1859,408 @@
         #imageViewerClose:hover {
             background: rgba(0, 0, 0, 0.8);
             transform: scale(1.05);
+        }
+
+        /* ================================================================
+   ★★★ 玩过记录卡片 — 宽屏8列 ★★★
+   ================================================================ */
+        .played-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .played-grid-item {
+            background: var(--surface);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform 0.25s, box-shadow 0.25s;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .played-grid-item:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: var(--shadow);
+            border-color: var(--accent);
+        }
+        .played-grid-item .item-cover {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            background: var(--tag-bg);
+            display: block;
+        }
+        .played-grid-item .item-cover-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--tag-bg);
+            color: var(--text3);
+            font-size: 2.6rem;
+        }
+        .played-grid-item .item-title {
+            padding: 10px 12px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+        .played-grid-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text3);
+            font-size: 1rem;
+        }
+        .played-grid-empty .empty-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .played-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text3);
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            opacity: 0.7;
+            letter-spacing: 0.06em;
+        }
+
+        /* 响应式：玩过记录卡片列数递减 */
+        @media (max-width: 1200px) {
+            .played-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+        @media (max-width: 992px) {
+            .played-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .played-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .played-grid-item .item-title {
+                font-size: 0.78rem;
+                padding: 6px 8px;
+            }
+            .played-grid-item .item-cover-placeholder {
+                font-size: 2rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .played-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .played-grid-item .item-title {
+                font-size: 0.7rem;
+                padding: 4px 6px;
+            }
+            .played-grid-item .item-cover-placeholder {
+                font-size: 1.6rem;
+            }
+        }
+
+        /* ================================================================
+   ★★★ 打赏弹窗 — 采用第二份文件的经典设计（非毛玻璃） ★★★
+   ================================================================ */
+        #tipModal {
+            max-width: 560px;
+        }
+        #tipModal h2 {
+            text-align: center;
+            margin-bottom: 2px;
+            color: var(--coin-color);
+        }
+        #tipModal .tip-sub {
+            text-align: center;
+            color: var(--text2);
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+        }
+        #tipModal .tip-card {
+            background: var(--surface2);
+            border-radius: 16px;
+            padding: 24px 20px;
+            border: 2px solid var(--accent);
+            text-align: center;
+        }
+        #tipModal .tip-card .big-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+        #tipModal .tip-card h3 {
+            color: var(--text);
+            margin-bottom: 6px;
+            font-size: 1.1rem;
+        }
+        #tipModal .tip-card p {
+            color: var(--text2);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+        #tipModal .tip-card .tip-btn {
+            display: inline-block;
+            padding: 12px 32px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all .2s;
+        }
+        #tipModal .tip-card .tip-btn:hover {
+            background: var(--accent2);
+        }
+        #tipModal .tip-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text3);
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        /* 覆盖通用 modal 样式，使打赏弹窗居中且不占满屏 */
+        #tipModalOverlay .modal-overlay {
+            background: var(--overlay);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+        #tipModalOverlay .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #tipModalOverlay .modal {
+            max-width: 560px;
+            margin: 0 auto;
+            border-radius: 24px;
+            padding: 28px 24px;
+            min-height: auto;
+            background: var(--modal-bg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.96) translateY(10px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #tipModalOverlay .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+        #tipModalOverlay .modal-close {
+            display: flex !important;
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--text2);
+            z-index: 10;
+            background: var(--modal-bg);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            transition: all .2s;
+            margin-left: 8px;
+            margin-bottom: 4px;
+        }
+        #tipModalOverlay .modal-close:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        /* ================================================================
+   ★★★ 分享卡片生成器 (隐藏) ★★★
+   ================================================================ */
+        #shareCardGenerator {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 600px;
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px 28px 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.30);
+            z-index: 9999;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: #1e1822;
+            pointer-events: none;
+            opacity: 0;
+        }
+        #shareCardGenerator .share-card-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #shareCardGenerator .share-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px solid #f0ebf5;
+            padding-bottom: 12px;
+        }
+        #shareCardGenerator .share-card-header .logo-text {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #9b8abd, #7e6fa0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.04em;
+        }
+        #shareCardGenerator .share-card-header .badge {
+            font-size: 0.7rem;
+            background: #9b8abd;
+            color: #fff;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            -webkit-text-fill-color: #fff;
+        }
+        #shareCardGenerator .share-card-body {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+        }
+        #shareCardGenerator .share-card-cover {
+            width: 180px;
+            flex-shrink: 0;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #e8e2ee;
+            border: 1px solid #ddd6e4;
+        }
+        #shareCardGenerator .share-card-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        #shareCardGenerator .share-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        #shareCardGenerator .share-card-info .game-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e1822;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        #shareCardGenerator .share-card-info .game-desc {
+            font-size: 0.82rem;
+            color: #665c72;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        #shareCardGenerator .share-card-info .game-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+            font-size: 0.75rem;
+            color: #8c8099;
+            margin-top: 4px;
+        }
+        #shareCardGenerator .share-card-info .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        #shareCardGenerator .share-card-info .game-tags span {
+            font-size: 0.68rem;
+            padding: 1px 10px;
+            border-radius: 12px;
+            background: #f0ebf5;
+            color: #5a4e66;
+        }
+        #shareCardGenerator .share-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 2px solid #f0ebf5;
+            padding-top: 12px;
+            margin-top: 2px;
+            gap: 16px;
+        }
+        #shareCardGenerator .share-card-footer .qr-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #shareCardGenerator .share-card-footer .qr-wrapper #shareQRCode {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px;
+            border: 1px solid #ddd6e4;
+        }
+        #shareCardGenerator .share-card-footer .qr-wrapper .qr-label {
+            font-size: 0.7rem;
+            color: #8c8099;
+            line-height: 1.3;
+            max-width: 100px;
+        }
+        #shareCardGenerator .share-card-footer .share-site {
+            font-size: 0.7rem;
+            color: #9b8abd;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* ================================================================
+   ★★★ 分享图片下载按钮 ★★★
+   ================================================================ */
+        #shareDownloadBtn {
+            display: none;
+            margin: 12px auto 0;
+            padding: 10px 28px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            box-shadow: 0 4px 20px rgba(155, 138, 189, 0.30);
+        }
+        #shareDownloadBtn:hover {
+            background: var(--accent2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(155, 138, 189, 0.40);
+        }
+        #shareDownloadBtn.show {
+            display: block;
         }
 
         /* ================================================================
@@ -1974,6 +2378,56 @@
                 font-size: 1.6rem;
                 padding: 0 12px;
             }
+
+            /* 打赏弹窗移动端适配 */
+            #tipModalOverlay .modal {
+                max-width: 95%;
+                padding: 24px 16px 28px;
+                border-radius: 24px;
+            }
+            #tipModalOverlay .tip-card {
+                padding: 18px 14px 22px;
+            }
+            #tipModalOverlay .tip-card .big-icon {
+                font-size: 2.8rem;
+            }
+            #tipModalOverlay .tip-card h3 {
+                font-size: 1.1rem;
+            }
+            #tipModalOverlay .tip-card .tip-btn {
+                padding: 10px 28px;
+                font-size: 0.95rem;
+            }
+
+            /* 分享卡片生成器移动适配 */
+            #shareCardGenerator {
+                width: 100%;
+                max-width: 400px;
+                padding: 16px 14px 14px;
+                border-radius: 16px;
+            }
+            #shareCardGenerator .share-card-body {
+                flex-direction: column;
+                gap: 12px;
+            }
+            #shareCardGenerator .share-card-cover {
+                width: 100%;
+                aspect-ratio: 16/9;
+            }
+            #shareCardGenerator .share-card-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            #shareCardGenerator .share-card-footer .qr-wrapper {
+                justify-content: center;
+            }
+            #shareCardGenerator .share-card-footer .share-site {
+                text-align: center;
+            }
+            #shareCardGenerator .share-card-info .game-title {
+                font-size: 1.05rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -2033,9 +2487,23 @@
                 font-size: 1.4rem;
                 padding: 0 10px;
             }
+            #shareCardGenerator {
+                max-width: 320px;
+                padding: 12px 10px 12px;
+            }
+            #shareCardGenerator .share-card-info .game-title {
+                font-size: 0.95rem;
+            }
+            #shareCardGenerator .share-card-info .game-desc {
+                font-size: 0.72rem;
+            }
+            #shareCardGenerator .share-card-footer .qr-wrapper #shareQRCode {
+                width: 64px;
+                height: 64px;
+            }
         }
 
-        /* ===== 其他弹窗 (成就/打赏/登录/个人资料/我的评论) 保持原样 ===== */
+        /* ===== 其他弹窗 (成就/登录/个人资料/我的评论) 保持原样 ===== */
         #achievementModal .modal {
             max-width: 650px;
             margin: 0 auto;
@@ -2091,61 +2559,6 @@
         }
         #achievementModalOverlay .modal-overlay.show .modal {
             transform: scale(1) translateY(0);
-        }
-
-        #tipModalOverlay .modal-overlay {
-            background: var(--overlay);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .3s;
-        }
-        #tipModalOverlay .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        #tipModalOverlay .modal {
-            max-width: 560px;
-            margin: 0 auto;
-            border-radius: 24px;
-            padding: 28px 24px;
-            min-height: auto;
-            background: var(--modal-bg);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-lg);
-            transform: scale(0.96) translateY(10px);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        #tipModalOverlay .modal-overlay.show .modal {
-            transform: scale(1) translateY(0);
-        }
-        #tipModalOverlay .modal-close {
-            display: flex !important;
-            position: sticky;
-            top: 0;
-            float: right;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: var(--text2);
-            z-index: 10;
-            background: var(--modal-bg);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            transition: all .2s;
-            margin-left: 8px;
-            margin-bottom: 4px;
-        }
-        #tipModalOverlay .modal-close:hover {
-            color: var(--danger);
-            border-color: var(--danger);
-            transform: rotate(90deg);
         }
 
         #authModalOverlay .modal-overlay {
@@ -2369,76 +2782,6 @@
             margin-bottom: 16px;
             padding: 8px 0;
             border-bottom: 1px solid var(--border);
-        }
-        .played-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 14px;
-            margin-bottom: 16px;
-        }
-        .played-grid-item {
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-        .played-grid-item:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: var(--shadow);
-            border-color: var(--accent);
-        }
-        .played-grid-item .item-cover {
-            width: 100%;
-            aspect-ratio: 16/9;
-            object-fit: cover;
-            background: var(--tag-bg);
-            display: block;
-        }
-        .played-grid-item .item-cover-placeholder {
-            width: 100%;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--tag-bg);
-            color: var(--text3);
-            font-size: 2rem;
-        }
-        .played-grid-item .item-title {
-            padding: 8px 10px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text);
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-        }
-        .played-grid-empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text3);
-            font-size: 1rem;
-        }
-        .played-grid-empty .empty-icon {
-            font-size: 3rem;
-            display: block;
-            margin-bottom: 12px;
-        }
-        .played-footer {
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text3);
-            margin-top: 8px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border);
-            opacity: 0.7;
-            letter-spacing: 0.06em;
         }
 
         .achievement-list {
@@ -3258,14 +3601,6 @@
                 min-width: 150px;
                 right: -4px;
             }
-            .played-grid {
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-                gap: 10px;
-            }
-            .played-grid-item .item-title {
-                font-size: 0.75rem;
-                padding: 6px 8px;
-            }
             .achievement-tab-btn {
                 padding: 8px 16px;
                 font-size: 0.9rem;
@@ -3363,13 +3698,9 @@
             .user-menu-wrapper .user-name {
                 max-width: 30px;
             }
-            .played-grid {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-                gap: 8px;
-            }
-            .played-grid-item .item-title {
-                font-size: 0.7rem;
-                padding: 4px 6px;
+            .achievement-tab-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
             }
             .review-section-title {
                 font-size: 0.85rem;
@@ -3535,7 +3866,7 @@
             </a>
             <div style="display:flex;flex-direction:column;align-items:center;gap:0px;">
                 <button class="coin-tip-btn" id="btnTip" title="打赏作者，支持创作">🪙</button>
-                <span style="font-size:0.55rem;color:var(--text3);line-height:1.2;">支持作者</span>
+                <span style="font-size:0.55rem;color:var(--text3);line-height:1.2;">打赏作者</span>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:0px;">
                 <button class="theme-toggle" id="btnThemeToggle" title="切换深色/浅色模式">🌓</button>
@@ -3587,11 +3918,13 @@
         </div>
     </div>
 
-    <!-- ===== 打赏弹窗 ===== -->
+    <!-- ================================================================
+   ★ 打赏弹窗 — 经典设计（非毛玻璃）
+   ================================================================ -->
     <div class="modal-overlay" id="tipModalOverlay">
         <div class="modal" id="tipModal">
             <button class="modal-close" id="tipModalClose">✕</button>
-            <h2>🪙 支持创作者</h2>
+            <h2>🪙 打赏作者</h2>
             <p class="tip-sub">感谢姊妹支持，你的鼓励是我持续更新网站的动力。</p>
             <div class="tip-card">
                 <div class="big-icon">⚡</div>
@@ -3703,6 +4036,43 @@
             <div class="my-reviews-sub" id="myReviewsSub">记录你写下的每一条游戏评价</div>
             <div id="myReviewsList"></div>
         </div>
+    </div>
+
+    <!-- ================================================================
+   ★ 分享卡片生成器 (隐藏)
+   ================================================================ -->
+    <div id="shareCardGenerator">
+        <div class="share-card-inner" id="shareCardInner">
+            <div class="share-card-header">
+                <span class="logo-text">Her Lens</span>
+                <span class="badge">女性主角游戏</span>
+            </div>
+            <div class="share-card-body">
+                <div class="share-card-cover" id="shareCardCover">
+                    <img id="shareCardCoverImg" src="" alt="游戏封面" />
+                </div>
+                <div class="share-card-info">
+                    <div class="game-title" id="shareCardTitle">游戏名称</div>
+                    <div class="game-desc" id="shareCardDesc">游戏简介</div>
+                    <div class="game-meta" id="shareCardMeta"></div>
+                    <div class="game-tags" id="shareCardTags"></div>
+                </div>
+            </div>
+            <div class="share-card-footer">
+                <div class="qr-wrapper">
+                    <div id="shareQRCode"></div>
+                    <span class="qr-label">扫码查看<br />游戏详情</span>
+                </div>
+                <span class="share-site">Her-Lens · 女性主角游戏</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+   ★ 分享图片下载按钮 (动态显示)
+   ================================================================ -->
+    <div style="text-align:center;margin-top:8px;">
+        <button id="shareDownloadBtn">📥 保存分享图片</button>
     </div>
 
     <script>
@@ -4940,36 +5310,139 @@
             }
 
             // ================================================================
-            // ★ 详情页 — 全新排版 (桌面端两栏 / 移动端单栏)
+            // ★ 分享功能 — 生成卡片图片 + 二维码
             // ================================================================
 
-            // 分享功能
-            function shareGame(game) {
-                const url = window.location.origin + window.location.pathname + '?game=' + game.id;
-                const title = game.title;
-                const text = `🎮 来看看这款女性主角游戏：${title}`;
+            let shareQRCodeInstance = null;
+            let shareDownloadBtn = document.getElementById('shareDownloadBtn');
 
-                if (navigator.share) {
-                    navigator.share({
-                        title: title,
-                        text: text,
-                        url: url
-                    }).catch(() => {});
+            function buildShareCard(game) {
+                const coverImg = document.getElementById('shareCardCoverImg');
+                const titleEl = document.getElementById('shareCardTitle');
+                const descEl = document.getElementById('shareCardDesc');
+                const metaEl = document.getElementById('shareCardMeta');
+                const tagsEl = document.getElementById('shareCardTags');
+                const qrContainer = document.getElementById('shareQRCode');
+
+                // 填充信息
+                titleEl.textContent = game.title || '游戏名称';
+                descEl.textContent = game.description || '';
+
+                let metaParts = [];
+                if (game.releaseDate) metaParts.push(`📅 ${game.releaseDate}`);
+                if (game.hasChinese) metaParts.push(`🌐 ${game.hasChinese}`);
+                if (game.heroineType) metaParts.push(`👤 ${game.heroineType}`);
+                if (game.isReleased) metaParts.push('✅ 已发售');
+                else metaParts.push('⏳ 未发售');
+                metaEl.textContent = metaParts.join(' · ');
+
+                // 标签
+                const genreTags = (game.genre || []).slice(0, 4);
+                const gameplayTags = (game.gameplay || []).slice(0, 3);
+                const allTags = [...genreTags, ...gameplayTags];
+                tagsEl.innerHTML = allTags.map(t => `<span>${escapeHTML(t)}</span>`).join('');
+
+                // 封面
+                if (game.cover) {
+                    coverImg.src = game.cover;
+                    coverImg.style.display = 'block';
                 } else {
-                    navigator.clipboard.writeText(url).then(() => {
-                        showToast('✅ 链接已复制，快去分享吧！', 2200);
-                    }).catch(() => {
-                        // 降级方案
-                        const input = document.createElement('input');
-                        input.value = url;
-                        document.body.appendChild(input);
-                        input.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(input);
-                        showToast('✅ 链接已复制，快去分享吧！', 2200);
+                    coverImg.style.display = 'none';
+                }
+
+                // 二维码
+                const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
+                qrContainer.innerHTML = '';
+                if (typeof QRCode !== 'undefined') {
+                    try {
+                        shareQRCodeInstance = new QRCode(qrContainer, {
+                            text: shareUrl,
+                            width: 80,
+                            height: 80,
+                            colorDark: '#1e1822',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    } catch (e) {
+                        qrContainer.innerHTML =
+                            `<div style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
+                        console.warn('QRCode 生成失败:', e);
+                    }
+                } else {
+                    qrContainer.innerHTML =
+                        `<div style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#999;background:#f5f0f8;border-radius:8px;">QR库未加载</div>`;
+                }
+
+                // 显示下载按钮
+                shareDownloadBtn.classList.add('show');
+                shareDownloadBtn.dataset.gameId = game.id;
+            }
+
+            async function downloadShareCard() {
+                const generator = document.getElementById('shareCardGenerator');
+                const btn = document.getElementById('shareDownloadBtn');
+                if (!generator) return;
+
+                // 确保卡片可见（但仍在屏幕外）
+                generator.style.opacity = '1';
+                generator.style.pointerEvents = 'none';
+
+                // 给 QR 容器一个背景，确保二维码清晰
+                const qrContainer = document.getElementById('shareQRCode');
+                if (qrContainer) {
+                    qrContainer.style.background = '#ffffff';
+                    qrContainer.style.padding = '4px';
+                    qrContainer.style.borderRadius = '8px';
+                }
+
+                // 等待一帧让 DOM 更新
+                await new Promise(r => requestAnimationFrame(r));
+                await new Promise(r => setTimeout(r, 100));
+
+                try {
+                    if (typeof html2canvas === 'undefined') {
+                        showToast('⚠️ 分享功能依赖未加载，请刷新页面', 2500);
+                        return;
+                    }
+
+                    const canvas = await html2canvas(generator, {
+                        scale: 2.5,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff',
+                        allowTaint: false,
+                        foreignObjectRendering: false,
+                        width: 600,
+                        height: generator.scrollHeight,
                     });
+
+                    // 恢复 QR 容器样式
+                    if (qrContainer) {
+                        qrContainer.style.background = '';
+                        qrContainer.style.padding = '';
+                        qrContainer.style.borderRadius = '';
+                    }
+
+                    // 下载
+                    const link = document.createElement('a');
+                    link.download = `HerLens_分享_${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+
+                    showToast('✅ 分享图片已保存！', 2200);
+
+                } catch (err) {
+                    console.error('生成分享图片失败:', err);
+                    showToast('⚠️ 生成图片失败，请重试', 2000);
+                } finally {
+                    generator.style.opacity = '0';
+                    generator.style.pointerEvents = 'none';
                 }
             }
+
+            // ================================================================
+            // ★ 详情页 — 全新排版 (桌面端两栏 / 移动端单栏)
+            // ================================================================
 
             function showDetailModal(game, options) {
                 if (!game) return;
@@ -5026,20 +5499,17 @@
                 } else {
                     screenshotsHTML = `<div style="color:var(--text3);font-size:0.85rem;padding:8px 0;">暂无截图</div>`;
                 }
-                // 添加截图数量类
                 let screenshotsGridClass = 'detail-screenshots-grid';
                 if (screenshotCount === 2) {
                     screenshotsGridClass += ' screenshots-2';
                 }
 
-                // 视频链接
                 let videosHTML = '';
                 if (game.videos && game.videos.length > 0) {
                     videosHTML =
                         `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${game.videos.map(url => `<a class="detail-video-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">▶️ ${extractVideoTitle(url)}</a>`).join('')}</div>`;
                 }
 
-                // ★ 链接按钮（放在左侧信息栏）
                 const links = [];
                 if (game.steamLink) links.push(
                     `<a class="detail-link-btn" href="${escapeHTML(game.steamLink)}" target="_blank">🔗 Steam</a>`);
@@ -5224,9 +5694,24 @@
                     closeDetailModal();
                 });
 
+                // ★ 分享按钮 — 生成卡片图片 + 二维码
                 modal.querySelector('#detailShareBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
-                    shareGame(game);
+                    // 构建分享卡片
+                    buildShareCard(game);
+                    // 显示下载按钮，并绑定下载事件
+                    const downloadBtn = document.getElementById('shareDownloadBtn');
+                    downloadBtn.classList.add('show');
+                    // 移除旧监听，避免重复绑定
+                    const newBtn = downloadBtn.cloneNode(true);
+                    downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+                    newBtn.addEventListener('click', downloadShareCard);
+                    // 显示提示
+                    showToast('📤 分享卡片已生成，点击下方「保存分享图片」下载', 3000);
+                    // 滚动到下载按钮
+                    setTimeout(() => {
+                        newBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 400);
                 });
 
                 modal.querySelector('#detailWishBtn').addEventListener('click', function(e) {
@@ -5356,7 +5841,6 @@
                 window.history.pushState({ gameId: null }, '', url.toString());
                 document.title = 'Her Lens · 女性主角游戏';
 
-                // ★ 如果从玩过记录打开，关闭后重新打开玩过记录
                 if (window._detailFrom === 'played') {
                     setTimeout(() => {
                         const overlayAch = document.getElementById('achievementModalOverlay');
@@ -6240,6 +6724,12 @@
                     if (e.target === this) closeImageViewer();
                 });
 
+                // ★ 分享下载按钮（全局，但动态显示）
+                const downloadBtn = document.getElementById('shareDownloadBtn');
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', downloadShareCard);
+                }
+
                 window.addEventListener('popstate', function(event) {
                     const overlay = document.getElementById('detailModalOverlay');
                     const isOpen = overlay.classList.contains('show');
@@ -6407,6 +6897,9 @@
                 initBackToTop();
                 initAnnouncementBar();
 
+                // 隐藏分享下载按钮初始状态
+                document.getElementById('shareDownloadBtn').classList.remove('show');
+
                 if (supabaseClient) {
                     supabaseClient.auth.onAuthStateChange((event, session) => {
                         if (session) {
@@ -6449,7 +6942,7 @@
                     }
                 }
 
-                console.log('✅ Her Lens 已启动（截图自适应 + 大图浮窗 + 玩过记录返回修复 + 详细简介去缩进）');
+                console.log('✅ Her Lens 已启动（详情页优化 + 玩过记录8列 + 打赏经典设计 + 分享卡片）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
