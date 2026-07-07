@@ -9,12 +9,33 @@
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js">
-    </script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
+    <script>
+        window._lazyLibs = {};
+        window._lazyLibs.html2canvas = null;
+        window._lazyLibs.qrcode = null;
+        window._loadHtml2Canvas = function() {
+            return new Promise(function(resolve, reject) {
+                if (window._lazyLibs.html2canvas) { resolve(window._lazyLibs.html2canvas); return; }
+                if (window.html2canvas) { window._lazyLibs.html2canvas = window.html2canvas; resolve(window.html2canvas); return; }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+                s.onload = function() { window._lazyLibs.html2canvas = window.html2canvas; resolve(window.html2canvas); };
+                s.onerror = function() { reject(new Error('html2canvas 加载失败')); };
+                document.head.appendChild(s);
+            });
+        };
+        window._loadQRCode = function() {
+            return new Promise(function(resolve, reject) {
+                if (window._lazyLibs.qrcode) { resolve(window._lazyLibs.qrcode); return; }
+                if (window.QRCode) { window._lazyLibs.qrcode = window.QRCode; resolve(window.QRCode); return; }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+                s.onload = function() { window._lazyLibs.qrcode = window.QRCode; resolve(window.QRCode); };
+                s.onerror = function() { reject(new Error('QRCode 加载失败')); };
+                document.head.appendChild(s);
+            });
+        };
     </script>
     <style>
         /* ================================================================
@@ -1743,6 +1764,41 @@
             transform: scale(1.02);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
+        .detail-screenshots-grid .gif-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(0,0,0,0.65);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .detail-screenshots-grid .screenshot-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+        .detail-screenshots-grid .screenshot-wrap.gif-img img {
+            max-height: none;
+            object-fit: contain;
+        }
+        .detail-screenshots-grid .screenshot-wrap.video-wrap video {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #000;
+            cursor: pointer;
+        }
+        .detail-screenshots-grid.screenshots-2 .screenshot-wrap.video-wrap video {
+            max-height: none;
+            object-fit: contain;
+        }
 
         /* ---------- 评论区 ---------- */
         .review-section {
@@ -2107,6 +2163,7 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
             animation: slideUpCard 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2115,6 +2172,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-width: 0;
+            box-sizing: border-box;
         }
         @keyframes slideUpCard {
             from {
@@ -2162,6 +2221,7 @@
             background: #fff;
             display: flex;
             justify-content: center;
+            min-width: 0;
         }
         #shareFloatOverlay .share-image-container img {
             width: 100%;
@@ -2214,6 +2274,7 @@
             #shareFloatOverlay .share-float-card {
                 padding: 12px 10px 16px;
                 border-radius: 16px;
+                max-width: 100%;
             }
             #shareFloatOverlay .share-float-header .hint-text {
                 font-size: 0.65rem;
@@ -3547,6 +3608,12 @@
             .detail-screenshots-grid img {
                 max-height: 160px;
             }
+            .detail-screenshots-grid .screenshot-wrap.gif-img img {
+                max-height: none;
+            }
+            .detail-screenshots-grid .screenshot-wrap.video-wrap video {
+                max-height: 160px;
+            }
             .detail-screenshots-grid.screenshots-2 img {
                 max-height: none;
             }
@@ -3658,6 +3725,12 @@
             .detail-screenshots-grid img {
                 max-height: 120px;
             }
+            .detail-screenshots-grid .screenshot-wrap.gif-img img {
+                max-height: none;
+            }
+            .detail-screenshots-grid .screenshot-wrap.video-wrap video {
+                max-height: 120px;
+            }
             .detail-screenshots-grid.screenshots-2 img {
                 max-height: none;
             }
@@ -3693,6 +3766,304 @@
             align-items: center;
             gap: 6px;
             margin-top: 4px;
+        }
+        /* ===== 首次引导浮层 ===== */
+        .guide-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeInOverlay 0.3s ease;
+        }
+        .guide-overlay.show { display: flex; }
+        .guide-card {
+            background: var(--bg);
+            border-radius: 24px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            animation: slideUpCard 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 32px 28px 24px;
+            position: relative;
+        }
+        .guide-card .guide-step { display: none; text-align: center; }
+        .guide-card .guide-step.active { display: block; }
+        .guide-card .guide-step-icon { font-size: 3rem; margin-bottom: 12px; display: block; }
+        .guide-card .guide-step-title {
+            font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 8px;
+        }
+        .guide-card .guide-step-desc {
+            font-size: 0.9rem; color: var(--text2); line-height: 1.6; margin-bottom: 20px;
+        }
+        .guide-card .guide-dots {
+            display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;
+        }
+        .guide-card .guide-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--border); transition: all 0.3s;
+        }
+        .guide-card .guide-dot.active {
+            background: var(--accent); width: 24px; border-radius: 4px;
+        }
+        .guide-card .guide-btn-row {
+            display: flex; gap: 10px; justify-content: center;
+        }
+        .guide-card .guide-btn {
+            padding: 10px 28px; border-radius: 20px; border: 1.5px solid var(--border);
+            background: var(--surface); color: var(--text); cursor: pointer;
+            font-size: 0.88rem; font-weight: 500; transition: all 0.2s; font-family: inherit;
+        }
+        .guide-card .guide-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .guide-card .guide-btn.primary {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .guide-card .guide-btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+        .guide-card .guide-skip {
+            position: absolute; top: 12px; right: 16px; background: none; border: none;
+            color: var(--text3); font-size: 0.85rem; cursor: pointer; padding: 4px 8px;
+        }
+        .guide-card .guide-skip:hover { color: var(--text); }
+
+        /* ===== 快捷键提示 ===== */
+        .shortcut-hint {
+            position: fixed; bottom: 30px; left: 30px; z-index: 100;
+            background: var(--glass-bg-light); border: 1px solid var(--border);
+            border-radius: 12px; padding: 8px 14px; font-size: 0.75rem;
+            color: var(--text3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        }
+        .shortcut-hint.show { opacity: 1; }
+        .shortcut-hint kbd {
+            display: inline-block; padding: 1px 6px; border-radius: 4px;
+            background: var(--surface); border: 1px solid var(--border);
+            font-family: inherit; font-size: 0.72rem; color: var(--text2);
+            margin: 0 2px;
+        }
+
+        /* ===== 空状态引导 ===== */
+        .empty-state-guide {
+            text-align: center; padding: 40px 20px; color: var(--text3);
+        }
+        .empty-state-guide .empty-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+        .empty-state-guide .empty-title {
+            font-size: 1.1rem; font-weight: 600; color: var(--text2); margin-bottom: 6px;
+        }
+        .empty-state-guide .empty-desc { font-size: 0.88rem; margin-bottom: 16px; }
+        .empty-state-guide .empty-action {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 20px; border-radius: 20px; border: 1.5px solid var(--accent);
+            background: transparent; color: var(--accent); cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; transition: all 0.2s; font-family: inherit;
+        }
+        .empty-state-guide .empty-action:hover {
+            background: var(--accent); color: #fff;
+        }
+
+        /* ===== 移动端长按优化 ===== */
+        .share-image-container img {
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
+        }
+        @media (max-width: 768px) {
+            .guide-card { padding: 24px 20px 20px; }
+            .guide-card .guide-step-icon { font-size: 2.5rem; }
+            .guide-card .guide-step-title { font-size: 1.05rem; }
+            .guide-card .guide-step-desc { font-size: 0.82rem; }
+            .shortcut-hint { display: none; }
+        }
+
+        /* ===== 评论编辑内联 UI ===== */
+        .comment-edit-area {
+            margin-top: 6px;
+        }
+        .comment-edit-area textarea {
+            width: 100%; padding: 8px 12px; border-radius: 8px;
+            border: 1.5px solid var(--border); background: var(--input-bg);
+            color: var(--text); font-family: inherit; resize: vertical;
+            min-height: 50px; font-size: 0.85rem; transition: border-color 0.2s;
+        }
+        .comment-edit-area textarea:focus { outline: none; border-color: var(--accent); }
+        .comment-edit-actions {
+            display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end;
+        }
+
+        /* ===== 留言板 ===== */
+        .guestbook-modal .modal {
+            max-width: 580px; margin: 0 auto; border-radius: 24px;
+            padding: 28px 24px; min-height: auto; max-height: 85vh;
+            overflow-y: auto; background: var(--modal-bg);
+            border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+            transform: scale(0.96) translateY(10px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .guestbook-modal .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+        .guestbook-modal .modal-close {
+            display: flex !important; position: sticky; top: 0; float: right;
+            font-size: 1.6rem; cursor: pointer; color: var(--text2); z-index: 10;
+            background: var(--modal-bg); border-radius: 50%;
+            width: 36px; height: 36px; align-items: center; justify-content: center;
+            border: 1px solid var(--border); transition: all .2s;
+            margin-left: 8px; margin-bottom: 4px;
+        }
+        .guestbook-modal .modal-close:hover {
+            color: var(--danger); border-color: var(--danger); transform: rotate(90deg);
+        }
+        .guestbook-header {
+            font-size: 1.3rem; font-weight: 700; color: var(--text);
+            margin-bottom: 4px; display: flex; align-items: center; gap: 10px;
+        }
+        .guestbook-sub {
+            color: var(--text3); font-size: 0.9rem; margin-bottom: 16px;
+            border-bottom: 1px solid var(--border); padding-bottom: 10px;
+        }
+
+        /* 发布区 */
+        .guestbook-compose {
+            background: var(--surface2); border-radius: 14px; padding: 14px;
+            border: 1px solid var(--border); margin-bottom: 16px;
+        }
+        .guestbook-compose-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+        }
+        .guestbook-compose-avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            background: var(--tag-bg); border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .guestbook-compose-name {
+            font-weight: 600; font-size: 0.9rem; color: var(--text);
+        }
+        .guestbook-compose textarea {
+            width: 100%; padding: 10px 12px; border-radius: 10px;
+            border: 1.5px solid var(--border); background: var(--input-bg);
+            color: var(--text); font-family: inherit; resize: none;
+            min-height: 60px; font-size: 0.88rem; transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .guestbook-compose textarea:focus {
+            outline: none; border-color: var(--accent);
+        }
+        .guestbook-compose textarea::placeholder { color: var(--text3); opacity: 0.7; }
+        .guestbook-compose-footer {
+            display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+        }
+        .guestbook-compose-footer .char-count {
+            font-size: 0.75rem; color: var(--text3);
+        }
+        .guestbook-compose-footer .char-count.warn { color: var(--danger); }
+        .guestbook-compose-footer .btn { font-size: 0.8rem; }
+
+        /* 留言列表 */
+        .guestbook-list { display: flex; flex-direction: column; gap: 10px; }
+        .guestbook-item {
+            background: var(--surface); border-radius: 12px; padding: 12px 14px;
+            border: 1px solid var(--border); transition: border-color 0.2s;
+        }
+        .guestbook-item:hover { border-color: rgba(155, 138, 189, 0.3); }
+        .guestbook-item-header {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+        }
+        .guestbook-item-avatar {
+            width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
+            background: var(--tag-bg); border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .guestbook-item-avatar-placeholder {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--tag-bg); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; flex-shrink: 0;
+        }
+        .guestbook-item-name {
+            font-weight: 600; font-size: 0.85rem; color: var(--text);
+        }
+        .guestbook-item-time {
+            font-size: 0.7rem; color: var(--text3); margin-left: auto; white-space: nowrap;
+        }
+        .guestbook-item-content {
+            font-size: 0.88rem; color: var(--text2); line-height: 1.6;
+            word-break: break-word; white-space: pre-wrap; margin-bottom: 6px;
+        }
+        .guestbook-item-actions {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .guestbook-react-btn {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text3); cursor: pointer;
+            font-size: 0.75rem; transition: all 0.2s; user-select: none;
+        }
+        .guestbook-react-btn:hover {
+            border-color: var(--accent); color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
+        }
+        .guestbook-react-btn.active {
+            border-color: var(--accent); color: var(--accent);
+            background: rgba(155, 138, 189, 0.12);
+        }
+        .guestbook-react-btn .react-count {
+            font-weight: 600; min-width: 1em; text-align: center;
+        }
+        .guestbook-delete-btn {
+            margin-left: auto; background: none; border: none;
+            color: var(--text3); font-size: 0.7rem; cursor: pointer;
+            padding: 2px 6px; border-radius: 8px; transition: all 0.2s;
+        }
+        .guestbook-delete-btn:hover { color: var(--danger); background: rgba(192, 57, 43, 0.08); }
+
+        .guestbook-login-hint {
+            text-align: center; color: var(--text3); padding: 20px 0; font-size: 0.9rem;
+        }
+        .guestbook-login-hint a {
+            color: var(--accent); cursor: pointer; text-decoration: underline;
+        }
+        .guestbook-empty {
+            text-align: center; padding: 30px 0; color: var(--text3);
+        }
+        .guestbook-empty .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+        .guestbook-load-more {
+            text-align: center; padding: 12px 0;
+        }
+        .guestbook-load-more button {
+            background: none; border: 1px solid var(--border); color: var(--text2);
+            padding: 6px 20px; border-radius: 16px; cursor: pointer;
+            font-size: 0.82rem; transition: all 0.2s; font-family: inherit;
+        }
+        .guestbook-load-more button:hover {
+            border-color: var(--accent); color: var(--accent);
+        }
+        .guestbook-sort-row {
+            display: flex; gap: 6px; margin-bottom: 12px; justify-content: flex-end;
+        }
+        .guestbook-sort-btn {
+            padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text3); cursor: pointer;
+            font-size: 0.75rem; transition: all 0.2s; font-family: inherit;
+        }
+        .guestbook-sort-btn.active {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .guestbook-stats {
+            font-size: 0.8rem; color: var(--text3); margin-bottom: 10px;
+        }
+        .guestbook-stats strong { color: var(--text); }
+
+        @media (max-width: 768px) {
+            .guestbook-modal .modal { max-width: 95%; padding: 20px 16px; }
+            .guestbook-header { font-size: 1.1rem; }
+            .guestbook-compose { padding: 10px; }
+            .guestbook-item { padding: 10px 12px; }
+        }
+        @media (max-width: 480px) {
+            .guestbook-modal .modal { padding: 16px 12px; max-width: 98%; }
+            .guestbook-header { font-size: 1rem; }
         }
     </style>
 </head>
@@ -3789,6 +4160,8 @@
             </button>
 
             <button class="btn btn-sm" id="btnManualSync" title="手动同步数据">🔄 刷新</button>
+
+            <button class="btn btn-sm" id="btnGuestbook" title="留言板 - 和大家聊聊天" style="border-color:var(--accent);color:var(--accent);">💬 留言板</button>
 
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
         </div>
@@ -3989,6 +4362,68 @@
         </div>
     </div>
 
+    <div class="modal-overlay guestbook-modal" id="guestbookModalOverlay">
+        <div class="modal" id="guestbookModal">
+            <button class="modal-close" id="guestbookModalClose">✕</button>
+            <div class="guestbook-header">💬 留言板</div>
+            <div class="guestbook-sub">和大家分享你对网站的建议、感想，或聊聊你喜欢的游戏</div>
+
+            <div id="guestbookComposeArea"></div>
+
+            <div class="guestbook-stats" id="guestbookStats"></div>
+            <div class="guestbook-sort-row">
+                <button class="guestbook-sort-btn active" data-sort="newest">🕐 最新</button>
+                <button class="guestbook-sort-btn" data-sort="hottest">🔥 最热</button>
+            </div>
+            <div class="guestbook-list" id="guestbookList"></div>
+            <div class="guestbook-load-more" id="guestbookLoadMore" style="display:none;">
+                <button id="guestbookLoadMoreBtn">加载更多...</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 首次引导浮层 ===== -->
+    <div class="guide-overlay" id="guideOverlay">
+        <div class="guide-card">
+            <button class="guide-skip" id="guideSkip">跳过</button>
+            <div class="guide-step active" data-step="1">
+                <span class="guide-step-icon">🎮</span>
+                <div class="guide-step-title">欢迎来到 Her Lens</div>
+                <div class="guide-step-desc">专注于女性主角游戏的推荐网站，帮你找到下一场冒险。</div>
+            </div>
+            <div class="guide-step" data-step="2">
+                <span class="guide-step-icon">🔍</span>
+                <div class="guide-step-title">搜索与筛选</div>
+                <div class="guide-step-desc">使用顶部搜索栏快速查找游戏，或通过题材、玩法等标签精确筛选。<br>快捷键 <kbd>/</kbd> 聚焦搜索框</div>
+            </div>
+            <div class="guide-step" data-step="3">
+                <span class="guide-step-icon">🎲</span>
+                <div class="guide-step-title">随机推荐</div>
+                <div class="guide-step-desc">不知道玩什么？点击「🎲 随机」按钮，系统会根据你的偏好推荐游戏。<br>快捷键 <kbd>R</kbd> 随机推荐</div>
+            </div>
+            <div class="guide-step" data-step="4">
+                <span class="guide-step-icon">🔑</span>
+                <div class="guide-step-title">登录同步数据</div>
+                <div class="guide-step-desc">登录后可跨设备同步愿望单、玩过记录和评论，数据永不丢失。</div>
+            </div>
+            <div class="guide-dots">
+                <span class="guide-dot active" data-dot="1"></span>
+                <span class="guide-dot" data-dot="2"></span>
+                <span class="guide-dot" data-dot="3"></span>
+                <span class="guide-dot" data-dot="4"></span>
+            </div>
+            <div class="guide-btn-row">
+                <button class="guide-btn" id="guidePrev" style="display:none;">上一步</button>
+                <button class="guide-btn primary" id="guideNext">下一步</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 快捷键提示 ===== -->
+    <div class="shortcut-hint" id="shortcutHint">
+        按 <kbd>?</kbd> 查看快捷键 · <kbd>/</kbd> 搜索 · <kbd>R</kbd> 随机
+    </div>
+
     <script>
         (function() {
             'use strict';
@@ -4067,9 +4502,8 @@
             // 工具函数
             // ================================================================
             function escapeHTML(s) {
-                const d = document.createElement('div');
-                d.textContent = s || '';
-                return d.innerHTML;
+                if (!s) return '';
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             }
 
             function generateId() {
@@ -4579,7 +5013,8 @@
                 if (s) {
                     try {
                         const d = JSON.parse(s);
-                        currentTheme = d.theme || 'light';
+                        currentTheme = d.theme || 'system';
+                        if (!['light', 'dark', 'system'].includes(currentTheme)) currentTheme = 'system';
                         currentView = d.currentView || 'released';
                         currentSort = d.currentSort || 'default';
                         if (!['default', 'newest', 'oldest'].includes(currentSort)) currentSort = 'default';
@@ -4633,15 +5068,34 @@
             // 主题
             // ================================================================
             function applyTheme() {
-                document.body.setAttribute('data-theme', currentTheme);
+                if (currentTheme === 'system') {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+                } else {
+                    document.body.setAttribute('data-theme', currentTheme);
+                }
                 const btn = document.getElementById('btnThemeToggle');
-                if (btn) btn.textContent = currentTheme === 'dark' ? '☀️' : '🌓';
+                if (btn) {
+                    if (currentTheme === 'system') btn.textContent = '🌓';
+                    else if (currentTheme === 'dark') btn.textContent = '☀️';
+                    else btn.textContent = '🌙';
+                }
             }
 
             function toggleTheme() {
-                currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+                const order = ['light', 'dark', 'system'];
+                const idx = order.indexOf(currentTheme);
+                currentTheme = order[(idx + 1) % order.length];
                 applyTheme();
                 saveSettings();
+                const labels = { light: '浅色模式', dark: '深色模式', system: '跟随系统' };
+                showToast('🎨 ' + labels[currentTheme], 1500);
+            }
+
+            function initSystemThemeListener() {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+                    if (currentTheme === 'system') applyTheme();
+                });
             }
 
             // ================================================================
@@ -4818,21 +5272,18 @@
             function setSearchQuery(q) {
                 if (searchTimeout) clearTimeout(searchTimeout);
                 const raw = q.trim();
+                if (raw.length === 0) {
+                    searchQuery = '';
+                    updateSearchClearBtn();
+                    renderGallery();
+                    return;
+                }
                 searchTimeout = setTimeout(() => {
                     searchQuery = raw;
                     updateSearchClearBtn();
                     renderGallery();
                     searchTimeout = null;
                 }, 280);
-                if (raw.length === 0) {
-                    searchQuery = '';
-                    updateSearchClearBtn();
-                    renderGallery();
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                        searchTimeout = null;
-                    }
-                }
             }
 
             function showToast(msg, duration) {
@@ -4848,23 +5299,6 @@
                     toast.classList.remove('show');
                     setTimeout(() => toast.remove(), 500);
                 }, duration);
-            }
-
-            function randomPick() {
-                const filtered = getFilteredGames();
-                if (filtered.length === 0) { showToast('当前列表中没有游戏可推荐 😅', 2000); return; }
-                const pick = filtered[Math.floor(Math.random() * filtered.length)];
-                const cards = document.querySelectorAll('.gallery-card');
-                let target = null;
-                for (const c of cards) { if (Number(c.dataset.gameId) === pick.id) { target = c; break; } }
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    target.classList.remove('highlight');
-                    void target.offsetWidth;
-                    target.classList.add('highlight');
-                    setTimeout(() => target.classList.remove('highlight'), 3600);
-                    showToast(`🎲 今日推荐：${pick.title}`, 2800);
-                } else { alert(`🎲 随机推荐：${pick.title}\n${pick.description || ''}`); }
             }
 
             function toggleWishlistMode() {
@@ -4900,6 +5334,32 @@
                 if (filtered.length === 0) {
                     grid.innerHTML = '';
                     no.style.display = 'block';
+
+                    // 根据不同情况显示不同的空状态
+                    if (wishlistMode) {
+                        no.innerHTML = `
+                            <div class="empty-state-guide">
+                                <span class="empty-icon">💝</span>
+                                <div class="empty-title">愿望单是空的</div>
+                                <div class="empty-desc">去发现喜欢的游戏，把它们加入愿望单吧！</div>
+                                <button class="empty-action" onclick="toggleWishlistMode()">🎮 浏览游戏</button>
+                            </div>`;
+                    } else if (searchQuery) {
+                        no.innerHTML = `
+                            <div class="empty-state-guide">
+                                <span class="empty-icon">🔍</span>
+                                <div class="empty-title">没有找到"${escapeHTML(searchQuery)}"相关的游戏</div>
+                                <div class="empty-desc">试试换个关键词，或清除筛选条件</div>
+                                <button class="empty-action" onclick="document.getElementById('searchInput').value='';setSearchQuery('');">✕ 清除搜索</button>
+                            </div>`;
+                    } else {
+                        no.innerHTML = `
+                            <div class="empty-state-guide">
+                                <span class="empty-icon">📭</span>
+                                <div class="empty-title">没有匹配的游戏</div>
+                                <div class="empty-desc">请调整筛选条件，或<span class="clear-all-filters" onclick="clearAllFilters()" style="color:var(--accent);cursor:pointer;">清除全部筛选</span></div>
+                            </div>`;
+                    }
                     if (cardObserver) {
                         cardObserver.disconnect();
                         cardObserver = null;
@@ -5036,7 +5496,7 @@
                     const img = document.createElement('img');
                     img.className = 'card-cover';
                     img.src = game.cover;
-                    img.alt = game.title || '';
+                    img.alt = (game.title || '游戏') + ' 封面图';
                     img.loading = 'lazy';
                     img.decoding = 'async';
                     wrap.appendChild(img);
@@ -5236,10 +5696,16 @@
             let shareImageDataURL = null;
 
             // 快速生成分享卡片 DOM (用于截图)
-            function buildShareCardDOM(game, extraComment) {
+            async function buildShareCardDOM(game, extraComment) {
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText =
-                    'width:400px;background:#ffffff;border-radius:20px;overflow:hidden;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1e1822;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:0;';
+                    'width:100%;max-width:400px;background:#ffffff;border-radius:20px;overflow:hidden;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1e1822;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:0;box-sizing:border-box;';
+
+                // 获取评分信息
+                let ratingInfo = null;
+                try {
+                    ratingInfo = await fetchGameRatingStats(game.id);
+                } catch (_) {}
 
                 // 如果有评论，在顶部显示
                 if (extraComment) {
@@ -5352,6 +5818,16 @@
                     meta.appendChild(sp);
                 }
                 body.appendChild(meta);
+
+                // 社区评分
+                if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
+                    const ratingRow = document.createElement('div');
+                    ratingRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;';
+                    const starsText = '★'.repeat(Math.round(ratingInfo.average / 2)) + '☆'.repeat(5 - Math.round(ratingInfo.average / 2));
+                    ratingRow.innerHTML = '<span style="font-size:0.9rem;color:#f5a623;">' + starsText + '</span><span style="font-size:0.75rem;color:#665c72;">' + ratingInfo.average.toFixed(1) + '/10（' + ratingInfo.count + '人评分）</span>';
+                    body.appendChild(ratingRow);
+                }
+
                 wrapper.appendChild(body);
 
                 // 底部：二维码 + 品牌
@@ -5363,7 +5839,7 @@
                 qrWrap.style.cssText = 'display:flex;align-items:center;gap:10px;';
                 const qrContainer = document.createElement('div');
                 qrContainer.id = 'shareCardQRContainer';
-                qrContainer.style.cssText = 'width:72px;height:72px;background:#fff;border-radius:8px;padding:4px;border:1px solid #ddd6e4;flex-shrink:0;';
+                qrContainer.style.cssText = 'width:72px;height:72px;border-radius:8px;background:#fff;border:1px solid #ddd6e4;flex-shrink:0;overflow:hidden;line-height:0;';
                 qrWrap.appendChild(qrContainer);
 
                 const qrLabel = document.createElement('span');
@@ -5381,27 +5857,29 @@
 
                 wrapper.appendChild(footer);
 
-                // 生成二维码（同步，用 setTimeout 0 延迟到下一帧，但为了速度，我们采用同步方式，但需要确保 QRCode 已加载）
+                // 生成二维码
                 const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
-                // 直接生成，因为 QRCode 是同步的
                 const qrEl = qrContainer;
-                if (typeof QRCode !== 'undefined') {
-                    try {
-                        new QRCode(qrEl, {
-                            text: shareUrl,
-                            width: 72,
-                            height: 72,
-                            colorDark: '#1e1822',
-                            colorLight: '#ffffff',
-                            correctLevel: QRCode.CorrectLevel.H
-                        });
-                    } catch (e) {
-                        qrEl.innerHTML =
-                            `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
-                    }
-                } else {
+                try {
+                    const QRCodeLib = await window._loadQRCode();
+                    new QRCodeLib(qrEl, {
+                        text: shareUrl,
+                        width: 72,
+                        height: 72,
+                        colorDark: '#1e1822',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCodeLib.CorrectLevel.H
+                    });
+                    // 强制清除 QRCode.js 添加的内联 margin/padding
+                    qrEl.querySelectorAll('img, canvas').forEach(function(el) {
+                        el.style.margin = '0';
+                        el.style.padding = '0';
+                        el.style.maxWidth = '100%';
+                        el.style.maxHeight = '100%';
+                    });
+                } catch (e) {
                     qrEl.innerHTML =
-                        `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">QR库未加载</div>`;
+                        `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
                 }
 
                 return wrapper;
@@ -5411,22 +5889,19 @@
             async function captureShareCard(wrapper) {
                 // 等待一帧让 DOM 渲染
                 await new Promise(r => requestAnimationFrame(r));
-                // 再等待 50ms 确保二维码渲染完成（QRCode 是同步的，但为了保险）
                 await new Promise(r => setTimeout(r, 50));
 
                 try {
-                    if (typeof html2canvas === 'undefined') {
-                        showToast('⚠️ 截图库未加载，请刷新页面', 2500);
-                        return null;
-                    }
-                    const canvas = await html2canvas(wrapper, {
+                    const html2canvasLib = await window._loadHtml2Canvas();
+                    const actualWidth = wrapper.offsetWidth || 400;
+                    const canvas = await html2canvasLib(wrapper, {
                         scale: 2.5,
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff',
                         allowTaint: false,
                         foreignObjectRendering: false,
-                        width: 400,
+                        width: actualWidth,
                         height: wrapper.scrollHeight,
                     });
                     return canvas.toDataURL('image/png');
@@ -5442,22 +5917,21 @@
                 currentShareGame = game;
                 const overlay = document.getElementById('shareFloatOverlay');
                 const container = document.getElementById('shareImageContainer');
-                const downloadBtn = document.getElementById('shareFloatDownloadBtn');
-                const hint = document.getElementById('longPressHint');
 
                 // 显示加载提示
                 container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">⏳ 生成分享图片...</div>';
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
 
-                // 构建 DOM 并截图
-                const wrapper = buildShareCardDOM(game, extraComment || null);
-                // 添加到页面中以便截图
+                // 构建 DOM 并截图（async）
+                const wrapper = await buildShareCardDOM(game, extraComment || null);
+                // 添加到页面中以便截图（限制最大宽度）
                 wrapper.style.position = 'fixed';
                 wrapper.style.left = '-9999px';
                 wrapper.style.top = '0';
                 wrapper.style.zIndex = '9999';
                 wrapper.style.pointerEvents = 'none';
+                wrapper.style.width = 'min(400px, calc(100vw - 40px))';
                 document.body.appendChild(wrapper);
 
                 const dataUrl = await captureShareCard(wrapper);
@@ -5477,6 +5951,9 @@
                 img.setAttribute('draggable', 'false');
                 container.innerHTML = '';
                 container.appendChild(img);
+
+                const downloadBtn = document.getElementById('shareFloatDownloadBtn');
+                const hint = document.getElementById('longPressHint');
 
                 // 判断是否为移动端
                 const isMobile = window.innerWidth <= 768 || isTouchDevice;
@@ -5573,9 +6050,16 @@
                 const screenshotCount = (game.screenshots || []).length;
                 let screenshotsHTML = '';
                 if (screenshotCount > 0) {
-                    screenshotsHTML = game.screenshots.map(url =>
-                        `<img src="${escapeHTML(url)}" alt="截图" loading="lazy" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />`
-                    ).join('');
+                    screenshotsHTML = game.screenshots.map((url, idx) => {
+                        const isVideo = /\.(mp4|webm|mov|avi)(\?|$)/i.test(url);
+                        const isGif = !isVideo && /\.gif(\?|$)/i.test(url);
+                        if (isVideo) {
+                            return `<div class="screenshot-wrap video-wrap"><video src="${escapeHTML(url)}" autoplay loop muted playsinline onclick="this.paused?this.play():this.pause()" /></div>`;
+                        }
+                        const wrapClass = 'screenshot-wrap' + (isGif ? ' gif-img' : '');
+                        const badge = isGif ? '<span class="gif-badge">GIF</span>' : '';
+                        return `<div class="${wrapClass}"><img src="${escapeHTML(url)}" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}" loading="lazy" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />${badge}</div>`;
+                    }).join('');
                 } else {
                     screenshotsHTML = `<div style="color:var(--text3);font-size:0.85rem;padding:8px 0;">暂无截图</div>`;
                 }
@@ -5859,15 +6343,34 @@
                     const editCommentBtn = modal.querySelector('#editCommentBtn');
                     if (editCommentBtn) {
                         editCommentBtn.addEventListener('click', function() {
-                            const newComment = prompt('修改你的评论：', userComment);
-                            if (newComment !== null) {
-                                const trimmed = newComment.trim();
-                                if (trimmed === '') {
-                                    showToast('评论不能为空', 1500);
-                                    return;
+                            const reviewBody = this.closest('.review-user-area');
+                            if (!reviewBody) return;
+                            const existing = reviewBody.querySelector('.comment-edit-area');
+                            if (existing) { existing.remove(); return; }
+                            const editArea = document.createElement('div');
+                            editArea.className = 'comment-edit-area';
+                            editArea.innerHTML = `
+                                <textarea maxlength="500">${escapeHTML(userComment)}</textarea>
+                                <div class="comment-edit-actions">
+                                    <button class="btn btn-sm" id="cancelEditBtn">取消</button>
+                                    <button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button>
+                                </div>`;
+                            reviewBody.appendChild(editArea);
+                            const ta = editArea.querySelector('textarea');
+                            ta.focus();
+                            ta.setSelectionRange(ta.value.length, ta.value.length);
+                            editArea.querySelector('#cancelEditBtn').addEventListener('click', function() { editArea.remove(); });
+                            editArea.querySelector('#saveEditBtn').addEventListener('click', function() {
+                                const text = ta.value.trim();
+                                if (!text) { showToast('评论不能为空', 1500); return; }
+                                saveReview(game.id, userRating, text);
+                            });
+                            ta.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                    e.preventDefault();
+                                    editArea.querySelector('#saveEditBtn').click();
                                 }
-                                saveReview(game.id, userRating, trimmed);
-                            }
+                            });
                         });
                     }
 
@@ -6164,6 +6667,342 @@
                                 setTimeout(() => showDetailModal(game, { from: 'gallery' }), 120);
                             }
                         }
+                    });
+                });
+            }
+
+            // ================================================================
+            // ★★★ 留言板 ★★★
+            // ================================================================
+            const GUESTBOOK_PAGE_SIZE = 20;
+            let guestbookPage = 0;
+            let guestbookSort = 'newest';
+            let guestbookTotalCount = 0;
+            const GUESTBOOK_REACTIONS = ['❤️', '👍', '🎮', '💬', '✨'];
+            let guestbookListener = null;
+
+            function getGuestbookTable() {
+                if (!supabaseClient) return null;
+                return supabaseClient.from('site_guestbook');
+            }
+
+            async function fetchGuestbookMessages() {
+                const table = getGuestbookTable();
+                if (!table) return [];
+                try {
+                    let query = table.select('*', { count: 'exact' });
+                    if (guestbookSort === 'newest') {
+                        query = query.order('created_at', { ascending: false });
+                    } else {
+                        query = query.order('created_at', { ascending: false });
+                    }
+                    const from = 0;
+                    const to = (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE - 1;
+                    query = query.range(from, to);
+                    const { data, error, count } = await query;
+                    if (error) throw error;
+                    guestbookTotalCount = count || 0;
+                    return data || [];
+                } catch (e) {
+                    console.error('❌ 获取留言失败:', e);
+                    return [];
+                }
+            }
+
+            async function postGuestbookMessage(content) {
+                if (!currentUser || !supabaseClient) return null;
+                const metadata = currentUser.user_metadata || {};
+                const record = {
+                    user_id: currentUser.id,
+                    content: content,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null,
+                    reactions: {}
+                };
+                try {
+                    const { data, error } = await supabaseClient.from('site_guestbook')
+                        .insert(record)
+                        .select()
+                        .single();
+                    if (error) throw error;
+                    return data;
+                } catch (e) {
+                    console.error('❌ 发布留言失败:', e);
+                    showToast('⚠️ 发布失败，请重试', 2000);
+                    return null;
+                }
+            }
+
+            async function deleteGuestbookMessage(id) {
+                if (!currentUser || !supabaseClient) return;
+                try {
+                    const { error } = await supabaseClient.from('site_guestbook')
+                        .delete()
+                        .eq('id', id)
+                        .eq('user_id', currentUser.id);
+                    if (error) throw error;
+                } catch (e) {
+                    console.error('❌ 删除留言失败:', e);
+                    showToast('⚠️ 删除失败', 2000);
+                }
+            }
+
+            async function toggleGuestbookReaction(messageId, emoji) {
+                if (!currentUser || !supabaseClient) return;
+                // 获取当前消息
+                try {
+                    const { data: msg, error: fetchErr } = await supabaseClient.from('site_guestbook')
+                        .select('reactions')
+                        .eq('id', messageId)
+                        .single();
+                    if (fetchErr) throw fetchErr;
+
+                    const reactions = msg.reactions || {};
+                    const userKey = currentUser.id;
+                    if (!reactions[emoji]) reactions[emoji] = [];
+                    const arr = reactions[emoji];
+                    const idx = arr.indexOf(userKey);
+                    if (idx >= 0) {
+                        arr.splice(idx, 1);
+                        if (arr.length === 0) delete reactions[emoji];
+                    } else {
+                        arr.push(userKey);
+                    }
+
+                    const { error } = await supabaseClient.from('site_guestbook')
+                        .update({ reactions })
+                        .eq('id', messageId);
+                    if (error) throw error;
+                } catch (e) {
+                    console.error('❌ 反应操作失败:', e);
+                }
+            }
+
+            function formatGuestbookTime(iso) {
+                if (!iso) return '';
+                const d = new Date(iso);
+                const now = new Date();
+                const diffMs = now - d;
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) return '刚刚';
+                if (diffMin < 60) return diffMin + '分钟前';
+                const diffHour = Math.floor(diffMin / 60);
+                if (diffHour < 24) return diffHour + '小时前';
+                const diffDay = Math.floor(diffHour / 24);
+                if (diffDay < 7) return diffDay + '天前';
+                return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+            }
+
+            async function renderGuestbook() {
+                const listEl = document.getElementById('guestbookList');
+                const composeArea = document.getElementById('guestbookComposeArea');
+                const statsEl = document.getElementById('guestbookStats');
+                const loadMoreEl = document.getElementById('guestbookLoadMore');
+                if (!listEl) return;
+
+                // 渲染发布区
+                if (currentUser) {
+                    const metadata = currentUser.user_metadata || {};
+                    const avatarUrl = metadata.avatar_url || '';
+                    const displayName = metadata.display_name || currentUser.email || '用户';
+                    const avatarHtml = avatarUrl ?
+                        `<img src="${escapeHTML(avatarUrl)}" class="guestbook-compose-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="guestbook-compose-avatar" style="display:flex;align-items:center;justify-content:center;font-size:1.1rem;">👤</div>`;
+                    composeArea.innerHTML = `
+                        <div class="guestbook-compose">
+                            <div class="guestbook-compose-header">
+                                ${avatarHtml}
+                                <span class="guestbook-compose-name">${escapeHTML(displayName)}</span>
+                            </div>
+                            <textarea id="guestbookInput" placeholder="写下你想说的..." maxlength="500"></textarea>
+                            <div class="guestbook-compose-footer">
+                                <span class="char-count"><span id="guestbookCharCount">0</span>/500</span>
+                                <button class="btn btn-sm btn-accent" id="guestbookSubmitBtn">发布留言</button>
+                            </div>
+                        </div>`;
+                    const input = document.getElementById('guestbookInput');
+                    const charCount = document.getElementById('guestbookCharCount');
+                    const submitBtn = document.getElementById('guestbookSubmitBtn');
+                    if (input && charCount) {
+                        input.addEventListener('input', function() {
+                            charCount.textContent = this.value.length;
+                            charCount.classList.toggle('warn', this.value.length >= 480);
+                        });
+                    }
+                    if (submitBtn && input) {
+                        submitBtn.addEventListener('click', async function() {
+                            const text = input.value.trim();
+                            if (!text) { showToast('留言内容不能为空', 1500); return; }
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = '发布中...';
+                            const result = await postGuestbookMessage(text);
+                            if (result) {
+                                input.value = '';
+                                charCount.textContent = '0';
+                                showToast('✅ 留言发布成功！', 2000);
+                                guestbookPage = 0;
+                                await renderGuestbookList();
+                            }
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '发布留言';
+                        });
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                e.preventDefault();
+                                submitBtn.click();
+                            }
+                        });
+                    }
+                } else {
+                    composeArea.innerHTML = `
+                        <div class="guestbook-login-hint">
+                            🔑 <a id="guestbookLoginLink">登录</a> 后即可发布留言
+                        </div>`;
+                    document.getElementById('guestbookLoginLink')?.addEventListener('click', function() {
+                        closeGuestbookModal();
+                        openAuthModal();
+                    });
+                }
+
+                await renderGuestbookList();
+
+                // 订阅实时更新
+                if (supabaseClient && !guestbookListener) {
+                    try {
+                        guestbookListener = supabaseClient
+                            .channel('guestbook-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'site_guestbook' }, () => {
+                                renderGuestbookList();
+                            })
+                            .subscribe();
+                    } catch (_) {}
+                }
+            }
+
+            async function renderGuestbookList() {
+                const listEl = document.getElementById('guestbookList');
+                const statsEl = document.getElementById('guestbookStats');
+                const loadMoreEl = document.getElementById('guestbookLoadMore');
+                if (!listEl) return;
+
+                const messages = await fetchGuestbookMessages();
+                if (messages.length === 0 && guestbookPage === 0) {
+                    listEl.innerHTML = `
+                        <div class="guestbook-empty">
+                            <span class="empty-icon">📝</span>
+                            还没有留言，来做第一个留言的人吧！
+                        </div>`;
+                    if (statsEl) statsEl.textContent = '';
+                    if (loadMoreEl) loadMoreEl.style.display = 'none';
+                    return;
+                }
+
+                if (statsEl) {
+                    statsEl.innerHTML = `共 <strong>${guestbookTotalCount}</strong> 条留言`;
+                }
+
+                let html = '';
+                messages.forEach(msg => {
+                    const isOwn = currentUser && msg.user_id === currentUser.id;
+                    const avatarHtml = msg.avatar_url ?
+                        `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="guestbook-item-avatar-placeholder">👤</div>`;
+                    const time = formatGuestbookTime(msg.created_at);
+                    const reactions = msg.reactions || {};
+                    let reactionsHtml = '';
+                    GUESTBOOK_REACTIONS.forEach(emoji => {
+                        const users = reactions[emoji] || [];
+                        const count = users.length;
+                        const isActive = currentUser && users.includes(currentUser.id);
+                        reactionsHtml += `
+                            <button class="guestbook-react-btn${isActive ? ' active' : ''}"
+                                data-msg-id="${msg.id}" data-emoji="${emoji}">
+                                ${emoji} <span class="react-count">${count > 0 ? count : ''}</span>
+                            </button>`;
+                    });
+                    const deleteHtml = isOwn ?
+                        `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
+
+                    html += `
+                        <div class="guestbook-item" data-msg-id="${msg.id}">
+                            <div class="guestbook-item-header">
+                                ${avatarHtml}
+                                <span class="guestbook-item-name">${escapeHTML(msg.display_name || '用户')}</span>
+                                <span class="guestbook-item-time">${time}</span>
+                            </div>
+                            <div class="guestbook-item-content">${escapeHTML(msg.content)}</div>
+                            <div class="guestbook-item-actions">
+                                ${reactionsHtml}
+                                ${deleteHtml}
+                            </div>
+                        </div>`;
+                });
+                listEl.innerHTML = html;
+
+                // 加载更多按钮
+                const hasMore = messages.length < guestbookTotalCount;
+                if (loadMoreEl) {
+                    loadMoreEl.style.display = hasMore ? 'block' : 'none';
+                }
+
+                // 绑定事件
+                listEl.querySelectorAll('.guestbook-react-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const msgId = Number(this.dataset.msgId);
+                        const emoji = this.dataset.emoji;
+                        await toggleGuestbookReaction(msgId, emoji);
+                        await renderGuestbookList();
+                    });
+                });
+
+                listEl.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (!confirm('确定删除这条留言吗？')) return;
+                        const msgId = Number(this.dataset.msgId);
+                        await deleteGuestbookMessage(msgId);
+                        showToast('✅ 留言已删除', 1500);
+                        await renderGuestbookList();
+                    });
+                });
+            }
+
+            function openGuestbookModal() {
+                guestbookPage = 0;
+                const overlay = document.getElementById('guestbookModalOverlay');
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                renderGuestbook();
+            }
+
+            function closeGuestbookModal() {
+                document.getElementById('guestbookModalOverlay').classList.remove('show');
+                document.body.style.overflow = '';
+                if (guestbookListener) {
+                    try { supabaseClient.removeChannel(guestbookListener); } catch (_) {}
+                    guestbookListener = null;
+                }
+            }
+
+            function initGuestbookEvents() {
+                document.getElementById('btnGuestbook')?.addEventListener('click', openGuestbookModal);
+                document.getElementById('guestbookModalClose')?.addEventListener('click', closeGuestbookModal);
+                document.getElementById('guestbookModalOverlay')?.addEventListener('click', function(e) {
+                    if (e.target === this) closeGuestbookModal();
+                });
+                document.getElementById('guestbookLoadMoreBtn')?.addEventListener('click', async function() {
+                    guestbookPage++;
+                    await renderGuestbookList();
+                });
+                document.querySelectorAll('.guestbook-sort-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const sort = this.dataset.sort;
+                        if (guestbookSort === sort) return;
+                        guestbookSort = sort;
+                        document.querySelectorAll('.guestbook-sort-btn').forEach(b =>
+                            b.classList.toggle('active', b.dataset.sort === sort));
+                        guestbookPage = 0;
+                        await renderGuestbookList();
                     });
                 });
             }
@@ -6696,6 +7535,10 @@
                             closeMyReviewsModal();
                             return;
                         }
+                        if (document.getElementById('guestbookModalOverlay').classList.contains('show')) {
+                            closeGuestbookModal();
+                            return;
+                        }
                         closeTipModal();
                         closeAchievementModal();
                         closeAuthModal();
@@ -6794,6 +7637,8 @@
                 document.getElementById('myReviewsModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeMyReviewsModal();
                 });
+
+                initGuestbookEvents();
 
                 document.getElementById('imageViewerClose').addEventListener('click', closeImageViewer);
                 document.getElementById('imageViewerOverlay').addEventListener('click', function(e) {
@@ -6947,6 +7792,206 @@
             }
 
             // ================================================================
+            // ★★★ 首次引导 ★★★
+            // ================================================================
+            const GUIDE_KEY = 'heroineGuideShown';
+            let guideStep = 1;
+            const guideTotalSteps = 4;
+
+            function showGuide() {
+                const overlay = document.getElementById('guideOverlay');
+                if (!overlay) return;
+                guideStep = 1;
+                updateGuideStep();
+                overlay.classList.add('show');
+            }
+
+            function closeGuide() {
+                const overlay = document.getElementById('guideOverlay');
+                if (overlay) overlay.classList.remove('show');
+                localStorage.setItem(GUIDE_KEY, 'true');
+            }
+
+            function updateGuideStep() {
+                document.querySelectorAll('.guide-step').forEach(s => {
+                    s.classList.toggle('active', Number(s.dataset.step) === guideStep);
+                });
+                document.querySelectorAll('.guide-dot').forEach(d => {
+                    d.classList.toggle('active', Number(d.dataset.dot) === guideStep);
+                });
+                const prev = document.getElementById('guidePrev');
+                const next = document.getElementById('guideNext');
+                if (prev) prev.style.display = guideStep > 1 ? 'inline-block' : 'none';
+                if (next) next.textContent = guideStep >= guideTotalSteps ? '开始探索' : '下一步';
+            }
+
+            function initGuideEvents() {
+                const next = document.getElementById('guideNext');
+                const prev = document.getElementById('guidePrev');
+                const skip = document.getElementById('guideSkip');
+                if (next) next.addEventListener('click', function() {
+                    if (guideStep >= guideTotalSteps) { closeGuide(); return; }
+                    guideStep++;
+                    updateGuideStep();
+                });
+                if (prev) prev.addEventListener('click', function() {
+                    if (guideStep > 1) { guideStep--; updateGuideStep(); }
+                });
+                if (skip) skip.addEventListener('click', closeGuide);
+                const overlay = document.getElementById('guideOverlay');
+                if (overlay) overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) closeGuide();
+                });
+            }
+
+            // ================================================================
+            // ★★★ 键盘快捷键 ★★★
+            // ================================================================
+            function initKeyboardShortcuts() {
+                const hint = document.getElementById('shortcutHint');
+                let hintTimeout = null;
+
+                document.addEventListener('keydown', function(e) {
+                    // 忽略输入框/textarea 内的快捷键
+                    const tag = (e.target.tagName || '').toLowerCase();
+                    const isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+                    if (isInput) return;
+
+                    // 如果有弹窗打开，不触发快捷键
+                    const anyModalOpen = document.querySelector('.modal-overlay.show, .guide-overlay.show');
+                    if (anyModalOpen && e.key !== 'Escape') return;
+
+                    switch (e.key) {
+                        case '/':
+                            e.preventDefault();
+                            const searchInput = document.getElementById('searchInput');
+                            if (searchInput) {
+                                searchInput.focus();
+                                searchInput.select();
+                            }
+                            break;
+                        case '1':
+                            if (!e.ctrlKey && !e.metaKey) { switchView('released'); showToast('📀 已发售游戏', 1200); }
+                            break;
+                        case '2':
+                            if (!e.ctrlKey && !e.metaKey) { switchView('unreleased'); showToast('⏳ 未发售游戏', 1200); }
+                            break;
+                        case 'r':
+                        case 'R':
+                            if (!e.ctrlKey && !e.metaKey) randomPick();
+                            break;
+                        case '?':
+                            if (localStorage.getItem(GUIDE_KEY) !== 'true') {
+                                showGuide();
+                            } else {
+                                showToast('💡 快捷键: /搜索 · 1/2切换视图 · R随机 · Esc关闭', 3000);
+                            }
+                            break;
+                    }
+                });
+
+                // 鼠标悬停时短暂显示快捷键提示
+                let shortcutHintShown = localStorage.getItem('heroineShortcutHint');
+                if (!shortcutHintShown && hint) {
+                    setTimeout(function() {
+                        hint.classList.add('show');
+                        setTimeout(function() { hint.classList.remove('show'); }, 5000);
+                        localStorage.setItem('heroineShortcutHint', 'true');
+                    }, 3000);
+                }
+            }
+
+            // ================================================================
+            // ★★★ 滚动位置记忆 ★★★
+            // ================================================================
+            const SCROLL_POS_KEY = 'heroineScrollPos';
+
+            function saveScrollPosition() {
+                if (!document.getElementById('detailModalOverlay').classList.contains('show')) {
+                    sessionStorage.setItem(SCROLL_POS_KEY, JSON.stringify({
+                        view: currentView,
+                        y: window.scrollY,
+                        ts: Date.now()
+                    }));
+                }
+            }
+
+            function restoreScrollPosition() {
+                try {
+                    const raw = sessionStorage.getItem(SCROLL_POS_KEY);
+                    if (!raw) return;
+                    const data = JSON.parse(raw);
+                    // 10分钟内有效
+                    if (data.view === currentView && data.ts && (Date.now() - data.ts < 600000)) {
+                        requestAnimationFrame(function() {
+                            window.scrollTo(0, data.y || 0);
+                        });
+                    }
+                } catch (_) {}
+            }
+
+            // ================================================================
+            // ★★★ 个性化随机推荐 ★★★
+            // ================================================================
+            function getUserPreferredGenres() {
+                const genreCounts = {};
+                const playedIds = userData.played || [];
+                playedIds.forEach(id => {
+                    const game = games.find(g => g.id === id);
+                    if (game && game.genre) {
+                        game.genre.forEach(g => {
+                            genreCounts[g] = (genreCounts[g] || 0) + 1;
+                        });
+                    }
+                });
+                return Object.entries(genreCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(e => e[0]);
+            }
+
+            // ================================================================
+            // ★★★ 优化的随机推荐 ★★★
+            // ================================================================
+            function randomPick() {
+                const filtered = getFilteredGames();
+                if (filtered.length === 0) { showToast('当前列表中没有游戏可推荐 😅', 2000); return; }
+
+                let pick;
+                const preferredGenres = getUserPreferredGenres();
+                if (preferredGenres.length > 0 && userData.played.length >= 3) {
+                    // 加权随机：偏好题材的游戏权重更高
+                    const weighted = filtered.map(g => {
+                        const matchCount = (g.genre || []).filter(genre => preferredGenres.includes(genre)).length;
+                        return { game: g, weight: 1 + matchCount * 2 };
+                    });
+                    const totalWeight = weighted.reduce((s, w) => s + w.weight, 0);
+                    let rand = Math.random() * totalWeight;
+                    pick = weighted[0].game;
+                    for (const w of weighted) {
+                        rand -= w.weight;
+                        if (rand <= 0) { pick = w.game; break; }
+                    }
+                } else {
+                    pick = filtered[Math.floor(Math.random() * filtered.length)];
+                }
+
+                const cards = document.querySelectorAll('.gallery-card');
+                let target = null;
+                for (const c of cards) { if (Number(c.dataset.gameId) === pick.id) { target = c; break; } }
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.classList.remove('highlight');
+                    void target.offsetWidth;
+                    target.classList.add('highlight');
+                    setTimeout(() => target.classList.remove('highlight'), 3600);
+                    const genreHint = preferredGenres.length > 0 && userData.played.length >= 3 ?
+                        '（根据你的偏好推荐）' : '';
+                    showToast(`🎲 今日推荐：${pick.title} ${genreHint}`, 2800);
+                } else { alert(`🎲 随机推荐：${pick.title}\n${pick.description || ''}`); }
+            }
+
+            // ================================================================
             // ★★★ 初始化 ★★★
             // ================================================================
             async function init() {
@@ -6966,6 +8011,16 @@
 
                 initBackToTop();
                 initAnnouncementBar();
+                initGuideEvents();
+                initKeyboardShortcuts();
+                initSystemThemeListener();
+
+                // 滚动位置记忆
+                restoreScrollPosition();
+                window.addEventListener('scroll', function() {
+                    if (scrollTimeout) clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(saveScrollPosition, 500);
+                }, { passive: true });
 
                 if (supabaseClient) {
                     supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -7009,13 +8064,20 @@
                     }
                 }
 
-                console.log('✅ Her Lens 已启动（分享速度优化 + 评论分享功能）');
+                // 首次访问引导
+                if (localStorage.getItem(GUIDE_KEY) !== 'true') {
+                    setTimeout(showGuide, 800);
+                }
+
+                console.log('✅ Her Lens 已启动（性能优化 + 引导 + 快捷键）');
                 console.log(`📊 共加载 ${games.length} 款游戏`);
                 console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
                 console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
                 console.log(`📝 已评论 ${userData.reviews.length} 款游戏`);
                 console.log(`📱 触摸设备: ${isTouchDevice ? '是 (已禁用高耗能特效)' : '否'}`);
                 console.log(`🔐 认证状态: ${currentUser ? '已登录 (' + currentUser.email + ')' : '未登录'}`);
+                console.log(`🎨 主题: ${currentTheme}`);
+                console.log(`⌨️ 快捷键: /搜索 · 1/2切换 · R随机 · ?帮助`);
 
                 if (currentUser) {
                     await syncUserDataWithCloud();
@@ -7027,6 +8089,7 @@
                 }
             }
 
+            let scrollTimeout = null;
             init();
         })();
     </script>
