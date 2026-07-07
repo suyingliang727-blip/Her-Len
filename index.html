@@ -14,27 +14,53 @@
         window._lazyLibs = {};
         window._lazyLibs.html2canvas = null;
         window._lazyLibs.qrcode = null;
-        window._loadHtml2Canvas = function() {
+        window._lazyLoadScript = function(url, globalName, timeoutMs) {
+            timeoutMs = timeoutMs || 15000;
             return new Promise(function(resolve, reject) {
-                if (window._lazyLibs.html2canvas) { resolve(window._lazyLibs.html2canvas); return; }
-                if (window.html2canvas) { window._lazyLibs.html2canvas = window.html2canvas; resolve(window.html2canvas); return; }
+                if (window._lazyLibs[globalName]) { resolve(window._lazyLibs[globalName]); return; }
+                if (window[globalName]) { window._lazyLibs[globalName] = window[globalName]; resolve(window[globalName]); return; }
                 var s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-                s.onload = function() { window._lazyLibs.html2canvas = window.html2canvas; resolve(window.html2canvas); };
-                s.onerror = function() { reject(new Error('html2canvas 加载失败')); };
+                s.src = url;
+                var timer = setTimeout(function() {
+                    s.onload = null;
+                    s.onerror = null;
+                    reject(new Error(globalName + ' 加载超时 (' + timeoutMs + 'ms)'));
+                }, timeoutMs);
+                var retryCount = 0;
+                function attemptLoad() {
+                    s.onload = function() {
+                        clearTimeout(timer);
+                        window._lazyLibs[globalName] = window[globalName];
+                        resolve(window[globalName]);
+                    };
+                    s.onerror = function() {
+                        clearTimeout(timer);
+                        if (retryCount < 2) {
+                            retryCount++;
+                            setTimeout(function() {
+                                s.onload = null;
+                                s.onerror = null;
+                                attemptLoad();
+                            }, 1000 * retryCount);
+                            timer = setTimeout(function() {
+                                s.onload = null;
+                                s.onerror = null;
+                                reject(new Error(globalName + ' 加载超时 (' + timeoutMs + 'ms)'));
+                            }, timeoutMs);
+                        } else {
+                            reject(new Error(globalName + ' 加载失败 (已重试' + retryCount + '次)'));
+                        }
+                    };
+                }
+                attemptLoad();
                 document.head.appendChild(s);
             });
         };
+        window._loadHtml2Canvas = function() {
+            return window._lazyLoadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', 'html2canvas', 15000);
+        };
         window._loadQRCode = function() {
-            return new Promise(function(resolve, reject) {
-                if (window._lazyLibs.qrcode) { resolve(window._lazyLibs.qrcode); return; }
-                if (window.QRCode) { window._lazyLibs.qrcode = window.QRCode; resolve(window.QRCode); return; }
-                var s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-                s.onload = function() { window._lazyLibs.qrcode = window.QRCode; resolve(window.QRCode); };
-                s.onerror = function() { reject(new Error('QRCode 加载失败')); };
-                document.head.appendChild(s);
-            });
+            return window._lazyLoadScript('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'QRCode', 10000);
         };
     </script>
     <style>
@@ -1862,7 +1888,7 @@
    ★★★ 图片查看器浮窗 ★★★
    ================================================================ */
         #imageViewerOverlay {
-            z-index: 1100;
+            z-index: 2100;
             background: rgba(0, 0, 0, 0.75);
             display: flex;
             align-items: center;
@@ -2135,7 +2161,7 @@
         #shareFloatOverlay {
             position: fixed;
             inset: 0;
-            z-index: 1100;
+            z-index: 2200;
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
@@ -2776,6 +2802,61 @@
                 transform: translateY(-10px);
             }
         }
+        .loading-spinner {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text3);
+            font-size: 1rem;
+        }
+        .loading-spinner .spinner-icon {
+            font-size: 3rem;
+            display: block;
+            margin: 0 auto 12px;
+            animation: dogRun 0.6s ease-in-out infinite alternate;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        @keyframes dogRun {
+            0% {
+                transform: translateY(0) rotate(-5deg) scaleX(1);
+            }
+            25% {
+                transform: translateY(-12px) rotate(0deg) scaleX(1.05);
+            }
+            50% {
+                transform: translateY(-6px) rotate(3deg) scaleX(0.95);
+            }
+            75% {
+                transform: translateY(-14px) rotate(0deg) scaleX(1.05);
+            }
+            100% {
+                transform: translateY(0) rotate(5deg) scaleX(1);
+            }
+        }
+        .loading-dog-trail {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 8px;
+            height: 6px;
+        }
+        .loading-dog-trail span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.3;
+            animation: trailPulse 1.2s ease-in-out infinite;
+        }
+        .loading-dog-trail span:nth-child(2) { animation-delay: 0.15s; }
+        .loading-dog-trail span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes trailPulse {
+            0%, 100% { opacity: 0.15; transform: scale(0.8); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        .loading-spinner .spinner-text {
+            margin-top: 4px;
+            font-size: 0.85rem;
+        }
 
         .toast-notification {
             position: fixed;
@@ -2814,7 +2895,7 @@
             height: 3px;
             background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
             width: 0%;
-            z-index: 9999;
+            z-index: 9990;
             transition: width 0.08s linear;
             box-shadow: 0 0 12px rgba(155, 138, 189, 0.30);
             border-radius: 0 2px 2px 0;
@@ -2955,7 +3036,7 @@
             padding: 6px 0;
             min-width: 170px;
             box-shadow: var(--shadow-lg);
-            z-index: 9999;
+            z-index: 9980;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -3771,7 +3852,7 @@
         .guide-overlay {
             position: fixed;
             inset: 0;
-            z-index: 2000;
+            z-index: 3000;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
@@ -4220,7 +4301,7 @@
    ================================================================ -->
     <div class="modal-overlay" id="imageViewerOverlay">
         <div class="modal" style="background:transparent;padding:20px;display:flex;align-items:center;justify-content:center;min-height:auto;">
-            <button class="modal-close" id="imageViewerClose" style="display:flex !important;position:fixed;top:20px;right:30px;z-index:1101;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:2rem;padding:0 16px;border-radius:8px;cursor:pointer;line-height:1.8;">✕</button>
+            <button class="modal-close" id="imageViewerClose" style="display:flex !important;position:fixed;top:20px;right:30px;z-index:2101;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:2rem;padding:0 16px;border-radius:8px;cursor:pointer;line-height:1.8;">✕</button>
             <img id="imageViewerImg" src="" alt="查看大图" style="max-width:95vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.5);" />
         </div>
     </div>
@@ -4490,6 +4571,13 @@
             let currentCaptchaToken = null;
             let currentAvatarFile = null;
             let avatarPreviewUrl = null;
+            let _dropdownCloseHandler = null;
+
+            // 缓存相关
+            let _ratingStatsCache = {};
+            let _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
+            let _reviewPage = {};
+            const REVIEW_PAGE_SIZE = 10;
 
             // 分享相关
             let shareQRInstance = null;
@@ -4514,14 +4602,16 @@
             // 自定义标签
             // ================================================================
             async function loadCustomTagsFromStorage() {
-                let fallbackGenres = ['太空', '乐高'];
-                let fallbackGameplays = ['自定义角色', '调查', '打字'];
+                const defaultFallbackGenres = ['太空', '乐高'];
+                const defaultFallbackGameplays = ['自定义角色', '调查', '打字'];
+                let fallbackGenres = [...defaultFallbackGenres];
+                let fallbackGameplays = [...defaultFallbackGameplays];
                 try {
                     const s = localStorage.getItem('heroineCustomTags');
                     if (s) {
                         const d = JSON.parse(s);
-                        if (d.genres && d.genres.length) fallbackGenres = d.genres;
-                        if (d.gameplays && d.gameplays.length) fallbackGameplays = d.gameplays;
+                        if (d.genres && Array.isArray(d.genres) && d.genres.length) fallbackGenres = d.genres;
+                        if (d.gameplays && Array.isArray(d.gameplays) && d.gameplays.length) fallbackGameplays = d.gameplays;
                     }
                 } catch (_) {}
 
@@ -4531,41 +4621,47 @@
                             .from('games')
                             .select('id, genre, gameplay')
                             .in('id', [1, 2]);
-                        if (!error && data) {
+                        if (!error && data && Array.isArray(data)) {
                             const genreRecord = data.find(r => r.id === 1);
                             const gameplayRecord = data.find(r => r.id === 2);
-                            if (genreRecord && genreRecord.genre && Array.isArray(genreRecord.genre)) {
+                            if (genreRecord && genreRecord.genre && Array.isArray(genreRecord.genre) && genreRecord.genre.length > 0) {
                                 customGenres = genreRecord.genre;
                             } else {
                                 customGenres = fallbackGenres;
+                                console.warn('⚠️ 自定义题材标签记录(id=1)缺失或格式异常，使用缓存/默认值');
                             }
-                            if (gameplayRecord && gameplayRecord.gameplay && Array.isArray(gameplayRecord.gameplay)) {
+                            if (gameplayRecord && gameplayRecord.gameplay && Array.isArray(gameplayRecord.gameplay) && gameplayRecord.gameplay.length > 0) {
                                 customGameplays = gameplayRecord.gameplay;
                             } else {
                                 customGameplays = fallbackGameplays;
+                                console.warn('⚠️ 自定义玩法标签记录(id=2)缺失或格式异常，使用缓存/默认值');
                             }
-                            localStorage.setItem('heroineCustomTags', JSON.stringify({
-                                genres: customGenres,
-                                gameplays: customGameplays
-                            }));
+                            try {
+                                localStorage.setItem('heroineCustomTags', JSON.stringify({
+                                    genres: customGenres,
+                                    gameplays: customGameplays
+                                }));
+                            } catch (_) {}
                             console.log('✅ 自定义标签已从数据库同步');
                             return;
                         } else {
-                            console.warn('⚠️ 从数据库读取自定义标签失败，使用缓存数据');
+                            console.warn('⚠️ 从数据库读取自定义标签失败，使用缓存数据', error?.message || '');
                         }
                     } catch (e) {
                         console.warn('⚠️ 数据库读取异常，使用缓存数据', e);
                     }
                 }
 
-                customGenres = fallbackGenres;
-                customGameplays = fallbackGameplays;
-                if (!localStorage.getItem('heroineCustomTags')) {
-                    localStorage.setItem('heroineCustomTags', JSON.stringify({
-                        genres: customGenres,
-                        gameplays: customGameplays
-                    }));
-                }
+                customGenres = fallbackGenres.length > 0 ? fallbackGenres : defaultFallbackGenres;
+                customGameplays = fallbackGameplays.length > 0 ? fallbackGameplays : defaultFallbackGameplays;
+                try {
+                    if (!localStorage.getItem('heroineCustomTags')) {
+                        localStorage.setItem('heroineCustomTags', JSON.stringify({
+                            genres: customGenres,
+                            gameplays: customGameplays
+                        }));
+                    }
+                } catch (_) {}
             }
 
             function getAllGenres() { return [...new Set([...DEFAULT_GENRE_OPTIONS, ...customGenres])]; }
@@ -4656,7 +4752,11 @@
                     pushToCloud('user_wishlist', id);
                 }
                 saveUserData();
-                renderGallery();
+                if (wishlistMode) {
+                    renderGallery();
+                } else {
+                    updateCardButtonState(id);
+                }
             }
 
             function togglePlayed(gameId) {
@@ -4672,12 +4772,29 @@
                     pushToCloud('user_played', id);
                 }
                 saveUserData();
-                renderGallery();
+                updateCardButtonState(id);
             }
 
             function isInWishlist(gameId) { return userData.wishlist.includes(Number(gameId)); }
 
             function isPlayed(gameId) { return userData.played.includes(Number(gameId)); }
+
+            function updateCardButtonState(gameId) {
+                const card = _cardMap.get(Number(gameId));
+                if (!card) return;
+                const wishBtn = card.querySelector('.action-wish');
+                const playBtn = card.querySelector('.action-play');
+                if (wishBtn) {
+                    const inW = isInWishlist(gameId);
+                    wishBtn.className = 'action-btn action-wish' + (inW ? ' active-wish' : '');
+                    wishBtn.innerHTML = `<span class="icon">${inW ? '❤️' : '🤍'}</span> ${inW ? '已加入' : '加入愿望单'}`;
+                }
+                if (playBtn) {
+                    const inP = isPlayed(gameId);
+                    playBtn.className = 'action-btn action-play' + (inP ? ' active-played' : '');
+                    playBtn.innerHTML = `<span class="icon">${inP ? '✅' : '⬜'}</span> ${inP ? '已玩过' : '标记玩过'}`;
+                }
+            }
 
             // ================================================================
             // 成就系统
@@ -4897,11 +5014,14 @@
                 } catch (e) { console.error('❌ 删除评论异常:', e); }
             }
 
-            async function fetchGameReviews(gameId, limit = 20) {
+            async function fetchGameReviews(gameId, page) {
                 if (!supabaseClient) return [];
+                page = page || 0;
                 try {
+                    const from = page * REVIEW_PAGE_SIZE;
+                    const to = from + REVIEW_PAGE_SIZE - 1;
                     const { data, error } = await supabaseClient.from('user_reviews').select('*').eq('game_id', Number(gameId))
-                        .order('created_at', { ascending: false }).limit(limit);
+                        .order('created_at', { ascending: false }).range(from, to);
                     if (error) throw error;
                     return data || [];
                 } catch (e) { console.error('❌ 获取评论失败:', e); return []; }
@@ -4909,6 +5029,11 @@
 
             async function fetchGameRatingStats(gameId) {
                 if (!supabaseClient) return { average: null, count: 0 };
+                const cacheKey = String(gameId);
+                const cached = _ratingStatsCache[cacheKey];
+                if (cached && (Date.now() - cached.ts < 60000)) {
+                    return { average: cached.average, count: cached.count };
+                }
                 try {
                     const { data, error } = await supabaseClient.from('user_reviews').select('rating').eq('game_id', Number(
                         gameId))
@@ -4917,6 +5042,7 @@
                     const ratings = data.map(r => r.rating).filter(r => r !== null);
                     const count = ratings.length;
                     const average = count > 0 ? (ratings.reduce((a, b) => a + b, 0) / count) : null;
+                    _ratingStatsCache[cacheKey] = { average, count, ts: Date.now() };
                     return { average, count };
                 } catch (e) { console.error('❌ 获取评分统计失败:', e); return { average: null, count: 0 }; }
             }
@@ -5316,8 +5442,11 @@
             }
 
             // ================================================================
-            // 渲染卡片
+            // 渲染卡片 (性能优化：复用已有DOM节点)
             // ================================================================
+            let _cardMap = new Map();
+            let _cardEventBound = new WeakSet();
+
             function renderGallery() {
                 games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
 
@@ -5333,9 +5462,9 @@
 
                 if (filtered.length === 0) {
                     grid.innerHTML = '';
+                    _cardMap.clear();
                     no.style.display = 'block';
 
-                    // 根据不同情况显示不同的空状态
                     if (wishlistMode) {
                         no.innerHTML = `
                             <div class="empty-state-guide">
@@ -5373,11 +5502,30 @@
                 }
                 no.style.display = 'none';
 
+                const filteredIds = new Set(filtered.map(g => g.id));
                 const frag = document.createDocumentFragment();
+                const newCards = [];
+
                 filtered.forEach(g => {
-                    const card = createCardElement(g);
-                    frag.appendChild(card);
+                    let card = _cardMap.get(g.id);
+                    if (card) {
+                        frag.appendChild(card);
+                    } else {
+                        card = createCardElement(g);
+                        _cardMap.set(g.id, card);
+                        frag.appendChild(card);
+                        newCards.push(card);
+                    }
                 });
+
+                for (const [id, card] of _cardMap) {
+                    if (!filteredIds.has(id)) {
+                        card.remove();
+                        _cardEventBound.delete(card);
+                        _cardMap.delete(id);
+                    }
+                }
+
                 grid.innerHTML = '';
                 grid.appendChild(frag);
 
@@ -5397,13 +5545,11 @@
                                 } else {
                                     img.onload = function() {
                                         this.classList.add('loaded');
-                                        const ph = this.closest('.gallery-card')?.querySelector(
-                                            '.card-cover-placeholder');
+                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
                                         if (ph) ph.classList.add('hidden');
                                     };
                                     img.onerror = function() {
-                                        const ph = this.closest('.gallery-card')?.querySelector(
-                                            '.card-cover-placeholder');
+                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
                                         if (ph) ph.classList.remove('hidden');
                                     };
                                 }
@@ -5428,13 +5574,11 @@
                             } else {
                                 img.onload = function() {
                                     this.classList.add('loaded');
-                                    const ph = this.closest('.gallery-card')?.querySelector(
-                                        '.card-cover-placeholder');
+                                    const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
                                     if (ph) ph.classList.add('hidden');
                                 };
                                 img.onerror = function() {
-                                    const ph = this.closest('.gallery-card')?.querySelector(
-                                        '.card-cover-placeholder');
+                                    const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
                                     if (ph) ph.classList.remove('hidden');
                                 };
                             }
@@ -5443,6 +5587,12 @@
                     if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
                         setupCard3D(card);
                     }
+                });
+
+                cards.forEach(card => {
+                    if (_cardEventBound.has(card)) return;
+                    _cardEventBound.add(card);
+
                     const wishBtn = card.querySelector('.action-wish');
                     const playBtn = card.querySelector('.action-play');
                     if (wishBtn) {
@@ -5459,9 +5609,7 @@
                             if (!isNaN(id)) togglePlayed(id);
                         });
                     }
-                });
 
-                grid.querySelectorAll('.gallery-card').forEach(card => {
                     const id = Number(card.dataset.gameId);
                     if (!isNaN(id)) {
                         card.addEventListener('click', function(e) {
@@ -5719,7 +5867,7 @@
                     commentArea.appendChild(commentLabel);
                     const commentText = document.createElement('div');
                     commentText.style.cssText =
-                        'font-size:0.9rem;color:#1e1822;line-height:1.6;word-break:break-word;white-space:pre-wrap;max-height:120px;overflow:hidden;';
+                        'font-size:0.9rem;color:#1e1822;line-height:1.6;word-break:break-word;white-space:pre-wrap;';
                     commentText.textContent = extraComment;
                     commentArea.appendChild(commentText);
                     wrapper.appendChild(commentArea);
@@ -5885,16 +6033,23 @@
                 return wrapper;
             }
 
-            // 快速截图（无需等待额外延迟）
+            // 快速截图（带超时保护）
             async function captureShareCard(wrapper) {
-                // 等待一帧让 DOM 渲染
                 await new Promise(r => requestAnimationFrame(r));
                 await new Promise(r => setTimeout(r, 50));
+
+                const timeoutMs = 20000;
+                let timeoutId;
+                const timeoutPromise = new Promise(function(_, reject) {
+                    timeoutId = setTimeout(function() {
+                        reject(new Error('截图生成超时'));
+                    }, timeoutMs);
+                });
 
                 try {
                     const html2canvasLib = await window._loadHtml2Canvas();
                     const actualWidth = wrapper.offsetWidth || 400;
-                    const canvas = await html2canvasLib(wrapper, {
+                    const renderPromise = html2canvasLib(wrapper, {
                         scale: 2.5,
                         useCORS: true,
                         logging: false,
@@ -5904,10 +6059,13 @@
                         width: actualWidth,
                         height: wrapper.scrollHeight,
                     });
+                    const canvas = await Promise.race([renderPromise, timeoutPromise]);
+                    clearTimeout(timeoutId);
                     return canvas.toDataURL('image/png');
                 } catch (err) {
+                    clearTimeout(timeoutId);
                     console.error('生成分享图片失败:', err);
-                    showToast('⚠️ 生成图片失败，请重试', 2000);
+                    showToast('⚠️ 生成图片超时，请重试', 2000);
                     return null;
                 }
             }
@@ -5918,39 +6076,54 @@
                 const overlay = document.getElementById('shareFloatOverlay');
                 const container = document.getElementById('shareImageContainer');
 
-                // 显示加载提示
-                container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">⏳ 生成分享图片...</div>';
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);"><div id="shareProgressText">⏳ 正在加载依赖库...</div><div style="margin-top:12px;width:120px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:12px auto 0;"><div id="shareProgressBar" style="width:0%;height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;"></div></div></div>';
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
 
-                // 构建 DOM 并截图（async）
-                const wrapper = await buildShareCardDOM(game, extraComment || null);
-                // 添加到页面中以便截图（限制最大宽度）
-                wrapper.style.position = 'fixed';
-                wrapper.style.left = '-9999px';
-                wrapper.style.top = '0';
-                wrapper.style.zIndex = '9999';
-                wrapper.style.pointerEvents = 'none';
-                wrapper.style.width = 'min(400px, calc(100vw - 40px))';
-                document.body.appendChild(wrapper);
+                const progressText = document.getElementById('shareProgressText');
+                const progressBar = document.getElementById('shareProgressBar');
 
-                const dataUrl = await captureShareCard(wrapper);
-                wrapper.remove();
+                try {
+                    if (progressText) progressText.textContent = '⏳ 正在加载二维码库...';
+                    if (progressBar) progressBar.style.width = '20%';
+                    const wrapper = await buildShareCardDOM(game, extraComment || null);
 
-                if (!dataUrl) {
-                    container.innerHTML =
-                        '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div>';
+                    if (progressText) progressText.textContent = '⏳ 正在渲染分享卡片...';
+                    if (progressBar) progressBar.style.width = '50%';
+                    wrapper.style.position = 'fixed';
+                    wrapper.style.left = '-9999px';
+                    wrapper.style.top = '0';
+                    wrapper.style.zIndex = '-1';
+                    wrapper.style.pointerEvents = 'none';
+                    wrapper.style.width = 'min(400px, calc(100vw - 40px))';
+                    document.body.appendChild(wrapper);
+
+                    if (progressText) progressText.textContent = '⏳ 正在生成图片...';
+                    if (progressBar) progressBar.style.width = '75%';
+                    const dataUrl = await captureShareCard(wrapper);
+                    wrapper.remove();
+
+                    if (!dataUrl) {
+                        container.innerHTML =
+                            '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div>';
+                        return;
+                    }
+
+                    if (progressBar) progressBar.style.width = '100%';
+
+                    shareImageDataURL = dataUrl;
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.alt = `${game.title} 分享图片`;
+                    img.style.cssText = 'width:100%;height:auto;display:block;border-radius:16px;';
+                    img.setAttribute('draggable', 'false');
+                    container.innerHTML = '';
+                    container.appendChild(img);
+                } catch (err) {
+                    console.error('分享浮层构建失败:', err);
+                    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div>';
                     return;
                 }
-
-                shareImageDataURL = dataUrl;
-                const img = document.createElement('img');
-                img.src = dataUrl;
-                img.alt = `${game.title} 分享图片`;
-                img.style.cssText = 'width:100%;height:auto;display:block;border-radius:16px;';
-                img.setAttribute('draggable', 'false');
-                container.innerHTML = '';
-                container.appendChild(img);
 
                 const downloadBtn = document.getElementById('shareFloatDownloadBtn');
                 const hint = document.getElementById('longPressHint');
@@ -6444,61 +6617,36 @@
             }
 
             // ================================================================
-            // 社区评论 (带分享按钮)
+            // 社区评论 (带分享按钮 + 分页)
             // ================================================================
-            async function loadCommunityReviews(gameId) {
-                const statsDisplay = document.getElementById('ratingStatsDisplay');
-                const commentsList = document.getElementById('communityCommentsList');
-                if (!statsDisplay || !commentsList) return;
+            function renderReviewItem(r, gameId) {
+                const avatar = r.avatar_url ?
+                    `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
+                    `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
+                const stars = r.rating ? `<span class="comment-stars">${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}</span>` : '';
+                const time = r.created_at ? new Date(r.created_at).toLocaleDateString('zh-CN', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                }) : '';
+                const commentText = r.comment || '';
+                const shareBtnHtml =
+                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(commentText)}" data-username="${escapeHTML(r.display_name || '用户')}">📤 分享</button>`;
+                return `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            ${avatar}
+                            <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
+                            ${stars}
+                            <span class="comment-time">${time}</span>
+                        </div>
+                        ${commentText ? `<div class="comment-text">${escapeHTML(commentText)}</div>` : ''}
+                        <div class="comment-actions">
+                            ${shareBtnHtml}
+                        </div>
+                    </div>`;
+            }
 
-                const stats = await fetchGameRatingStats(gameId);
-                if (stats.average !== null) {
-                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 10 （共 <strong>${stats.count}</strong> 人评分）`;
-                } else {
-                    statsDisplay.textContent = '暂无评分';
-                }
-
-                const reviews = await fetchGameReviews(gameId);
-                if (reviews.length === 0) {
-                    commentsList.innerHTML =
-                    `<div style="text-align:center;color:var(--text3);padding:12px;">暂无评论，快来写下你的第一条吧！</div>`;
-                    return;
-                }
-
-                let html = '';
-                reviews.forEach(r => {
-                    const avatar = r.avatar_url ?
-                        `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
-                        `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
-                    const stars = r.rating ? `<span class="comment-stars">${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}</span>` :
-                        '';
-                    const time = r.created_at ? new Date(r.created_at).toLocaleDateString('zh-CN', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    }) : '';
-                    const commentText = r.comment || '';
-                    const shareBtnHtml =
-                        `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(commentText)}" data-username="${escapeHTML(r.display_name || '用户')}">📤 分享</button>`;
-                    html += `
-                            <div class="comment-item">
-                                <div class="comment-header">
-                                    ${avatar}
-                                    <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
-                                    ${stars}
-                                    <span class="comment-time">${time}</span>
-                                </div>
-                                ${commentText ? `<div class="comment-text">${escapeHTML(commentText)}</div>` : ''}
-                                <div class="comment-actions">
-                                    ${shareBtnHtml}
-                                </div>
-                            </div>
-                        `;
-                });
-                commentsList.innerHTML = html;
-
-                // 绑定分享按钮事件
-                commentsList.querySelectorAll('.comment-share-btn').forEach(btn => {
+            function bindReviewShareButtons(container) {
+                container.querySelectorAll('.comment-share-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         const gameIdNum = Number(this.dataset.gameId);
@@ -6506,11 +6654,71 @@
                         if (!gameIdNum || !comment) return;
                         const game = games.find(g => g.id === gameIdNum);
                         if (!game) { showToast('未找到游戏信息', 1500); return; }
-                        // 构建分享内容：评论 + 游戏信息
-                        const extraText = `${comment}`;
-                        buildShareFloat(game, extraText);
+                        buildShareFloat(game, comment);
                     });
                 });
+            }
+
+            async function loadCommunityReviews(gameId) {
+                const statsDisplay = document.getElementById('ratingStatsDisplay');
+                const commentsList = document.getElementById('communityCommentsList');
+                if (!statsDisplay || !commentsList) return;
+
+                _reviewPage[gameId] = 0;
+                const stats = await fetchGameRatingStats(gameId);
+                if (stats.average !== null) {
+                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 10 （共 <strong>${stats.count}</strong> 人评分）`;
+                } else {
+                    statsDisplay.textContent = '暂无评分';
+                }
+
+                const reviews = await fetchGameReviews(gameId, 0);
+                if (reviews.length === 0) {
+                    commentsList.innerHTML =
+                    `<div style="text-align:center;color:var(--text3);padding:12px;">暂无评论，快来写下你的第一条吧！</div>`;
+                    return;
+                }
+
+                let html = '';
+                reviews.forEach(r => { html += renderReviewItem(r, gameId); });
+
+                const hasMore = reviews.length >= REVIEW_PAGE_SIZE;
+                if (hasMore) {
+                    html += `<div class="review-load-more" style="text-align:center;padding:10px 0;">
+                        <button class="btn btn-sm" id="reviewLoadMoreBtn" data-game-id="${gameId}">加载更多评论</button>
+                    </div>`;
+                }
+
+                commentsList.innerHTML = html;
+                bindReviewShareButtons(commentsList);
+
+                const loadMoreBtn = commentsList.querySelector('#reviewLoadMoreBtn');
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', async function() {
+                        const gid = Number(this.dataset.gameId);
+                        const nextPage = (_reviewPage[gid] || 0) + 1;
+                        this.disabled = true;
+                        this.textContent = '加载中...';
+                        const moreReviews = await fetchGameReviews(gid, nextPage);
+                        _reviewPage[gid] = nextPage;
+                        if (moreReviews.length > 0) {
+                            const moreWrap = document.createElement('div');
+                            moreReviews.forEach(r => { moreWrap.innerHTML += renderReviewItem(r, gid); });
+                            const existingLoadMore = commentsList.querySelector('.review-load-more');
+                            while (moreWrap.firstChild) {
+                                commentsList.insertBefore(moreWrap.firstChild, existingLoadMore);
+                            }
+                            bindReviewShareButtons(commentsList);
+                        }
+                        if (moreReviews.length < REVIEW_PAGE_SIZE) {
+                            const lm = commentsList.querySelector('.review-load-more');
+                            if (lm) lm.remove();
+                        } else {
+                            this.disabled = false;
+                            this.textContent = '加载更多评论';
+                        }
+                    });
+                }
             }
 
             function extractVideoTitle(url) {
@@ -6689,6 +6897,12 @@
             async function fetchGuestbookMessages() {
                 const table = getGuestbookTable();
                 if (!table) return [];
+                const cacheKey = guestbookSort + '_' + guestbookPage;
+                const now = Date.now();
+                if (_guestbookCache.data && _guestbookCache.key === cacheKey && (now - _guestbookCache.ts < 15000)) {
+                    guestbookTotalCount = _guestbookCache.totalCount || 0;
+                    return _guestbookCache.data;
+                }
                 try {
                     let query = table.select('*', { count: 'exact' });
                     if (guestbookSort === 'newest') {
@@ -6702,7 +6916,16 @@
                     const { data, error, count } = await query;
                     if (error) throw error;
                     guestbookTotalCount = count || 0;
-                    return data || [];
+                    let result = data || [];
+                    if (guestbookSort === 'hottest' && result.length > 0) {
+                        result = [...result].sort((a, b) => {
+                            const aTotal = Object.values(a.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
+                            const bTotal = Object.values(b.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
+                            return bTotal - aTotal;
+                        });
+                    }
+                    _guestbookCache = { data: result, key: cacheKey, ts: now, totalCount: guestbookTotalCount };
+                    return result;
                 } catch (e) {
                     console.error('❌ 获取留言失败:', e);
                     return [];
@@ -6725,6 +6948,7 @@
                         .select()
                         .single();
                     if (error) throw error;
+                    _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
                     return data;
                 } catch (e) {
                     console.error('❌ 发布留言失败:', e);
@@ -6741,6 +6965,7 @@
                         .eq('id', id)
                         .eq('user_id', currentUser.id);
                     if (error) throw error;
+                    _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
                 } catch (e) {
                     console.error('❌ 删除留言失败:', e);
                     showToast('⚠️ 删除失败', 2000);
@@ -6749,7 +6974,6 @@
 
             async function toggleGuestbookReaction(messageId, emoji) {
                 if (!currentUser || !supabaseClient) return;
-                // 获取当前消息
                 try {
                     const { data: msg, error: fetchErr } = await supabaseClient.from('site_guestbook')
                         .select('reactions')
@@ -6773,6 +6997,7 @@
                         .update({ reactions })
                         .eq('id', messageId);
                     if (error) throw error;
+                    _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
                 } catch (e) {
                     console.error('❌ 反应操作失败:', e);
                 }
@@ -7453,12 +7678,16 @@
                         dropdown.classList.toggle('show');
                         if (arrow) arrow.classList.toggle('open');
                     });
-                    document.addEventListener('click', function closeDropdown(e) {
+                    if (_dropdownCloseHandler) {
+                        document.removeEventListener('click', _dropdownCloseHandler);
+                    }
+                    _dropdownCloseHandler = function closeDropdown(e) {
                         if (!wrapper.contains(e.target)) {
                             dropdown.classList.remove('show');
                             if (arrow) arrow.classList.remove('open');
                         }
-                    });
+                    };
+                    document.addEventListener('click', _dropdownCloseHandler);
                 }
 
                 document.getElementById('profileEditBtn').addEventListener('click', function(e) {
@@ -7988,7 +8217,7 @@
                     const genreHint = preferredGenres.length > 0 && userData.played.length >= 3 ?
                         '（根据你的偏好推荐）' : '';
                     showToast(`🎲 今日推荐：${pick.title} ${genreHint}`, 2800);
-                } else { alert(`🎲 随机推荐：${pick.title}\n${pick.description || ''}`); }
+                } else { showToast(`🎲 今日推荐：${pick.title} — ${pick.description || '暂无简介'}`, 3500); }
             }
 
             // ================================================================
@@ -7997,6 +8226,11 @@
             async function init() {
                 loadSettings();
                 loadUserData();
+
+                const grid = document.getElementById('galleryGrid');
+                if (grid) {
+                    grid.innerHTML = '<div class="loading-spinner"><span class="spinner-icon">🐕</span><div class="loading-dog-trail"><span></span><span></span><span></span></div><div class="spinner-text">正在加载游戏数据...</div></div>';
+                }
 
                 await loadCustomTagsFromStorage();
 
