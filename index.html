@@ -4146,6 +4146,16 @@
             .guestbook-modal .modal { padding: 16px 12px; max-width: 98%; }
             .guestbook-header { font-size: 1rem; }
         }
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9991;
+        }
+
     </style>
 </head>
 
@@ -4160,6 +4170,9 @@
 
     <!-- 滚动进度条 -->
     <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+    <!-- 庆祝彩带画布 -->
+    <canvas id="confettiCanvas" aria-hidden="true"></canvas>
 
     <!-- 返回顶部 -->
     <button id="backToTop" aria-label="返回顶部" title="返回顶部">
@@ -4842,6 +4855,7 @@
                 toast.innerHTML = `🎉 成就解锁：${ach.icon} <strong>${ach.name}</strong> — ${ach.desc}`;
                 document.body.appendChild(toast);
                 requestAnimationFrame(() => { toast.classList.add('show'); });
+                celebrate();
                 setTimeout(() => {
                     toast.classList.remove('show');
                     setTimeout(() => toast.remove(), 500);
@@ -8217,7 +8231,122 @@
                     const genreHint = preferredGenres.length > 0 && userData.played.length >= 3 ?
                         '（根据你的偏好推荐）' : '';
                     showToast(`🎲 今日推荐：${pick.title} ${genreHint}`, 2800);
+                    celebrate();
                 } else { showToast(`🎲 今日推荐：${pick.title} — ${pick.description || '暂无简介'}`, 3500); }
+            }
+
+            // ================================================================
+            // 庆祝彩带 & 鼓掌音效
+            // ================================================================
+            let _confettiCanvas, _confettiCtx;
+            let _ribbons = [];
+            let _confettiAnimId = null;
+
+            function initConfetti() {
+                _confettiCanvas = document.getElementById('confettiCanvas');
+                if (!_confettiCanvas) return;
+                _confettiCtx = _confettiCanvas.getContext('2d');
+                function resize() {
+                    _confettiCanvas.width = window.innerWidth;
+                    _confettiCanvas.height = window.innerHeight;
+                }
+                resize();
+                window.addEventListener('resize', resize, { passive: true });
+            }
+
+            function fireConfetti(count) {
+                if (!_confettiCanvas) return;
+                count = count || 60;
+                const colors = ['#e879a8','#c084fc','#fb7185','#a78bfa','#f472b6','#818cf8','#f9a8d4','#c4b5fd'];
+                for (let i = 0; i < count; i++) {
+                    _ribbons.push({
+                        x: Math.random() * _confettiCanvas.width,
+                        y: -10 - Math.random() * 40,
+                        w: 6 + Math.random() * 6,
+                        h: 14 + Math.random() * 10,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: 2 + Math.random() * 3,
+                        rot: Math.random() * Math.PI * 2,
+                        rotV: (Math.random() - 0.5) * 0.2,
+                        life: 1,
+                        decay: 0.004 + Math.random() * 0.004,
+                        sway: Math.random() * 2,
+                        swayPhase: Math.random() * Math.PI * 2
+                    });
+                }
+                if (!_confettiAnimId) animateConfetti();
+            }
+
+            function animateConfetti() {
+                _confettiCtx.clearRect(0, 0, _confettiCanvas.width, _confettiCanvas.height);
+                for (let i = _ribbons.length - 1; i >= 0; i--) {
+                    const r = _ribbons[i];
+                    r.x += r.vx + Math.sin(r.swayPhase) * r.sway * 0.1;
+                    r.y += r.vy;
+                    r.rot += r.rotV;
+                    r.swayPhase += 0.03;
+                    r.vy += 0.03;
+                    r.life -= r.decay;
+                    if (r.life <= 0 || r.y > _confettiCanvas.height + 20) {
+                        _ribbons.splice(i, 1);
+                        continue;
+                    }
+                    _confettiCtx.save();
+                    _confettiCtx.translate(r.x, r.y);
+                    _confettiCtx.rotate(r.rot);
+                    _confettiCtx.globalAlpha = r.life;
+                    _confettiCtx.fillStyle = r.color;
+                    _confettiCtx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h);
+                    _confettiCtx.restore();
+                }
+                if (_ribbons.length > 0) {
+                    _confettiAnimId = requestAnimationFrame(animateConfetti);
+                } else {
+                    _confettiAnimId = null;
+                    _confettiCtx.clearRect(0, 0, _confettiCanvas.width, _confettiCanvas.height);
+                }
+            }
+
+            let _applauseCtx = null;
+            function playApplause() {
+                try {
+                    if (!_applauseCtx) _applauseCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (_applauseCtx.state === 'suspended') _applauseCtx.resume();
+                    const duration = 1.2;
+                    const sampleRate = _applauseCtx.sampleRate;
+                    const length = sampleRate * duration;
+                    const buffer = _applauseCtx.createBuffer(1, length, sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < length; i++) {
+                        const t = i / sampleRate;
+                        const envelope = Math.exp(-t * 4) * 0.3;
+                        const clap = Math.random() * 2 - 1;
+                        const burst = Math.sin(t * 800) * Math.exp(-t * 20) * 0.15;
+                        data[i] = (clap * envelope + burst) * 0.35;
+                    }
+                    for (let b = 0; b < 5; b++) {
+                        const start = Math.floor((0.05 + Math.random() * 0.8) * sampleRate);
+                        const burstLen = Math.floor(sampleRate * 0.06);
+                        for (let j = 0; j < burstLen && start + j < length; j++) {
+                            const bt = j / sampleRate;
+                            const be = Math.exp(-bt * 30) * 0.25;
+                            data[start + j] += (Math.random() * 2 - 1) * be;
+                        }
+                    }
+                    const source = _applauseCtx.createBufferSource();
+                    source.buffer = buffer;
+                    const gain = _applauseCtx.createGain();
+                    gain.gain.value = 0.25;
+                    source.connect(gain);
+                    gain.connect(_applauseCtx.destination);
+                    source.start();
+                } catch (_) {}
+            }
+
+            function celebrate() {
+                fireConfetti(60);
+                playApplause();
             }
 
             // ================================================================
@@ -8248,6 +8377,7 @@
                 initGuideEvents();
                 initKeyboardShortcuts();
                 initSystemThemeListener();
+                initConfetti();
 
                 // 滚动位置记忆
                 restoreScrollPosition();
