@@ -5871,18 +5871,74 @@
 
                 // 如果有评论，在顶部显示
                 if (extraComment) {
+                    const isReviewObj = typeof extraComment === 'object' && extraComment.comment;
                     const commentArea = document.createElement('div');
                     commentArea.style.cssText =
                         'padding:16px 16px 12px;background:#f8f5fc;border-bottom:2px solid #f0ebf5;';
                     const commentLabel = document.createElement('div');
                     commentLabel.style.cssText =
-                        'font-size:0.7rem;font-weight:600;color:#9b8abd;letter-spacing:0.04em;margin-bottom:4px;';
+                        'font-size:0.7rem;font-weight:600;color:#9b8abd;letter-spacing:0.04em;margin-bottom:8px;';
                     commentLabel.textContent = '💬 评论分享';
                     commentArea.appendChild(commentLabel);
+
+                    if (isReviewObj) {
+                        const reviewer = extraComment;
+                        const reviewerRow = document.createElement('div');
+                        reviewerRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:10px;';
+                        const avatarWrap = document.createElement('div');
+                        avatarWrap.style.cssText = 'width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#e8e2ee;display:flex;align-items:center;justify-content:center;';
+                        if (reviewer.avatarUrl) {
+                            const avImg = document.createElement('img');
+                            avImg.src = reviewer.avatarUrl;
+                            avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                            avImg.crossOrigin = 'anonymous';
+                            avImg.referrerPolicy = 'no-referrer';
+                            avImg.onerror = function() { this.style.display='none'; };
+                            avatarWrap.appendChild(avImg);
+                        } else {
+                            const avPh = document.createElement('span');
+                            avPh.style.cssText = 'font-size:1.2rem;';
+                            avPh.textContent = '👤';
+                            avatarWrap.appendChild(avPh);
+                        }
+                        reviewerRow.appendChild(avatarWrap);
+
+                        const infoCol = document.createElement('div');
+                        infoCol.style.cssText = 'flex:1;min-width:0;';
+                        const nameLine = document.createElement('div');
+                        nameLine.style.cssText = 'font-size:0.85rem;font-weight:600;color:#1e1822;';
+                        nameLine.textContent = reviewer.displayName || '用户';
+                        infoCol.appendChild(nameLine);
+
+                        const metaLine = document.createElement('div');
+                        metaLine.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:2px;';
+                        if (reviewer.rating) {
+                            const starsSpan = document.createElement('span');
+                            starsSpan.style.cssText = 'font-size:0.75rem;color:#f5a623;letter-spacing:1px;';
+                            starsSpan.textContent = '★'.repeat(reviewer.rating) + '☆'.repeat(10 - reviewer.rating);
+                            metaLine.appendChild(starsSpan);
+                            const ratingNum = document.createElement('span');
+                            ratingNum.style.cssText = 'font-size:0.7rem;color:#665c72;';
+                            ratingNum.textContent = reviewer.rating + '/10';
+                            metaLine.appendChild(ratingNum);
+                        }
+                        if (reviewer.createdAt) {
+                            const dateSpan = document.createElement('span');
+                            dateSpan.style.cssText = 'font-size:0.7rem;color:#8c8099;';
+                            dateSpan.textContent = new Date(reviewer.createdAt).toLocaleDateString('zh-CN', {
+                                year: 'numeric', month: 'long', day: 'numeric'
+                            });
+                            metaLine.appendChild(dateSpan);
+                        }
+                        infoCol.appendChild(metaLine);
+                        reviewerRow.appendChild(infoCol);
+                        commentArea.appendChild(reviewerRow);
+                    }
+
                     const commentText = document.createElement('div');
                     commentText.style.cssText =
                         'font-size:0.9rem;color:#1e1822;line-height:1.6;word-break:break-word;white-space:pre-wrap;';
-                    commentText.textContent = extraComment;
+                    commentText.textContent = isReviewObj ? extraComment.comment : extraComment;
                     commentArea.appendChild(commentText);
                     wrapper.appendChild(commentArea);
                 }
@@ -6100,7 +6156,7 @@
                 try {
                     if (progressText) progressText.textContent = '⏳ 正在加载二维码库...';
                     if (progressBar) progressBar.style.width = '20%';
-                    const wrapper = await buildShareCardDOM(game, extraComment || null);
+                    const wrapper = await buildShareCardDOM(game, extraComment);
 
                     if (progressText) progressText.textContent = '⏳ 正在渲染分享卡片...';
                     if (progressBar) progressBar.style.width = '50%';
@@ -6290,8 +6346,9 @@
                 }
 
                 let reviewHTML = '';
+                let userAreaHTML = '';
                 if (!currentUser) {
-                    reviewHTML = `<div class="review-login-prompt">🔑 登录后即可评分和评论</div>`;
+                    userAreaHTML = `<div class="review-login-prompt">🔑 登录后即可评分和评论</div>`;
                 } else {
                     let userRatingHtml = '';
                     if (userRating !== null) {
@@ -6339,22 +6396,26 @@
                             `;
                     }
 
-                    reviewHTML = `
+                    userAreaHTML = `
                             <div class="review-user-area">
                                 ${userRatingHtml}
                                 ${userCommentHtml}
                             </div>
-                            <div class="review-community-area">
-                                <div class="review-community-header">
-                                    <span>📊 社区评分</span>
-                                    <span class="review-stats" id="ratingStatsDisplay">⏳ 加载中...</span>
-                                </div>
-                                <div id="communityCommentsList" style="margin-top:6px;max-height:300px;overflow-y:auto;">
-                                    <div style="text-align:center;color:var(--text3);padding:12px;">⏳ 加载评论中...</div>
-                                </div>
-                            </div>
                         `;
                 }
+
+                reviewHTML = `
+                        ${userAreaHTML}
+                        <div class="review-community-area">
+                            <div class="review-community-header">
+                                <span>📊 社区评分</span>
+                                <span class="review-stats" id="ratingStatsDisplay">⏳ 加载中...</span>
+                            </div>
+                            <div id="communityCommentsList" style="margin-top:6px;max-height:300px;overflow-y:auto;">
+                                <div style="text-align:center;color:var(--text3);padding:12px;">⏳ 加载评论中...</div>
+                            </div>
+                        </div>
+                    `;
 
                 const detailPlayBtnHtml = game.isReleased ?
                     `<button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>` :
@@ -6643,7 +6704,7 @@
                 }) : '';
                 const commentText = r.comment || '';
                 const shareBtnHtml =
-                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(commentText)}" data-username="${escapeHTML(r.display_name || '用户')}">📤 分享</button>`;
+                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(commentText)}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-rating="${r.rating || ''}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 return `
                     <div class="comment-item">
                         <div class="comment-header">
@@ -6668,7 +6729,14 @@
                         if (!gameIdNum || !comment) return;
                         const game = games.find(g => g.id === gameIdNum);
                         if (!game) { showToast('未找到游戏信息', 1500); return; }
-                        buildShareFloat(game, comment);
+                        const reviewData = {
+                            comment: comment,
+                            displayName: this.dataset.username || '用户',
+                            avatarUrl: this.dataset.avatar || '',
+                            rating: this.dataset.rating ? Number(this.dataset.rating) : 0,
+                            createdAt: this.dataset.date || ''
+                        };
+                        buildShareFloat(game, reviewData);
                     });
                 });
             }
