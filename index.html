@@ -4691,10 +4691,13 @@
                     const raw = localStorage.getItem(USER_DATA_KEY);
                     if (raw) {
                         const parsed = JSON.parse(raw);
-                        userData.wishlist = parsed.wishlist || [];
-                        userData.played = parsed.played || [];
+                        userData.wishlist = (parsed.wishlist || []).map(id => Math.round(Number(id))).filter(id => Number.isInteger(id) && id > 0);
+                        userData.played = (parsed.played || []).map(id => Math.round(Number(id))).filter(id => Number.isInteger(id) && id > 0);
                         userData.achievements = parsed.achievements || [];
-                        userData.reviews = parsed.reviews || [];
+                        userData.reviews = (parsed.reviews || []).map(r => ({
+                            ...r,
+                            game_id: Math.round(Number(r.game_id))
+                        }));
                     } else { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
                 } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
             }
@@ -4958,7 +4961,7 @@
                     return;
                 }
                 const reviewData = {
-                    game_id: Number(gameId),
+                    game_id: Math.round(Number(gameId)),
                     user_id: currentUser.id,
                     rating: rating,
                     comment: comment || null,
@@ -6661,6 +6664,7 @@
                         </div>
                     `;
 
+                window._detailScrollBeforeOpen = window.scrollY;
                 overlay.dataset.gameId = game.id;
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
@@ -6840,13 +6844,13 @@
                         window._detailFrom = 'gallery';
                     }, 200);
                 } else {
-                    const container = document.getElementById('galleryContainer');
-                    if (container) {
-                        const rect = container.getBoundingClientRect();
-                        if (rect.top < 0) {
-                            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
+                    const savedScroll = window._detailScrollBeforeOpen;
+                    if (typeof savedScroll === 'number' && savedScroll > 0) {
+                        requestAnimationFrame(function() {
+                            window.scrollTo(0, savedScroll);
+                        });
                     }
+                    window._detailScrollBeforeOpen = null;
                 }
             }
 
@@ -8187,10 +8191,10 @@
                     if (playedRes.error) throw new Error(playedRes.error.message);
                     if (reviewsRes.error) throw new Error(reviewsRes.error.message);
 
-                    const cloudWishlist = wishlistRes.data.map(item => Number(item.game_id));
-                    const cloudPlayed = playedRes.data.map(item => Number(item.game_id));
+                    const cloudWishlist = wishlistRes.data.map(item => Math.round(Number(item.game_id)));
+                    const cloudPlayed = playedRes.data.map(item => Math.round(Number(item.game_id)));
                     const cloudReviews = reviewsRes.data.map(item => ({
-                        game_id: Number(item.game_id),
+                        game_id: Math.round(Number(item.game_id)),
                         rating: item.rating,
                         comment: item.comment,
                         created_at: item.created_at,
@@ -8209,7 +8213,7 @@
                     const uploadPromises = [];
 
                     if (toUploadWishlist.length > 0) {
-                        const items = toUploadWishlist.map(game_id => ({ user_id: userId, game_id: Number(game_id) }));
+                        const items = toUploadWishlist.map(game_id => ({ user_id: userId, game_id: Math.round(Number(game_id)) }));
                         uploadPromises.push(
                             supabaseClient.from('user_wishlist').insert(items)
                             .then(res => { if (res.error && res.error.code !== '23505') throw res.error; return res; })
@@ -8217,7 +8221,7 @@
                     }
 
                     if (toUploadPlayed.length > 0) {
-                        const items = toUploadPlayed.map(game_id => ({ user_id: userId, game_id: Number(game_id) }));
+                        const items = toUploadPlayed.map(game_id => ({ user_id: userId, game_id: Math.round(Number(game_id)) }));
                         uploadPromises.push(
                             supabaseClient.from('user_played').insert(items)
                             .then(res => { if (res.error && res.error.code !== '23505') throw res.error; return res; })
@@ -8232,7 +8236,7 @@
                         if (!cloud) {
                             toUploadReviews.push({
                                 user_id: userId,
-                                game_id: Number(gameId),
+                                game_id: Math.round(Number(gameId)),
                                 rating: local.rating || null,
                                 comment: local.comment || null,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
@@ -8241,7 +8245,7 @@
                         } else if ((local.updated_at || '') > (cloud.updated_at || '')) {
                             toUploadReviews.push({
                                 user_id: userId,
-                                game_id: Number(gameId),
+                                game_id: Math.round(Number(gameId)),
                                 rating: local.rating || null,
                                 comment: local.comment || null,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
