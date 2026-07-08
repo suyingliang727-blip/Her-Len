@@ -4966,6 +4966,7 @@
                     avatar_url: currentUser.user_metadata?.avatar_url || null
                 };
                 const existingIdx = userData.reviews.findIndex(r => r.game_id === gameId);
+                const isNewReview = existingIdx < 0;
                 if (existingIdx >= 0) {
                     userData.reviews[existingIdx] = {
                         ...userData.reviews[existingIdx],
@@ -4983,14 +4984,186 @@
                     });
                 }
                 saveUserData();
+
                 const detailModal = document.getElementById('detailModal');
                 if (detailModal && detailModal.closest('.modal-overlay.show')) {
                     const currentGameId = detailModal.dataset.gameId;
                     if (currentGameId && Number(currentGameId) === Number(gameId)) {
-                        const game = games.find(g => g.id === Number(gameId));
-                        if (game) showDetailModal(game);
+                        const reviewUserArea = detailModal.querySelector('.review-user-area');
+                        if (reviewUserArea) {
+                            const savedReview = userData.reviews.find(r => r.game_id === Number(gameId));
+                            const savedRating = savedReview?.rating ?? null;
+                            const savedComment = savedReview?.comment ?? null;
+
+                            let newRatingHtml = '';
+                            if (savedRating !== null) {
+                                newRatingHtml = `
+                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                                        <span style="font-weight:600;">我的评分：</span>
+                                        <span class="star-rating" style="font-size:1.4rem;">${renderStars(savedRating)}</span>
+                                        <span style="font-size:0.9rem;color:var(--text2);">${savedRating}/10</span>
+                                        <button class="btn btn-sm" id="editRatingBtn" style="padding:2px 10px;">修改</button>
+                                    </div>`;
+                            } else {
+                                newRatingHtml = `
+                                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                                        <span style="font-weight:600;">我的评分：</span>
+                                        <span class="star-rating" id="ratingStarsContainer" data-game="${gameId}" style="font-size:1.4rem;cursor:pointer;">
+                                            ${renderStars(null, true, gameId)}
+                                        </span>
+                                        <span style="font-size:0.8rem;color:var(--text3);">（点击星星评分）</span>
+                                    </div>`;
+                            }
+
+                            let newCommentHtml = '';
+                            if (savedComment) {
+                                newCommentHtml = `
+                                    <div style="margin-top:6px;">
+                                        <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
+                                            <span style="font-weight:600;">我的评论：</span>
+                                            <span style="flex:1;word-break:break-word;">${escapeHTML(savedComment)}</span>
+                                            <button class="btn btn-sm" id="editCommentBtn" style="padding:2px 10px;">编辑</button>
+                                            <button class="btn btn-sm" id="deleteCommentBtn" style="padding:2px 10px;color:var(--danger);border-color:var(--danger);">删除</button>
+                                        </div>
+                                    </div>`;
+                            } else {
+                                newCommentHtml = `
+                                    <div style="margin-top:6px;">
+                                        <textarea id="commentInput" placeholder="写下你的评价（最多500字）…" maxlength="500" class="comment-input"></textarea>
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                                            <span class="comment-char-count"><span id="commentCharCount">0</span>/500</span>
+                                            <button class="btn btn-sm btn-accent" id="submitCommentBtn">提交评论</button>
+                                        </div>
+                                    </div>`;
+                            }
+                            reviewUserArea.innerHTML = newRatingHtml + newCommentHtml;
+
+                            const editRatingBtn = reviewUserArea.querySelector('#editRatingBtn');
+                            if (editRatingBtn) {
+                                editRatingBtn.addEventListener('click', function() {
+                                    saveReview(Number(gameId), null, savedComment);
+                                });
+                            }
+                            const newStarsContainer = reviewUserArea.querySelector('#ratingStarsContainer');
+                            if (newStarsContainer) {
+                                const newStars = newStarsContainer.querySelectorAll('.star');
+                                let selR = null;
+                                newStars.forEach(function(star) {
+                                    star.addEventListener('click', function() {
+                                        const val = parseInt(this.dataset.value);
+                                        if (selR === val) {
+                                            selR = null;
+                                            newStars.forEach(function(s) { s.classList.remove('active'); });
+                                            saveReview(Number(gameId), null, savedComment);
+                                        } else {
+                                            selR = val;
+                                            newStars.forEach(function(s) {
+                                                s.classList.toggle('active', parseInt(s.dataset.value) <= val);
+                                            });
+                                            saveReview(Number(gameId), val, savedComment);
+                                        }
+                                    });
+                                    if (!isTouchDevice) {
+                                        star.addEventListener('mouseenter', function() {
+                                            const val = parseInt(this.dataset.value);
+                                            newStars.forEach(function(s) {
+                                                s.classList.toggle('hover', parseInt(s.dataset.value) <= val);
+                                            });
+                                        });
+                                        star.addEventListener('mouseleave', function() {
+                                            newStars.forEach(function(s) { s.classList.remove('hover'); });
+                                        });
+                                    }
+                                });
+                            }
+                            const newCommentInput = reviewUserArea.querySelector('#commentInput');
+                            const newCharCount = reviewUserArea.querySelector('#commentCharCount');
+                            if (newCommentInput && newCharCount) {
+                                newCommentInput.addEventListener('input', function() {
+                                    newCharCount.textContent = this.value.length;
+                                });
+                            }
+                            const newSubmitBtn = reviewUserArea.querySelector('#submitCommentBtn');
+                            if (newSubmitBtn && newCommentInput) {
+                                newSubmitBtn.addEventListener('click', function() {
+                                    const text = newCommentInput.value.trim();
+                                    if (!text) { showToast('评论内容不能为空', 1500); return; }
+                                    saveReview(Number(gameId), savedRating, text);
+                                });
+                                newCommentInput.addEventListener('keydown', function(e) {
+                                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                        e.preventDefault();
+                                        newSubmitBtn.click();
+                                    }
+                                });
+                            }
+                            const editCommentBtn = reviewUserArea.querySelector('#editCommentBtn');
+                            if (editCommentBtn) {
+                                editCommentBtn.addEventListener('click', function() {
+                                    const body = this.closest('.review-user-area');
+                                    if (!body) return;
+                                    const exist = body.querySelector('.comment-edit-area');
+                                    if (exist) { exist.remove(); return; }
+                                    const ea = document.createElement('div');
+                                    ea.className = 'comment-edit-area';
+                                    ea.innerHTML = '<textarea maxlength="500">' + escapeHTML(savedComment) + '</textarea><div class="comment-edit-actions"><button class="btn btn-sm" id="cancelEditBtn">取消</button><button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button></div>';
+                                    body.appendChild(ea);
+                                    const ta = ea.querySelector('textarea');
+                                    ta.focus();
+                                    ta.setSelectionRange(ta.value.length, ta.value.length);
+                                    ea.querySelector('#cancelEditBtn').addEventListener('click', function() { ea.remove(); });
+                                    ea.querySelector('#saveEditBtn').addEventListener('click', function() {
+                                        const text = ta.value.trim();
+                                        if (!text) { showToast('评论不能为空', 1500); return; }
+                                        saveReview(Number(gameId), savedRating, text);
+                                    });
+                                    ta.addEventListener('keydown', function(e) {
+                                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                            e.preventDefault();
+                                            ea.querySelector('#saveEditBtn').click();
+                                        }
+                                    });
+                                });
+                            }
+                            const deleteCommentBtn = reviewUserArea.querySelector('#deleteCommentBtn');
+                            if (deleteCommentBtn) {
+                                deleteCommentBtn.addEventListener('click', function() {
+                                    if (confirm('确定要删除这条评论吗？')) {
+                                        deleteReview(Number(gameId));
+                                    }
+                                });
+                            }
+                        }
+
+                        const commentsList = detailModal.querySelector('#communityCommentsList');
+                        if (commentsList && isNewReview && comment) {
+                            const tempReview = {
+                                avatar_url: currentUser.user_metadata?.avatar_url || null,
+                                display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                                rating: rating,
+                                comment: comment,
+                                created_at: new Date().toISOString()
+                            };
+                            const placeholder = commentsList.querySelector('div[style*="text-align:center"]');
+                            if (placeholder && placeholder.textContent.includes('暂无评论')) {
+                                commentsList.innerHTML = '';
+                            }
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = renderReviewItem(tempReview, gameId);
+                            const newEl = tempDiv.firstElementChild;
+                            newEl.style.opacity = '0.6';
+                            newEl.style.transition = 'opacity 0.5s ease';
+                            if (commentsList.firstChild) {
+                                commentsList.insertBefore(newEl, commentsList.firstChild);
+                            } else {
+                                commentsList.appendChild(newEl);
+                            }
+                            bindReviewShareButtons(newEl);
+                            setTimeout(function() { newEl.style.opacity = '1'; }, 50);
+                        }
                     }
                 }
+
                 if (!supabaseClient) return;
                 try {
                     const { error } = await supabaseClient.from('user_reviews').upsert(reviewData, { onConflict: 'user_id, game_id' });
@@ -6526,23 +6699,21 @@
 
                 if (currentUser) {
                     const starsContainer = modal.querySelector('#ratingStarsContainer');
+                    let selectedRating = null;
                     if (starsContainer) {
                         const stars = starsContainer.querySelectorAll('.star');
-                        let selectedRating = null;
                         stars.forEach(star => {
                             star.addEventListener('click', function() {
                                 const val = parseInt(this.dataset.value);
                                 if (selectedRating === val) {
                                     selectedRating = null;
                                     stars.forEach(s => s.classList.remove('active'));
-                                    saveReview(game.id, null, userComment);
                                 } else {
                                     selectedRating = val;
                                     stars.forEach(s => {
                                         const sv = parseInt(s.dataset.value);
                                         s.classList.toggle('active', sv <= val);
                                     });
-                                    saveReview(game.id, val, userComment);
                                 }
                             });
                             if (!isTouchDevice) {
@@ -6578,18 +6749,24 @@
                     }
 
                     const submitBtn = modal.querySelector('#submitCommentBtn');
-                    if (submitBtn && commentInput) {
+                    if (submitBtn) {
                         submitBtn.addEventListener('click', function() {
-                            const text = commentInput.value.trim();
-                            if (!text) { showToast('评论内容不能为空', 1500); return; }
-                            saveReview(game.id, userRating, text);
-                        });
-                        commentInput.addEventListener('keydown', function(e) {
-                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                                e.preventDefault();
-                                submitBtn.click();
+                            const text = commentInput ? commentInput.value.trim() : '';
+                            const finalRating = selectedRating !== null ? selectedRating : userRating;
+                            if (finalRating === null && !text) {
+                                showToast('请至少选择评分或填写评论', 1500);
+                                return;
                             }
+                            saveReview(game.id, finalRating, text || null);
                         });
+                        if (commentInput) {
+                            commentInput.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                    e.preventDefault();
+                                    submitBtn.click();
+                                }
+                            });
+                        }
                     }
 
                     const editCommentBtn = modal.querySelector('#editCommentBtn');
