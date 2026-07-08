@@ -4999,6 +4999,8 @@
                         showToast('⚠️ 评论保存失败，请检查网络', 2000);
                     } else {
                         console.log('✅ 评论保存成功');
+                        _ratingStatsCache[String(gameId)] = null;
+                        setTimeout(() => { loadCommunityReviews(Number(gameId)); }, 300);
                     }
                 } catch (e) { console.error('❌ 保存评论异常:', e); }
             }
@@ -6543,16 +6545,18 @@
                                     saveReview(game.id, val, userComment);
                                 }
                             });
-                            star.addEventListener('mouseenter', function() {
-                                const val = parseInt(this.dataset.value);
-                                stars.forEach(s => {
-                                    const sv = parseInt(s.dataset.value);
-                                    s.classList.toggle('hover', sv <= val);
+                            if (!isTouchDevice) {
+                                star.addEventListener('mouseenter', function() {
+                                    const val = parseInt(this.dataset.value);
+                                    stars.forEach(s => {
+                                        const sv = parseInt(s.dataset.value);
+                                        s.classList.toggle('hover', sv <= val);
+                                    });
                                 });
-                            });
-                            star.addEventListener('mouseleave', function() {
-                                stars.forEach(s => s.classList.remove('hover'));
-                            });
+                                star.addEventListener('mouseleave', function() {
+                                    stars.forEach(s => s.classList.remove('hover'));
+                                });
+                            }
                         });
                     }
 
@@ -8047,7 +8051,17 @@
                     const localReviewMap = new Map(localReviews.map(r => [r.game_id, r]));
                     const toUploadReviews = [];
                     for (const [gameId, local] of localReviewMap) {
-                        if (!cloudReviewMap.has(gameId)) {
+                        const cloud = cloudReviewMap.get(gameId);
+                        if (!cloud) {
+                            toUploadReviews.push({
+                                user_id: userId,
+                                game_id: Number(gameId),
+                                rating: local.rating || null,
+                                comment: local.comment || null,
+                                display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                                avatar_url: currentUser.user_metadata?.avatar_url || null
+                            });
+                        } else if ((local.updated_at || '') > (cloud.updated_at || '')) {
                             toUploadReviews.push({
                                 user_id: userId,
                                 game_id: Number(gameId),
@@ -8071,9 +8085,19 @@
 
                     const mergedWishlist = [...new Set([...cloudWishlist, ...localWishlist])];
                     const mergedPlayed = [...new Set([...cloudPlayed, ...localPlayed])];
-                    const mergedReviews = [...cloudReviews];
+                    const mergedReviews = [];
+                    const mergedGameIds = new Set();
+                    for (const [gameId, cloud] of cloudReviewMap) {
+                        const local = localReviewMap.get(gameId);
+                        if (local && (local.updated_at || '') > (cloud.updated_at || '')) {
+                            mergedReviews.push(local);
+                        } else {
+                            mergedReviews.push(cloud);
+                        }
+                        mergedGameIds.add(gameId);
+                    }
                     for (const [gameId, local] of localReviewMap) {
-                        if (!cloudReviewMap.has(gameId)) {
+                        if (!mergedGameIds.has(gameId)) {
                             mergedReviews.push(local);
                         }
                     }
