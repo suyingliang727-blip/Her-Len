@@ -4261,10 +4261,10 @@
                 <span class="announcement-icon">💖</span>
                 <span class="announcement-text">用户的打赏将用于维护本网页运行，感谢各位姊妹的大力支持，今后也将持续录入更多女性主角游戏。</span>
             </div>
-            <div class="announcement-item">
+            <div class="announcement-item" id="announcementInstallItem" style="display:none;">
                 <span class="announcement-icon">📱</span>
-                <span class="announcement-text">下载 Her Lens App，随时随地浏览游戏推荐！
-                    <a class="announcement-install-btn" href="apk/HerLens.apk" download>📥 下载 APK</a>
+                <span class="announcement-text">将 Her Lens <strong>安装到主屏幕</strong>，获得类原生 App 体验
+                    <button class="announcement-install-btn" id="announcementInstallBtn">📥 安装</button>
                 </span>
             </div>
         </div>
@@ -8866,19 +8866,83 @@
 
     <script>
         (function() {
-            var downloadBtn = document.querySelector('.announcement-install-btn');
-            if (downloadBtn) {
-                downloadBtn.addEventListener('click', function(e) {
-                    var toast = document.createElement('div');
-                    toast.className = 'toast-notification';
-                    toast.textContent = '📥 正在下载 Her Lens App...';
-                    document.body.appendChild(toast);
-                    requestAnimationFrame(function() { toast.classList.add('show'); });
-                    setTimeout(function() {
-                        toast.classList.remove('show');
-                        setTimeout(function() { toast.remove(); }, 500);
-                    }, 3000);
+            var deferredPrompt = null;
+            var installItem = document.getElementById('announcementInstallItem');
+            var installBtn = document.getElementById('announcementInstallBtn');
+
+            function isStandalone() {
+                return window.matchMedia('(display-mode: standalone)').matches ||
+                       window.navigator.standalone === true;
+            }
+
+            if (isStandalone()) {
+                if (installItem) installItem.style.display = 'none';
+                return;
+            }
+
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (installItem) installItem.style.display = '';
+            });
+
+            window.addEventListener('appinstalled', function() {
+                deferredPrompt = null;
+                if (installItem) installItem.style.display = 'none';
+            });
+
+            if (installBtn) {
+                installBtn.addEventListener('click', function() {
+                    if (!deferredPrompt) {
+                        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                        if (isIOS) {
+                            var toast = document.createElement('div');
+                            toast.className = 'toast-notification';
+                            toast.innerHTML = '📱 iOS 用户请点击 Safari 底部分享按钮，然后选择「添加到主屏幕」';
+                            document.body.appendChild(toast);
+                            requestAnimationFrame(function() { toast.classList.add('show'); });
+                            setTimeout(function() {
+                                toast.classList.remove('show');
+                                setTimeout(function() { toast.remove(); }, 500);
+                            }, 5000);
+                        } else {
+                            var toast = document.createElement('div');
+                            toast.className = 'toast-notification';
+                            toast.textContent = '💡 请使用 Chrome / Edge 浏览器打开以安装 App';
+                            document.body.appendChild(toast);
+                            requestAnimationFrame(function() { toast.classList.add('show'); });
+                            setTimeout(function() {
+                                toast.classList.remove('show');
+                                setTimeout(function() { toast.remove(); }, 5000);
+                            }, 3000);
+                        }
+                        return;
+                    }
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function(choice) {
+                        if (choice.outcome === 'accepted') {
+                            var toast = document.createElement('div');
+                            toast.className = 'toast-notification';
+                            toast.textContent = '✅ 正在安装 Her Lens...';
+                            document.body.appendChild(toast);
+                            requestAnimationFrame(function() { toast.classList.add('show'); });
+                            setTimeout(function() {
+                                toast.classList.remove('show');
+                                setTimeout(function() { toast.remove(); }, 500);
+                            }, 2500);
+                        }
+                        deferredPrompt = null;
+                    });
                 });
+            }
+
+            if (!('beforeinstallprompt' in window) && !isStandalone()) {
+                var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                if (isIOS && installItem) {
+                    installItem.style.display = '';
+                }
             }
         })();
     </script>

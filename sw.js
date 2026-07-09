@@ -48,11 +48,6 @@ self.addEventListener('fetch', event => {
 
     if (request.method !== 'GET') return;
 
-    if (url.pathname.endsWith('.apk')) {
-        event.respondWith(fetch(request));
-        return;
-    }
-
     if (url.hostname === 'tydbvpmigvzsnlmsjuby.supabase.co') {
         if (url.pathname.includes('/storage/')) {
             event.respondWith(cacheFirstWithLimit(request, IMAGE_CACHE, IMAGE_CACHE_MAX));
