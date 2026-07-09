@@ -3427,6 +3427,46 @@
             }
             .gallery-card {
                 border-radius: 16px;
+                display: flex;
+                flex-direction: column;
+            }
+            .gallery-card .card-cover-wrap {
+                aspect-ratio: 16/7;
+                max-height: 80px;
+            }
+            .gallery-card .card-body {
+                padding: 6px 10px 4px;
+                gap: 2px;
+                flex: 1;
+                overflow: hidden;
+            }
+            .gallery-card .card-title {
+                font-size: .82rem;
+                line-height: 1.2;
+            }
+            .gallery-card .card-desc {
+                font-size: .68rem;
+                line-height: 1.35;
+            }
+            .gallery-card .card-meta {
+                gap: 3px;
+                margin-top: 2px;
+            }
+            .gallery-card .card-meta span {
+                font-size: .6rem;
+                padding: 1px 5px;
+            }
+            .gallery-card .card-user-actions {
+                padding: 4px 10px 6px;
+                gap: 4px;
+                border-top: 1px solid var(--border);
+                margin-top: auto;
+            }
+            .gallery-card .card-heroine-tag {
+                font-size: 0.55rem;
+                padding: 1px 8px;
+                top: 4px;
+                left: 4px;
             }
             .btn-random {
                 padding: 4px 10px;
@@ -3458,12 +3498,6 @@
             .achievement-item .ach-icon {
                 font-size: 1.4rem;
                 width: 34px;
-            }
-            .card-heroine-tag {
-                font-size: 0.6rem;
-                padding: 1px 10px;
-                top: 6px;
-                left: 6px;
             }
             #authModal .modal {
                 max-width: 95%;
@@ -3582,12 +3616,6 @@
             }
             .gallery-card {
                 border-radius: 14px;
-            }
-            .card-heroine-tag {
-                font-size: 0.55rem;
-                padding: 1px 8px;
-                top: 4px;
-                left: 4px;
             }
             #authModal .modal {
                 padding: 16px 12px;
