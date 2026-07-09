@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9b8abd"/>
+      <stop offset="100%" stop-color="#7e6fa0"/>
+    </linearGradient>
+    <linearGradient id="ear1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8a7aaa"/>
+      <stop offset="100%" stop-color="#6e5f90"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <!-- Subtle inner glow -->
+  <rect x="8" y="8" width="496" height="496" rx="100" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  
+  <!-- Beagle body -->
+  <ellipse cx="256" cy="370" rx="85" ry="70" fill="none" stroke="#f5a623" stroke-width="5" stroke-linecap="round"/>
+  
+  <!-- Beagle head -->
+  <circle cx="256" cy="230" r="95" fill="none" stroke="#f5a623" stroke-width="5"/>
+  
+  <!-- Left floppy ear -->
+  <path d="M175 200 Q140 180 125 230 Q115 270 145 300 Q165 315 185 290 Q195 270 188 240 Z" 
+        fill="url(#ear1)" stroke="#f5a623" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  
+  <!-- Right floppy ear -->
+  <path d="M337 200 Q372 180 387 230 Q397 270 367 300 Q347 315 327 290 Q317 270 324 240 Z" 
+        fill="url(#ear1)" stroke="#f5a623" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  
+  <!-- Face white patch -->
+  <ellipse cx="256" cy="250" rx="55" ry="50" fill="rgba(255,255,255,0.15)" stroke="none"/>
+  
+  <!-- Left eye -->
+  <circle cx="225" cy="220" r="16" fill="none" stroke="#f5a623" stroke-width="4.5"/>
+  <circle cx="225" cy="218" r="8" fill="#f5a623"/>
+  <circle cx="221" cy="214" r="3" fill="rgba(255,255,255,0.8)"/>
+  
+  <!-- Right eye -->
+  <circle cx="287" cy="220" r="16" fill="none" stroke="#f5a623" stroke-width="4.5"/>
+  <circle cx="287" cy="218" r="8" fill="#f5a623"/>
+  <circle cx="283" cy="214" r="3" fill="rgba(255,255,255,0.8)"/>
+  
+  <!-- Nose -->
+  <ellipse cx="256" cy="255" rx="12" ry="9" fill="#f5a623" stroke="none"/>
+  <ellipse cx="256" cy="253" rx="4" ry="2.5" fill="rgba(255,255,255,0.4)"/>
+  
+  <!-- Mouth - happy smile -->
+  <path d="M240 268 Q248 280 256 272 Q264 280 272 268" 
+        fill="none" stroke="#f5a623" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Front paws -->
+  <ellipse cx="210" cy="420" rx="28" ry="18" fill="none" stroke="#f5a623" stroke-width="4.5" stroke-linecap="round"/>
+  <ellipse cx="302" cy="420" rx="28" ry="18" fill="none" stroke="#f5a623" stroke-width="4.5" stroke-linecap="round"/>
+  
+  <!-- Paw details -->
+  <circle cx="200" cy="418" r="4" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+  <circle cx="210" cy="415" r="4" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+  <circle cx="220" cy="418" r="4" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+  <circle cx="292" cy="418" r="4" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+  <circle cx="302" cy="415" r="4" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+  <circle cx="312" cy="418" r="4" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+  
+  <!-- Tail -->
+  <path d="M340 360 Q380 330 395 350 Q405 370 385 380" 
+        fill="none" stroke="#f5a623" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Collar with tag -->
+  <path d="M195 310 Q256 330 317 310" fill="none" stroke="#f5a623" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="256" cy="325" r="12" fill="none" stroke="#f5a623" stroke-width="3"/>
+  <text x="256" y="330" text-anchor="middle" font-size="14" font-weight="bold" fill="#f5a623" font-family="sans-serif">HL</text>
+  
+  <!-- Sparkle decorations -->
+  <g stroke="#f5a623" stroke-width="2.5" stroke-linecap="round" opacity="0.7">
+    <!-- Top left sparkle -->
+    <line x1="90" y1="100" x2="90" y2="120"/>
+    <line x1="80" y1="110" x2="100" y2="110"/>
+    <!-- Top right sparkle -->
+    <line x1="415" y1="90" x2="415" y2="110"/>
+    <line x1="405" y1="100" x2="425" y2="100"/>
+    <!-- Bottom sparkle -->
+    <line x1="130" y1="450" x2="130" y2="465"/>
+    <line x1="122" y1="457" x2="138" y2="457"/>
+    <!-- Small stars -->
+    <circle cx="400" cy="430" r="3" fill="#f5a623" stroke="none"/>
+    <circle cx="110" cy="370" r="3" fill="#f5a623" stroke="none"/>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+{
+    "name": "Her Lens · 女性主角游戏",
+    "short_name": "Her Lens",
+    "description": "专注于女性主角游戏的推荐网站，帮你找到下一场冒险",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#f3eff7",
+    "theme_color": "#9b8abd",
+    "orientation": "portrait-primary",
+    "lang": "zh-CN",
+    "categories": ["games", "entertainment"],
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}
