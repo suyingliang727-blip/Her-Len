@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Her Lens" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
@@ -3302,8 +3302,8 @@
    ================================================================ */
         @media (max-width:768px) {
             .gallery-grid {
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                gap: 14px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
             }
             .filter-sticky {
                 padding: 10px 8px 8px;
@@ -3571,8 +3571,8 @@
 
         @media (max-width:480px) {
             .gallery-grid {
-                grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
             .toolbar-left {
                 gap: 4px;
