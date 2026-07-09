@@ -2,7 +2,7 @@
     "name": "Her Lens · 女性主角游戏",
     "short_name": "Her Lens",
     "description": "专注于女性主角游戏的推荐网站，帮你找到下一场冒险",
-    "start_url": "./index.html",
+    "start_url": ".",
     "scope": "./",
     "display": "standalone",
     "background_color": "#f3eff7",
