@@ -36,6 +36,7 @@
                     reject(new Error(globalName + ' 加载超时 (' + timeoutMs + 'ms)'));
                 }, timeoutMs);
                 var retryCount = 0;
+
                 function attemptLoad() {
                     s.onload = function() {
                         clearTimeout(timer);
@@ -7697,6 +7698,7 @@
 
                 card.appendChild(ua);
 
+                // ===== 修复：编辑/删除按钮的显示条件 =====
                 if (isAdmin && isAdminMode) {
                     const admin = document.createElement('div');
                     admin.className = 'card-admin-actions';
@@ -7836,7 +7838,7 @@
                     <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
                     <div class="form-row">
                         <div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title||'')}" required></div>
-                        <div class="form-group"><label>发售日期</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate||'')}"></div>
+                        <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate||'')}"></div>
                     </div>
                     <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased?'checked':''}> 已发售游戏</label></div>
                     <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId||'')}">
