@@ -2205,7 +2205,7 @@
             border-radius: 10px;
             max-height: 180px;
             overflow-y: auto;
-            z-index: 100;
+            z-index: 2100;
             box-shadow: var(--shadow-lg);
             display: none;
         }
@@ -5030,6 +5030,7 @@
         .mod-compose .form-row .form-group {
             flex: 1;
             margin-bottom: 0;
+            position: relative;
         }
         .mod-compose .form-group label {
             display: block;
@@ -10386,6 +10387,7 @@
                 form.style.display = isVisible ? 'none' : '';
                 if (btn) btn.style.display = isVisible ? '' : 'none';
             }
+            window.toggleModComposeForm = toggleModComposeForm;
 
             async function renderModPostList() {
                 const listEl = document.getElementById('modPostList');
