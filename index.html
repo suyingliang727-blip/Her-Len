@@ -17,6 +17,7 @@
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script>
         window._lazyLibs = {};
@@ -343,6 +344,9 @@
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
             --card-bg-glass: rgba(255, 255, 255, 0.04);
             --card-border-glass: rgba(255, 255, 255, 0.06);
+        }
+        [data-theme="dark"] .header-dropdown-menu {
+            background: #2a2330;
         }
 
         /* ===== 基础样式 ===== */
@@ -720,7 +724,7 @@
             transform: translate(-50%, -50%);
             text-align: center;
             pointer-events: none;
-            z-index: 1;
+            z-index: 100;
         }
         .filter-header .site-title {
             font-size: 1.6rem;
@@ -742,6 +746,152 @@
             align-items: center;
             gap: 8px;
             z-index: 2;
+        }
+        .notif-bell-wrap {
+            position: relative;
+        }
+        .notif-bell-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+        .notif-bell-btn:hover {
+            background: var(--card-hover);
+            transform: scale(1.1);
+        }
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -4px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 8px;
+            padding: 0 4px;
+            pointer-events: none;
+        }
+        .notif-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            background: #faf7fd;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+            z-index: 9990;
+            overflow: hidden;
+        }
+        [data-theme="dark"] .notif-panel {
+            background: #2a2330;
+        }
+        .notif-panel.show {
+            display: block;
+        }
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .notif-panel-title {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text);
+        }
+        .notif-mark-all {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .notif-mark-all:hover {
+            text-decoration: underline;
+        }
+        .notif-list {
+            max-height: 370px;
+            overflow-y: auto;
+        }
+        .notif-item {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+            align-items: flex-start;
+        }
+        .notif-item:hover {
+            background: var(--card-hover);
+        }
+        .notif-item.unread {
+            background: rgba(155, 138, 189, 0.06);
+        }
+        .notif-item-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: var(--tag-bg);
+        }
+        .notif-item-avatar-placeholder {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--tag-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .notif-item-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .notif-item-text {
+            font-size: 0.82rem;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .notif-item-text strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .notif-item-preview {
+            font-size: 0.75rem;
+            color: var(--text3);
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .notif-item-time {
+            font-size: 0.7rem;
+            color: var(--text3);
+            margin-top: 3px;
+        }
+        .notif-empty {
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text3);
+            font-size: 0.85rem;
         }
         .view-tabs {
             display: flex;
@@ -1461,6 +1611,32 @@
             font-size: .85rem;
             line-height: 1;
         }
+        .gallery-card .card-admin-actions {
+            display: flex;
+            gap: 6px;
+            padding: 0 14px 10px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 3;
+        }
+        .gallery-card .card-admin-actions button {
+            font-size: .68rem;
+            padding: 4px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            background: var(--surface);
+            color: var(--text2);
+            transition: all .15s;
+        }
+        .gallery-card .card-admin-actions button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .gallery-card .card-admin-actions button.btn-del:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
         .gallery-card .card-parallax-bg {
             display: none;
             position: absolute;
@@ -1918,6 +2094,314 @@
             padding: 6px 14px;
             font-size: 0.78rem;
             border-radius: 18px;
+        }
+
+        /* ===== 详情页相关MOD ===== */
+        .detail-related-mods {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid var(--border);
+        }
+        .detail-related-mods-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .detail-mod-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .detail-mod-item:hover {
+            border-color: rgba(155, 138, 189, 0.3);
+            box-shadow: 0 2px 12px rgba(155, 138, 189, 0.08);
+        }
+        .detail-mod-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .detail-mod-item-icon.translation { background: rgba(59, 130, 246, 0.12); }
+        .detail-mod-item-icon.model { background: rgba(168, 85, 247, 0.12); }
+        .detail-mod-item-icon.graphics { background: rgba(236, 72, 153, 0.12); }
+        .detail-mod-item-icon.function { background: rgba(34, 197, 94, 0.12); }
+        .detail-mod-item-icon.story { background: rgba(249, 115, 22, 0.12); }
+        .detail-mod-item-icon.other { background: var(--glass-bg-light); }
+        .detail-mod-item-body { flex: 1; min-width: 0; }
+        .detail-mod-item-title {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .detail-mod-item-meta {
+            font-size: 0.72rem;
+            color: var(--text3);
+            display: flex;
+            gap: 8px;
+            margin-top: 2px;
+        }
+        .detail-mod-item-link {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-decoration: none;
+            flex-shrink: 0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent);
+            transition: all 0.2s;
+        }
+        .detail-mod-item-link:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        .detail-mods-empty {
+            font-size: 0.85rem;
+            color: var(--text3);
+            padding: 8px 0;
+        }
+        .game-name-link {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .game-name-link:hover {
+            text-decoration: underline;
+        }
+        .mod-compose .form-group {
+            position: relative;
+        }
+        .mod-autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--modal-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            display: none;
+        }
+        .mod-autocomplete-list.show {
+            display: block;
+        }
+        .mod-autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text);
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mod-autocomplete-item:hover {
+            background: var(--card-hover);
+        }
+        .mod-autocomplete-item img {
+            width: 32px;
+            height: 18px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: var(--tag-bg);
+        }
+
+        .mod-post-report-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .mod-post-report-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .mod-report-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .mod-report-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .mod-report-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            width: 92%;
+            max-width: 460px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s;
+        }
+        .mod-report-overlay.show .mod-report-modal {
+            transform: translateY(0) scale(1);
+        }
+        .mod-report-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 0;
+        }
+        .mod-report-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+        .mod-report-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text3);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .mod-report-close:hover {
+            background: var(--tag-bg);
+            color: var(--text);
+        }
+        .mod-report-body {
+            padding: 16px 20px;
+        }
+        .mod-report-category-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin-bottom: 10px;
+        }
+        .mod-report-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .mod-report-cat {
+            cursor: pointer;
+        }
+        .mod-report-cat input[type="radio"] {
+            display: none;
+        }
+        .mod-report-cat-box {
+            display: block;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            color: var(--text2);
+            transition: all 0.2s;
+            background: var(--surface2);
+        }
+        .mod-report-cat:hover .mod-report-cat-box {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+        .mod-report-cat input[type="radio"]:checked + .mod-report-cat-box {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.06);
+            color: #ef4444;
+            font-weight: 600;
+        }
+        .mod-report-desc-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin-bottom: 8px;
+        }
+        .mod-report-desc {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface2);
+            color: var(--text);
+            font-size: 0.88rem;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+        .mod-report-desc:focus {
+            border-color: var(--accent);
+        }
+        .mod-report-desc::placeholder {
+            color: var(--text3);
+        }
+        .mod-report-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 0 20px 18px;
+        }
+        .mod-report-cancel {
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface2);
+            color: var(--text2);
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mod-report-cancel:hover {
+            background: var(--tag-bg);
+        }
+        .mod-report-submit {
+            padding: 8px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mod-report-submit:hover {
+            background: #dc2626;
         }
 
         /* ================================================================
@@ -2965,6 +3449,102 @@
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(155, 138, 189, 0.15);
+        }
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: border-color .2s;
+        }
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .form-row .form-group {
+            flex: 1;
+            min-width: 140px;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 400;
+            cursor: pointer;
+            font-size: .82rem;
+            color: var(--text);
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--accent);
+        }
+        .tag-select-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+        .tag-select-panel .tag-option {
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: .75rem;
+            background: var(--glass-bg-light);
+            color: var(--tag-text);
+            user-select: none;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tag-select-panel .tag-option.selected {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        .tag-select-panel .tag-option:hover {
+            border-color: var(--accent);
+        }
+        .add-tag-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+        .add-tag-row input {
+            flex: 1;
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: .75rem;
         }
         .turnstile-container {
             margin: 12px 0;
@@ -4227,6 +4807,898 @@
             z-index: 9991;
         }
 
+        /* ================================================================
+   ★★★ 下拉菜单 ★★★
+   ================================================================ */
+        .header-dropdown {
+            position: relative;
+            display: inline-block;
+            pointer-events: auto;
+        }
+        .header-dropdown-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 0;
+        }
+        .header-dropdown-btn .dropdown-arrow-icon {
+            font-size: 0.7rem;
+            color: var(--text3);
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+        .header-dropdown-btn.open .dropdown-arrow-icon {
+            transform: rotate(180deg);
+        }
+        .header-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #faf7fd;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px 0;
+            min-width: 160px;
+            box-shadow: var(--shadow-lg);
+            z-index: 9980;
+            pointer-events: auto;
+        }
+        .header-dropdown-menu.show {
+            display: block;
+        }
+        .header-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: background 0.15s;
+            font-family: inherit;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .header-dropdown-item:hover {
+            background: var(--card-hover);
+        }
+        .header-dropdown-item.active {
+            color: var(--accent);
+            font-weight: 600;
+            background: rgba(155, 138, 189, 0.08);
+        }
+        .header-dropdown-item .item-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* ================================================================
+   ★★★ MOD 板块 ★★★
+   ================================================================ */
+        .mod-section {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px 20px 40px;
+            position: relative;
+            z-index: 2;
+        }
+        .mod-section.show {
+            display: block;
+        }
+        .mod-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .mod-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mod-header-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .mod-header-stats {
+            font-size: 0.82rem;
+            color: var(--text3);
+        }
+        .mod-header-stats strong {
+            color: var(--accent);
+        }
+
+        .mod-notice {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: linear-gradient(135deg, rgba(255, 183, 77, 0.08), rgba(255, 152, 0, 0.04));
+            border: 1px solid rgba(255, 152, 0, 0.25);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+        .mod-notice-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .mod-notice-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .mod-notice-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .mod-notice-text {
+            font-size: 0.82rem;
+            color: var(--text2);
+            line-height: 1.6;
+        }
+        .mod-notice-text strong {
+            color: var(--accent);
+        }
+
+        /* 发布区 */
+        .mod-compose {
+            background: var(--surface2);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .mod-compose-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .mod-compose-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .mod-compose-avatar-placeholder {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .mod-compose-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .mod-compose .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .mod-compose .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .mod-compose .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 3px;
+            color: var(--text2);
+        }
+        .mod-compose .form-group input,
+        .mod-compose .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.88rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .mod-compose .form-group input:focus,
+        .mod-compose .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .mod-compose textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-family: inherit;
+            resize: none;
+            min-height: 70px;
+            font-size: 0.88rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .mod-compose textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .mod-compose textarea::placeholder {
+            color: var(--text3);
+            opacity: 0.7;
+        }
+        .mod-compose-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .mod-compose-footer .char-count {
+            font-size: 0.75rem;
+            color: var(--text3);
+        }
+        .mod-compose-footer .char-count.warn {
+            color: var(--danger);
+        }
+        .mod-login-hint {
+            text-align: center;
+            color: var(--text3);
+            padding: 20px 0;
+            font-size: 0.9rem;
+        }
+        .mod-login-hint a {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* MOD标签 */
+        .mod-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .mod-tag.translation { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+        .mod-tag.model { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
+        .mod-tag.graphics { background: rgba(236, 72, 153, 0.12); color: #ec4899; }
+        .mod-tag.function { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+        .mod-tag.story { background: rgba(249, 115, 22, 0.12); color: #f97316; }
+        .mod-tag.other { background: var(--glass-bg-light); color: var(--tag-text); }
+
+        /* MOD列表 */
+        .mod-sort-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .mod-sort-btn {
+            padding: 5px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.78rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .mod-sort-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .mod-filter-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .mod-filter-btn {
+            padding: 4px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .mod-filter-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .mod-post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mod-post-item {
+            background: var(--surface);
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .mod-post-item:hover {
+            border-color: rgba(155, 138, 189, 0.3);
+            box-shadow: 0 2px 12px rgba(155, 138, 189, 0.08);
+        }
+        .mod-post-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .mod-post-item-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .mod-post-item-avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .mod-post-item-user {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .mod-post-item-time {
+            font-size: 0.7rem;
+            color: var(--text3);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .mod-post-item-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        .mod-post-item-game {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
+            padding: 2px 8px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .mod-post-item-content {
+            font-size: 0.85rem;
+            color: var(--text2);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        .mod-post-item-footer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+        .mod-post-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .mod-post-action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .mod-post-action-btn.liked {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.1);
+        }
+        .mod-post-action-btn .count {
+            font-weight: 600;
+            min-width: 1em;
+            text-align: center;
+        }
+        .mod-post-action-btn.thanked {
+            border-color: #e74c8b;
+            color: #e74c8b;
+            background: rgba(231, 76, 139, 0.1);
+        }
+        .mod-badge {
+            font-size: 0.75rem;
+            margin-left: 2px;
+        }
+        .badge-hot { filter: drop-shadow(0 0 3px rgba(255,100,0,0.4)); }
+        .badge-star { filter: drop-shadow(0 0 3px rgba(245,166,35,0.5)); }
+        .badge-featured { filter: drop-shadow(0 0 3px rgba(245,215,0,0.4)); }
+        .mod-admin-badge-menu {
+            position: relative; display: inline-block; margin-left: 4px;
+        }
+        .mod-admin-badge-btn {
+            background: none; border: 1px solid var(--border); border-radius: 6px;
+            padding: 1px 6px; font-size: 0.7rem; color: var(--text3); cursor: pointer;
+            transition: all 0.2s; line-height: 1;
+        }
+        .mod-admin-badge-btn:hover { background: var(--card-hover); color: var(--text); }
+        .mod-admin-badge-dropdown {
+            display: none; position: absolute; top: calc(100% + 4px); right: 0; z-index: 9990;
+            background: var(--modal-bg); border: 1px solid var(--border); border-radius: 10px;
+            padding: 6px 0; min-width: 150px; box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+        }
+        .mod-admin-badge-dropdown.show { display: block; }
+        .mod-admin-badge-dropdown .badge-toggle-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 14px; font-size: 0.82rem; color: var(--text); cursor: pointer;
+            transition: background 0.15s; width: 100%; border: none; background: none;
+            text-align: left; font-family: inherit;
+        }
+        .mod-admin-badge-dropdown .badge-toggle-item:hover { background: var(--card-hover); }
+        .mod-admin-badge-dropdown .badge-toggle-item .badge-toggle-label { display: flex; align-items: center; gap: 6px; }
+        .mod-admin-badge-dropdown .badge-toggle-item .badge-toggle-status {
+            font-size: 0.75rem; padding: 2px 6px; border-radius: 4px;
+        }
+        .mod-admin-badge-dropdown .badge-toggle-item .badge-toggle-status.on {
+            background: rgba(93,138,94,0.15); color: var(--success);
+        }
+        .mod-admin-badge-dropdown .badge-toggle-item .badge-toggle-status.off {
+            background: rgba(140,128,153,0.1); color: var(--text3);
+        }
+        .author-card-popup {
+            position: fixed; z-index: 10000; background: var(--modal-bg);
+            border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+            box-shadow: var(--shadow-lg); min-width: 200px; max-width: 260px;
+            backdrop-filter: blur(20px); pointer-events: auto;
+        }
+        .author-card-popup .author-card-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+        }
+        .author-card-popup .author-card-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--border);
+        }
+        .author-card-popup .author-card-avatar-placeholder {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--tag-bg);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .author-card-popup .author-card-name {
+            font-weight: 700; font-size: 0.95rem; color: var(--text);
+        }
+        .author-card-popup .author-card-badges {
+            font-size: 0.85rem; margin-top: 2px;
+        }
+        .author-card-popup .author-card-stats {
+            display: flex; gap: 16px; font-size: 0.82rem; color: var(--text2);
+        }
+        .author-card-popup .author-card-stats span {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .author-card-popup .author-card-stats strong {
+            color: var(--accent); font-weight: 700;
+        }
+        .mod-thanks-list {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+            padding: 10px 0; border-top: 1px solid var(--border); margin-top: 12px;
+            font-size: 0.82rem; color: var(--text2);
+        }
+        .mod-thanks-label { white-space: nowrap; }
+        .mod-thanks-avatar {
+            width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+            border: 1.5px solid var(--border);
+        }
+        .mod-thanks-avatar-placeholder {
+            width: 26px; height: 26px; border-radius: 50%; background: var(--tag-bg);
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;
+        }
+        .mod-thanks-extra { color: var(--text3); margin-left: 2px; }
+        .mod-post-delete-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .mod-post-delete-btn:hover {
+            color: var(--danger);
+            background: rgba(192, 57, 43, 0.08);
+        }
+        .mod-post-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .mod-post-link-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* MOD详情 */
+        .mod-detail-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1500;
+            background: var(--bg);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .mod-detail-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .mod-detail-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 16px 20px 60px;
+        }
+        .mod-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0 14px;
+            border-bottom: 1.5px solid var(--border);
+            margin-bottom: 16px;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 10;
+        }
+        .mod-detail-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px 6px 12px;
+            border-radius: 24px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+        .mod-detail-back-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .mod-detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        .mod-detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .mod-detail-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.82rem;
+            color: var(--text2);
+        }
+        .mod-detail-author:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        .mod-detail-game-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.1);
+            padding: 3px 12px;
+            border-radius: 12px;
+        }
+        .mod-detail-content {
+            font-size: 0.92rem;
+            color: var(--text);
+            line-height: 1.8;
+            white-space: pre-line;
+            word-break: break-word;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .mod-detail-link-section {
+            background: var(--surface2);
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .mod-detail-link-label {
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        .mod-detail-link-url {
+            font-size: 0.8rem;
+            color: var(--accent);
+            word-break: break-all;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .mod-detail-link-url:hover {
+            color: var(--accent2);
+            text-decoration: underline;
+        }
+        .mod-detail-link-open {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 18px;
+            border-radius: 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.25s;
+            text-decoration: none;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .mod-detail-link-open:hover {
+            background: var(--accent2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(155, 138, 189, 0.25);
+        }
+        .mod-detail-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .mod-detail-comments-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+        .mod-comment-compose {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        .mod-comment-compose textarea {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-family: inherit;
+            resize: none;
+            min-height: 50px;
+            font-size: 0.85rem;
+            transition: border-color 0.2s;
+        }
+        .mod-comment-compose textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .mod-comment-compose textarea::placeholder {
+            color: var(--text3);
+            opacity: 0.7;
+        }
+        .mod-comment-compose .btn {
+            flex-shrink: 0;
+            align-self: flex-end;
+        }
+        .mod-comment-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            margin-bottom: 8px;
+            align-items: flex-start;
+        }
+        .mod-comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .mod-comment-avatar-placeholder {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .mod-comment-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .mod-comment-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+        .mod-comment-name {
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+        .mod-comment-time {
+            font-size: 0.68rem;
+            color: var(--text3);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .mod-comment-text {
+            font-size: 0.85rem;
+            color: var(--text2);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .mod-comment-delete {
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 0.65rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            align-self: center;
+        }
+        .mod-comment-delete:hover {
+            color: var(--danger);
+            background: rgba(192, 57, 43, 0.08);
+        }
+        .mod-empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text3);
+        }
+        .mod-empty .empty-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .mod-empty .empty-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin-bottom: 6px;
+        }
+        .mod-empty .empty-desc {
+            font-size: 0.88rem;
+        }
+
+        @media (max-width: 768px) {
+            .mod-section {
+                padding: 12px 12px 32px;
+            }
+            .mod-compose .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .mod-compose .form-row .form-group {
+                margin-bottom: 10px;
+            }
+            .mod-detail-container {
+                padding: 12px 14px 40px;
+            }
+            .mod-detail-title {
+                font-size: 1.2rem;
+            }
+            .mod-post-item {
+                padding: 12px 14px;
+            }
+            .header-dropdown-menu {
+                left: auto;
+                right: 0;
+                transform: none;
+            }
+        }
+
     </style>
 </head>
 
@@ -4280,10 +5752,36 @@
         <div class="filter-header">
             <div class="site-logo" id="siteLogo">Her Lens</div>
             <div class="header-center">
-                <div class="site-title" id="siteTitle">🎮 女性主角游戏</div>
-                <div class="site-subtitle">*请从中选择你的下一场冒险*</div>
+                <div class="header-dropdown" id="mainViewDropdown">
+                    <button class="header-dropdown-btn" id="mainViewDropdownBtn">
+                        <div class="site-title" id="siteTitle">🎮 女性主角游戏</div>
+                        <span class="dropdown-arrow-icon">▼</span>
+                    </button>
+                    <div class="header-dropdown-menu" id="mainViewDropdownMenu">
+                        <button class="header-dropdown-item active" data-main-view="games">
+                            <span class="item-icon">🎮</span> 游戏总览
+                        </button>
+                        <button class="header-dropdown-item" data-main-view="mods">
+                            <span class="item-icon">🔧</span> MOD总览
+                        </button>
+                    </div>
+                </div>
+                <div class="site-subtitle" id="siteSubtitle">*请从中选择你的下一场冒险*</div>
             </div>
             <div class="header-right">
+                <div class="notif-bell-wrap" id="notifBellWrap" style="display:none;">
+                    <button class="notif-bell-btn" id="notifBellBtn" title="通知">🔔</button>
+                    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                    <div class="notif-panel" id="notifPanel">
+                        <div class="notif-panel-header">
+                            <span class="notif-panel-title">🔔 通知</span>
+                            <button class="notif-mark-all" id="notifMarkAll">全部已读</button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <div class="notif-empty">暂无通知</div>
+                        </div>
+                    </div>
+                </div>
                 <div id="authStatusContainer"></div>
             </div>
         </div>
@@ -4334,6 +5832,11 @@
 
             <button class="btn btn-sm" id="btnGuestbook" title="留言板 - 和大家聊聊天" style="border-color:var(--accent);color:var(--accent);">💬 留言板</button>
 
+            <button class="btn btn-sm" id="btnToggleAdmin" title="切换管理模式" style="display:none;">🔧 管理</button>
+            <button class="btn btn-sm" id="btnAddGame" title="手动添加游戏" style="display:none;">＋ 添加</button>
+            <button class="btn btn-sm" id="btnImportCSV" title="从CSV批量导入" style="display:none;">📂 导入</button>
+            <input type="file" id="csvFileInput" accept=".csv" style="display:none;" />
+
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
         </div>
 
@@ -4360,6 +5863,96 @@
         <div class="no-results" id="noResults" style="display:none;">
             <span class="icon">📭</span>
             没有找到匹配的游戏，请调整筛选条件或搜索词
+        </div>
+    </div>
+
+    <!-- ===== MOD 板块 ===== -->
+    <div class="mod-section" id="modSection">
+        <div class="mod-header">
+            <div class="mod-header-left">
+                <div class="mod-header-title">🔧 MOD 分享区</div>
+                <div class="mod-header-stats" id="modStats">共 <strong>0</strong> 个MOD</div>
+            </div>
+        </div>
+
+        <div class="mod-notice">
+            <div class="mod-notice-icon">⚠️</div>
+            <div class="mod-notice-body">
+                <div class="mod-notice-title">MOD 分享授权须知</div>
+                <div class="mod-notice-text">
+                    分享 MOD 时请确认是否有作者授权。<strong>未获授权</strong>的情况下，只能分享作者的发布 MOD 帖子链接（如 Nexus Mods 页面），<strong>不能直接发布 MOD 下载链接</strong>。<br>
+                    如果你是 MOD <strong>作者本人</strong>或已获得<strong>作者授权</strong>，可直接分享 MOD 下载链接。
+                </div>
+            </div>
+        </div>
+
+        <div id="modComposeArea"></div>
+
+        <div class="mod-filter-row" id="modFilterRow">
+            <button class="mod-filter-btn active" data-mod-filter="all">全部</button>
+            <button class="mod-filter-btn" data-mod-filter="翻译补丁">🌐 翻译补丁</button>
+            <button class="mod-filter-btn" data-mod-filter="模型MOD">🧱 模型MOD</button>
+            <button class="mod-filter-btn" data-mod-filter="美化MOD">✨ 美化MOD</button>
+            <button class="mod-filter-btn" data-mod-filter="功能MOD">⚙️ 功能MOD</button>
+            <button class="mod-filter-btn" data-mod-filter="剧情MOD">📖 剧情MOD</button>
+            <button class="mod-filter-btn" data-mod-filter="其他">📦 其他</button>
+        </div>
+
+        <div class="mod-sort-row">
+            <button class="mod-sort-btn active" data-mod-sort="newest">🕐 最新</button>
+            <button class="mod-sort-btn" data-mod-sort="hottest">🔥 最热</button>
+        </div>
+
+        <div class="mod-post-list" id="modPostList"></div>
+        <div class="mod-empty" id="modEmpty" style="display:none;">
+            <span class="empty-icon">🔧</span>
+            <div class="empty-title">还没有MOD分享</div>
+            <div class="empty-desc">快来发布第一个MOD分享吧！</div>
+        </div>
+        <div class="guestbook-load-more" id="modLoadMore" style="display:none;">
+            <button id="modLoadMoreBtn">加载更多...</button>
+        </div>
+    </div>
+
+    <!-- ===== MOD 详情页 ===== -->
+    <div class="mod-detail-overlay" id="modDetailOverlay">
+        <div class="mod-detail-container" id="modDetailContainer"></div>
+    </div>
+
+    <!-- MOD举报弹窗 -->
+    <div class="mod-report-overlay" id="modReportOverlay" onclick="if(event.target===this)closeModReport();">
+        <div class="mod-report-modal">
+            <div class="mod-report-header">
+                <span class="mod-report-title">🚩 举报 MOD 分享</span>
+                <button class="mod-report-close" onclick="closeModReport()">✕</button>
+            </div>
+            <div class="mod-report-body">
+                <div class="mod-report-category-label">请选择举报原因</div>
+                <div class="mod-report-categories">
+                    <label class="mod-report-cat">
+                        <input type="radio" name="modReportCat" value="无授权分享">
+                        <span class="mod-report-cat-box">⚠️ 无授权分享</span>
+                    </label>
+                    <label class="mod-report-cat">
+                        <input type="radio" name="modReportCat" value="含忤女内容">
+                        <span class="mod-report-cat-box">🚫 含忤女内容</span>
+                    </label>
+                    <label class="mod-report-cat">
+                        <input type="radio" name="modReportCat" value="疑似含病毒文件">
+                        <span class="mod-report-cat-box">🦠 疑似含病毒文件</span>
+                    </label>
+                    <label class="mod-report-cat">
+                        <input type="radio" name="modReportCat" value="其他">
+                        <span class="mod-report-cat-box">📦 其他</span>
+                    </label>
+                </div>
+                <div class="mod-report-desc-label">举报内容陈述（选填）</div>
+                <textarea class="mod-report-desc" id="modReportDesc" rows="4" placeholder="请详细描述举报原因，以便管理员审核..."></textarea>
+            </div>
+            <div class="mod-report-footer">
+                <button class="mod-report-cancel" onclick="closeModReport()">取消</button>
+                <button class="mod-report-submit" onclick="submitModReport()">提交举报</button>
+            </div>
         </div>
     </div>
 
@@ -4394,6 +5987,11 @@
             <button class="modal-close" id="imageViewerClose" style="display:flex !important;position:fixed;top:20px;right:30px;z-index:2101;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:2rem;padding:0 16px;border-radius:8px;cursor:pointer;line-height:1.8;">✕</button>
             <img id="imageViewerImg" src="" alt="查看大图" style="max-width:95vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.5);" />
         </div>
+    </div>
+
+    <!-- ===== 游戏编辑弹窗 ===== -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal" id="editModal"></div>
     </div>
 
     <!-- ===== 成就弹窗 ===== -->
@@ -4657,6 +6255,10 @@
             let isTouchDevice = false;
 
             let currentUser = null;
+            let isAdmin = false;
+            let isAdminMode = false;
+            let editingGameId = null;
+            const ADMIN_USER_ID = 'a7be3d14-7228-4f25-bf4e-00ff67a8894d';
             let turnstileWidgetId = null;
             let currentCaptchaToken = null;
             let currentAvatarFile = null;
@@ -5317,7 +6919,7 @@
                 if (!supabaseClient) return { average: null, count: 0 };
                 const cacheKey = String(gameId);
                 const cached = _ratingStatsCache[cacheKey];
-                if (cached && (Date.now() - cached.ts < 60000)) {
+                if (cached && (Date.now() - cached.ts < 300000)) {
                     return { average: cached.average, count: cached.count };
                 }
                 try {
@@ -5698,18 +7300,24 @@
                 }, 280);
             }
 
+            let _toastTimer = null;
+            let _toastRemoveTimer = null;
             function showToast(msg, duration) {
                 duration = duration || 2600;
-                const existing = document.querySelector('.toast-notification');
-                if (existing) existing.remove();
+                const existing = document.querySelector('.toast-notification:not(.achievement-toast)');
+                if (existing) {
+                    if (_toastTimer) clearTimeout(_toastTimer);
+                    if (_toastRemoveTimer) clearTimeout(_toastRemoveTimer);
+                    existing.remove();
+                }
                 const toast = document.createElement('div');
                 toast.className = 'toast-notification';
                 toast.textContent = msg;
                 document.body.appendChild(toast);
                 requestAnimationFrame(() => { toast.classList.add('show'); });
-                setTimeout(() => {
+                _toastTimer = setTimeout(() => {
                     toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 500);
+                    _toastRemoveTimer = setTimeout(() => toast.remove(), 500);
                 }, duration);
             }
 
@@ -5734,8 +7342,6 @@
             let _cardEventBound = new WeakSet();
 
             function renderGallery() {
-                games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
-
                 const filtered = getFilteredGames();
                 const grid = document.getElementById('galleryGrid');
                 const no = document.getElementById('noResults');
@@ -5815,34 +7421,35 @@
                 grid.innerHTML = '';
                 grid.appendChild(frag);
 
-                if (cardObserver) { cardObserver.disconnect(); }
-                cardObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('visible');
-                            cardObserver.unobserve(entry.target);
-                            const img = entry.target.querySelector('.card-cover');
-                            if (img && !img.dataset.loaded) {
-                                img.dataset.loaded = '1';
-                                if (img.complete) {
-                                    img.classList.add('loaded');
-                                    const ph = entry.target.querySelector('.card-cover-placeholder');
-                                    if (ph) ph.classList.add('hidden');
-                                } else {
-                                    img.onload = function() {
-                                        this.classList.add('loaded');
-                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                if (cardObserver) { cardObserver.disconnect(); } else {
+                    cardObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                                cardObserver.unobserve(entry.target);
+                                const img = entry.target.querySelector('.card-cover');
+                                if (img && !img.dataset.loaded) {
+                                    img.dataset.loaded = '1';
+                                    if (img.complete) {
+                                        img.classList.add('loaded');
+                                        const ph = entry.target.querySelector('.card-cover-placeholder');
                                         if (ph) ph.classList.add('hidden');
-                                    };
-                                    img.onerror = function() {
-                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
-                                        if (ph) ph.classList.remove('hidden');
-                                    };
+                                    } else {
+                                        img.onload = function() {
+                                            this.classList.add('loaded');
+                                            const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                                            if (ph) ph.classList.add('hidden');
+                                        };
+                                        img.onerror = function() {
+                                            const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                                            if (ph) ph.classList.remove('hidden');
+                                        };
+                                    }
                                 }
                             }
-                        }
-                    });
-                }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+                        });
+                    }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+                }
 
                 const cards = grid.querySelectorAll('.gallery-card');
                 cards.forEach((card) => {
@@ -5905,7 +7512,7 @@
                     const id = Number(card.dataset.gameId);
                     if (!isNaN(id)) {
                         card.addEventListener('click', function(e) {
-                            if (e.target.closest('.card-user-actions')) return;
+                            if (e.target.closest('.card-user-actions') || e.target.closest('.card-admin-actions')) return;
                             const g = games.find(g => g.id === id);
                             if (g) {
                                 window._detailFrom = 'gallery';
@@ -6050,7 +7657,394 @@
 
                 card.appendChild(ua);
 
+                if (isAdmin && isAdminMode) {
+                    const admin = document.createElement('div');
+                    admin.className = 'card-admin-actions';
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn-edit-card';
+                    editBtn.dataset.gameId = game.id;
+                    editBtn.textContent = '✏️ 编辑';
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const g = games.find(g => g.id === Number(this.dataset.gameId));
+                        if (g) showEditModal(g);
+                    });
+                    admin.appendChild(editBtn);
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'btn-del-card';
+                    delBtn.dataset.gameId = game.id;
+                    delBtn.textContent = '🗑 删除';
+                    delBtn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const id = Number(this.dataset.gameId);
+                        if (!confirm('确定删除这款游戏吗？此操作不可恢复。')) return;
+                        await deleteGame(id);
+                    });
+                    admin.appendChild(delBtn);
+                    card.appendChild(admin);
+                }
+
                 return card;
+            }
+
+            // ================================================================
+            // 管理员功能
+            // ================================================================
+            function checkIsAdmin() {
+                return currentUser && currentUser.id === ADMIN_USER_ID;
+            }
+
+            function updateAdminUI() {
+                isAdmin = checkIsAdmin();
+                const addBtn = document.getElementById('btnAddGame');
+                const impBtn = document.getElementById('btnImportCSV');
+                const adminBtn = document.getElementById('btnToggleAdmin');
+                if (isAdmin) {
+                    if (addBtn) addBtn.style.display = '';
+                    if (impBtn) impBtn.style.display = '';
+                    if (adminBtn) {
+                        adminBtn.style.display = '';
+                        if (isAdminMode) {
+                            adminBtn.textContent = '🔧 管理(开)';
+                            adminBtn.classList.add('btn-accent');
+                        } else {
+                            adminBtn.textContent = '🔧 管理';
+                            adminBtn.classList.remove('btn-accent');
+                        }
+                    }
+                } else {
+                    if (addBtn) addBtn.style.display = 'none';
+                    if (impBtn) impBtn.style.display = 'none';
+                    if (adminBtn) adminBtn.style.display = 'none';
+                    isAdminMode = false;
+                }
+            }
+
+            function toggleAdminMode() {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可使用', 1500); return; }
+                isAdminMode = !isAdminMode;
+                updateAdminUI();
+                renderGallery();
+                showToast(isAdminMode ? '🔧 管理模式已开启' : '🔧 管理模式已关闭', 1500);
+            }
+
+            const EDIT_GAME_FIELDS = [
+                { key: 'title', label: '游戏名称 *', type: 'text', required: true },
+                { key: 'cover', label: '封面URL', type: 'text' },
+                { key: 'steamAppId', label: 'Steam App ID', type: 'text' },
+                { key: 'steamLink', label: 'Steam链接', type: 'text' },
+                { key: 'description', label: '简介', type: 'textarea', rows: 2 },
+                { key: 'fullDescription', label: '详细简介', type: 'textarea', rows: 3 },
+                { key: 'releaseDate', label: '发售日期', type: 'date' },
+                { key: 'isReleased', label: '已发售', type: 'checkbox' },
+                { key: 'hasDemo', label: '有Demo', type: 'checkbox' },
+                { key: 'hasChinese', label: '中文', type: 'select', options: ['有中文', '无中文'] },
+                { key: 'perspective', label: '视角', type: 'select', options: ['第一人称', '第三人称', '可切换人称', '横版'] },
+                { key: 'heroineType', label: '女主分类', type: 'select', options: ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'] },
+                { key: 'costumeType', label: '服设分类', type: 'select', options: ['服设合理', '服设不合理', '含恶俗设计', '服设可自选'] },
+                { key: 'mainStoryDuration', label: '主线时长', type: 'text' },
+                { key: 'lowestPrice', label: '最低价', type: 'text' },
+                { key: 'otherLinks', label: '其他链接', type: 'textarea', rows: 2 },
+            ];
+
+            const EDIT_GENRE_OPTIONS = ['丧尸','悬疑/推理','恐怖/生存恐怖','乙女/女性向','后末日','百合','权谋','魔法','偶像/娱乐圈','日常/生活','校园','职场','战争/军事','犯罪/黑帮','体育','艺术/音乐','烹饪','动物','童话/寓言','神话','机械生物','蒸汽朋克','赛博朋克','奇幻','古代','现代','黑暗','超现实','自然环境','民间传说','寻宝','西幻','科幻','宗教','和风','复仇','侠盗','心理','狩猎','惊悚','中世纪','医疗模拟','历史','钓鱼','西部','心理恐怖','唯美','克苏鲁','治愈','氛围','古希腊','喜剧','洛夫克拉夫特式','密室逃脱','探险','黑色幽默','公路','LGBTQ+','灵异','机甲','吸血鬼','青春','医院','超英','反乌托邦','龙','手绘风','经营','迷幻'];
+            const EDIT_GAMEPLAY_OPTIONS = ['动作','角色扮演','冒险','生物收集','射击','策略','模拟','休闲','解谜','益智','格斗','竞速','音乐/节奏','视觉小说','生存','Roguelike','类银河恶魔城','开放世界','潜行','多人联机','弹幕射击','选择取向','魂/类魂','指向点击','养成','建造','种地','卡牌','回合制','走路模拟器','隐藏物品','平台','VR','沙盒','装饰','整理','砍杀','塔防','跑酷','跳跃','赛车/驾驶','探索','烹饪','牌组构建','自走棋','刷宝','弹幕','密室逃脱'];
+            const EDIT_PLATFORM_OPTIONS = ['PC','PS','Xbox','移动端','NS1','NS2','全平台','nds/3ds'];
+
+            function getDefaultGameData() {
+                return {
+                    id: null, title: '', cover: '', description: '', fullDescription: '',
+                    genre: [], gameplay: [], perspective: '第三人称', releaseDate: '',
+                    hasChinese: '有中文', platforms: ['PC'], heroineType: '固定女主',
+                    costumeType: '服设合理', hasMacSupport: '不支持Mac', steamLink: '',
+                    steamAppId: '', isPSExclusive: false, isNSExclusive: false,
+                    hasDemo: false, mainStoryDuration: '', lowestPrice: '', videos: [],
+                    screenshots: [], otherLinks: '', isReleased: true
+                };
+            }
+
+            function getNextId() {
+                if (!games || games.length === 0) return 3;
+                const ids = games.map(g => Number(g.id)).filter(id => !isNaN(id));
+                if (ids.length === 0) return 3;
+                return Math.max(...ids) + 1;
+            }
+
+            function showEditModal(game) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可编辑', 1500); return; }
+                const overlay = document.getElementById('editModalOverlay');
+                const modal = document.getElementById('editModal');
+                if (!overlay || !modal) return;
+
+                const isNew = !game;
+                const data = game || getDefaultGameData();
+                editingGameId = game ? game.id : null;
+
+                const genreTags = EDIT_GENRE_OPTIONS.map(g =>
+                    `<span class="tag-option${(data.genre||[]).includes(g)?' selected':''}" data-field="genre" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
+                ).join('');
+                const gameplayTags = EDIT_GAMEPLAY_OPTIONS.map(g =>
+                    `<span class="tag-option${(data.gameplay||[]).includes(g)?' selected':''}" data-field="gameplay" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
+                ).join('');
+                const platformTags = EDIT_PLATFORM_OPTIONS.map(p =>
+                    `<span class="tag-option${(data.platforms||[]).includes(p)?' selected':''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`
+                ).join('');
+
+                modal.innerHTML = `
+                    <button class="modal-close" onclick="closeEditModal()">✕</button>
+                    <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title||'')}" required></div>
+                        <div class="form-group"><label>发售日期</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate||'')}"></div>
+                    </div>
+                    <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased?'checked':''}> 已发售游戏</label></div>
+                    <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId||'')}">
+                    <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
+                    <div class="form-group"><label>封面URL</label><input type="text" id="efCover" value="${escapeHTML(data.cover||'')}"></div>
+                    <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description||'')}</textarea></div>
+                    <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription||'')}</textarea></div>
+                    <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel">${genreTags}</div>
+                    <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="自定义题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋</button></div></div>
+                    <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel">${gameplayTags}</div>
+                    <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="自定义玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋</button></div></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>👁 视角</label><select id="efPerspective">${['第一人称','第三人称','可切换人称','横版'].map(p=>`<option value="${p}" ${data.perspective===p?'selected':''}>${p}</option>`).join('')}</select></div>
+                        <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${['固定女主','可选女主','动物女主','双女主','多主角含女主'].map(h=>`<option value="${h}" ${data.heroineType===h?'selected':''}>${h}</option>`).join('')}</select></div>
+                        <div class="form-group"><label>👕 服设分类</label><select id="efCostumeType">${['服设合理','服设不合理','含恶俗设计','服设可自选'].map(c=>`<option value="${c}" ${data.costumeType===c?'selected':''}>${c}</option>`).join('')}</select></div>
+                    </div>
+                    <div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${['有中文','无中文'].map(c=>`<option value="${c}" ${data.hasChinese===c?'selected':''}>${c}</option>`).join('')}</select></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo?'selected':''}>暂无</option><option value="1" ${data.hasDemo?'selected':''}>有Demo</option></select></div>
+                        <div class="form-group"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration||'')}"></div>
+                        <div class="form-group"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice||'')}"></div>
+                    </div>
+                    <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${platformTags}</div></div>
+                    <div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink||'')}"></div>
+                    <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks||'')}</textarea></div>
+                    <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos||[]).join('\n')}</textarea></div>
+                    <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots||[]).join('\n')}</textarea></div>
+                    <div style="display:flex;gap:10px;margin-top:16px;">
+                        <button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
+                        <button type="button" class="btn" onclick="closeEditModal()">取消</button>
+                    </div>`;
+
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+
+                modal.querySelectorAll('.tag-select-panel').forEach(p => {
+                    p.addEventListener('click', function(e) {
+                        const t = e.target.closest('.tag-option');
+                        if (t) t.classList.toggle('selected');
+                    });
+                });
+
+                const btnAddGenre = modal.querySelector('#btnAddGenre');
+                if (btnAddGenre) {
+                    btnAddGenre.addEventListener('click', function() {
+                        const inp = modal.querySelector('#efNewGenre');
+                        const tag = (inp.value||'').trim();
+                        if (!tag) return;
+                        if (EDIT_GENRE_OPTIONS.includes(tag)) { showToast('该题材已存在', 1200); return; }
+                        const panel = modal.querySelector('#efGenrePanel');
+                        const sp = document.createElement('span');
+                        sp.className = 'tag-option selected';
+                        sp.dataset.field = 'genre';
+                        sp.dataset.value = tag;
+                        sp.textContent = tag;
+                        panel.appendChild(sp);
+                        inp.value = '';
+                    });
+                }
+
+                const btnAddGameplay = modal.querySelector('#btnAddGameplay');
+                if (btnAddGameplay) {
+                    btnAddGameplay.addEventListener('click', function() {
+                        const inp = modal.querySelector('#efNewGameplay');
+                        const tag = (inp.value||'').trim();
+                        if (!tag) return;
+                        if (EDIT_GAMEPLAY_OPTIONS.includes(tag)) { showToast('该玩法已存在', 1200); return; }
+                        const panel = modal.querySelector('#efGameplayPanel');
+                        const sp = document.createElement('span');
+                        sp.className = 'tag-option selected';
+                        sp.dataset.field = 'gameplay';
+                        sp.dataset.value = tag;
+                        sp.textContent = tag;
+                        panel.appendChild(sp);
+                        inp.value = '';
+                    });
+                }
+
+                const btnFetch = modal.querySelector('#btnFetchCover');
+                if (btnFetch) {
+                    btnFetch.addEventListener('click', function() {
+                        const id = (modal.querySelector('#efSteamAppId')||{}).value||'';
+                        if (!id.trim()) { showToast('请输入App ID', 1200); return; }
+                        modal.querySelector('#efCover').value = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${id.trim()}/header.jpg`;
+                    });
+                }
+
+                const btnSave = modal.querySelector('#btnSaveGame');
+                if (btnSave) {
+                    btnSave.addEventListener('click', function() { saveGameFromForm(modal); });
+                }
+            }
+
+            function closeEditModal() {
+                const overlay = document.getElementById('editModalOverlay');
+                if (overlay) overlay.classList.remove('show');
+                document.body.style.overflow = '';
+                editingGameId = null;
+            }
+
+            async function saveGameFromForm(modal) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                const getVal = id => (modal.querySelector('#'+id)||{}).value||'';
+                const getCheck = id => (modal.querySelector('#'+id)||{}).checked||false;
+                const getTags = id => {
+                    const p = modal.querySelector('#'+id);
+                    return p ? Array.from(p.querySelectorAll('.tag-option.selected')).map(t=>t.dataset.value) : [];
+                };
+                const title = getVal('efTitle').trim();
+                if (!title) { showToast('⚠️ 请输入游戏名称', 1500); return; }
+
+                const gameData = {
+                    id: editingGameId || getNextId(),
+                    title,
+                    cover: getVal('efCover').trim(),
+                    description: getVal('efDescription').trim(),
+                    fullDescription: getVal('efFullDescription').trim(),
+                    genre: getTags('efGenrePanel'),
+                    gameplay: getTags('efGameplayPanel'),
+                    perspective: getVal('efPerspective') || '第三人称',
+                    releaseDate: getVal('efReleaseDate').trim(),
+                    hasChinese: getVal('efHasChinese') || '有中文',
+                    platforms: getTags('efPlatformsPanel'),
+                    heroineType: getVal('efHeroineType') || '固定女主',
+                    costumeType: getVal('efCostumeType') || '服设合理',
+                    hasMacSupport: '不支持Mac',
+                    steamLink: getVal('efSteamLink').trim(),
+                    steamAppId: getVal('efSteamAppId').trim(),
+                    isPSExclusive: false,
+                    isNSExclusive: false,
+                    hasDemo: getVal('efHasDemo') === '1',
+                    mainStoryDuration: getVal('efMainStoryDuration').trim(),
+                    lowestPrice: getVal('efLowestPrice').trim(),
+                    videos: getVal('efVideos').split('\n').filter(l=>l.trim()),
+                    screenshots: getVal('efScreenshots').split('\n').filter(l=>l.trim()),
+                    otherLinks: getVal('efOtherLinks').trim(),
+                    isReleased: getCheck('efIsReleased')
+                };
+
+                for (const field of ['cover', 'steamLink']) {
+                    const val = gameData[field];
+                    if (val) { try { new URL(val); } catch (_) { showToast('⚠️ ' + field + ' 格式无效', 1500); return; } }
+                }
+                for (const field of ['videos', 'screenshots']) {
+                    for (const url of (gameData[field] || [])) {
+                        if (url) { try { new URL(url); } catch (_) { showToast('⚠️ ' + field + ' 中包含无效URL', 1500); return; } }
+                    }
+                }
+
+                const client = getSupabase();
+                if (client) {
+                    setSyncStatus('syncing');
+                    const { error } = await client.from('games').upsert(gameData, { onConflict: 'id' });
+                    if (error) {
+                        setSyncStatus('error', error.message);
+                        showToast('❌ 保存失败: ' + error.message, 2500);
+                        return;
+                    }
+                }
+
+                const idx = games.findIndex(g => g.id === gameData.id);
+                if (idx >= 0) games[idx] = gameData;
+                else games.push(gameData);
+
+                closeEditModal();
+                renderGallery();
+                showToast(`✅ "${title}" 已保存`, 2000);
+                setSyncStatus('synced');
+            }
+
+            async function deleteGame(gameId) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                const client = getSupabase();
+                if (client) {
+                    setSyncStatus('syncing');
+                    const { error } = await client.from('games').delete().eq('id', gameId);
+                    if (error) {
+                        setSyncStatus('error', error.message);
+                        showToast('❌ 删除失败: ' + error.message, 2500);
+                        return;
+                    }
+                }
+                games = games.filter(g => g.id !== gameId);
+                renderGallery();
+                showToast('✅ 已删除', 1500);
+                setSyncStatus('synced');
+            }
+
+            function importCSV(file) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可导入', 1500); return; }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    Papa.parse(ev.target.result, {
+                        header: true, skipEmptyLines: true, trimHeaders: true,
+                        complete: async function(results) {
+                            if (results.errors && results.errors.length) {
+                                showToast('⚠️ CSV 解析出错', 2000);
+                                return;
+                            }
+                            let added = 0;
+                            const maxImport = 500;
+                            for (const row of results.data) {
+                                if (added >= maxImport) { showToast('⚠️ 单次最多导入 ' + maxImport + ' 条', 2000); break; }
+                                const title = (row['游戏名']||'').trim();
+                                if (!title) continue;
+                                const game = {
+                                    id: getNextId(),
+                                    title,
+                                    description: (row['游戏简介']||'').trim(),
+                                    fullDescription: (row['游戏简介']||'').trim(),
+                                    genre: (row['题材']||'').split(',').map(s=>s.trim()).filter(Boolean),
+                                    gameplay: (row['类型']||'').split(',').map(s=>s.trim()).filter(Boolean),
+                                    perspective: (row['游玩视角']||'第三人称').trim() || '第三人称',
+                                    hasChinese: (row['是否支持中文（简/繁中）']||'').includes('支持') ? '有中文' : '无中文',
+                                    heroineType: (row['主角性别']||'固定女主').trim() || '固定女主',
+                                    releaseDate: (row['发售日']||'').replace(/\//g,'-').trim(),
+                                    costumeType: (row['服饰是否合理']||'服设合理').includes('恶俗') ? '含恶俗设计' : (row['服饰是否合理']||'').includes('不合理') ? '服设不合理' : (row['服饰是否合理']||'').includes('自选') ? '服设可自选' : '服设合理',
+                                    lowestPrice: (row['史低（含cdk售卖价格）']||'').trim(),
+                                    hasDemo: (row['Demo试玩']||'').trim() === '有',
+                                    mainStoryDuration: (row['主线通关时长']||'').trim(),
+                                    platforms: (row['游玩平台']||'PC').split(',').map(s=>s.trim()).filter(Boolean),
+                                    cover: '', steamLink: '', steamAppId: '',
+                                    isPSExclusive: false, isNSExclusive: false,
+                                    hasMacSupport: '', videos: [], screenshots: [],
+                                    otherLinks: '', isReleased: true
+                                };
+                                games.push(game);
+                                added++;
+                            }
+                            if (added > 0) {
+                                const client = getSupabase();
+                                if (client) {
+                                    setSyncStatus('syncing');
+                                    for (let i = 0; i < games.length; i += 50) {
+                                        const batch = games.slice(i, i + 50);
+                                        await client.from('games').upsert(batch, { onConflict: 'id' });
+                                    }
+                                    setSyncStatus('synced');
+                                }
+                                renderGallery();
+                                showToast(`✅ 成功导入 ${added} 款游戏`, 2500);
+                            } else {
+                                showToast('⚠️ 没有导入任何游戏', 2000);
+                            }
+                        }
+                    });
+                };
+                reader.readAsText(file);
+                document.getElementById('csvFileInput').value = '';
             }
 
             // ================================================================
@@ -6139,6 +8133,7 @@
             // ================================================================
 
             let currentShareGame = null;
+            let _shareOverlayBound = false;
             let shareImageDataURL = null;
 
             // 快速生成分享卡片 DOM (用于截图)
@@ -6510,11 +8505,14 @@
                 const newClose = closeBtn.cloneNode(true);
                 closeBtn.parentNode.replaceChild(newClose, closeBtn);
                 newClose.addEventListener('click', closeShareFloat);
-                overlay.addEventListener('click', function(e) {
-                    if (e.target === overlay) {
-                        closeShareFloat();
-                    }
-                });
+                if (!_shareOverlayBound) {
+                    _shareOverlayBound = true;
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) {
+                            closeShareFloat();
+                        }
+                    });
+                }
             }
 
             function closeShareFloat() {
@@ -6767,6 +8765,11 @@
                                 ${detailPlayBtnHtml}
                             </div>
 
+                            <div class="detail-related-mods" id="detailRelatedMods">
+                                <div class="detail-related-mods-title">🔧 相关MOD分享</div>
+                                <div id="detailRelatedModsList" style="text-align:center;color:var(--text3);padding:8px 0;font-size:0.85rem;">加载中...</div>
+                            </div>
+
                         </div>
                     `;
 
@@ -6789,10 +8792,11 @@
                 modal.querySelector('#detailWishBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     const id = Number(this.dataset.gameId);
-                    if (!isNaN(id)) toggleWishlist(id);
-                    closeDetailModal();
-                    const g = games.find(g => g.id === id);
-                    if (g) setTimeout(() => showDetailModal(g, { from: window._detailFrom }), 100);
+                    if (!isNaN(id)) {
+                        toggleWishlist(id);
+                        const isWished = userData.wishlist.includes(id);
+                        this.textContent = isWished ? '❤️ 已收藏' : '🤍 收藏';
+                    }
                 });
                 modal.querySelector('#detailWishBtn').addEventListener('pointerdown', function(e) {
                     e.stopPropagation();
@@ -6803,10 +8807,11 @@
                     detailPlayBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         const id = Number(this.dataset.gameId);
-                        if (!isNaN(id)) togglePlayed(id);
-                        closeDetailModal();
-                        const g = games.find(g => g.id === id);
-                        if (g) setTimeout(() => showDetailModal(g, { from: window._detailFrom }), 100);
+                        if (!isNaN(id)) {
+                            togglePlayed(id);
+                            const isPlayed = userData.played.includes(id);
+                            this.textContent = isPlayed ? '✅ 已玩过' : '🎮 玩过';
+                        }
                     });
                     detailPlayBtn.addEventListener('pointerdown', function(e) {
                         e.stopPropagation();
@@ -6850,9 +8855,13 @@
                     const editRatingBtn = modal.querySelector('#editRatingBtn');
                     if (editRatingBtn) {
                         editRatingBtn.addEventListener('click', function() {
-                            saveReview(game.id, null, userComment);
-                            closeDetailModal();
-                            setTimeout(() => showDetailModal(game, { from: window._detailFrom }), 100);
+                            const reviewArea = this.closest('.review-user-area');
+                            if (!reviewArea) return;
+                            const starsContainer = reviewArea.querySelector('#ratingStarsContainer');
+                            const commentInput = reviewArea.querySelector('#commentInput');
+                            if (starsContainer) starsContainer.style.display = '';
+                            if (commentInput) { commentInput.focus(); }
+                            this.style.display = 'none';
                         });
                     }
 
@@ -6930,6 +8939,7 @@
                 }
 
                 loadCommunityReviews(game.id);
+                loadDetailRelatedMods(game);
             }
 
             function closeDetailModal() {
@@ -6955,6 +8965,9 @@
                         }
                         window._detailFrom = 'gallery';
                     }, 200);
+                } else if (window._detailFrom === 'mod') {
+                    window._detailFrom = 'gallery';
+                    setTimeout(() => switchMainView('mod'), 100);
                 } else {
                     const savedScroll = window._detailScrollBeforeOpen;
                     if (typeof savedScroll === 'number' && savedScroll > 0) {
@@ -7284,27 +9297,37 @@
                 }
                 try {
                     let query = table.select('*', { count: 'exact' });
-                    if (guestbookSort === 'newest') {
+                    if (guestbookSort === 'hottest') {
                         query = query.order('created_at', { ascending: false });
                     } else {
                         query = query.order('created_at', { ascending: false });
                     }
-                    const from = 0;
-                    const to = (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE - 1;
-                    query = query.range(from, to);
-                    const { data, error, count } = await query;
-                    if (error) throw error;
-                    guestbookTotalCount = count || 0;
-                    let result = data || [];
-                    if (guestbookSort === 'hottest' && result.length > 0) {
+                    if (guestbookSort === 'hottest') {
+                        const { data, error, count } = await query;
+                        if (error) throw error;
+                        guestbookTotalCount = count || 0;
+                        let result = data || [];
                         result = [...result].sort((a, b) => {
                             const aTotal = Object.values(a.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
                             const bTotal = Object.values(b.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
                             return bTotal - aTotal;
                         });
+                        const from = 0;
+                        const to = (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE - 1;
+                        result = result.slice(from, to + 1);
+                        _guestbookCache = { data: result, key: cacheKey, ts: Date.now(), totalCount: guestbookTotalCount };
+                        return result;
+                    } else {
+                        const from = 0;
+                        const to = (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE - 1;
+                        query = query.range(from, to);
+                        const { data, error, count } = await query;
+                        if (error) throw error;
+                        guestbookTotalCount = count || 0;
+                        let result = data || [];
+                        _guestbookCache = { data: result, key: cacheKey, ts: Date.now(), totalCount: guestbookTotalCount };
+                        return result;
                     }
-                    _guestbookCache = { data: result, key: cacheKey, ts: now, totalCount: guestbookTotalCount };
-                    return result;
                 } catch (e) {
                     console.error('❌ 获取留言失败:', e);
                     return [];
@@ -7339,10 +9362,9 @@
             async function deleteGuestbookMessage(id) {
                 if (!currentUser || !supabaseClient) return;
                 try {
-                    const { error } = await supabaseClient.from('site_guestbook')
-                        .delete()
-                        .eq('id', id)
-                        .eq('user_id', currentUser.id);
+                    let query = supabaseClient.from('site_guestbook').delete().eq('id', id);
+                    if (!isAdmin) { query = query.eq('user_id', currentUser.id); }
+                    const { error } = await query;
                     if (error) throw error;
                     _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
                 } catch (e) {
@@ -7524,7 +9546,7 @@
                                 ${emoji} <span class="react-count">${count > 0 ? count : ''}</span>
                             </button>`;
                     });
-                    const deleteHtml = isOwn ?
+                    const deleteHtml = (isOwn || isAdmin) ?
                         `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
 
                     html += `
@@ -7595,8 +9617,78 @@
                     if (e.target === this) closeGuestbookModal();
                 });
                 document.getElementById('guestbookLoadMoreBtn')?.addEventListener('click', async function() {
+                    const listEl = document.getElementById('guestbookList');
+                    if (!listEl) return;
+                    const prevCount = listEl.querySelectorAll('.guestbook-item').length;
                     guestbookPage++;
-                    await renderGuestbookList();
+                    const messages = await fetchGuestbookMessages();
+                    if (messages.length > prevCount) {
+                        const newMsgs = messages.slice(prevCount);
+                        let newHtml = '';
+                        newMsgs.forEach(msg => {
+                            const isOwn = currentUser && msg.user_id === currentUser.id;
+                            const avatarHtml = msg.avatar_url ?
+                                `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" />` :
+                                `<div class="guestbook-item-avatar-placeholder">👤</div>`;
+                            const time = formatGuestbookTime(msg.created_at);
+                            const reactions = msg.reactions || {};
+                            let reactionsHtml = '';
+                            GUESTBOOK_REACTIONS.forEach(emoji => {
+                                const users = reactions[emoji] || [];
+                                const count = users.length;
+                                const isActive = currentUser && users.includes(currentUser.id);
+                                reactionsHtml += `
+                                    <button class="guestbook-react-btn${isActive ? ' active' : ''}"
+                                        data-msg-id="${msg.id}" data-emoji="${emoji}">
+                                        ${emoji} <span class="react-count">${count > 0 ? count : ''}</span>
+                                    </button>`;
+                            });
+                            const deleteHtml = (isOwn || isAdmin) ?
+                                `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
+                            newHtml += `
+                                <div class="guestbook-item" data-msg-id="${msg.id}">
+                                    <div class="guestbook-item-header">
+                                        ${avatarHtml}
+                                        <span class="guestbook-item-name">${escapeHTML(msg.display_name || '用户')}</span>
+                                        <span class="guestbook-item-time">${time}</span>
+                                    </div>
+                                    <div class="guestbook-item-content">${escapeHTML(msg.content)}</div>
+                                    <div class="guestbook-item-actions">
+                                        ${reactionsHtml}
+                                        ${deleteHtml}
+                                    </div>
+                                </div>`;
+                        });
+                        const frag = document.createRange().createContextualFragment(newHtml);
+                        listEl.appendChild(frag);
+                        newMsgs.forEach(msg => {
+                            const item = listEl.querySelector(`.guestbook-item[data-msg-id="${msg.id}"]`);
+                            if (!item) return;
+                            item.querySelectorAll('.guestbook-react-btn').forEach(btn => {
+                                btn.addEventListener('click', async function() {
+                                    if (!currentUser) { showToast('请先登录', 1500); return; }
+                                    const msgId = Number(this.dataset.msgId);
+                                    const emoji = this.dataset.emoji;
+                                    await toggleGuestbookReaction(msgId, emoji);
+                                    await renderGuestbookList();
+                                });
+                            });
+                            const deleteBtn = item.querySelector('.guestbook-delete-btn');
+                            if (deleteBtn) {
+                                deleteBtn.addEventListener('click', async function() {
+                                    if (!confirm('确定删除这条留言吗？')) return;
+                                    const msgId = Number(this.dataset.msgId);
+                                    await deleteGuestbookMessage(msgId);
+                                    showToast('✅ 留言已删除', 1500);
+                                    await renderGuestbookList();
+                                });
+                            }
+                        });
+                    }
+                    const loadMoreEl = document.getElementById('guestbookLoadMore');
+                    if (messages.length < (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE) {
+                        if (loadMoreEl) loadMoreEl.style.display = 'none';
+                    }
                 });
                 document.querySelectorAll('.guestbook-sort-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
@@ -7610,6 +9702,1331 @@
                     });
                 });
             }
+
+            // ================================================================
+            // ★★★ MOD 板块 ★★★
+            // ================================================================
+            const MOD_PAGE_SIZE = 20;
+            let modPosts = [];
+            let modPage = 0;
+            let modSort = 'newest';
+            let modFilter = 'all';
+            let modTotalCount = 0;
+            let currentMainView = 'games';
+            let modListener = null;
+
+            const MOD_TYPES = ['翻译补丁', '模型MOD', '美化MOD', '功能MOD', '剧情MOD', '其他'];
+            const MOD_TYPE_ICONS = {
+                '翻译补丁': '🌐', '模型MOD': '🧱', '美化MOD': '✨',
+                '功能MOD': '⚙️', '剧情MOD': '📖', '其他': '📦'
+            };
+            const MOD_TYPE_CLASSES = {
+                '翻译补丁': 'translation', '模型MOD': 'model', '美化MOD': 'graphics',
+                '功能MOD': 'function', '剧情MOD': 'story', '其他': 'other'
+            };
+
+            function switchMainView(view) {
+                if (currentMainView === view) return;
+                currentMainView = view;
+
+                const dropdownBtn = document.getElementById('mainViewDropdownBtn');
+                const dropdownMenu = document.getElementById('mainViewDropdownMenu');
+                const subtitle = document.getElementById('siteSubtitle');
+                const galleryContainer = document.getElementById('galleryContainer');
+                const modSection = document.getElementById('modSection');
+                const filterSticky = document.getElementById('filterSticky');
+                const toolbar = document.getElementById('toolbar');
+                const noResults = document.getElementById('noResults');
+
+                document.querySelectorAll('.header-dropdown-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.mainView === view);
+                });
+                if (dropdownBtn) dropdownBtn.classList.remove('open');
+                if (dropdownMenu) dropdownMenu.classList.remove('show');
+
+                const viewTabs = document.getElementById('viewTabs');
+                const searchRow = document.getElementById('searchRow');
+                const filterCategoryRow = document.getElementById('filterCategoryRow');
+                const filterOptionsPanel = document.getElementById('filterOptionsPanel');
+                const activeFiltersBar = document.getElementById('activeFiltersBar');
+
+                if (view === 'games') {
+                    if (subtitle) subtitle.textContent = '*请从中选择你的下一场冒险*';
+                    if (galleryContainer) { galleryContainer.style.display = ''; galleryContainer.classList.remove('show'); }
+                    if (modSection) modSection.classList.remove('show');
+                    if (filterSticky) filterSticky.style.display = '';
+                    if (viewTabs) viewTabs.style.display = '';
+                    if (searchRow) searchRow.style.display = '';
+                    if (filterCategoryRow) filterCategoryRow.style.display = '';
+                    if (filterOptionsPanel) filterOptionsPanel.style.display = '';
+                    if (activeFiltersBar) activeFiltersBar.style.display = '';
+                    if (toolbar) toolbar.style.display = '';
+                    document.title = 'Her Lens · 女性主角游戏';
+                    renderGallery();
+                    window.scrollTo(0, 0);
+                } else {
+                    if (subtitle) subtitle.textContent = '*分享你发现的优质MOD*';
+                    if (galleryContainer) galleryContainer.style.display = 'none';
+                    if (modSection) modSection.classList.add('show');
+                    if (filterSticky) filterSticky.style.display = '';
+                    if (viewTabs) viewTabs.style.display = 'none';
+                    if (searchRow) searchRow.style.display = 'none';
+                    if (filterCategoryRow) filterCategoryRow.style.display = 'none';
+                    if (filterOptionsPanel) filterOptionsPanel.style.display = 'none';
+                    if (activeFiltersBar) activeFiltersBar.style.display = 'none';
+                    if (toolbar) toolbar.style.display = 'none';
+                    if (noResults) noResults.style.display = 'none';
+                    document.title = 'Her Lens · MOD分享区';
+                    renderModSection();
+                    window.scrollTo(0, 0);
+                }
+            }
+
+            function initDropdownEvents() {
+                const dropdownBtn = document.getElementById('mainViewDropdownBtn');
+                const dropdownMenu = document.getElementById('mainViewDropdownMenu');
+                if (!dropdownBtn || !dropdownMenu) return;
+
+                dropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = dropdownMenu.classList.contains('show');
+                    dropdownMenu.classList.toggle('show');
+                    dropdownBtn.classList.toggle('open');
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!dropdownMenu.contains(e.target) && !dropdownBtn.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                        dropdownBtn.classList.remove('open');
+                    }
+                });
+
+                dropdownMenu.querySelectorAll('.header-dropdown-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        switchMainView(this.dataset.mainView);
+                    });
+                });
+            }
+
+            async function fetchModPosts() {
+                if (!supabaseClient) return [];
+                try {
+                    let query = supabaseClient.from('mod_posts').select('*', { count: 'exact' });
+                    if (modFilter !== 'all') {
+                        query = query.eq('mod_type', modFilter);
+                    }
+                    if (modSort === 'newest') {
+                        query = query.order('created_at', { ascending: false });
+                    } else {
+                        query = query.order('likes_count', { ascending: false });
+                        query = query.order('created_at', { ascending: false });
+                    }
+                    const from = 0;
+                    const to = (modPage + 1) * MOD_PAGE_SIZE - 1;
+                    query = query.range(from, to);
+                    const { data, error, count } = await query;
+                    if (error) throw error;
+                    modTotalCount = count || 0;
+                    return data || [];
+                } catch (e) {
+                    console.error('❌ 获取MOD列表失败:', e);
+                    return [];
+                }
+            }
+
+            async function createModPost(postData) {
+                if (!currentUser || !supabaseClient) return null;
+                const metadata = currentUser.user_metadata || {};
+                const record = {
+                    user_id: currentUser.id,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null,
+                    game_name: postData.gameName,
+                    title: postData.title,
+                    content: postData.content || null,
+                    mod_link: postData.modLink,
+                    mod_type: postData.modType || '其他'
+                };
+                try {
+                    const { data, error } = await supabaseClient.from('mod_posts')
+                        .insert(record).select().single();
+                    if (error) throw error;
+                    showToast('✅ MOD发布成功！', 2000);
+                    return data;
+                } catch (e) {
+                    console.error('❌ 发布MOD失败:', e);
+                    showToast('⚠️ 发布失败，请重试', 2000);
+                    return null;
+                }
+            }
+
+            async function deleteModPost(postId) {
+                if (!currentUser || !supabaseClient) return;
+                try {
+                    let query = supabaseClient.from('mod_posts').delete().eq('id', postId);
+                    if (!isAdmin) { query = query.eq('user_id', currentUser.id); }
+                    const { error } = await query;
+                    if (error) throw error;
+                    showToast('✅ 已删除', 1500);
+                } catch (e) {
+                    console.error('❌ 删除MOD失败:', e);
+                    showToast('⚠️ 删除失败', 2000);
+                }
+            }
+
+            async function toggleForceBadge(postId, field) {
+                if (!isAdmin || !supabaseClient) return;
+                const post = modPosts.find(p => p.id === postId);
+                if (!post) return;
+                const newVal = !post[field];
+                try {
+                    const { error } = await supabaseClient.from('mod_posts')
+                        .update({ [field]: newVal }).eq('id', postId);
+                    if (error) throw error;
+                    post[field] = newVal;
+                    const label = field === 'force_hot' ? '热榜' : '精选';
+                    showToast(newVal ? `✅ 已设为${label}` : `✅ 已取消${label}`, 1500);
+                    renderModPostList();
+                } catch (e) {
+                    console.error('❌ 更新徽章失败:', e);
+                    showToast('⚠️ 操作失败', 2000);
+                }
+            }
+
+            async function toggleModLike(postId) {
+                if (!currentUser || !supabaseClient) {
+                    showToast('请先登录', 1500);
+                    return;
+                }
+                try {
+                    const { data: existing } = await supabaseClient.from('mod_likes')
+                        .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+                    if (existing) {
+                        await supabaseClient.from('mod_likes').delete().eq('id', existing.id);
+                        await supabaseClient.rpc('decrement_mod_likes', { pid: postId });
+                    } else {
+                        await supabaseClient.from('mod_likes').insert({
+                            post_id: postId, user_id: currentUser.id
+                        });
+                        await supabaseClient.rpc('increment_mod_likes', { pid: postId });
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post && post.user_id) {
+                            await createModNotification(post.user_id, 'like', postId);
+                        }
+                    }
+                } catch (e) {
+                    console.error('❌ 点赞操作失败:', e);
+                }
+            }
+
+            async function checkUserModLike(postId) {
+                if (!currentUser || !supabaseClient) return false;
+                try {
+                    const { data } = await supabaseClient.from('mod_likes')
+                        .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+                    return !!data;
+                } catch (_) { return false; }
+            }
+
+            async function checkUserModThanks(postId) {
+                if (!currentUser || !supabaseClient) return false;
+                try {
+                    const { data } = await supabaseClient.from('mod_thanks')
+                        .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+                    return !!data;
+                } catch (_) { return false; }
+            }
+
+            async function toggleModThanks(postId) {
+                if (!currentUser || !supabaseClient) {
+                    showToast('请先登录', 1500);
+                    return;
+                }
+                try {
+                    const { data: existing } = await supabaseClient.from('mod_thanks')
+                        .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+                    if (existing) {
+                        await supabaseClient.from('mod_thanks').delete().eq('id', existing.id);
+                        await supabaseClient.rpc('decrement_mod_thanks', { pid: postId });
+                    } else {
+                        const metadata = currentUser.user_metadata || {};
+                        await supabaseClient.from('mod_thanks').insert({
+                            post_id: postId,
+                            user_id: currentUser.id,
+                            display_name: metadata.display_name || currentUser.email || '用户',
+                            avatar_url: metadata.avatar_url || null
+                        });
+                        await supabaseClient.rpc('increment_mod_thanks', { pid: postId });
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post && post.user_id && post.user_id !== currentUser.id) {
+                            await createModNotification(post.user_id, 'thanks', postId);
+                        }
+                    }
+                } catch (e) {
+                    console.error('❌ 感谢操作失败:', e);
+                }
+            }
+
+            async function fetchAuthorStats(userId) {
+                if (!supabaseClient) return null;
+                try {
+                    const { data } = await supabaseClient.from('mod_author_stats')
+                        .select('*').eq('user_id', userId).maybeSingle();
+                    return data;
+                } catch (_) { return null; }
+            }
+
+            async function fetchModThanksList(postId) {
+                if (!supabaseClient) return [];
+                try {
+                    const { data } = await supabaseClient.from('mod_thanks')
+                        .select('display_name, avatar_url, created_at')
+                        .eq('post_id', postId)
+                        .order('created_at', { ascending: false });
+                    return data || [];
+                } catch (_) { return []; }
+            }
+
+            async function fetchModComments(postId) {
+                if (!supabaseClient) return [];
+                try {
+                    const { data, error } = await supabaseClient.from('mod_comments')
+                        .select('*').eq('post_id', postId)
+                        .order('created_at', { ascending: true });
+                    if (error) throw error;
+                    return data || [];
+                } catch (e) {
+                    console.error('❌ 获取MOD评论失败:', e);
+                    return [];
+                }
+            }
+
+            async function addModComment(postId, content) {
+                if (!currentUser || !supabaseClient) return null;
+                const metadata = currentUser.user_metadata || {};
+                try {
+                    const { data, error } = await supabaseClient.from('mod_comments').insert({
+                        post_id: postId,
+                        user_id: currentUser.id,
+                        display_name: metadata.display_name || currentUser.email || '用户',
+                        avatar_url: metadata.avatar_url || null,
+                        content: content
+                    }).select().single();
+                    if (error) throw error;
+                    await supabaseClient.rpc('increment_mod_comments', { pid: postId });
+                    const post = modPosts.find(p => p.id === postId);
+                    if (post && post.user_id) {
+                        await createModNotification(post.user_id, 'comment', postId, content);
+                    }
+                    return data;
+                } catch (e) {
+                    console.error('❌ 添加MOD评论失败:', e);
+                    return null;
+                }
+            }
+
+            async function deleteModComment(commentId) {
+                if (!currentUser || !supabaseClient) return;
+                try {
+                    let fetchQuery = supabaseClient.from('mod_comments')
+                        .select('post_id').eq('id', commentId);
+                    if (!isAdmin) { fetchQuery = fetchQuery.eq('user_id', currentUser.id); }
+                    const { data: comment } = await fetchQuery.maybeSingle();
+                    let deleteQuery = supabaseClient.from('mod_comments').delete().eq('id', commentId);
+                    if (!isAdmin) { deleteQuery = deleteQuery.eq('user_id', currentUser.id); }
+                    const { error } = await deleteQuery;
+                    if (error) throw error;
+                    if (comment && comment.post_id) {
+                        await supabaseClient.rpc('decrement_mod_comments', { pid: comment.post_id });
+                    }
+                } catch (e) {
+                    console.error('❌ 删除MOD评论失败:', e);
+                }
+            }
+
+            function formatModTime(iso) {
+                if (!iso) return '';
+                const d = new Date(iso);
+                const now = new Date();
+                const diffMs = now - d;
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) return '刚刚';
+                if (diffMin < 60) return diffMin + '分钟前';
+                const diffHour = Math.floor(diffMin / 60);
+                if (diffHour < 24) return diffHour + '小时前';
+                const diffDay = Math.floor(diffHour / 24);
+                if (diffDay < 7) return diffDay + '天前';
+                return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+            }
+
+            async function renderModSection() {
+                renderModCompose();
+                await renderModPostList();
+                initModFilterEvents();
+                initModSortEvents();
+                if (supabaseClient && !modListener) {
+                    try {
+                        modListener = supabaseClient
+                            .channel('mod-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'mod_posts' }, () => {
+                                if (currentMainView === 'mods') renderModPostList();
+                            })
+                            .subscribe();
+                    } catch (_) {}
+                }
+                initNotifSystem();
+            }
+
+            // ================================================================
+            // MOD 通知系统
+            // ================================================================
+            let _notifListener = null;
+            let _unreadCount = 0;
+            let _notifEventsBound = false;
+
+            function initNotifSystem() {
+                if (!currentUser || !supabaseClient) {
+                    document.getElementById('notifBellWrap').style.display = 'none';
+                    return;
+                }
+                document.getElementById('notifBellWrap').style.display = '';
+                loadUnreadCount();
+                subscribeNotifRealtime();
+                setupNotifEvents();
+            }
+
+            function setupNotifEvents() {
+                if (_notifEventsBound) return;
+                _notifEventsBound = true;
+                const bellBtn = document.getElementById('notifBellBtn');
+                const panel = document.getElementById('notifPanel');
+                const markAll = document.getElementById('notifMarkAll');
+
+                bellBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = panel.classList.contains('show');
+                    panel.classList.toggle('show');
+                    if (!isOpen) loadNotifications();
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!panel.contains(e.target) && e.target !== bellBtn) {
+                        panel.classList.remove('show');
+                    }
+                });
+
+                markAll.addEventListener('click', async function() {
+                    if (!supabaseClient || !currentUser) return;
+                    await supabaseClient.from('mod_notifications')
+                        .update({ is_read: true })
+                        .eq('user_id', currentUser.id)
+                        .eq('is_read', false);
+                    _unreadCount = 0;
+                    updateNotifBadge();
+                    loadNotifications();
+                });
+            }
+
+            async function loadUnreadCount() {
+                if (!supabaseClient || !currentUser) return;
+                try {
+                    const { count } = await supabaseClient.from('mod_notifications')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', currentUser.id)
+                        .eq('is_read', false);
+                    _unreadCount = count || 0;
+                    updateNotifBadge();
+                } catch (_) {}
+            }
+
+            function updateNotifBadge() {
+                const badge = document.getElementById('notifBadge');
+                if (!badge) return;
+                if (_unreadCount > 0) {
+                    badge.style.display = '';
+                    badge.textContent = _unreadCount > 99 ? '99+' : _unreadCount;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            async function loadNotifications() {
+                if (!supabaseClient || !currentUser) return;
+                try {
+                    const { data } = await supabaseClient.from('mod_notifications')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(30);
+                    renderNotifList(data || []);
+                } catch (_) {}
+            }
+
+            function renderNotifList(notifs) {
+                const listEl = document.getElementById('notifList');
+                if (!listEl) return;
+                if (notifs.length === 0) {
+                    listEl.innerHTML = '<div class="notif-empty">暂无通知</div>';
+                    return;
+                }
+                listEl.innerHTML = notifs.map(n => {
+                    const avatarHtml = n.actor_avatar ?
+                        `<img class="notif-item-avatar" src="${escapeHTML(n.actor_avatar)}" referrerpolicy="no-referrer" />` :
+                        `<div class="notif-item-avatar-placeholder">👤</div>`;
+                    const typeText = n.type === 'like' ? '赞了你的 MOD 分享' : n.type === 'thanks' ? '感谢了你的 MOD 分享' : '评论了你的 MOD 分享';
+                    const preview = n.type === 'comment' && n.comment_content ?
+                        `<div class="notif-item-preview">"${escapeHTML(n.comment_content.substring(0, 60))}"</div>` : '';
+                    const time = formatModTime(n.created_at);
+                    const unreadCls = n.is_read ? '' : ' unread';
+                    return `<div class="notif-item${unreadCls}" data-notif-id="${n.id}" data-post-id="${n.post_id}">
+                        ${avatarHtml}
+                        <div class="notif-item-body">
+                            <div class="notif-item-text"><strong>${escapeHTML(n.actor_name || '用户')}</strong> ${typeText}</div>
+                            ${preview}
+                            <div class="notif-item-time">${time}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                listEl.querySelectorAll('.notif-item').forEach(item => {
+                    item.addEventListener('click', async function() {
+                        const notifId = Number(this.dataset.notifId);
+                        const postId = Number(this.dataset.postId);
+                        if (supabaseClient && currentUser) {
+                            await supabaseClient.from('mod_notifications')
+                                .update({ is_read: true })
+                                .eq('id', notifId)
+                                .eq('user_id', currentUser.id);
+                            _unreadCount = Math.max(0, _unreadCount - 1);
+                            updateNotifBadge();
+                        }
+                        document.getElementById('notifPanel').classList.remove('show');
+                        if (currentMainView !== 'mods') switchMainView('mods');
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post) setTimeout(() => openModDetail(post), 200);
+                    });
+                });
+            }
+
+            function subscribeNotifRealtime() {
+                if (!supabaseClient || !currentUser || _notifListener) return;
+                try {
+                    _notifListener = supabaseClient
+                        .channel('mod-notifs-' + currentUser.id)
+                        .on('postgres_changes', {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'mod_notifications',
+                            filter: `user_id=eq.${currentUser.id}`
+                        }, (payload) => {
+                            _unreadCount++;
+                            updateNotifBadge();
+                            showToast('🔔 收到新通知', 2000);
+                            const panel = document.getElementById('notifPanel');
+                            if (panel && panel.classList.contains('show')) {
+                                loadNotifications();
+                            }
+                        })
+                        .subscribe();
+                } catch (_) {}
+            }
+
+            async function createModNotification(postOwnerId, type, postId, commentContent) {
+                if (!supabaseClient || !currentUser) return;
+                if (postOwnerId === currentUser.id) return;
+                const metadata = currentUser.user_metadata || {};
+                const displayName = metadata.display_name || currentUser.email || '用户';
+                const avatarUrl = metadata.avatar_url || null;
+                try {
+                    await supabaseClient.from('mod_notifications').insert({
+                        user_id: postOwnerId,
+                        actor_id: currentUser.id,
+                        actor_name: displayName,
+                        actor_avatar: avatarUrl,
+                        post_id: postId,
+                        type: type,
+                        comment_content: commentContent || ''
+                    });
+                } catch (e) {
+                    console.error('❌ 通知发送失败:', e);
+                }
+            }
+
+            function renderModCompose() {
+                const area = document.getElementById('modComposeArea');
+                if (!area) return;
+                const hasCompose = area.querySelector('.mod-compose');
+                const hasLoginHint = area.querySelector('.mod-login-hint');
+                if (currentUser && hasCompose) return;
+                if (!currentUser && hasLoginHint) return;
+                if (currentUser) {
+                    const metadata = currentUser.user_metadata || {};
+                    const avatarUrl = metadata.avatar_url || '';
+                    const displayName = metadata.display_name || currentUser.email || '用户';
+                    const avatarHtml = avatarUrl ?
+                        `<img src="${escapeHTML(avatarUrl)}" class="mod-compose-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="mod-compose-avatar-placeholder">👤</div>`;
+                    const typeOptions = MOD_TYPES.map(t =>
+                        `<option value="${t}">${MOD_TYPE_ICONS[t] || ''} ${t}</option>`
+                    ).join('');
+                    area.innerHTML = `
+                        <div class="mod-compose">
+                            <div class="mod-compose-header">
+                                ${avatarHtml}
+                                <span class="mod-compose-name">${escapeHTML(displayName)}</span>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>游戏名称 *</label>
+                                    <input type="text" id="modGameName" placeholder="例如：Stardew Valley" maxlength="100" />
+                                </div>
+                                <div class="form-group">
+                                    <label>MOD类型 *</label>
+                                    <select id="modType">${typeOptions}</select>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom:10px;">
+                                <label>标题 *</label>
+                                <input type="text" id="modTitle" placeholder="给你的MOD分享起个标题" maxlength="100" />
+                            </div>
+                            <div class="form-group" style="margin-bottom:10px;">
+                                <label>MOD下载/分享链接 *</label>
+                                <input type="url" id="modLink" placeholder="https://..." />
+                            </div>
+                            <textarea id="modContent" placeholder="简单描述一下这个MOD的内容、使用方法、注意事项等（选填）" maxlength="1000"></textarea>
+                            <div class="mod-compose-footer">
+                                <span class="char-count"><span id="modCharCount">0</span>/1000</span>
+                                <button class="btn btn-sm btn-accent" id="modSubmitBtn">发布MOD</button>
+                            </div>
+                        </div>`;
+                    const content = document.getElementById('modContent');
+                    const charCount = document.getElementById('modCharCount');
+                    const submitBtn = document.getElementById('modSubmitBtn');
+                    if (content && charCount) {
+                        content.addEventListener('input', function() {
+                            charCount.textContent = this.value.length;
+                            charCount.classList.toggle('warn', this.value.length >= 980);
+                        });
+                    }
+                    if (submitBtn) {
+                        submitBtn.addEventListener('click', async function() {
+                            const gameName = document.getElementById('modGameName')?.value.trim();
+                            const modType = document.getElementById('modType')?.value;
+                            const title = document.getElementById('modTitle')?.value.trim();
+                            const modLink = document.getElementById('modLink')?.value.trim();
+                            const contentText = document.getElementById('modContent')?.value.trim();
+                            if (!gameName) { showToast('请输入游戏名称', 1500); return; }
+                            if (!title) { showToast('请输入标题', 1500); return; }
+                            if (!modLink) { showToast('请输入MOD链接', 1500); return; }
+                            if (/^javascript\s*:/i.test(modLink)) { showToast('⚠️ 不允许该协议链接', 1500); return; }
+                            try { new URL(modLink); } catch (_) {
+                                showToast('请输入有效的链接地址', 1500); return;
+                            }
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = '发布中...';
+                            const result = await createModPost({
+                                gameName, modType, title, modLink, content: contentText
+                            });
+                            if (result) {
+                                document.getElementById('modGameName').value = '';
+                                document.getElementById('modTitle').value = '';
+                                document.getElementById('modLink').value = '';
+                                document.getElementById('modContent').value = '';
+                                if (charCount) charCount.textContent = '0';
+                                modPage = 0;
+                                await renderModPostList();
+                            }
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '发布MOD';
+                        });
+                    }
+                } else {
+                    area.innerHTML = `
+                        <div class="mod-login-hint">
+                            🔑 <a id="modLoginLink">登录</a> 后即可发布MOD分享
+                        </div>`;
+                    document.getElementById('modLoginLink')?.addEventListener('click', function() {
+                        openAuthModal();
+                    });
+                }
+            }
+
+            async function renderModPostList() {
+                const listEl = document.getElementById('modPostList');
+                const emptyEl = document.getElementById('modEmpty');
+                const statsEl = document.getElementById('modStats');
+                const loadMoreEl = document.getElementById('modLoadMore');
+                if (!listEl) return;
+
+                const posts = await fetchModPosts();
+                modPosts = posts;
+
+                if (posts.length === 0 && modPage === 0) {
+                    listEl.innerHTML = '';
+                    if (emptyEl) emptyEl.style.display = '';
+                    if (loadMoreEl) loadMoreEl.style.display = 'none';
+                    if (statsEl) statsEl.innerHTML = '共 <strong>0</strong> 个MOD';
+                    return;
+                }
+                if (emptyEl) emptyEl.style.display = 'none';
+                if (statsEl) statsEl.innerHTML = `共 <strong>${modTotalCount}</strong> 个MOD`;
+
+                let likedSet = new Set();
+                let thankedSet = new Set();
+                if (currentUser && posts.length > 0 && supabaseClient) {
+                    try {
+                        const postIds = posts.map(p => p.id);
+                        const [likesRes, thanksRes] = await Promise.all([
+                            supabaseClient.from('mod_likes')
+                                .select('post_id').eq('user_id', currentUser.id).in('post_id', postIds),
+                            supabaseClient.from('mod_thanks')
+                                .select('post_id').eq('user_id', currentUser.id).in('post_id', postIds)
+                        ]);
+                        if (likesRes.data) likesRes.data.forEach(l => likedSet.add(l.post_id));
+                        if (thanksRes.data) thanksRes.data.forEach(t => thankedSet.add(t.post_id));
+                    } catch (_) {}
+                }
+
+                let html = '';
+                for (const post of posts) {
+                    const isOwn = currentUser && post.user_id === currentUser.id;
+                    const avatarHtml = post.avatar_url ?
+                        `<img src="${escapeHTML(post.avatar_url)}" class="mod-post-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="mod-post-item-avatar-placeholder">👤</div>`;
+                    const typeClass = MOD_TYPE_CLASSES[post.mod_type] || 'other';
+                    const typeIcon = MOD_TYPE_ICONS[post.mod_type] || '📦';
+                    const liked = likedSet.has(post.id);
+                    const thanked = thankedSet.has(post.id);
+                    const deleteHtml = isOwn ?
+                        `<button class="mod-post-delete-btn" data-post-id="${post.id}">🗑 删除</button>` : '';
+                    const reportHtml = !isOwn ?
+                        `<button class="mod-post-report-btn" data-post-id="${post.id}">🚩 举报</button>` : '';
+
+                    let badgesHtml = '';
+                    const isHot = post.force_hot || (post.likes_count || 0) >= 10;
+                    const isFeatured = post.force_featured || (post.comments_count || 0) >= 10;
+                    const isStar = (post.likes_count || 0) >= 20;
+                    if (isStar) badgesHtml += '<span class="mod-badge badge-star" title="万众瞩目">⭐</span>';
+                    else if (isHot) badgesHtml += '<span class="mod-badge badge-hot" title="热榜">🔥</span>';
+                    if (isFeatured) badgesHtml += '<span class="mod-badge badge-featured" title="精选">✨</span>';
+
+                    let adminBadgeMenu = '';
+                    if (isAdmin) {
+                        adminBadgeMenu = `
+                            <div class="mod-admin-badge-menu">
+                                <button class="mod-admin-badge-btn" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('show');">⚙️</button>
+                                <div class="mod-admin-badge-dropdown">
+                                    <button class="badge-toggle-item" onclick="event.stopPropagation();toggleForceBadge(${post.id},'force_hot');this.closest('.mod-admin-badge-dropdown').classList.remove('show');">
+                                        <span class="badge-toggle-label">🔥 热榜</span>
+                                        <span class="badge-toggle-status ${post.force_hot ? 'on' : 'off'}">${post.force_hot ? '强制' : '自动'}</span>
+                                    </button>
+                                    <button class="badge-toggle-item" onclick="event.stopPropagation();toggleForceBadge(${post.id},'force_featured');this.closest('.mod-admin-badge-dropdown').classList.remove('show');">
+                                        <span class="badge-toggle-label">✨ 精选</span>
+                                        <span class="badge-toggle-status ${post.force_featured ? 'on' : 'off'}">${post.force_featured ? '强制' : '自动'}</span>
+                                    </button>
+                                </div>
+                            </div>`;
+                    }
+
+                    html += `
+                        <div class="mod-post-item" data-post-id="${post.id}">
+                            <div class="mod-post-item-header">
+                                ${avatarHtml}
+                                <span class="mod-post-item-user" data-user-id="${post.user_id}" style="cursor:pointer;">${escapeHTML(post.display_name || '用户')}</span>
+                                ${badgesHtml}
+                                ${adminBadgeMenu}
+                                <span class="mod-post-item-time">${formatModTime(post.created_at)}</span>
+                            </div>
+                            <div class="mod-post-item-title">${escapeHTML(post.title)}</div>
+                            <div class="mod-post-item-game">🎮 ${escapeHTML(post.game_name)}</div>
+                            <span class="mod-tag ${typeClass}">${typeIcon} ${escapeHTML(post.mod_type || '其他')}</span>
+                            ${post.content ? `<div class="mod-post-item-content">${escapeHTML(post.content)}</div>` : ''}
+                            <div class="mod-post-item-footer">
+                                <button class="mod-post-action-btn like-btn${liked ? ' liked' : ''}" data-post-id="${post.id}">
+                                    ${liked ? '❤️' : '🤍'} <span class="count">${post.likes_count || 0}</span>
+                                </button>
+                                <button class="mod-post-action-btn thanks-btn${thanked ? ' thanked' : ''}" data-post-id="${post.id}">
+                                    ${thanked ? '💖' : '🤍'} 感谢 <span class="count">${post.thanks_count || 0}</span>
+                                </button>
+                                <button class="mod-post-action-btn comment-btn" data-post-id="${post.id}">
+                                    💬 <span class="count">${post.comments_count || 0}</span>
+                                </button>
+                                <a class="mod-post-link-btn" href="${escapeHTML(post.mod_link)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
+                                    🔗 查看MOD
+                                </a>
+                                ${reportHtml}
+                                ${deleteHtml}
+                            </div>
+                        </div>`;
+                }
+                listEl.innerHTML = html;
+
+                const hasMore = posts.length < modTotalCount;
+                if (loadMoreEl) loadMoreEl.style.display = hasMore ? 'block' : 'none';
+
+                listEl.querySelectorAll('.mod-post-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        if (e.target.closest('.mod-post-action-btn') || e.target.closest('.mod-post-link-btn') || e.target.closest('.mod-post-delete-btn')) return;
+                        const postId = Number(this.dataset.postId);
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post) openModDetail(post);
+                    });
+                });
+
+                listEl.querySelectorAll('.like-btn').forEach(btn => {
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const postId = Number(this.dataset.postId);
+                        const wasLiked = this.classList.contains('liked');
+                        const countEl = this.querySelector('.count');
+                        const oldCount = Number(countEl?.textContent || 0);
+                        this.classList.toggle('liked');
+                        this.innerHTML = (wasLiked ? '🤍' : '❤️') + ` <span class="count">${wasLiked ? oldCount - 1 : oldCount + 1}</span>`;
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post) post.likes_count = wasLiked ? oldCount - 1 : oldCount + 1;
+                        await toggleModLike(postId);
+                    });
+                });
+
+                listEl.querySelectorAll('.thanks-btn').forEach(btn => {
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const postId = Number(this.dataset.postId);
+                        const wasThanked = this.classList.contains('thanked');
+                        const countEl = this.querySelector('.count');
+                        const oldCount = Number(countEl?.textContent || 0);
+                        this.classList.toggle('thanked');
+                        this.innerHTML = (wasThanked ? '🤍' : '💖') + ` 感谢 <span class="count">${wasThanked ? oldCount - 1 : oldCount + 1}</span>`;
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post) post.thanks_count = wasThanked ? oldCount - 1 : oldCount + 1;
+                        await toggleModThanks(postId);
+                    });
+                });
+
+                listEl.querySelectorAll('.mod-post-item-user').forEach(el => {
+                    el.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const userId = this.dataset.userId;
+                        if (!userId) return;
+                        await showAuthorCard(userId, this);
+                    });
+                });
+
+                listEl.querySelectorAll('.mod-post-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        if (!confirm('确定删除这个MOD分享吗？')) return;
+                        const postId = Number(this.dataset.postId);
+                        await deleteModPost(postId);
+                        await renderModPostList();
+                    });
+                });
+
+                listEl.querySelectorAll('.mod-post-report-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const postId = Number(this.dataset.postId);
+                        openModReport(postId);
+                    });
+                });
+            }
+
+            // ================================================================
+            // 作者贡献卡片
+            // ================================================================
+            let _authorCardEl = null;
+            async function showAuthorCard(userId, anchorEl) {
+                if (_authorCardEl) { _authorCardEl.remove(); _authorCardEl = null; }
+                const stats = await fetchAuthorStats(userId);
+                if (!stats) return;
+
+                const card = document.createElement('div');
+                card.className = 'author-card-popup';
+                const avatarHtml = stats.avatar_url ?
+                    `<img src="${escapeHTML(stats.avatar_url)}" class="author-card-avatar" referrerpolicy="no-referrer" />` :
+                    `<div class="author-card-avatar-placeholder">👤</div>`;
+
+                let badges = '';
+                const totalMods = stats.total_mods || 0;
+                const totalLikes = stats.total_likes || 0;
+                const totalComments = stats.total_comments || 0;
+                if (totalMods >= 1) badges += '🌱';
+                if (totalLikes >= 10) badges += '🔥';
+                if (totalComments >= 20) badges += '💬';
+                if (totalMods >= 5) badges += '🏆';
+
+                card.innerHTML = `
+                    <div class="author-card-header">
+                        ${avatarHtml}
+                        <div>
+                            <div class="author-card-name">${escapeHTML(stats.display_name || '用户')}</div>
+                            ${badges ? `<div class="author-card-badges">${badges}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="author-card-stats">
+                        <span>📦 <strong>${totalMods}</strong> MOD</span>
+                        <span>❤️ <strong>${totalLikes}</strong> 赞</span>
+                        <span>💬 <strong>${totalComments}</strong> 评论</span>
+                    </div>`;
+
+                document.body.appendChild(card);
+                _authorCardEl = card;
+
+                const rect = anchorEl.getBoundingClientRect();
+                let top = rect.bottom + 8;
+                let left = rect.left;
+                if (top + 160 > window.innerHeight) top = rect.top - 160;
+                if (left + 260 > window.innerWidth) left = window.innerWidth - 270;
+                if (left < 10) left = 10;
+                card.style.top = top + 'px';
+                card.style.left = left + 'px';
+
+                const closeHandler = (e) => {
+                    if (!card.contains(e.target) && !anchorEl.contains(e.target)) {
+                        card.remove();
+                        _authorCardEl = null;
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                setTimeout(() => document.addEventListener('click', closeHandler), 10);
+            }
+
+            // ================================================================
+            // MOD举报功能
+            // ================================================================
+            let _reportTargetPostId = null;
+
+            window.openModReport = function(postId) {
+                _reportTargetPostId = postId;
+                const overlay = document.getElementById('modReportOverlay');
+                if (overlay) {
+                    document.querySelectorAll('input[name="modReportCat"]').forEach(r => r.checked = false);
+                    const desc = document.getElementById('modReportDesc');
+                    if (desc) desc.value = '';
+                    overlay.classList.add('show');
+                }
+            };
+
+            window.closeModReport = function() {
+                _reportTargetPostId = null;
+                const overlay = document.getElementById('modReportOverlay');
+                if (overlay) overlay.classList.remove('show');
+            };
+
+            window.submitModReport = async function() {
+                const checked = document.querySelector('input[name="modReportCat"]:checked');
+                if (!checked) { showToast('⚠️ 请选择举报原因', 1500); return; }
+                if (!supabaseClient) { showToast('⚠️ 数据库未连接', 1500); return; }
+                const desc = (document.getElementById('modReportDesc') || {}).value || '';
+                const { error } = await supabaseClient.from('mod_reports').insert({
+                    post_id: _reportTargetPostId,
+                    category: checked.value,
+                    description: desc.trim(),
+                    reporter_id: currentUser ? currentUser.id : null,
+                    reporter_name: currentUser ? (currentUser.display_name || currentUser.email || '用户') : '匿名'
+                });
+                if (error) { showToast('❌ 举报提交失败: ' + error.message, 2500); return; }
+                closeModReport();
+                showToast('✅ 举报已提交，感谢反馈', 2000);
+            };
+
+            async function openModDetail(post) {
+                const overlay = document.getElementById('modDetailOverlay');
+                const container = document.getElementById('modDetailContainer');
+                if (!overlay || !container) return;
+
+                const isOwn = currentUser && post.user_id === currentUser.id;
+                const typeClass = MOD_TYPE_CLASSES[post.mod_type] || 'other';
+                const typeIcon = MOD_TYPE_ICONS[post.mod_type] || '📦';
+                let liked = false;
+                let thanked = false;
+                if (currentUser) {
+                    [liked, thanked] = await Promise.all([
+                        checkUserModLike(post.id),
+                        checkUserModThanks(post.id)
+                    ]);
+                }
+
+                const thanksList = await fetchModThanksList(post.id);
+                let thanksListHtml = '';
+                if (thanksList.length > 0) {
+                    const avatars = thanksList.slice(0, 10).map(t => {
+                        return t.avatar_url ?
+                            `<img src="${escapeHTML(t.avatar_url)}" class="mod-thanks-avatar" referrerpolicy="no-referrer" title="${escapeHTML(t.display_name || '用户')}" />` :
+                            `<span class="mod-thanks-avatar-placeholder" title="${escapeHTML(t.display_name || '用户')}">👤</span>`;
+                    }).join('');
+                    const extra = thanksList.length > 10 ? `<span class="mod-thanks-extra">+${thanksList.length - 10}</span>` : '';
+                    thanksListHtml = `<div class="mod-thanks-list"><span class="mod-thanks-label">💖 感谢作者：</span>${avatars}${extra}</div>`;
+                }
+
+                const comments = await fetchModComments(post.id);
+
+                let commentsHtml = '';
+                comments.forEach(c => {
+                    const isCommentOwn = currentUser && c.user_id === currentUser.id;
+                    const cAvatar = c.avatar_url ?
+                        `<img src="${escapeHTML(c.avatar_url)}" class="mod-comment-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="mod-comment-avatar-placeholder">👤</div>`;
+                    const deleteBtn = (isCommentOwn || isAdmin) ?
+                        `<button class="mod-comment-delete" data-comment-id="${c.id}">删除</button>` : '';
+                    commentsHtml += `
+                        <div class="mod-comment-item" data-comment-id="${c.id}">
+                            ${cAvatar}
+                            <div class="mod-comment-body">
+                                <div class="mod-comment-header">
+                                    <span class="mod-comment-name">${escapeHTML(c.display_name || '用户')}</span>
+                                    <span class="mod-comment-time">${formatModTime(c.created_at)}</span>
+                                    ${deleteBtn}
+                                </div>
+                                <div class="mod-comment-text">${escapeHTML(c.content)}</div>
+                            </div>
+                        </div>`;
+                });
+
+                const commentArea = currentUser ? `
+                    <div class="mod-comment-compose">
+                        <textarea id="modCommentInput" placeholder="写下你的评论..." maxlength="500"></textarea>
+                        <button class="btn btn-sm btn-accent" id="modCommentSubmitBtn">发送</button>
+                    </div>` : `
+                    <div style="text-align:center;color:var(--text3);padding:10px 0;font-size:0.85rem;">
+                        🔑 <a style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="closeModDetail();openAuthModal();">登录</a> 后即可评论
+                    </div>`;
+
+                const deleteHtml = (isOwn || isAdmin) ?
+                    `<button class="btn btn-sm" id="modDetailDeleteBtn" style="color:var(--danger);border-color:var(--danger);">🗑 删除</button>` : '';
+
+                container.innerHTML = `
+                    <div class="mod-detail-header">
+                        <button class="mod-detail-back-btn" id="modDetailBackBtn">
+                            <span>←</span> 返回列表
+                        </button>
+                    </div>
+                    <h1 class="mod-detail-title">${escapeHTML(post.title)}</h1>
+                    <div class="mod-detail-meta">
+                        <span class="mod-detail-meta-item mod-detail-author" data-user-id="${post.user_id}" style="cursor:pointer;">👤 ${escapeHTML(post.display_name || '用户')}</span>
+                        <span class="mod-detail-meta-item">📅 ${formatModTime(post.created_at)}</span>
+                        <span class="mod-detail-game-tag">🎮 ${escapeHTML(post.game_name)}</span>
+                        <span class="mod-tag ${typeClass}">${typeIcon} ${escapeHTML(post.mod_type || '其他')}</span>
+                    </div>
+                    ${post.content ? `<div class="mod-detail-content">${escapeHTML(post.content)}</div>` : '<div style="border-bottom:1px solid var(--border);margin-bottom:16px;"></div>'}
+                    <div class="mod-detail-link-section">
+                        <div>
+                            <div class="mod-detail-link-label">MOD下载/分享链接</div>
+                            <a class="mod-detail-link-url" href="${escapeHTML(post.mod_link)}" target="_blank" rel="noopener noreferrer">${escapeHTML(post.mod_link)}</a>
+                        </div>
+                        <a class="mod-detail-link-open" href="${escapeHTML(post.mod_link)}" target="_blank" rel="noopener noreferrer">🔗 前往下载</a>
+                    </div>
+                    <div class="mod-detail-actions">
+                        <button class="mod-post-action-btn like-btn${liked ? ' liked' : ''}" data-post-id="${post.id}">
+                            ${liked ? '❤️' : '🤍'} <span class="count">${post.likes_count || 0}</span> 赞
+                        </button>
+                        <button class="mod-post-action-btn thanks-btn${thanked ? ' thanked' : ''}" data-post-id="${post.id}">
+                            ${thanked ? '💖' : '🤍'} 感谢 <span class="count">${post.thanks_count || 0}</span>
+                        </button>
+                        <button class="mod-post-action-btn">
+                            💬 <span class="count">${post.comments_count || 0}</span> 评论
+                        </button>
+                        ${isAdmin ? `
+                        <div class="mod-admin-badge-menu">
+                            <button class="mod-admin-badge-btn" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('show');">⚙️ 管理徽章</button>
+                            <div class="mod-admin-badge-dropdown">
+                                <button class="badge-toggle-item" onclick="event.stopPropagation();toggleForceBadge(${post.id},'force_hot');this.closest('.mod-admin-badge-dropdown').classList.remove('show');">
+                                    <span class="badge-toggle-label">🔥 热榜</span>
+                                    <span class="badge-toggle-status ${post.force_hot ? 'on' : 'off'}">${post.force_hot ? '强制开启' : '自动判定'}</span>
+                                </button>
+                                <button class="badge-toggle-item" onclick="event.stopPropagation();toggleForceBadge(${post.id},'force_featured');this.closest('.mod-admin-badge-dropdown').classList.remove('show');">
+                                    <span class="badge-toggle-label">✨ 精选</span>
+                                    <span class="badge-toggle-status ${post.force_featured ? 'on' : 'off'}">${post.force_featured ? '强制开启' : '自动判定'}</span>
+                                </button>
+                            </div>
+                        </div>` : ''}
+                        ${deleteHtml}
+                    </div>
+                    ${thanksListHtml}
+                    <div class="mod-detail-comments-title">💬 评论区 (${comments.length})</div>
+                    ${commentArea}
+                    <div id="modDetailCommentsList">${commentsHtml}</div>
+                `;
+
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                overlay.scrollTop = 0;
+
+                container.querySelector('#modDetailBackBtn').addEventListener('click', closeModDetail);
+
+                const likeBtn = container.querySelector('.like-btn');
+                if (likeBtn) {
+                    likeBtn.addEventListener('click', async function() {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        await toggleModLike(post.id);
+                        closeModDetail();
+                        const updatedPosts = await fetchModPosts();
+                        modPosts = updatedPosts;
+                        const updated = modPosts.find(p => p.id === post.id);
+                        if (updated) openModDetail(updated);
+                    });
+                }
+
+                const thanksBtn = container.querySelector('.thanks-btn');
+                if (thanksBtn) {
+                    thanksBtn.addEventListener('click', async function() {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        await toggleModThanks(post.id);
+                        closeModDetail();
+                        const updatedPosts = await fetchModPosts();
+                        modPosts = updatedPosts;
+                        const updated = modPosts.find(p => p.id === post.id);
+                        if (updated) openModDetail(updated);
+                    });
+                }
+
+                const authorEl = container.querySelector('.mod-detail-author');
+                if (authorEl) {
+                    authorEl.addEventListener('click', async function() {
+                        const userId = this.dataset.userId;
+                        if (userId) await showAuthorCard(userId, this);
+                    });
+                }
+
+                const deleteBtn = container.querySelector('#modDetailDeleteBtn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', async function() {
+                        if (!confirm('确定删除这个MOD分享吗？')) return;
+                        await deleteModPost(post.id);
+                        closeModDetail();
+                        await renderModPostList();
+                    });
+                }
+
+                container.querySelectorAll('.mod-comment-delete').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (!confirm('确定删除这条评论吗？')) return;
+                        const commentId = Number(this.dataset.commentId);
+                        await deleteModComment(commentId);
+                        closeModDetail();
+                        const updated = modPosts.find(p => p.id === post.id);
+                        if (updated) openModDetail(updated);
+                    });
+                });
+
+                const commentInput = container.querySelector('#modCommentInput');
+                const commentSubmitBtn = container.querySelector('#modCommentSubmitBtn');
+                if (commentSubmitBtn && commentInput) {
+                    commentSubmitBtn.addEventListener('click', async function() {
+                        const text = commentInput.value.trim();
+                        if (!text) { showToast('评论内容不能为空', 1500); return; }
+                        commentSubmitBtn.disabled = true;
+                        commentSubmitBtn.textContent = '发送中...';
+                        const result = await addModComment(post.id, text);
+                        if (result) {
+                            commentInput.value = '';
+                            showToast('✅ 评论成功', 1500);
+                            closeModDetail();
+                            const updated = modPosts.find(p => p.id === post.id);
+                            if (updated) openModDetail(updated);
+                            await renderModPostList();
+                        }
+                        commentSubmitBtn.disabled = false;
+                        commentSubmitBtn.textContent = '发送';
+                    });
+                    commentInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                            e.preventDefault();
+                            commentSubmitBtn.click();
+                        }
+                    });
+                }
+            }
+
+            function closeModDetail() {
+                document.getElementById('modDetailOverlay')?.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            let _modFilterSortBound = false;
+            function initModFilterEvents() {
+                if (_modFilterSortBound) return;
+                _modFilterSortBound = true;
+                document.querySelectorAll('.mod-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const filter = this.dataset.modFilter;
+                        if (modFilter === filter) return;
+                        modFilter = filter;
+                        document.querySelectorAll('.mod-filter-btn').forEach(b =>
+                            b.classList.toggle('active', b.dataset.modFilter === filter));
+                        modPage = 0;
+                        await renderModPostList();
+                    });
+                });
+            }
+
+            function initModSortEvents() {
+                document.querySelectorAll('.mod-sort-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const sort = this.dataset.modSort;
+                        if (modSort === sort) return;
+                        modSort = sort;
+                        document.querySelectorAll('.mod-sort-btn').forEach(b =>
+                            b.classList.toggle('active', b.dataset.modSort === sort));
+                        modPage = 0;
+                        await renderModPostList();
+                    });
+                });
+            }
+
+            function initModLoadMoreEvent() {
+                document.getElementById('modLoadMoreBtn')?.addEventListener('click', async function() {
+                    modPage++;
+                    const morePosts = await fetchModPosts();
+                    if (morePosts.length > 0) {
+                        modPosts = modPosts.concat(morePosts);
+                        renderModPostList();
+                    }
+                    if (morePosts.length < MOD_PAGE_SIZE) {
+                        document.getElementById('modLoadMore').style.display = 'none';
+                    }
+                });
+            }
+
+            // ================================================================
+            // ★★★ MOD 与游戏关联功能 ★★★
+            // ================================================================
+
+            async function loadDetailRelatedMods(game) {
+                const listEl = document.getElementById('detailRelatedModsList');
+                if (!listEl) return;
+                if (!supabaseClient) {
+                    listEl.innerHTML = '<div class="detail-mods-empty">未连接数据库</div>';
+                    return;
+                }
+                try {
+                    const { data, error } = await supabaseClient.from('mod_posts')
+                        .select('*')
+                        .eq('game_name', game.title)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+                    if (error) throw error;
+                    if (!data || data.length === 0) {
+                        listEl.innerHTML = '<div class="detail-mods-empty">暂无相关MOD，来做第一个分享的人吧！</div>';
+                        return;
+                    }
+                    listEl.innerHTML = data.map(post => {
+                        const typeClass = MOD_TYPE_CLASSES[post.mod_type] || 'other';
+                        const typeIcon = MOD_TYPE_ICONS[post.mod_type] || '📦';
+                        return `
+                            <div class="detail-mod-item" onclick="openModPostFromDetail('${escapeHTML(post.mod_link)}', ${post.id})">
+                                <div class="detail-mod-item-icon ${typeClass}">${typeIcon}</div>
+                                <div class="detail-mod-item-body">
+                                    <div class="detail-mod-item-title">${escapeHTML(post.title)}</div>
+                                    <div class="detail-mod-item-meta">
+                                        <span>${escapeHTML(post.display_name || '用户')}</span>
+                                        <span>❤️ ${post.likes_count || 0}</span>
+                                        <span>💬 ${post.comments_count || 0}</span>
+                                    </div>
+                                </div>
+                                <span class="detail-mod-item-link" onclick="event.stopPropagation();">查看</span>
+                            </div>`;
+                    }).join('');
+                } catch (e) {
+                    listEl.innerHTML = '<div class="detail-mods-empty">加载失败</div>';
+                }
+            }
+
+            window.openModPostFromDetail = function(link, postId) {
+                window.open(link, '_blank', 'noopener,noreferrer');
+            };
+
+            function findGameByName(name) {
+                if (!name) return null;
+                const q = name.trim().toLowerCase();
+                return games.find(g => g.title && g.title.toLowerCase() === q) ||
+                       games.find(g => g.title && g.title.toLowerCase().includes(q));
+            }
+
+            function setupGameNameAutocomplete() {
+                const input = document.getElementById('modGameName');
+                if (!input) return;
+                let listEl = input.parentNode.querySelector('.mod-autocomplete-list');
+                if (!listEl) {
+                    listEl = document.createElement('div');
+                    listEl.className = 'mod-autocomplete-list';
+                    input.parentNode.appendChild(listEl);
+                }
+                input.addEventListener('input', function() {
+                    const q = this.value.trim().toLowerCase();
+                    if (q.length < 1) { listEl.classList.remove('show'); return; }
+                    const matches = games.filter(g =>
+                        g.title && g.title.toLowerCase().includes(q)
+                    ).slice(0, 6);
+                    if (matches.length === 0) { listEl.classList.remove('show'); return; }
+                    listEl.innerHTML = matches.map(g => {
+                        const coverHtml = g.cover ?
+                            `<img src="${escapeHTML(g.cover)}" alt="" />` : '';
+                        return `<div class="mod-autocomplete-item" data-title="${escapeHTML(g.title)}">${coverHtml} ${escapeHTML(g.title)}</div>`;
+                    }).join('');
+                    listEl.classList.add('show');
+                    listEl.querySelectorAll('.mod-autocomplete-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            input.value = this.dataset.title;
+                            listEl.classList.remove('show');
+                        });
+                    });
+                });
+                input.addEventListener('blur', function() {
+                    setTimeout(() => listEl.classList.remove('show'), 200);
+                });
+            }
+
+            // 重写 renderModCompose 以加入自动补全
+            const _originalRenderModCompose = renderModCompose;
+            renderModCompose = function() {
+                _originalRenderModCompose();
+                setTimeout(setupGameNameAutocomplete, 50);
+            };
+
+            // 重写 renderModPostList 使游戏名可点击
+            const _originalRenderModPostList = renderModPostList;
+            renderModPostList = async function() {
+                await _originalRenderModPostList();
+                document.querySelectorAll('.mod-post-item-game').forEach(el => {
+                    const name = el.textContent.replace(/^🎮\s*/, '').trim();
+                    const game = findGameByName(name);
+                    if (game) {
+                        el.innerHTML = `🎮 <a class="game-name-link" onclick="event.stopPropagation();openGameFromMod(${game.id});" title="查看游戏详情">${escapeHTML(name)}</a>`;
+                        el.style.cursor = 'pointer';
+                    }
+                });
+            };
+
+            window.openGameFromMod = function(gameId) {
+                const game = games.find(g => g.id === gameId);
+                if (!game) { showToast('⚠️ 未找到该游戏', 1500); return; }
+                closeModDetail();
+                if (currentMainView !== 'games') {
+                    currentMainView = 'games';
+                    const galleryContainer = document.getElementById('galleryContainer');
+                    const modSection = document.getElementById('modSection');
+                    const filterSticky = document.getElementById('filterSticky');
+                    const toolbar = document.getElementById('toolbar');
+                    const subtitle = document.getElementById('siteSubtitle');
+                    if (subtitle) subtitle.textContent = '*请从中选择你的下一场冒险*';
+                    if (galleryContainer) galleryContainer.style.display = '';
+                    if (modSection) modSection.classList.remove('show');
+                    if (filterSticky) filterSticky.style.display = '';
+                    if (toolbar) toolbar.style.display = '';
+                    document.title = 'Her Lens · 女性主角游戏';
+                    document.querySelectorAll('.header-dropdown-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.mainView === 'games');
+                    });
+                    renderGallery();
+                    showDetailModal(game, { from: 'mod' });
+                } else {
+                    showDetailModal(game, { from: 'gallery' });
+                }
+            };
 
             // ================================================================
             // 公告栏
@@ -7999,6 +11416,7 @@
                     if (data && data.user) {
                         currentUser = data.user;
                         updateUIForLoggedIn(currentUser);
+                        updateAdminUI();
                     }
 
                     showToast('✅ 个人资料已更新！', 2000);
@@ -8098,6 +11516,9 @@
                         <button class="login-btn-header" id="showLoginBtn">🔑 登录</button>
                     `;
                 document.getElementById('showLoginBtn').addEventListener('click', openAuthModal);
+                isAdmin = false;
+                isAdminMode = false;
+                updateAdminUI();
             }
 
             // ================================================================
@@ -8131,6 +11552,10 @@
 
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
+                        if (document.getElementById('modDetailOverlay').classList.contains('show')) {
+                            closeModDetail();
+                            return;
+                        }
                         if (document.getElementById('detailModalOverlay').classList.contains('show')) {
                             closeDetailModal();
                             return;
@@ -8242,6 +11667,23 @@
                     }
                 });
 
+                document.getElementById('btnToggleAdmin').addEventListener('click', toggleAdminMode);
+                document.getElementById('btnAddGame').addEventListener('click', function() {
+                    if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                    showEditModal(null);
+                });
+                document.getElementById('btnImportCSV').addEventListener('click', function() {
+                    if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                    document.getElementById('csvFileInput').click();
+                });
+                document.getElementById('csvFileInput').addEventListener('change', function(e) {
+                    const file = this.files[0];
+                    if (file) importCSV(file);
+                });
+                document.getElementById('editModalOverlay').addEventListener('click', function(e) {
+                    if (e.target === this) closeEditModal();
+                });
+
                 document.getElementById('myReviewsModalClose').addEventListener('click', closeMyReviewsModal);
                 document.getElementById('myReviewsModalOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeMyReviewsModal();
@@ -8252,6 +11694,10 @@
                 document.getElementById('imageViewerClose').addEventListener('click', closeImageViewer);
                 document.getElementById('imageViewerOverlay').addEventListener('click', function(e) {
                     if (e.target === this) closeImageViewer();
+                });
+
+                document.getElementById('modDetailOverlay').addEventListener('click', function(e) {
+                    if (e.target === this) closeModDetail();
                 });
 
                 window.addEventListener('popstate', function(event) {
@@ -8396,6 +11842,22 @@
                         }
                     }
 
+                    const curDisplayName = currentUser.user_metadata?.display_name || currentUser.email || '用户';
+                    const curAvatarUrl = currentUser.user_metadata?.avatar_url || null;
+                    const toUpdate = mergedReviews.filter(r =>
+                        r.display_name !== curDisplayName || r.avatar_url !== curAvatarUrl
+                    );
+                    if (toUpdate.length > 0) {
+                        toUpdate.forEach(r => { r.display_name = curDisplayName; r.avatar_url = curAvatarUrl; });
+                        const updatePromises = toUpdate.map(r =>
+                            supabaseClient.from('user_reviews')
+                                .update({ display_name: curDisplayName, avatar_url: curAvatarUrl })
+                                .eq('user_id', userId).eq('game_id', r.game_id)
+                                .then(() => {})
+                        );
+                        await Promise.all(updatePromises);
+                    }
+
                     userData.wishlist = mergedWishlist;
                     userData.played = mergedPlayed;
                     userData.reviews = mergedReviews;
@@ -8403,6 +11865,7 @@
 
                     renderGallery();
                     updateAchievementDot();
+                    checkAchievements();
                     setSyncStatus('synced', '已同步');
                     console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
 
@@ -8764,6 +12227,14 @@
                 initKeyboardShortcuts();
                 initSystemThemeListener();
                 initConfetti();
+                initDropdownEvents();
+                initModLoadMoreEvent();
+
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.mod-admin-badge-menu')) {
+                        document.querySelectorAll('.mod-admin-badge-dropdown.show').forEach(d => d.classList.remove('show'));
+                    }
+                });
 
                 // 滚动位置记忆
                 restoreScrollPosition();
@@ -8777,6 +12248,8 @@
                         if (session) {
                             currentUser = session.user;
                             updateUIForLoggedIn(currentUser);
+                            updateAdminUI();
+                            initNotifSystem();
                             const overlay = document.getElementById('authModalOverlay');
                             if (overlay.classList.contains('show')) {
                                 closeAuthModal();
@@ -8787,6 +12260,13 @@
                         } else {
                             currentUser = null;
                             updateUIForLoggedOut();
+                            document.getElementById('notifBellWrap').style.display = 'none';
+                            _unreadCount = 0;
+                            updateNotifBadge();
+                            if (_notifListener) {
+                                supabaseClient.removeChannel(_notifListener);
+                                _notifListener = null;
+                            }
                         }
                     });
 
@@ -8794,6 +12274,8 @@
                     if (session) {
                         currentUser = session.user;
                         updateUIForLoggedIn(currentUser);
+                        updateAdminUI();
+                        initNotifSystem();
                         setTimeout(() => {
                             syncUserDataWithCloud().then(() => _processPendingCloudOps());
                         }, 500);
