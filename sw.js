@@ -1,6 +1,7 @@
-const CACHE_NAME = 'her-lens-v2';
-const STATIC_CACHE = 'her-lens-static-v2';
-const IMAGE_CACHE = 'her-lens-images-v2';
+const SITE_VERSION = 'v3';
+const CACHE_NAME = 'her-lens-v3';
+const STATIC_CACHE = 'her-lens-static-v3';
+const IMAGE_CACHE = 'her-lens-images-v3';
 
 const STATIC_ASSETS = [
     './',
@@ -42,6 +43,12 @@ self.addEventListener('activate', event => {
     );
 });
 
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'GET_VERSION') {
+        event.source.postMessage({ type: 'VERSION', version: SITE_VERSION });
+    }
+});
+
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
@@ -67,7 +74,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
+    event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
 });
 
 async function cacheFirst(request, cacheName) {
