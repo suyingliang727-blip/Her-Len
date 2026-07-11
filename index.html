@@ -7071,6 +7071,7 @@
                         currentView = d.currentView || 'released';
                         currentSort = d.currentSort || 'default';
                         if (!['default', 'newest', 'oldest'].includes(currentSort)) currentSort = 'default';
+                        isAdminMode = d.isAdminMode || false;
                     } catch (_) {}
                 }
                 applyTheme();
@@ -7080,7 +7081,7 @@
             }
 
             function saveSettings() {
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: currentTheme, currentView, currentSort }));
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: currentTheme, currentView, currentSort, isAdminMode }));
             }
 
             function resetActiveFilters() {
@@ -7939,6 +7940,22 @@
                     toggleReleasedFields(modal, isReleasedCheck.checked);
                 }
 
+                const dateInput = modal.querySelector('#efReleaseDate');
+                if (dateInput) {
+                    dateInput.addEventListener('paste', function(e) {
+                        e.preventDefault();
+                        const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+                        const parsed = parseDateInput(text.trim());
+                        this.value = parsed || text.trim();
+                    });
+                    dateInput.addEventListener('blur', function() {
+                        const v = this.value.trim();
+                        if (!v || /^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+                        const parsed = parseDateInput(v);
+                        if (parsed) this.value = parsed;
+                    });
+                }
+
                 const btnSave = modal.querySelector('#btnSaveGame');
                 if (btnSave) {
                     btnSave.addEventListener('click', function() { saveGameFromForm(modal); });
@@ -7950,6 +7967,14 @@
                 if (overlay) overlay.classList.remove('show');
                 document.body.style.overflow = '';
                 editingGameId = null;
+            }
+
+            function parseDateInput(s) {
+                if (!s) return '';
+                if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+                const m = s.match(/(\d{4})\s*[年.\-\/\s]\s*(\d{1,2})\s*[月.\-\/\s]\s*(\d{1,2})\s*[日号]?/);
+                if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+                return '';
             }
 
             function toggleReleasedFields(modal, isReleased) {
@@ -12297,6 +12322,7 @@
 
                 resetActiveFilters();
                 bindGlobalEvents();
+                updateAdminUI();
                 renderGallery();
                 updateFilterUI();
                 document.getElementById('siteTitle').textContent = '🎮 女性主角游戏';
