@@ -1164,6 +1164,14 @@
             border-color: var(--accent2);
             color: #fff;
         }
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--border);
+        }
         .btn-sm {
             padding: 5px 10px;
             font-size: .72rem;
@@ -2192,7 +2200,7 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: var(--modal-bg);
+            background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 10px;
             max-height: 180px;
@@ -4959,6 +4967,22 @@
         }
 
         /* 发布区 */
+        .mod-compose-trigger-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: opacity 0.2s;
+        }
+        .mod-compose-trigger-btn:hover { opacity: 0.85; }
         .mod-compose {
             background: var(--surface2);
             border-radius: 16px;
@@ -10256,24 +10280,20 @@
             function renderModCompose() {
                 const area = document.getElementById('modComposeArea');
                 if (!area) return;
-                const hasCompose = area.querySelector('.mod-compose');
+                const hasBtn = area.querySelector('.mod-compose-trigger-btn');
                 const hasLoginHint = area.querySelector('.mod-login-hint');
-                if (currentUser && hasCompose) return;
-                if (!currentUser && hasLoginHint) return;
+                if (hasBtn || hasLoginHint) return;
                 if (currentUser) {
                     const metadata = currentUser.user_metadata || {};
                     const avatarUrl = metadata.avatar_url || '';
                     const displayName = metadata.display_name || currentUser.email || '用户';
-                    const avatarHtml = avatarUrl ?
-                        `<img src="${escapeHTML(avatarUrl)}" class="mod-compose-avatar" referrerpolicy="no-referrer" />` :
-                        `<div class="mod-compose-avatar-placeholder">👤</div>`;
-                    const typeOptions = MOD_TYPES.map(t =>
-                        `<option value="${t}">${MOD_TYPE_ICONS[t] || ''} ${t}</option>`
-                    ).join('');
                     area.innerHTML = `
-                        <div class="mod-compose">
+                        <button class="mod-compose-trigger-btn" onclick="toggleModComposeForm()">✍️ 发布MOD</button>
+                        <div class="mod-compose" style="display:none;">
                             <div class="mod-compose-header">
-                                ${avatarHtml}
+                                ${avatarUrl ?
+                                    `<img src="${escapeHTML(avatarUrl)}" class="mod-compose-avatar" referrerpolicy="no-referrer" />` :
+                                    `<div class="mod-compose-avatar-placeholder">👤</div>`}
                                 <span class="mod-compose-name">${escapeHTML(displayName)}</span>
                             </div>
                             <div class="form-row">
@@ -10283,7 +10303,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>MOD类型 *</label>
-                                    <select id="modType">${typeOptions}</select>
+                                    <select id="modType">${MOD_TYPES.map(t => `<option value="${t}">${MOD_TYPE_ICONS[t] || ''} ${t}</option>`).join('')}</select>
                                 </div>
                             </div>
                             <div class="form-group" style="margin-bottom:10px;">
@@ -10297,7 +10317,10 @@
                             <textarea id="modContent" placeholder="简单描述一下这个MOD的内容、使用方法、注意事项等（选填）" maxlength="1000"></textarea>
                             <div class="mod-compose-footer">
                                 <span class="char-count"><span id="modCharCount">0</span>/1000</span>
-                                <button class="btn btn-sm btn-accent" id="modSubmitBtn">发布MOD</button>
+                                <div style="display:flex;gap:8px;">
+                                    <button class="btn btn-sm btn-secondary" onclick="toggleModComposeForm()">取消</button>
+                                    <button class="btn btn-sm btn-accent" id="modSubmitBtn">发布MOD</button>
+                                </div>
                             </div>
                         </div>`;
                     const content = document.getElementById('modContent');
@@ -10335,6 +10358,7 @@
                                 document.getElementById('modContent').value = '';
                                 if (charCount) charCount.textContent = '0';
                                 modPage = 0;
+                                toggleModComposeForm();
                                 await renderModPostList();
                             }
                             submitBtn.disabled = false;
@@ -10350,6 +10374,17 @@
                         openAuthModal();
                     });
                 }
+            }
+
+            function toggleModComposeForm() {
+                const area = document.getElementById('modComposeArea');
+                if (!area) return;
+                const form = area.querySelector('.mod-compose');
+                const btn = area.querySelector('.mod-compose-trigger-btn');
+                if (!form) return;
+                const isVisible = form.style.display !== 'none';
+                form.style.display = isVisible ? 'none' : '';
+                if (btn) btn.style.display = isVisible ? '' : 'none';
             }
 
             async function renderModPostList() {
