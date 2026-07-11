@@ -6385,6 +6385,20 @@
 
             function getAllGameplays() { return [...new Set([...DEFAULT_GAMEPLAY_OPTIONS, ...customGameplays])]; }
 
+            function saveCustomTagsToStorage() {
+                customGenres = customGenres.filter(tag => !DEFAULT_GENRE_OPTIONS.includes(tag));
+                customGameplays = customGameplays.filter(tag => !DEFAULT_GAMEPLAY_OPTIONS.includes(tag));
+                customGenres = [...new Set(customGenres)];
+                customGameplays = [...new Set(customGameplays)];
+                localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
+                if (supabaseClient) {
+                    Promise.all([
+                        supabaseClient.from('games').upsert({ id: 999999, title: '__custom_genres__', genre: customGenres, isReleased: true }, { onConflict: 'id' }),
+                        supabaseClient.from('games').upsert({ id: 999998, title: '__custom_gameplays__', gameplay: customGameplays, isReleased: true }, { onConflict: 'id' })
+                    ]).catch(() => {});
+                }
+            }
+
             // ================================================================
             // 用户数据
             // ================================================================
@@ -7805,10 +7819,10 @@
                 const data = game || getDefaultGameData();
                 editingGameId = game ? game.id : null;
 
-                const genreTags = EDIT_GENRE_OPTIONS.map(g =>
+                const genreTags = getAllGenres().sort((a,b) => a.localeCompare(b,'zh')).map(g =>
                     `<span class="tag-option${(data.genre||[]).includes(g)?' selected':''}" data-field="genre" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
                 ).join('');
-                const gameplayTags = EDIT_GAMEPLAY_OPTIONS.map(g =>
+                const gameplayTags = getAllGameplays().sort((a,b) => a.localeCompare(b,'zh')).map(g =>
                     `<span class="tag-option${(data.gameplay||[]).includes(g)?' selected':''}" data-field="gameplay" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
                 ).join('');
                 const platformTags = EDIT_PLATFORM_OPTIONS.map(p =>
@@ -7838,14 +7852,17 @@
                         <div class="form-group"><label>👕 服设分类</label><select id="efCostumeType">${['服设合理','服设不合理','含恶俗设计','服设可自选'].map(c=>`<option value="${c}" ${data.costumeType===c?'selected':''}>${c}</option>`).join('')}</select></div>
                     </div>
                     <div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${['有中文','无中文'].map(c=>`<option value="${c}" ${data.hasChinese===c?'selected':''}>${c}</option>`).join('')}</select></div>
+                    <div class="form-group" id="efMacRow"><label>🍎 Mac适配</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport==='支持Mac'?'selected':''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport==='不支持Mac'?'selected':''}>不支持Mac</option></select></div>
                     <div class="form-row">
                         <div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo?'selected':''}>暂无</option><option value="1" ${data.hasDemo?'selected':''}>有Demo</option></select></div>
-                        <div class="form-group"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration||'')}"></div>
-                        <div class="form-group"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice||'')}"></div>
+                        <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration||'')}"></div>
+                        <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice||'')}"></div>
                     </div>
                     <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${platformTags}</div></div>
                     <div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink||'')}"></div>
                     <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks||'')}</textarea></div>
+                    <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive?'checked':''}> PS独占</label>
+                    <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive?'checked':''}> NS独占</label></div>
                     <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos||[]).join('\n')}</textarea></div>
                     <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots||[]).join('\n')}</textarea></div>
                     <div style="display:flex;gap:10px;margin-top:16px;">
@@ -7869,7 +7886,9 @@
                         const inp = modal.querySelector('#efNewGenre');
                         const tag = (inp.value||'').trim();
                         if (!tag) return;
-                        if (EDIT_GENRE_OPTIONS.includes(tag)) { showToast('该题材已存在', 1200); return; }
+                        if (getAllGenres().includes(tag)) { showToast('该题材已存在', 1200); return; }
+                        customGenres.push(tag);
+                        saveCustomTagsToStorage();
                         const panel = modal.querySelector('#efGenrePanel');
                         const sp = document.createElement('span');
                         sp.className = 'tag-option selected';
@@ -7878,6 +7897,7 @@
                         sp.textContent = tag;
                         panel.appendChild(sp);
                         inp.value = '';
+                        showToast('✅ 已添加自定义题材', 1200);
                     });
                 }
 
@@ -7887,7 +7907,9 @@
                         const inp = modal.querySelector('#efNewGameplay');
                         const tag = (inp.value||'').trim();
                         if (!tag) return;
-                        if (EDIT_GAMEPLAY_OPTIONS.includes(tag)) { showToast('该玩法已存在', 1200); return; }
+                        if (getAllGameplays().includes(tag)) { showToast('该玩法已存在', 1200); return; }
+                        customGameplays.push(tag);
+                        saveCustomTagsToStorage();
                         const panel = modal.querySelector('#efGameplayPanel');
                         const sp = document.createElement('span');
                         sp.className = 'tag-option selected';
@@ -7896,6 +7918,7 @@
                         sp.textContent = tag;
                         panel.appendChild(sp);
                         inp.value = '';
+                        showToast('✅ 已添加自定义玩法', 1200);
                     });
                 }
 
@@ -7906,6 +7929,14 @@
                         if (!id.trim()) { showToast('请输入App ID', 1200); return; }
                         modal.querySelector('#efCover').value = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${id.trim()}/header.jpg`;
                     });
+                }
+
+                const isReleasedCheck = modal.querySelector('#efIsReleased');
+                if (isReleasedCheck) {
+                    isReleasedCheck.addEventListener('change', function() {
+                        toggleReleasedFields(modal, this.checked);
+                    });
+                    toggleReleasedFields(modal, isReleasedCheck.checked);
                 }
 
                 const btnSave = modal.querySelector('#btnSaveGame');
@@ -7919,6 +7950,19 @@
                 if (overlay) overlay.classList.remove('show');
                 document.body.style.overflow = '';
                 editingGameId = null;
+            }
+
+            function toggleReleasedFields(modal, isReleased) {
+                const costume = modal.querySelector('#efCostumeType')?.closest('.form-group');
+                const macRow = modal.querySelector('#efMacRow');
+                const dur = modal.querySelector('#efDurationPriceGroup');
+                const price = modal.querySelector('#efPriceGroup');
+                if (costume) costume.style.display = isReleased ? '' : 'none';
+                if (macRow) macRow.style.display = isReleased ? '' : 'none';
+                if (dur) dur.style.display = isReleased ? '' : 'none';
+                if (price) price.style.display = isReleased ? '' : 'none';
+                const dateLabel = modal.querySelector('#efReleaseDate')?.closest('.form-group')?.querySelector('label');
+                if (dateLabel) dateLabel.textContent = isReleased ? '发售日期' : '预计发售日';
             }
 
             async function saveGameFromForm(modal) {
@@ -7946,11 +7990,11 @@
                     platforms: getTags('efPlatformsPanel'),
                     heroineType: getVal('efHeroineType') || '固定女主',
                     costumeType: getVal('efCostumeType') || '服设合理',
-                    hasMacSupport: '不支持Mac',
+                    hasMacSupport: getVal('efHasMacSupport') || '不支持Mac',
                     steamLink: getVal('efSteamLink').trim(),
                     steamAppId: getVal('efSteamAppId').trim(),
-                    isPSExclusive: false,
-                    isNSExclusive: false,
+                    isPSExclusive: getCheck('efPSExclusive'),
+                    isNSExclusive: getCheck('efNSExclusive'),
                     hasDemo: getVal('efHasDemo') === '1',
                     mainStoryDuration: getVal('efMainStoryDuration').trim(),
                     lowestPrice: getVal('efLowestPrice').trim(),
