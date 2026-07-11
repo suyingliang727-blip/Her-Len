@@ -1,6 +1,6 @@
-const CACHE_NAME = 'her-lens-v1';
-const STATIC_CACHE = 'her-lens-static-v1';
-const IMAGE_CACHE = 'her-lens-images-v1';
+const CACHE_NAME = 'her-lens-v2';
+const STATIC_CACHE = 'her-lens-static-v2';
+const IMAGE_CACHE = 'her-lens-images-v2';
 
 const STATIC_ASSETS = [
     './',
