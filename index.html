@@ -7758,6 +7758,7 @@
                     if (adminBtn) adminBtn.style.display = 'none';
                     isAdminMode = false;
                 }
+                renderGallery();
             }
 
             function toggleAdminMode() {
@@ -7968,6 +7969,7 @@
                 document.body.style.overflow = '';
                 editingGameId = null;
             }
+            window.closeEditModal = closeEditModal;
 
             function parseDateInput(s) {
                 if (!s) return '';
