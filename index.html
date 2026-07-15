@@ -5081,13 +5081,59 @@
         }
 
         /* 导出模式 */
-        .diary-entry.export-mode .text-format-toolbar,
-        .diary-entry.export-mode .review-actions {
+        .diary-entry-wrapper.export-mode .text-format-toolbar,
+        .diary-entry-wrapper.export-mode .diary-bottom-bar {
             display: none !important;
         }
 
-        .diary-entry.export-mode .review-text {
+        .diary-entry-wrapper.export-mode .review-text {
             min-height: auto;
+        }
+
+        /* 导出进度遮罩 */
+        .diary-export-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2200;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .diary-export-overlay.show { display: flex; }
+        .diary-export-overlay-box {
+            background: var(--glass-bg-light);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+            color: var(--text3);
+            box-shadow: var(--shadow-lg);
+            max-width: 320px;
+            width: 100%;
+        }
+        .diary-export-overlay-box .export-progress-text {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+        .diary-export-overlay-box .export-progress-track {
+            width: 180px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        .diary-export-overlay-box .export-progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+            transition: width 0.3s ease;
         }
 
         .modal-close {
@@ -8293,6 +8339,16 @@
                 <div class="share-float-download-wrap">
                     <button class="btn" id="shareFloatDownloadBtn">📥 下载图片</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 游戏日记导出进度遮罩 ===== -->
+    <div class="diary-export-overlay" id="diaryExportOverlay">
+        <div class="diary-export-overlay-box">
+            <div class="export-progress-text" id="diaryExportText">⏳ 正在加载依赖库...</div>
+            <div class="export-progress-track">
+                <div class="export-progress-bar" id="diaryExportBar"></div>
             </div>
         </div>
     </div>
@@ -11730,7 +11786,7 @@
                                     const isGif = /\.gif(\?|$)/i.test(s);
                                     const imgClass = isGif ? ' class="gif-screenshot"' : '';
                                     const loading = isGif ? '' : ' loading="lazy"';
-                                    return `<div class="screenshot-thumb${isGif ? ' gif-thumb' : ''}"><img${imgClass} src="${s}"${loading} /></div>`;
+                                    return `<div class="screenshot-thumb${isGif ? ' gif-thumb' : ''}"><img${imgClass} src="${escapeHTML(s)}"${loading} /></div>`;
                                 }).join('')}
                             </div>
                         </div>
@@ -11911,38 +11967,59 @@
                         const gameId = Number(this.dataset.gameId);
                         const entry = document.querySelector(`.diary-entry-wrapper`);
                         if (!entry) return;
-                        
+
+                        const overlay = document.getElementById('diaryExportOverlay');
+                        const progressText = document.getElementById('diaryExportText');
+                        const progressBar = document.getElementById('diaryExportBar');
+                        overlay.classList.add('show');
+
                         try {
+                            if (progressText) progressText.textContent = '⏳ 正在加载依赖库...';
+                            if (progressBar) progressBar.style.width = '10%';
+
                             const html2canvasLib = await window._loadHtml2Canvas();
                             if (!html2canvasLib) {
+                                overlay.classList.remove('show');
                                 showToast('导出功能加载失败，请刷新页面重试');
                                 return;
                             }
-                            
+
+                            if (progressText) progressText.textContent = '⏳ 正在处理GIF图片...';
+                            if (progressBar) progressBar.style.width = '30%';
+
                             // GIF图片处理：暂停所有动画，保留当前帧
                             const gifImages = entry.querySelectorAll('img[src*=".gif"], img[src*="gif"]');
                             gifImages.forEach(img => {
                                 if (img.src) {
-                                    // 创建一个canvas来捕获当前帧
                                     const canvas = document.createElement('canvas');
                                     canvas.width = img.naturalWidth || img.width;
                                     canvas.height = img.naturalHeight || img.height;
                                     const ctx = canvas.getContext('2d');
                                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                    // 替换为静态图片
                                     img.dataset.originalSrc = img.src;
                                     img.src = canvas.toDataURL('image/png');
                                 }
                             });
-                            
+
+                            if (progressText) progressText.textContent = '⏳ 正在渲染日记页面...';
+                            if (progressBar) progressBar.style.width = '50%';
+
                             entry.classList.add('export-mode');
-                            const canvas = await html2canvasLib(entry, { 
+
+                            if (progressText) progressText.textContent = '⏳ 正在生成图片...';
+                            if (progressBar) progressBar.style.width = '70%';
+
+                            const canvas = await html2canvasLib(entry, {
                                 backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1822' : '#f3eff7',
                                 scale: 2,
                                 useCORS: true
                             });
+
+                            if (progressText) progressText.textContent = '⏳ 正在保存图片...';
+                            if (progressBar) progressBar.style.width = '90%';
+
                             entry.classList.remove('export-mode');
-                            
+
                             // 恢复GIF图片
                             gifImages.forEach(img => {
                                 if (img.dataset.originalSrc) {
@@ -11950,12 +12027,16 @@
                                     delete img.dataset.originalSrc;
                                 }
                             });
-                            
+
                             const link = document.createElement('a');
                             link.download = `游戏日记_${gameId}.png`;
                             link.href = canvas.toDataURL('image/png');
                             link.click();
+
+                            if (progressBar) progressBar.style.width = '100%';
+                            setTimeout(() => overlay.classList.remove('show'), 500);
                         } catch(e) {
+                            overlay.classList.remove('show');
                             entry.classList.remove('export-mode');
                             showToast('导出失败，请重试');
                         }
