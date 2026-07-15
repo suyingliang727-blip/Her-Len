@@ -3724,6 +3724,7 @@
             word-break: break-word;
             line-height: 1.5;
             margin-top: 2px;
+            white-space: pre-wrap;
         }
 
         .review-login-prompt {
@@ -4330,6 +4331,7 @@
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            white-space: pre-wrap;
         }
 
         .my-review-item .review-time {
@@ -4392,6 +4394,457 @@
             .my-review-item .review-text {
                 font-size: 0.78rem;
             }
+        }
+
+        /* ================================================================
+   游戏日记样式
+   ================================================================ */
+        .diary-modal {
+            max-width: 900px;
+            width: 95%;
+        }
+
+        /* 封面视图 */
+        .diary-cover {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, rgba(155, 138, 189, 0.08) 0%, rgba(126, 111, 160, 0.05) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .diary-cover-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .diary-cover-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+
+        .diary-cover-user {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .diary-cover-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--tag-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--accent);
+            overflow: hidden;
+        }
+
+        .diary-cover-username {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .diary-cover-stats {
+            font-size: 0.9rem;
+            color: var(--text3);
+            margin-bottom: 8px;
+        }
+
+        .diary-cover-slogan {
+            font-size: 0.85rem;
+            color: var(--text2);
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .diary-cover-btn {
+            padding: 10px 30px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diary-cover-btn:hover {
+            background: var(--accent2);
+            transform: translateY(-2px);
+        }
+
+        /* 内容视图工具栏 */
+        .diary-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .diary-back-btn {
+            padding: 6px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diary-back-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .diary-sort-select {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* 日记条目 - 左右分栏 */
+        .diary-entry {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .diary-entry-left,
+        .diary-entry-right {
+            flex: 1;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .diary-entry-left {
+            border-right: none;
+        }
+
+        .diary-entry-right {
+            border-left: 1px dashed var(--border);
+        }
+
+        .diary-spine {
+            width: 12px;
+            background: linear-gradient(90deg, var(--border) 0%, rgba(213, 207, 224, 0.50) 50%, var(--border) 100%);
+            position: relative;
+        }
+
+        .diary-page-brand {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 4px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .diary-page-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* 左页 - 游戏信息 */
+        .diary-game-cover {
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+        }
+
+        .diary-game-cover img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .diary-game-cover .cover-placeholder {
+            width: 100%;
+            height: 120px;
+            background: var(--tag-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .diary-game-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .diary-game-desc {
+            font-size: 0.8rem;
+            color: var(--text2);
+            line-height: 1.5;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: var(--surface2);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .diary-game-info {
+            margin-bottom: 10px;
+        }
+
+        .diary-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.75rem;
+            border-bottom: 1px dotted var(--border);
+        }
+
+        .diary-info-label {
+            color: var(--text3);
+        }
+
+        .diary-info-value {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* 截图 */
+        .diary-screenshots {
+            margin-top: 10px;
+        }
+
+        .diary-screenshots-title {
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .diary-screenshots-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+
+        .diary-screenshot-thumb {
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .diary-screenshot-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 右页 - 用户评价 */
+        .diary-rating-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 6px;
+            background: var(--surface2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .diary-rating-label {
+            font-size: 0.75rem;
+            color: var(--text3);
+        }
+
+        .diary-rating-stars {
+            font-size: 0.9rem;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .diary-rating-score {
+            font-size: 0.75rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* 格式化工具栏 */
+        .diary-format-toolbar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            padding: 4px;
+            background: var(--surface2);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .diary-format-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .diary-format-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .diary-font-size-select {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.7rem;
+            flex: 1;
+            min-width: 60px;
+            cursor: pointer;
+        }
+
+        /* 评论文本 */
+        .diary-review-text {
+            min-height: 150px;
+            padding: 10px;
+            background: var(--surface2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text);
+            white-space: pre-wrap;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .diary-review-text:focus {
+            border-color: var(--accent);
+        }
+
+        /* 元信息 */
+        .diary-review-meta {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .diary-meta-item {
+            font-size: 0.7rem;
+            color: var(--text3);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .diary-date-input {
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.7rem;
+        }
+
+        /* 操作按钮 */
+        .diary-entry-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .diary-action-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diary-action-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .diary-action-btn.primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .diary-action-btn.primary:hover {
+            background: var(--accent2);
+        }
+
+        /* 空状态 */
+        .diary-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text3);
+        }
+
+        .diary-empty .empty-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* 导出模式 */
+        .diary-entry.export-mode .diary-format-toolbar,
+        .diary-entry.export-mode .diary-entry-actions {
+            display: none !important;
+        }
+
+        .diary-entry.export-mode .diary-review-text {
+            min-height: auto;
         }
 
         /* 旧详情样式兼容 */
@@ -4754,6 +5207,7 @@
 
             .comment-item .comment-text {
                 font-size: 0.78rem;
+                white-space: pre-wrap;
             }
 
             .comment-item .comment-time {
@@ -4811,6 +5265,48 @@
             .star-rating[style*="font-size:1.4rem;"] {
                 font-size: 1.2rem !important;
             }
+
+            /* 游戏日记移动端适配 */
+            .diary-modal {
+                max-width: 100%;
+                width: 100%;
+                margin: 10px;
+                padding: 0;
+            }
+
+            .diary-entry {
+                flex-direction: column;
+                border-radius: 12px;
+            }
+
+            .diary-entry-left,
+            .diary-entry-right {
+                padding: 15px;
+                min-height: auto;
+            }
+
+            .diary-entry-left {
+                border-right: none;
+                border-bottom: none;
+            }
+
+            .diary-entry-right {
+                border-left: none;
+                border-top: 1px dashed var(--border);
+            }
+
+            .diary-spine {
+                width: 100%;
+                height: 8px;
+            }
+
+            .diary-game-cover {
+                max-width: 150px;
+            }
+
+            .diary-review-text {
+                min-height: 120px;
+            }
         }
 
         @media (max-width:480px) {
@@ -4862,6 +5358,7 @@
 
             .comment-item .comment-text {
                 font-size: 0.72rem;
+                white-space: pre-wrap;
             }
 
             .comment-item .comment-time {
@@ -4914,6 +5411,52 @@
             .btn-sm {
                 font-size: 0.6rem;
                 padding: 2px 6px;
+            }
+
+            /* 游戏日记小屏幕适配 */
+            .diary-cover {
+                padding: 20px 15px;
+            }
+
+            .diary-cover-icon {
+                font-size: 2rem;
+            }
+
+            .diary-cover-title {
+                font-size: 1.2rem;
+            }
+
+            .diary-entry-left,
+            .diary-entry-right {
+                padding: 12px;
+            }
+
+            .diary-game-name {
+                font-size: 0.95rem;
+            }
+
+            .diary-rating-row {
+                gap: 8px;
+            }
+
+            .diary-format-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+
+            .diary-review-text {
+                min-height: 100px;
+                font-size: 0.8rem;
+            }
+
+            .diary-entry-actions {
+                flex-wrap: wrap;
+            }
+
+            .diary-action-btn {
+                font-size: 0.65rem;
+                padding: 4px 8px;
             }
         }
 
@@ -6950,6 +7493,7 @@
             color: var(--text2);
             line-height: 1.5;
             word-break: break-word;
+            white-space: pre-wrap;
         }
 
         .mod-comment-delete {
@@ -7452,14 +7996,39 @@
     </div>
 
     <!-- ================================================================
-   ★ 我的评论弹窗
-   ================================================================ -->
-    <div class="modal-overlay" id="myReviewsModalOverlay">
-        <div class="modal" id="myReviewsModal">
-            <button class="modal-close" id="myReviewsModalClose">✕</button>
-            <div class="my-reviews-header">💬 我的评论</div>
-            <div class="my-reviews-sub" id="myReviewsSub">记录你写下的每一条游戏评价</div>
-            <div id="myReviewsList"></div>
+    ★ 游戏日记弹窗
+    ================================================================ -->
+    <div class="modal-overlay" id="diaryModalOverlay">
+        <div class="modal diary-modal" id="diaryModal">
+            <button class="modal-close" id="diaryModalClose">✕</button>
+            
+            <!-- 封面视图 -->
+            <div id="diaryCoverView">
+                <div class="diary-cover">
+                    <div class="diary-cover-icon">📖</div>
+                    <div class="diary-cover-title">游戏日记</div>
+                    <div class="diary-cover-user">
+                        <div class="diary-cover-avatar" id="diaryCoverAvatar">👤</div>
+                        <div class="diary-cover-username" id="diaryCoverUsername">用户</div>
+                    </div>
+                    <div class="diary-cover-stats" id="diaryCoverStats">共玩过 0 款游戏</div>
+                    <div class="diary-cover-slogan">记录我的游戏成长史</div>
+                    <button class="diary-cover-btn" id="diaryOpenBtn">翻开日记</button>
+                </div>
+            </div>
+            
+            <!-- 内容视图 -->
+            <div id="diaryContentView" style="display:none;">
+                <div class="diary-toolbar">
+                    <button class="diary-back-btn" id="diaryBackBtn">← 返回封面</button>
+                    <select class="diary-sort-select" id="diarySortSelect">
+                        <option value="play_date">按游玩日期</option>
+                        <option value="rating">按评分</option>
+                        <option value="created_at">按评论时间</option>
+                    </select>
+                </div>
+                <div id="diaryContent"></div>
+            </div>
         </div>
     </div>
 
@@ -8007,6 +8576,7 @@
                     user_id: currentUser.id,
                     rating: rating,
                     comment: comment || null,
+                    play_date: new Date().toISOString().split('T')[0],
                     display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                     avatar_url: currentUser.user_metadata?.avatar_url || null
                 };
@@ -8024,6 +8594,7 @@
                         game_id: Number(gameId),
                         rating: rating,
                         comment: comment || null,
+                        play_date: new Date().toISOString().split('T')[0],
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
                     });
@@ -10574,102 +11145,276 @@
             }
 
             // ================================================================
-            // ★ 我的评论
+            // ★ 游戏日记
             // ================================================================
 
-            function openMyReviewsModal() {
+            function openDiaryModal() {
                 if (!currentUser) {
-                    showToast('请先登录查看你的评论', 1500);
+                    showToast('请先登录查看你的游戏日记', 1500);
                     return;
                 }
-                const overlay = document.getElementById('myReviewsModalOverlay');
-                renderMyReviews();
+                const overlay = document.getElementById('diaryModalOverlay');
+                showDiaryCover();
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
             }
 
-            function closeMyReviewsModal() {
-                document.getElementById('myReviewsModalOverlay').classList.remove('show');
+            function closeDiaryModal() {
+                document.getElementById('diaryModalOverlay').classList.remove('show');
                 document.body.style.overflow = '';
             }
 
-            function renderMyReviews() {
-                const container = document.getElementById('myReviewsList');
-                const sub = document.getElementById('myReviewsSub');
+            function showDiaryCover() {
+                document.getElementById('diaryCoverView').style.display = '';
+                document.getElementById('diaryContentView').style.display = 'none';
+                
+                const reviews = userData.reviews || [];
+                const avatar = document.getElementById('diaryCoverAvatar');
+                const username = document.getElementById('diaryCoverUsername');
+                const stats = document.getElementById('diaryCoverStats');
+                
+                if (currentUser) {
+                    avatar.innerHTML = currentUser.user_metadata?.avatar_url ? 
+                        `<img src="${escapeHTML(currentUser.user_metadata.avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : '👤';
+                    username.textContent = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || '用户';
+                }
+                stats.textContent = `共玩过 ${reviews.length} 款游戏`;
+            }
+
+            function showDiaryContent() {
+                document.getElementById('diaryCoverView').style.display = 'none';
+                document.getElementById('diaryContentView').style.display = '';
+                renderDiaryContent();
+            }
+
+            function renderDiaryContent() {
+                const container = document.getElementById('diaryContent');
                 if (!container) return;
 
                 const reviews = userData.reviews || [];
                 if (reviews.length === 0) {
                     container.innerHTML = `
-                            <div class="my-reviews-empty">
-                                <span class="empty-icon">📝</span>
-                                <p>你还没有发表过任何评论</p>
-                                <p style="font-size:0.85rem;color:var(--text3);margin-top:4px;">去游戏详情页写下你的第一条评价吧！</p>
-                            </div>
-                        `;
-                    sub.textContent = '你还没有发表过评论';
+                        <div class="diary-empty">
+                            <span class="empty-icon">📝</span>
+                            <p>你还没有记录任何游戏</p>
+                            <p style="font-size:0.85rem;color:var(--text3);margin-top:4px;">去游戏详情页写下你的第一条评价吧！</p>
+                        </div>
+                    `;
                     return;
                 }
 
-                sub.textContent = `共 ${reviews.length} 条评论`;
-
-                let html = '';
+                const sortBy = document.getElementById('diarySortSelect')?.value || 'play_date';
                 const sorted = [...reviews].sort((a, b) => {
-                    const da = a.created_at || a.updated_at || '';
-                    const db = b.created_at || b.updated_at || '';
-                    return db.localeCompare(da);
+                    if (sortBy === 'play_date') {
+                        const da = a.play_date || a.created_at || '';
+                        const db = b.play_date || b.created_at || '';
+                        return db.localeCompare(da);
+                    } else if (sortBy === 'rating') {
+                        return (b.rating || 0) - (a.rating || 0);
+                    } else {
+                        const da = a.created_at || '';
+                        const db = b.created_at || '';
+                        return db.localeCompare(da);
+                    }
                 });
 
+                let html = '';
                 sorted.forEach(r => {
                     const game = games.find(g => g.id === Number(r.game_id));
-                    const gameTitle = game ? game.title : `游戏 #${r.game_id}`;
-                    const gameCover = game?.cover || null;
+                    if (!game) return;
+
+                    const gameTitle = game.title || `游戏 #${r.game_id}`;
+                    const gameCover = game.cover || null;
+                    const gameDesc = game.description || '';
+                    const gameGenre = Array.isArray(game.genre) ? game.genre.join('、') : (game.genre || '');
+                    const gamePlaystyle = Array.isArray(game.gameplay) ? game.gameplay.join('、') : (game.gameplay || '');
+                    const gamePerspective = game.perspective || '';
+                    const gameChinese = game.hasChinese || '';
+                    const gameRelease = game.releaseDate || '';
+                    const gamePlatforms = Array.isArray(game.platforms) ? game.platforms.join('、') : (game.platforms || '');
+                    const gameDuration = game.mainStoryDuration || '';
+                    const gamePrice = game.lowestPrice || '';
+                    const gameScreenshots = Array.isArray(game.screenshots) ? game.screenshots.slice(0, 4) : [];
 
                     const starsHtml = r.rating ?
                         `${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}` :
                         '未评分';
                     const timeStr = r.created_at ?
                         new Date(r.created_at).toLocaleDateString('zh-CN', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) :
-                        '';
+                            year: 'numeric', month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        }) : '';
+                    const playDate = r.play_date || '';
 
                     const coverHtml = gameCover ?
                         `<img src="${escapeHTML(gameCover)}" alt="${escapeHTML(gameTitle)}" loading="lazy" />` :
                         `<div class="cover-placeholder">🎮</div>`;
 
-                    html += `
-                            <div class="my-review-item" data-game-id="${r.game_id}">
-                                <div class="review-game-cover">${coverHtml}</div>
-                                <div class="review-body">
-                                    <div class="review-game-name">${escapeHTML(gameTitle)}</div>
-                                    <div class="review-stars">
-                                        ${starsHtml}
-                                        ${r.rating ? `<span class="score">${r.rating}/10</span>` : ''}
-                                    </div>
-                                    ${r.comment ? `<div class="review-text">${escapeHTML(r.comment)}</div>` : ''}
+                    let screenshotsHtml = '';
+                    if (gameScreenshots.length > 0) {
+                        screenshotsHtml = `
+                            <div class="diary-screenshots">
+                                <div class="diary-screenshots-title">📸 游戏截图</div>
+                                <div class="diary-screenshots-scroll">
+                                    ${gameScreenshots.map(s => `<div class="diary-screenshot-thumb"><img src="${escapeHTML(s)}" loading="lazy" /></div>`).join('')}
                                 </div>
-                                <div class="review-time">${timeStr}</div>
                             </div>
                         `;
+                    }
+
+                    let infoItems = '';
+                    if (gameGenre) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🎭 题材</span><span class="diary-info-value">${escapeHTML(gameGenre)}</span></div>`;
+                    if (gamePlaystyle) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🎮 玩法</span><span class="diary-info-value">${escapeHTML(gamePlaystyle)}</span></div>`;
+                    if (gamePerspective) infoItems += `<div class="diary-info-item"><span class="diary-info-label">👁 视角</span><span class="diary-info-value">${escapeHTML(gamePerspective)}</span></div>`;
+                    if (gameChinese) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🌐 中文</span><span class="diary-info-value">${escapeHTML(gameChinese)}</span></div>`;
+                    if (gameRelease) infoItems += `<div class="diary-info-item"><span class="diary-info-label">📅 发行日期</span><span class="diary-info-value">${escapeHTML(gameRelease)}</span></div>`;
+                    if (gamePlatforms) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🖥 平台</span><span class="diary-info-value">${escapeHTML(gamePlatforms)}</span></div>`;
+                    if (gameDuration) infoItems += `<div class="diary-info-item"><span class="diary-info-label">⏰ 主线时长</span><span class="diary-info-value">${escapeHTML(gameDuration)}</span></div>`;
+                    if (gamePrice) infoItems += `<div class="diary-info-item"><span class="diary-info-label">💰 最低价格</span><span class="diary-info-value">${escapeHTML(gamePrice)}</span></div>`;
+
+                    html += `
+                        <div class="diary-entry" data-game-id="${r.game_id}">
+                            <div class="diary-entry-left">
+                                <div class="diary-page-brand">Her Lens</div>
+                                <div class="diary-page-title">📖 游戏信息</div>
+                                <div class="diary-game-cover">${coverHtml}</div>
+                                <div class="diary-game-name">${escapeHTML(gameTitle)}</div>
+                                ${gameDesc ? `<div class="diary-game-desc">${escapeHTML(gameDesc)}</div>` : ''}
+                                ${infoItems ? `<div class="diary-game-info">${infoItems}</div>` : ''}
+                                ${screenshotsHtml}
+                            </div>
+                            <div class="diary-spine"></div>
+                            <div class="diary-entry-right">
+                                <div class="diary-page-brand">Her Lens</div>
+                                <div class="diary-page-title">✍️ 我的评价</div>
+                                <div class="diary-rating-row">
+                                    <span class="diary-rating-label">⭐ 我的评分</span>
+                                    <span class="diary-rating-stars">${starsHtml}</span>
+                                    <span class="diary-rating-score">${r.rating ? r.rating + '/10' : '未评分'}</span>
+                                </div>
+                                <div class="diary-format-toolbar">
+                                    <button class="diary-format-btn" data-cmd="bold" title="加粗"><b>B</b></button>
+                                    <button class="diary-format-btn" data-cmd="underline" title="下划线"><u>U</u></button>
+                                    <button class="diary-format-btn" data-cmd="strikeThrough" title="删除线"><s>S</s></button>
+                                    <select class="diary-font-size-select" title="字号">
+                                        <option value="1">小号</option>
+                                        <option value="3" selected>正常</option>
+                                        <option value="5">大号</option>
+                                    </select>
+                                </div>
+                                <div class="diary-review-text" contenteditable="true" data-game-id="${r.game_id}">${escapeHTML(r.comment || '点击此处写下你的评论...')}</div>
+                                <div class="diary-review-meta">
+                                    <span class="diary-meta-item">📅 游玩日期：<input type="date" class="diary-date-input" value="${playDate}" data-game-id="${r.game_id}" /></span>
+                                    <span class="diary-meta-item">🕐 评论时间：${timeStr}</span>
+                                </div>
+                                <div class="diary-entry-actions">
+                                    <button class="diary-action-btn diary-export-btn" data-game-id="${r.game_id}">📷 导出图片</button>
+                                    <button class="diary-action-btn diary-delete-btn" data-game-id="${r.game_id}">🗑️ 删除</button>
+                                    <button class="diary-action-btn diary-save-btn primary" data-game-id="${r.game_id}">💾 保存</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
 
                 container.innerHTML = html;
+                bindDiaryEvents();
+            }
 
-                container.querySelectorAll('.my-review-item').forEach(item => {
-                    item.addEventListener('click', function () {
-                        const id = Number(this.dataset.gameId);
-                        if (!isNaN(id)) {
-                            const game = games.find(g => g.id === id);
-                            if (game) {
-                                closeMyReviewsModal();
-                                window._detailFrom = 'gallery';
-                                setTimeout(() => showDetailModal(game, { from: 'gallery' }), 120);
+            function bindDiaryEvents() {
+                document.querySelectorAll('.diary-format-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.execCommand(this.dataset.cmd, false, null);
+                    });
+                });
+
+                document.querySelectorAll('.diary-font-size-select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        document.execCommand('fontSize', false, this.value);
+                    });
+                });
+
+                document.querySelectorAll('.diary-date-input').forEach(input => {
+                    input.addEventListener('change', async function() {
+                        const gameId = Number(this.dataset.gameId);
+                        const review = userData.reviews.find(r => r.game_id === gameId);
+                        if (review) {
+                            review.play_date = this.value;
+                            saveUserData();
+                            if (SUPABASE_ENABLED && supabaseClient && currentUser) {
+                                const { error } = await supabaseClient.from('user_reviews')
+                                    .update({ play_date: this.value })
+                                    .eq('user_id', currentUser.id)
+                                    .eq('game_id', gameId);
+                                if (error) {
+                                    showToast('日期同步失败', 1500);
+                                }
                             }
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.diary-save-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const gameId = Number(this.dataset.gameId);
+                        const reviewText = document.querySelector(`.diary-review-text[data-game-id="${gameId}"]`)?.innerText || '';
+                        const cleanText = reviewText === '点击此处写下你的评论...' ? null : reviewText.trim() || null;
+                        const review = userData.reviews.find(r => r.game_id === gameId);
+                        if (review) {
+                            review.comment = cleanText;
+                            review.updated_at = new Date().toISOString();
+                            saveUserData();
+                            if (SUPABASE_ENABLED && supabaseClient && currentUser) {
+                                const { error } = await supabaseClient.from('user_reviews')
+                                    .update({ comment: cleanText, updated_at: review.updated_at })
+                                    .eq('user_id', currentUser.id)
+                                    .eq('game_id', gameId);
+                                if (error) {
+                                    showToast('云端同步失败', 1500);
+                                }
+                            }
+                            showToast('保存成功！');
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.diary-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const gameId = Number(this.dataset.gameId);
+                        if (!confirm('确定要删除这条游戏日记吗？')) return;
+                        await deleteReview(gameId);
+                        renderDiaryContent();
+                        const reviews = userData.reviews || [];
+                        document.getElementById('diaryCoverStats').textContent = `共玩过 ${reviews.length} 款游戏`;
+                    });
+                });
+
+                document.querySelectorAll('.diary-export-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const gameId = Number(this.dataset.gameId);
+                        const entry = document.querySelector(`.diary-entry[data-game-id="${gameId}"]`);
+                        if (!entry) return;
+                        
+                        try {
+                            const html2canvasLib = await window._loadHtml2Canvas();
+                            if (!html2canvasLib) {
+                                showToast('导出功能加载失败，请刷新页面重试');
+                                return;
+                            }
+                            entry.classList.add('export-mode');
+                            const canvas = await html2canvasLib(entry, { 
+                                backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1822' : '#f3eff7',
+                                scale: 2,
+                                useCORS: true
+                            });
+                            entry.classList.remove('export-mode');
+                            const link = document.createElement('a');
+                            link.download = `游戏日记_${gameId}.png`;
+                            link.href = canvas.toDataURL('image/png');
+                            link.click();
+                        } catch(e) {
+                            entry.classList.remove('export-mode');
+                            showToast('导出失败，请重试');
                         }
                     });
                 });
@@ -12873,7 +13618,7 @@
                             <span class="dropdown-arrow" id="dropdownArrow">▼</span>
                             <div id="userDropdownMenu">
                                 <button class="dropdown-item" id="profileEditBtn">✏️ 编辑资料</button>
-                                <button class="dropdown-item" id="myReviewsBtn">💬 我的评论</button>
+                                <button class="dropdown-item" id="diaryBtn">📖 游戏日记</button>
                                 <hr class="divider" />
                                 <button class="dropdown-item danger" id="logoutBtn">🚪 登出</button>
                             </div>
@@ -12910,11 +13655,11 @@
                     openProfileModal();
                 });
 
-                document.getElementById('myReviewsBtn').addEventListener('click', function (e) {
+                document.getElementById('diaryBtn').addEventListener('click', function (e) {
                     e.stopPropagation();
                     document.getElementById('userDropdownMenu').classList.remove('show');
                     if (arrow) arrow.classList.remove('open');
-                    openMyReviewsModal();
+                    openDiaryModal();
                 });
 
                 document.getElementById('logoutBtn').addEventListener('click', function (e) {
@@ -12980,8 +13725,8 @@
                             closeImageViewer();
                             return;
                         }
-                        if (document.getElementById('myReviewsModalOverlay').classList.contains('show')) {
-                            closeMyReviewsModal();
+                        if (document.getElementById('diaryModalOverlay').classList.contains('show')) {
+                            closeDiaryModal();
                             return;
                         }
                         if (document.getElementById('guestbookModalOverlay').classList.contains('show')) {
@@ -13100,10 +13845,13 @@
                     if (e.target === this) closeEditModal();
                 });
 
-                document.getElementById('myReviewsModalClose').addEventListener('click', closeMyReviewsModal);
-                document.getElementById('myReviewsModalOverlay').addEventListener('click', function (e) {
-                    if (e.target === this) closeMyReviewsModal();
+                document.getElementById('diaryModalClose').addEventListener('click', closeDiaryModal);
+                document.getElementById('diaryModalOverlay').addEventListener('click', function (e) {
+                    if (e.target === this) closeDiaryModal();
                 });
+                document.getElementById('diaryOpenBtn').addEventListener('click', showDiaryContent);
+                document.getElementById('diaryBackBtn').addEventListener('click', showDiaryCover);
+                document.getElementById('diarySortSelect').addEventListener('change', renderDiaryContent);
 
                 initGuestbookEvents();
 
@@ -13158,7 +13906,7 @@
                     const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
                         supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
                         supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_reviews').select('game_id, rating, comment, created_at, updated_at').eq(
+                        supabaseClient.from('user_reviews').select('game_id, rating, comment, play_date, created_at, updated_at').eq(
                             'user_id', userId)
                     ]);
 
@@ -13172,6 +13920,7 @@
                         game_id: Math.round(Number(item.game_id)),
                         rating: item.rating,
                         comment: item.comment,
+                        play_date: item.play_date,
                         created_at: item.created_at,
                         updated_at: item.updated_at
                     }));
@@ -13214,6 +13963,7 @@
                                 game_id: Math.round(Number(gameId)),
                                 rating: local.rating || null,
                                 comment: local.comment || null,
+                                play_date: local.play_date || null,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                                 avatar_url: currentUser.user_metadata?.avatar_url || null
                             });
@@ -13223,6 +13973,7 @@
                                 game_id: Math.round(Number(gameId)),
                                 rating: local.rating || null,
                                 comment: local.comment || null,
+                                play_date: local.play_date || null,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                                 avatar_url: currentUser.user_metadata?.avatar_url || null
                             });

@@ -1,7 +1,7 @@
-const SITE_VERSION = 'v8';
-const CACHE_NAME = 'her-lens-v8';
-const STATIC_CACHE = 'her-lens-static-v8';
-const IMAGE_CACHE = 'her-lens-images-v8';
+const SITE_VERSION = 'v10';
+const CACHE_NAME = 'her-lens-v10';
+const STATIC_CACHE = 'her-lens-static-v10';
+const IMAGE_CACHE = 'her-lens-images-v10';
 
 const STATIC_ASSETS = [
     './',
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
 
 const CDN_ASSETS = [
     'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
     'https://challenges.cloudflare.com/turnstile/v0/api.js'
 ];
 
