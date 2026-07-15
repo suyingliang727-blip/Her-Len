@@ -548,6 +548,16 @@
             box-shadow: 0 6px 32px rgba(184, 162, 214, 0.40);
         }
 
+        [data-theme="dark"] #diaryModalClose {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text);
+        }
+
+        [data-theme="dark"] #diaryModalClose:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
         @media (max-width:768px) {
             #backToTop {
                 bottom: 20px;
@@ -4401,53 +4411,61 @@
    ================================================================ */
         .diary-modal {
             max-width: 900px;
-            width: 95%;
+            width: 90%;
+            min-height: auto;
+            max-height: 85vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
 
         /* 封面视图 */
         .diary-cover {
             text-align: center;
-            padding: 30px 20px;
+            padding: 50px 40px;
             background: linear-gradient(135deg, rgba(155, 138, 189, 0.08) 0%, rgba(126, 111, 160, 0.05) 100%);
             border-radius: 16px;
             border: 1px solid var(--border);
+            max-width: 500px;
+            margin: auto;
+            width: 100%;
         }
 
         .diary-cover-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
+            font-size: 4rem;
+            margin-bottom: 12px;
         }
 
         .diary-cover-title {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: var(--text);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .diary-cover-user {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .diary-cover-avatar {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: var(--tag-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             border: 2px solid var(--accent);
             overflow: hidden;
         }
 
         .diary-cover-username {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: var(--text);
         }
@@ -4459,19 +4477,19 @@
         }
 
         .diary-cover-slogan {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text2);
             font-style: italic;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .diary-cover-btn {
-            padding: 10px 30px;
+            padding: 12px 40px;
             background: var(--accent);
             color: #fff;
             border: none;
-            border-radius: 20px;
-            font-size: 1rem;
+            border-radius: 25px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -4482,14 +4500,31 @@
             transform: translateY(-2px);
         }
 
-        /* 内容视图工具栏 */
+        /* 内容视图 */
+        #diaryContentView {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #diaryContent {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
         .diary-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .diary-back-btn {
@@ -4519,7 +4554,59 @@
             cursor: pointer;
         }
 
-        /* 日记条目 - 左右分栏 */
+        /* 翻页导航 */
+        .diary-page-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .diary-page-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .diary-page-nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .diary-page-nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .diary-page-info {
+            font-size: 0.85rem;
+            color: var(--text3);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* 日记条目 - 单页展示 */
+        .diary-entry-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 10px 0;
+        }
+
         .diary-entry {
             display: flex;
             gap: 0;
@@ -4527,15 +4614,17 @@
             border-radius: 16px;
             border: 1px solid var(--border);
             overflow: hidden;
-            margin-bottom: 20px;
             box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 1200px;
+            min-height: 600px;
         }
 
         .diary-entry-left,
         .diary-entry-right {
             flex: 1;
-            padding: 20px;
-            min-height: 400px;
+            padding: 30px;
+            min-height: 600px;
         }
 
         .diary-entry-left {
@@ -4547,36 +4636,36 @@
         }
 
         .diary-spine {
-            width: 12px;
+            width: 20px;
             background: linear-gradient(90deg, var(--border) 0%, rgba(213, 207, 224, 0.50) 50%, var(--border) 100%);
             position: relative;
         }
 
         .diary-page-brand {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--accent);
             text-align: center;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             font-weight: 500;
             letter-spacing: 1px;
         }
 
         .diary-page-title {
-            font-size: 1rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: var(--text);
             text-align: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
         }
 
         /* 左页 - 游戏信息 */
         .diary-game-cover {
             width: 100%;
-            max-width: 200px;
-            margin: 0 auto 12px;
-            border-radius: 10px;
+            max-width: 280px;
+            margin: 0 auto 15px;
+            border-radius: 12px;
             overflow: hidden;
             border: 2px solid var(--border);
         }
@@ -4589,42 +4678,42 @@
 
         .diary-game-cover .cover-placeholder {
             width: 100%;
-            height: 120px;
+            height: 160px;
             background: var(--tag-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 3rem;
         }
 
         .diary-game-name {
-            font-size: 1.1rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--text);
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .diary-game-desc {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--text2);
-            line-height: 1.5;
-            margin-bottom: 10px;
-            padding: 8px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            padding: 10px;
             background: var(--surface2);
-            border-radius: 6px;
+            border-radius: 8px;
             border-left: 3px solid var(--accent);
         }
 
         .diary-game-info {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .diary-info-item {
             display: flex;
             justify-content: space-between;
-            padding: 4px 0;
-            font-size: 0.75rem;
+            padding: 5px 0;
+            font-size: 0.8rem;
             border-bottom: 1px dotted var(--border);
         }
 
@@ -4639,27 +4728,27 @@
 
         /* 截图 */
         .diary-screenshots {
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .diary-screenshots-title {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--accent);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 500;
         }
 
         .diary-screenshots-scroll {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             overflow-x: auto;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
         }
 
         .diary-screenshot-thumb {
-            width: 60px;
-            height: 40px;
-            border-radius: 4px;
+            width: 80px;
+            height: 50px;
+            border-radius: 6px;
             overflow: hidden;
             flex-shrink: 0;
             border: 1px solid var(--border);
@@ -4677,26 +4766,26 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            margin-bottom: 12px;
-            padding: 6px;
+            margin-bottom: 15px;
+            padding: 8px;
             background: var(--surface2);
             border-radius: 8px;
             border: 1px solid var(--border);
         }
 
         .diary-rating-label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text3);
         }
 
         .diary-rating-stars {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: var(--gold);
             letter-spacing: 1px;
         }
 
         .diary-rating-score {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text);
             font-weight: 600;
         }
@@ -4704,17 +4793,17 @@
         /* 格式化工具栏 */
         .diary-format-toolbar {
             display: flex;
-            gap: 4px;
-            margin-bottom: 8px;
-            padding: 4px;
+            gap: 5px;
+            margin-bottom: 10px;
+            padding: 5px;
             background: var(--surface2);
             border-radius: 6px;
             border: 1px solid var(--border);
         }
 
         .diary-format-btn {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border: 1px solid var(--border);
             background: var(--surface);
             border-radius: 5px;
@@ -4722,7 +4811,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text);
             transition: all 0.2s;
         }
@@ -4739,7 +4828,7 @@
             border-radius: 5px;
             background: var(--surface);
             color: var(--text);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             flex: 1;
             min-width: 60px;
             cursor: pointer;
@@ -4747,13 +4836,14 @@
 
         /* 评论文本 */
         .diary-review-text {
-            min-height: 150px;
-            padding: 10px;
+            flex: 1;
+            min-height: 180px;
+            padding: 12px;
             background: var(--surface2);
             border-radius: 8px;
             border: 1px solid var(--border);
-            font-size: 0.85rem;
-            line-height: 1.6;
+            font-size: 0.9rem;
+            line-height: 1.7;
             color: var(--text);
             white-space: pre-wrap;
             outline: none;
@@ -4766,14 +4856,14 @@
 
         /* 元信息 */
         .diary-review-meta {
-            margin-top: 10px;
+            margin-top: 12px;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
         }
 
         .diary-meta-item {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--text3);
             display: flex;
             align-items: center;
@@ -4781,29 +4871,29 @@
         }
 
         .diary-date-input {
-            padding: 2px 6px;
+            padding: 3px 8px;
             border: 1px solid var(--border);
             border-radius: 4px;
             background: var(--surface);
             color: var(--text);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
         }
 
         /* 操作按钮 */
         .diary-entry-actions {
-            margin-top: 12px;
+            margin-top: 15px;
             display: flex;
-            gap: 6px;
+            gap: 8px;
             justify-content: flex-end;
         }
 
         .diary-action-btn {
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
             border: 1px solid var(--border);
             background: var(--surface);
             color: var(--text);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -4827,14 +4917,14 @@
         /* 空状态 */
         .diary-empty {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px;
             color: var(--text3);
         }
 
         .diary-empty .empty-icon {
-            font-size: 3rem;
+            font-size: 4rem;
             display: block;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
 
         /* 导出模式 */
@@ -4876,6 +4966,30 @@
 
         .modal-close {
             display: none !important;
+        }
+
+        #diaryModalClose {
+            display: flex !important;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.08);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        #diaryModalClose:hover {
+            background: var(--accent);
+            color: #fff;
         }
 
         /* ================================================================
@@ -5277,6 +5391,7 @@
             .diary-entry {
                 flex-direction: column;
                 border-radius: 12px;
+                min-height: auto;
             }
 
             .diary-entry-left,
@@ -5306,6 +5421,58 @@
 
             .diary-review-text {
                 min-height: 120px;
+            }
+
+            .diary-toolbar {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px 14px;
+            }
+
+            .diary-page-nav {
+                gap: 12px;
+            }
+
+            .diary-page-info {
+                min-width: 60px;
+            }
+
+            .diary-cover-user {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .diary-cover-avatar {
+                width: 50px;
+                height: 50px;
+            }
+
+            .diary-cover-stats {
+                font-size: 0.78rem;
+                word-break: break-all;
+                line-height: 1.5;
+            }
+
+            .diary-cover-slogan {
+                font-size: 0.8rem;
+            }
+
+            .diary-cover-btn {
+                padding: 10px 28px;
+                font-size: 0.9rem;
+            }
+
+            .diary-game-desc {
+                font-size: 0.8rem;
+            }
+
+            .diary-info-item {
+                font-size: 0.75rem;
+            }
+
+            .diary-review-meta {
+                flex-wrap: wrap;
+                gap: 6px;
             }
         }
 
@@ -11169,6 +11336,9 @@
                 document.getElementById('diaryContentView').style.display = 'none';
                 
                 const reviews = userData.reviews || [];
+                const played = userData.played || [];
+                const unlockedAchievements = (userData.achievements || []).length;
+                const totalAchievements = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.length : 0;
                 const avatar = document.getElementById('diaryCoverAvatar');
                 const username = document.getElementById('diaryCoverUsername');
                 const stats = document.getElementById('diaryCoverStats');
@@ -11178,7 +11348,7 @@
                         `<img src="${escapeHTML(currentUser.user_metadata.avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : '👤';
                     username.textContent = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || '用户';
                 }
-                stats.textContent = `共玩过 ${reviews.length} 款游戏`;
+                stats.innerHTML = `已记录 ${reviews.length} 款游戏 · 标记玩过 ${played.length} 款 · 成就 ${unlockedAchievements}/${totalAchievements}`;
             }
 
             function showDiaryContent() {
@@ -11186,6 +11356,10 @@
                 document.getElementById('diaryContentView').style.display = '';
                 renderDiaryContent();
             }
+
+            // 当前日记页码
+            let diaryCurrentPage = 0;
+            let diarySortedReviews = [];
 
             function renderDiaryContent() {
                 const container = document.getElementById('diaryContent');
@@ -11204,7 +11378,7 @@
                 }
 
                 const sortBy = document.getElementById('diarySortSelect')?.value || 'play_date';
-                const sorted = [...reviews].sort((a, b) => {
+                diarySortedReviews = [...reviews].sort((a, b) => {
                     if (sortBy === 'play_date') {
                         const da = a.play_date || a.created_at || '';
                         const db = b.play_date || b.created_at || '';
@@ -11218,61 +11392,77 @@
                     }
                 });
 
-                let html = '';
-                sorted.forEach(r => {
-                    const game = games.find(g => g.id === Number(r.game_id));
-                    if (!game) return;
+                if (diaryCurrentPage >= diarySortedReviews.length) {
+                    diaryCurrentPage = 0;
+                }
 
-                    const gameTitle = game.title || `游戏 #${r.game_id}`;
-                    const gameCover = game.cover || null;
-                    const gameDesc = game.description || '';
-                    const gameGenre = Array.isArray(game.genre) ? game.genre.join('、') : (game.genre || '');
-                    const gamePlaystyle = Array.isArray(game.gameplay) ? game.gameplay.join('、') : (game.gameplay || '');
-                    const gamePerspective = game.perspective || '';
-                    const gameChinese = game.hasChinese || '';
-                    const gameRelease = game.releaseDate || '';
-                    const gamePlatforms = Array.isArray(game.platforms) ? game.platforms.join('、') : (game.platforms || '');
-                    const gameDuration = game.mainStoryDuration || '';
-                    const gamePrice = game.lowestPrice || '';
-                    const gameScreenshots = Array.isArray(game.screenshots) ? game.screenshots.slice(0, 4) : [];
+                renderDiaryPage();
+            }
 
-                    const starsHtml = r.rating ?
-                        `${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}` :
-                        '未评分';
-                    const timeStr = r.created_at ?
-                        new Date(r.created_at).toLocaleDateString('zh-CN', {
-                            year: 'numeric', month: 'short', day: 'numeric',
-                            hour: '2-digit', minute: '2-digit'
-                        }) : '';
-                    const playDate = r.play_date || '';
+            function renderDiaryPage() {
+                const container = document.getElementById('diaryContent');
+                if (!container || diarySortedReviews.length === 0) return;
 
-                    const coverHtml = gameCover ?
-                        `<img src="${escapeHTML(gameCover)}" alt="${escapeHTML(gameTitle)}" loading="lazy" />` :
-                        `<div class="cover-placeholder">🎮</div>`;
+                const r = diarySortedReviews[diaryCurrentPage];
+                const game = games.find(g => g.id === Number(r.game_id));
+                if (!game) return;
 
-                    let screenshotsHtml = '';
-                    if (gameScreenshots.length > 0) {
-                        screenshotsHtml = `
-                            <div class="diary-screenshots">
-                                <div class="diary-screenshots-title">📸 游戏截图</div>
-                                <div class="diary-screenshots-scroll">
-                                    ${gameScreenshots.map(s => `<div class="diary-screenshot-thumb"><img src="${escapeHTML(s)}" loading="lazy" /></div>`).join('')}
-                                </div>
+                const gameTitle = game.title || `游戏 #${r.game_id}`;
+                const gameCover = game.cover || null;
+                const gameDesc = game.description || '';
+                const gameGenre = Array.isArray(game.genre) ? game.genre.join('、') : (game.genre || '');
+                const gamePlaystyle = Array.isArray(game.gameplay) ? game.gameplay.join('、') : (game.gameplay || '');
+                const gamePerspective = game.perspective || '';
+                const gameChinese = game.hasChinese || '';
+                const gameRelease = game.releaseDate || '';
+                const gamePlatforms = Array.isArray(game.platforms) ? game.platforms.join('、') : (game.platforms || '');
+                const gameDuration = game.mainStoryDuration || '';
+                const gamePrice = game.lowestPrice || '';
+                const gameScreenshots = Array.isArray(game.screenshots) ? game.screenshots.slice(0, 4) : [];
+
+                const starsHtml = r.rating ?
+                    `${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}` :
+                    '未评分';
+                const timeStr = r.created_at ?
+                    new Date(r.created_at).toLocaleDateString('zh-CN', {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    }) : '';
+                const playDate = r.play_date || '';
+
+                const coverHtml = gameCover ?
+                    `<img src="${escapeHTML(gameCover)}" alt="${escapeHTML(gameTitle)}" loading="lazy" />` :
+                    `<div class="cover-placeholder">🎮</div>`;
+
+                let screenshotsHtml = '';
+                if (gameScreenshots.length > 0) {
+                    screenshotsHtml = `
+                        <div class="diary-screenshots">
+                            <div class="diary-screenshots-title">📸 游戏截图</div>
+                            <div class="diary-screenshots-scroll">
+                                ${gameScreenshots.map(s => `<div class="diary-screenshot-thumb"><img src="${escapeHTML(s)}" loading="lazy" /></div>`).join('')}
                             </div>
-                        `;
-                    }
+                        </div>
+                    `;
+                }
 
-                    let infoItems = '';
-                    if (gameGenre) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🎭 题材</span><span class="diary-info-value">${escapeHTML(gameGenre)}</span></div>`;
-                    if (gamePlaystyle) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🎮 玩法</span><span class="diary-info-value">${escapeHTML(gamePlaystyle)}</span></div>`;
-                    if (gamePerspective) infoItems += `<div class="diary-info-item"><span class="diary-info-label">👁 视角</span><span class="diary-info-value">${escapeHTML(gamePerspective)}</span></div>`;
-                    if (gameChinese) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🌐 中文</span><span class="diary-info-value">${escapeHTML(gameChinese)}</span></div>`;
-                    if (gameRelease) infoItems += `<div class="diary-info-item"><span class="diary-info-label">📅 发行日期</span><span class="diary-info-value">${escapeHTML(gameRelease)}</span></div>`;
-                    if (gamePlatforms) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🖥 平台</span><span class="diary-info-value">${escapeHTML(gamePlatforms)}</span></div>`;
-                    if (gameDuration) infoItems += `<div class="diary-info-item"><span class="diary-info-label">⏰ 主线时长</span><span class="diary-info-value">${escapeHTML(gameDuration)}</span></div>`;
-                    if (gamePrice) infoItems += `<div class="diary-info-item"><span class="diary-info-label">💰 最低价格</span><span class="diary-info-value">${escapeHTML(gamePrice)}</span></div>`;
+                let infoItems = '';
+                if (gameGenre) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🎭 题材</span><span class="diary-info-value">${escapeHTML(gameGenre)}</span></div>`;
+                if (gamePlaystyle) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🎮 玩法</span><span class="diary-info-value">${escapeHTML(gamePlaystyle)}</span></div>`;
+                if (gamePerspective) infoItems += `<div class="diary-info-item"><span class="diary-info-label">👁 视角</span><span class="diary-info-value">${escapeHTML(gamePerspective)}</span></div>`;
+                if (gameChinese) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🌐 中文</span><span class="diary-info-value">${escapeHTML(gameChinese)}</span></div>`;
+                if (gameRelease) infoItems += `<div class="diary-info-item"><span class="diary-info-label">📅 发行日期</span><span class="diary-info-value">${escapeHTML(gameRelease)}</span></div>`;
+                if (gamePlatforms) infoItems += `<div class="diary-info-item"><span class="diary-info-label">🖥 平台</span><span class="diary-info-value">${escapeHTML(gamePlatforms)}</span></div>`;
+                if (gameDuration) infoItems += `<div class="diary-info-item"><span class="diary-info-label">⏰ 主线时长</span><span class="diary-info-value">${escapeHTML(gameDuration)}</span></div>`;
+                if (gamePrice) infoItems += `<div class="diary-info-item"><span class="diary-info-label">💰 最低价格</span><span class="diary-info-value">${escapeHTML(gamePrice)}</span></div>`;
 
-                    html += `
+                const html = `
+                    <div class="diary-page-nav">
+                        <button class="diary-page-nav-btn" id="diaryPrevBtn" ${diaryCurrentPage === 0 ? 'disabled' : ''}>◀</button>
+                        <span class="diary-page-info">${diaryCurrentPage + 1} / ${diarySortedReviews.length}</span>
+                        <button class="diary-page-nav-btn" id="diaryNextBtn" ${diaryCurrentPage >= diarySortedReviews.length - 1 ? 'disabled' : ''}>▶</button>
+                    </div>
+                    <div class="diary-entry-wrapper">
                         <div class="diary-entry" data-game-id="${r.game_id}">
                             <div class="diary-entry-left">
                                 <div class="diary-page-brand">Her Lens</div>
@@ -11314,11 +11504,24 @@
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
+                    </div>
+                `;
 
                 container.innerHTML = html;
                 bindDiaryEvents();
+
+                document.getElementById('diaryPrevBtn')?.addEventListener('click', () => {
+                    if (diaryCurrentPage > 0) {
+                        diaryCurrentPage--;
+                        renderDiaryPage();
+                    }
+                });
+                document.getElementById('diaryNextBtn')?.addEventListener('click', () => {
+                    if (diaryCurrentPage < diarySortedReviews.length - 1) {
+                        diaryCurrentPage++;
+                        renderDiaryPage();
+                    }
+                });
             }
 
             function bindDiaryEvents() {
@@ -11383,9 +11586,8 @@
                         const gameId = Number(this.dataset.gameId);
                         if (!confirm('确定要删除这条游戏日记吗？')) return;
                         await deleteReview(gameId);
-                        renderDiaryContent();
-                        const reviews = userData.reviews || [];
-                        document.getElementById('diaryCoverStats').textContent = `共玩过 ${reviews.length} 款游戏`;
+                        diaryCurrentPage = 0;
+                        showDiaryCover();
                     });
                 });
 
@@ -13851,7 +14053,10 @@
                 });
                 document.getElementById('diaryOpenBtn').addEventListener('click', showDiaryContent);
                 document.getElementById('diaryBackBtn').addEventListener('click', showDiaryCover);
-                document.getElementById('diarySortSelect').addEventListener('change', renderDiaryContent);
+                document.getElementById('diarySortSelect').addEventListener('change', function() {
+                    diaryCurrentPage = 0;
+                    renderDiaryContent();
+                });
 
                 initGuestbookEvents();
 
