@@ -4434,7 +4434,7 @@
                 linear-gradient(135deg, rgba(155, 138, 189, 0.12) 0%, rgba(126, 111, 160, 0.08) 50%, rgba(155, 138, 189, 0.12) 100%);
             border-radius: 16px;
             border: 2px solid rgba(155, 138, 189, 0.25);
-            max-width: 400px;
+            max-width: 450px;
             margin: auto;
             width: 100%;
             position: relative;
@@ -5459,7 +5459,7 @@
                 font-size: 1.2rem !important;
             }
 
-            /* 游戏日记移动端适配 */
+            /* 游戏日记移动端适配 - 评价在上，游戏信息在下 */
             .diary-modal {
                 max-width: 100%;
                 width: 100%;
@@ -5468,7 +5468,7 @@
             }
 
             .diary-entry {
-                flex-direction: column;
+                flex-direction: column-reverse;
                 border-radius: 12px;
                 min-height: auto;
             }
@@ -5481,12 +5481,12 @@
 
             .diary-entry-left {
                 border-right: none;
-                border-bottom: none;
+                border-top: 1px dashed var(--border);
             }
 
             .diary-entry-right {
                 border-left: none;
-                border-top: 1px dashed var(--border);
+                border-bottom: none;
             }
 
             .diary-spine {
@@ -5495,11 +5495,11 @@
             }
 
             .diary-game-cover {
-                max-width: 150px;
+                max-width: 100%;
             }
 
             .diary-review-text {
-                min-height: 120px;
+                min-height: 150px;
             }
 
             .diary-toolbar {
@@ -5570,6 +5570,15 @@
             .diary-review-meta {
                 flex-wrap: wrap;
                 gap: 6px;
+            }
+
+            .diary-entry-actions {
+                flex-wrap: wrap;
+            }
+
+            .diary-action-btn {
+                font-size: 0.75rem;
+                padding: 6px 12px;
             }
         }
 
