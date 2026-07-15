@@ -4416,115 +4416,90 @@
         .diary-cover {
             text-align: center;
             padding: 50px 40px;
-            background:
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(155, 138, 189, 0.03) 2px,
-                    rgba(155, 138, 189, 0.03) 4px
-                ),
-                linear-gradient(135deg, rgba(155, 138, 189, 0.12) 0%, rgba(126, 111, 160, 0.08) 50%, rgba(155, 138, 189, 0.12) 100%);
-            border-radius: 16px;
-            border: 2px solid rgba(155, 138, 189, 0.25);
+            background: rgba(250, 247, 253, 0.82);
+            border-radius: 20px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
             max-width: 450px;
             margin: 80px auto;
             width: 90%;
-            position: relative;
-            box-shadow:
-                0 4px 20px rgba(60, 30, 80, 0.12),
-                inset 0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
-        }
-
-        .diary-cover::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            border: 1px solid rgba(155, 138, 189, 0.2);
-            border-radius: 10px;
-            pointer-events: none;
+            box-shadow: 0 16px 64px rgba(60, 30, 80, 0.15);
         }
 
         .diary-cover-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
+            font-size: 4rem;
+            margin-bottom: 12px;
         }
 
         .diary-cover-title {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            color: var(--text);
-            margin-bottom: 16px;
-            letter-spacing: 2px;
+            color: #3d3546;
+            margin-bottom: 20px;
         }
 
         .diary-cover-user {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .diary-cover-avatar {
-            width: 48px;
-            height: 48px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: var(--tag-bg);
+            background: linear-gradient(135deg, #d5cfe0 0%, #c4bcd0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            border: 2px solid var(--accent);
+            font-size: 1.8rem;
+            border: 2px solid #9b8abd;
             overflow: hidden;
         }
 
         .diary-cover-username {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            color: var(--text);
+            color: #3d3546;
         }
 
         .diary-cover-stats {
-            font-size: 0.82rem;
-            color: var(--text3);
-            margin-bottom: 6px;
-            line-height: 1.6;
+            font-size: 0.9rem;
+            color: #8c8099;
+            margin-bottom: 8px;
         }
 
         .diary-cover-achievement {
-            font-size: 0.85rem;
-            color: var(--accent);
+            font-size: 0.9rem;
+            color: #9b8abd;
             margin-bottom: 8px;
             font-weight: 500;
         }
 
         .diary-cover-slogan {
-            font-size: 0.85rem;
-            color: var(--text2);
+            font-size: 0.9rem;
+            color: #8c8099;
             font-style: italic;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .diary-cover-btn {
-            padding: 10px 32px;
-            background: var(--accent);
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #9b8abd 0%, #7e6fa0 100%);
             color: #fff;
             border: none;
             border-radius: 25px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(155, 138, 189, 0.4);
         }
 
         .diary-cover-btn:hover {
-            background: var(--accent2);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155, 138, 189, 0.5);
         }
 
         /* 内容视图 */
@@ -4542,80 +4517,472 @@
             align-items: center;
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
         }
 
+        /* 工具栏 */
         .diary-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            max-width: 1200px;
             margin-bottom: 16px;
-            padding: 12px 20px;
-            background: var(--surface);
-            border-radius: 12px;
-            border: 1px solid var(--border);
             flex-shrink: 0;
         }
 
         .diary-back-btn {
-            padding: 6px 12px;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            padding: 8px 16px;
+            background: rgba(250, 247, 253, 0.82);
+            border: 1px solid rgba(213, 207, 224, 0.35);
             border-radius: 8px;
-            color: var(--text);
-            font-size: 0.85rem;
+            color: #3d3546;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .diary-back-btn:hover {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
+            background: rgba(237, 231, 242, 0.50);
+            border-color: #9b8abd;
         }
 
         .diary-sort-select {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
             border-radius: 8px;
-            background: var(--surface);
-            color: var(--text);
+            background: rgba(250, 247, 253, 0.82);
+            color: #3d3546;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* 日记展开 - 桌面端左右分栏 */
+        .diary-entry-wrapper {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .diary-spread {
+            display: flex;
+            gap: 0;
+            width: 100%;
+            filter: drop-shadow(0 16px 64px rgba(60, 30, 80, 0.25));
+        }
+
+        /* 左页 - 游戏信息 */
+        .diary-page-left {
+            flex: 1;
+            background: rgba(250, 247, 253, 0.82);
+            border-radius: 20px 0 0 20px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            border-right: none;
+            padding: 30px;
+            position: relative;
+            min-height: 600px;
+        }
+
+        .diary-page-left::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(90deg, rgba(60, 30, 80, 0.08) 0%, transparent 100%);
+            border-radius: 20px 0 0 20px;
+        }
+
+        /* 右页 - 评论内容 */
+        .diary-page-right {
+            flex: 1;
+            background: rgba(250, 247, 253, 0.82);
+            border-radius: 0 20px 20px 0;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            border-left: 1px dashed rgba(213, 207, 224, 0.50);
+            padding: 30px;
+            position: relative;
+            min-height: 600px;
+        }
+
+        .diary-page-right::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(-90deg, rgba(60, 30, 80, 0.08) 0%, transparent 100%);
+            border-radius: 0 20px 20px 0;
+        }
+
+        /* 书脊效果 */
+        .diary-spine {
+            width: 20px;
+            background: linear-gradient(90deg, rgba(213, 207, 224, 0.50) 0%, rgba(213, 207, 224, 0.70) 50%, rgba(213, 207, 224, 0.50) 100%);
+            position: relative;
+        }
+
+        .diary-spine::before,
+        .diary-spine::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #9b8abd;
+            border-radius: 50%;
+        }
+
+        .diary-spine::before { top: 20px; }
+        .diary-spine::after { bottom: 20px; }
+
+        /* 页面头部 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(213, 207, 224, 0.35);
+        }
+
+        .page-brand {
+            font-size: 0.85rem;
+            color: #9b8abd;
+            margin-bottom: 5px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .page-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #3d3546;
+        }
+
+        /* 左页内容 */
+        .game-cover {
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(213, 207, 224, 0.35);
+            box-shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
+        }
+
+        .game-cover img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .game-cover-placeholder {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, rgba(213, 207, 224, 0.30) 0%, rgba(213, 207, 224, 0.50) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .game-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #3d3546;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: rgba(237, 231, 242, 0.50);
+            border-radius: 15px;
+            font-size: 0.75rem;
+            color: #5a4e66;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+        }
+
+        .game-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dotted rgba(213, 207, 224, 0.35);
+            font-size: 0.85rem;
+        }
+
+        .game-info-label {
+            color: #8c8099;
+            font-weight: 500;
+        }
+
+        .game-info-value {
+            color: #3d3546;
+        }
+
+        .game-description {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(246, 242, 250, 0.60);
+            border-radius: 8px;
+            border-left: 3px solid #9b8abd;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #665c72;
+        }
+
+        .game-screenshots {
+            margin-top: 15px;
+        }
+
+        .screenshots-title {
+            font-size: 0.9rem;
+            color: #9b8abd;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .screenshots-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .screenshot-thumb {
+            width: 80px;
+            height: 50px;
+            border-radius: 6px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+        }
+
+        .screenshot-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 右页内容 */
+        .review-section {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .review-rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(213, 207, 224, 0.35);
+        }
+
+        .rating-label {
+            font-size: 0.9rem;
+            color: #8c8099;
+            margin-bottom: 0;
+        }
+
+        .rating-stars {
+            font-size: 1.5rem;
+            color: #f5a623;
+            letter-spacing: 3px;
+        }
+
+        .rating-score {
+            font-size: 1.1rem;
+            color: #3d3546;
+            margin-left: 0;
+        }
+
+        .review-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .review-label {
+            font-size: 0.9rem;
+            color: #8c8099;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        /* 文本格式化工具栏 */
+        .text-format-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(246, 242, 250, 0.60);
+            border-radius: 8px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+        }
+
+        .format-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            background: rgba(250, 247, 253, 0.82);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #3d3546;
+            transition: all 0.2s;
+        }
+
+        .format-btn:hover {
+            background: rgba(237, 231, 242, 0.50);
+            border-color: #9b8abd;
+        }
+
+        .format-btn.active {
+            background: #9b8abd;
+            color: #fff;
+            border-color: #9b8abd;
+        }
+
+        .font-size-select {
+            padding: 6px 10px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            border-radius: 6px;
+            background: rgba(250, 247, 253, 0.82);
+            color: #3d3546;
             font-size: 0.85rem;
             cursor: pointer;
+        }
+
+        .review-text {
+            flex: 1;
+            padding: 15px;
+            background: rgba(246, 242, 250, 0.60);
+            border-radius: 8px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #3d3546;
+            min-height: 200px;
+            outline: none;
+        }
+
+        .review-text:focus {
+            border-color: #9b8abd;
+        }
+
+        .review-meta {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(213, 207, 224, 0.35);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .meta-icon { color: #9b8abd; }
+        .meta-value { color: #3d3546; }
+
+        .review-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            background: rgba(250, 247, 253, 0.82);
+            color: #3d3546;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(237, 231, 242, 0.50);
+            border-color: #9b8abd;
+        }
+
+        .action-btn.primary {
+            background: #9b8abd;
+            color: #fff;
+            border-color: #9b8abd;
+        }
+
+        .action-btn.primary:hover { background: #7e6fa0; }
+
+        .action-btn.danger {
+            color: #c0392b;
+            border-color: rgba(192, 57, 43, 0.30);
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(192, 57, 43, 0.06);
+            border-color: #c0392b;
         }
 
         /* 翻页导航 - 右下角卷边效果 */
         .diary-page-nav {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 40px;
+            right: 40px;
             display: flex;
             align-items: center;
             gap: 8px;
-            z-index: 100;
+            z-index: 1001;
+            background: rgba(250, 247, 253, 0.95);
+            padding: 8px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            box-shadow: 0 4px 20px rgba(60, 30, 80, 0.15);
+            transition: all 0.3s;
+        }
+
+        .diary-page-nav:hover {
+            box-shadow: 0 6px 25px rgba(60, 30, 80, 0.25);
+            transform: translateY(-2px);
         }
 
         .diary-page-nav-btn {
-            width: 44px;
-            height: 44px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            font-size: 1.1rem;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            background: rgba(250, 247, 253, 0.82);
+            color: #3d3546;
+            font-size: 1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .diary-page-nav-btn:hover:not(:disabled) {
-            background: var(--accent);
+            background: #9b8abd;
             color: #fff;
-            border-color: var(--accent);
-            transform: scale(1.05);
+            border-color: #9b8abd;
         }
 
         .diary-page-nav-btn:disabled {
@@ -4625,14 +4992,10 @@
 
         .diary-page-info {
             font-size: 0.85rem;
-            color: var(--text);
+            color: #3d3546;
             min-width: 50px;
             text-align: center;
-            background: var(--surface);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            font-weight: 500;
         }
 
         /* 卷边提示效果 */
@@ -4640,10 +5003,10 @@
             position: fixed;
             bottom: 0;
             right: 0;
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             pointer-events: none;
-            z-index: 99;
+            z-index: 1000;
             overflow: hidden;
         }
 
@@ -4655,345 +5018,28 @@
             width: 0;
             height: 0;
             border-style: solid;
-            border-width: 0 0 60px 60px;
-            border-color: transparent transparent var(--accent) transparent;
-            opacity: 0.3;
+            border-width: 0 0 70px 70px;
+            border-color: transparent transparent rgba(155, 138, 189, 0.25) transparent;
             transition: all 0.3s;
         }
 
         .diary-page-curl::after {
-            content: '◀▶';
+            content: '◀ 翻页';
             position: absolute;
-            bottom: 12px;
-            right: 12px;
-            font-size: 0.7rem;
-            color: var(--accent);
-            opacity: 0.6;
+            bottom: 18px;
+            right: 18px;
+            font-size: 0.75rem;
+            color: #9b8abd;
+            font-weight: 500;
             transform: rotate(-45deg);
-        }
-
-        /* 日记条目 - 单页展示 */
-        .diary-entry-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 10px 0;
-        }
-
-        .diary-entry {
-            display: flex;
-            gap: 0;
-            background: var(--surface);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 1200px;
-            min-height: 600px;
-        }
-
-        .diary-entry-left,
-        .diary-entry-right {
-            flex: 1;
-            padding: 30px;
-            min-height: 600px;
-        }
-
-        .diary-entry-left {
-            border-right: none;
-        }
-
-        .diary-entry-right {
-            border-left: 1px dashed var(--border);
-        }
-
-        .diary-spine {
-            width: 20px;
-            background: linear-gradient(90deg, var(--border) 0%, rgba(213, 207, 224, 0.50) 50%, var(--border) 100%);
-            position: relative;
-        }
-
-        .diary-page-brand {
-            font-size: 0.8rem;
-            color: var(--accent);
-            text-align: center;
-            margin-bottom: 5px;
-            font-weight: 500;
-            letter-spacing: 1px;
-        }
-
-        .diary-page-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text);
-            text-align: center;
-            margin-bottom: 18px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* 左页 - 游戏信息 */
-        .diary-game-cover {
-            width: 100%;
-            max-width: 280px;
-            margin: 0 auto 15px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid var(--border);
-        }
-
-        .diary-game-cover img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .diary-game-cover .cover-placeholder {
-            width: 100%;
-            height: 160px;
-            background: var(--tag-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-        }
-
-        .diary-game-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text);
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .diary-game-desc {
-            font-size: 0.85rem;
-            color: var(--text2);
-            line-height: 1.6;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: var(--surface2);
-            border-radius: 8px;
-            border-left: 3px solid var(--accent);
-        }
-
-        .diary-game-info {
-            margin-bottom: 12px;
-        }
-
-        .diary-info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            font-size: 0.8rem;
-            border-bottom: 1px dotted var(--border);
-        }
-
-        .diary-info-label {
-            color: var(--text3);
-        }
-
-        .diary-info-value {
-            color: var(--text);
-            font-weight: 500;
-        }
-
-        /* 截图 */
-        .diary-screenshots {
-            margin-top: 12px;
-        }
-
-        .diary-screenshots-title {
-            font-size: 0.85rem;
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .diary-screenshots-scroll {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-        }
-
-        .diary-screenshot-thumb {
-            width: 80px;
-            height: 50px;
-            border-radius: 6px;
-            overflow: hidden;
-            flex-shrink: 0;
-            border: 1px solid var(--border);
-        }
-
-        .diary-screenshot-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* 右页 - 用户评价 */
-        .diary-rating-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            padding: 8px;
-            background: var(--surface2);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .diary-rating-label {
-            font-size: 0.8rem;
-            color: var(--text3);
-        }
-
-        .diary-rating-stars {
-            font-size: 1rem;
-            color: var(--gold);
-            letter-spacing: 1px;
-        }
-
-        .diary-rating-score {
-            font-size: 0.8rem;
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        /* 格式化工具栏 */
-        .diary-format-toolbar {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-            padding: 5px;
-            background: var(--surface2);
-            border-radius: 6px;
-            border: 1px solid var(--border);
-        }
-
-        .diary-format-btn {
-            width: 30px;
-            height: 30px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            color: var(--text);
-            transition: all 0.2s;
-        }
-
-        .diary-format-btn:hover {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        .diary-font-size-select {
-            padding: 4px 8px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.75rem;
-            flex: 1;
-            min-width: 60px;
-            cursor: pointer;
-        }
-
-        /* 评论文本 */
-        .diary-review-text {
-            flex: 1;
-            min-height: 180px;
-            padding: 12px;
-            background: var(--surface2);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-            line-height: 1.7;
-            color: var(--text);
-            white-space: pre-wrap;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .diary-review-text:focus {
-            border-color: var(--accent);
-        }
-
-        /* 元信息 */
-        .diary-review-meta {
-            margin-top: 12px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .diary-meta-item {
-            font-size: 0.75rem;
-            color: var(--text3);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .diary-date-input {
-            padding: 3px 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.75rem;
-        }
-
-        /* 操作按钮 */
-        .diary-entry-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .diary-action-btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .diary-action-btn:hover {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        .diary-action-btn.primary {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        .diary-action-btn.primary:hover {
-            background: var(--accent2);
+            opacity: 0.8;
         }
 
         /* 空状态 */
         .diary-empty {
             text-align: center;
             padding: 60px 20px;
-            color: var(--text3);
+            color: #8c8099;
         }
 
         .diary-empty .empty-icon {
@@ -5003,40 +5049,13 @@
         }
 
         /* 导出模式 */
-        .diary-entry.export-mode .diary-format-toolbar,
-        .diary-entry.export-mode .diary-entry-actions {
+        .diary-entry.export-mode .text-format-toolbar,
+        .diary-entry.export-mode .review-actions {
             display: none !important;
         }
 
-        .diary-entry.export-mode .diary-review-text {
+        .diary-entry.export-mode .review-text {
             min-height: auto;
-        }
-
-        /* 旧详情样式兼容 */
-        .modal .detail-tags span {
-            font-size: 0.78rem;
-            padding: 4px 12px;
-            border-radius: 14px;
-            background: var(--glass-bg-light);
-            color: var(--tag-text);
-        }
-
-        .modal .detail-video-link {
-            display: inline-block;
-            padding: 6px 16px;
-            background: var(--tag-bg);
-            border-radius: 16px;
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.82rem;
-            margin: 3px;
-            transition: all 0.2s;
-        }
-
-        .modal .detail-video-link:hover {
-            background: var(--accent);
-            color: #fff;
-            text-decoration: none;
         }
 
         .modal-close {
@@ -11551,44 +11570,63 @@
 
                 const html = `
                     <div class="diary-entry-wrapper">
-                        <div class="diary-entry" data-game-id="${r.game_id}">
-                            <div class="diary-entry-left">
-                                <div class="diary-page-brand">Her Lens</div>
-                                <div class="diary-page-title">📖 游戏信息</div>
-                                <div class="diary-game-cover">${coverHtml}</div>
-                                <div class="diary-game-name">${escapeHTML(gameTitle)}</div>
-                                ${gameDesc ? `<div class="diary-game-desc">${escapeHTML(gameDesc)}</div>` : ''}
-                                ${infoItems ? `<div class="diary-game-info">${infoItems}</div>` : ''}
+                        <div class="diary-spread" data-game-id="${r.game_id}">
+                            <!-- 左页 - 游戏信息 -->
+                            <div class="diary-page-left">
+                                <div class="page-header">
+                                    <div class="page-brand">Her Lens</div>
+                                    <div class="page-title">📖 游戏信息</div>
+                                </div>
+                                <div class="game-cover">${coverHtml}</div>
+                                <div class="game-name">${escapeHTML(gameTitle)}</div>
+                                ${gameDesc ? `<div class="game-description">${escapeHTML(gameDesc)}</div>` : ''}
+                                ${infoItems ? `<div class="game-info">${infoItems}</div>` : ''}
                                 ${screenshotsHtml}
                             </div>
+                            <!-- 书脊 -->
                             <div class="diary-spine"></div>
-                            <div class="diary-entry-right">
-                                <div class="diary-page-brand">Her Lens</div>
-                                <div class="diary-page-title">✍️ 我的评价</div>
-                                <div class="diary-rating-row">
-                                    <span class="diary-rating-label">⭐ 我的评分</span>
-                                    <span class="diary-rating-stars">${starsHtml}</span>
-                                    <span class="diary-rating-score">${r.rating ? r.rating + '/10' : '未评分'}</span>
+                            <!-- 右页 - 评论内容 -->
+                            <div class="diary-page-right">
+                                <div class="page-header">
+                                    <div class="page-brand">Her Lens</div>
+                                    <div class="page-title">✍️ 我的评价</div>
                                 </div>
-                                <div class="diary-format-toolbar">
-                                    <button class="diary-format-btn" data-cmd="bold" title="加粗"><b>B</b></button>
-                                    <button class="diary-format-btn" data-cmd="underline" title="下划线"><u>U</u></button>
-                                    <button class="diary-format-btn" data-cmd="strikeThrough" title="删除线"><s>S</s></button>
-                                    <select class="diary-font-size-select" title="字号">
-                                        <option value="1">小号</option>
-                                        <option value="3" selected>正常</option>
-                                        <option value="5">大号</option>
-                                    </select>
-                                </div>
-                                <div class="diary-review-text" contenteditable="true" data-game-id="${r.game_id}">${escapeHTML(r.comment || '点击此处写下你的评论...')}</div>
-                                <div class="diary-review-meta">
-                                    <span class="diary-meta-item">📅 游玩日期：<input type="date" class="diary-date-input" value="${playDate}" data-game-id="${r.game_id}" /></span>
-                                    <span class="diary-meta-item">🕐 评论时间：${timeStr}</span>
-                                </div>
-                                <div class="diary-entry-actions">
-                                    <button class="diary-action-btn diary-export-btn" data-game-id="${r.game_id}">📷 导出图片</button>
-                                    <button class="diary-action-btn diary-delete-btn" data-game-id="${r.game_id}">🗑️ 删除</button>
-                                    <button class="diary-action-btn diary-save-btn primary" data-game-id="${r.game_id}">💾 保存</button>
+                                <div class="review-section">
+                                    <div class="review-rating">
+                                        <span class="rating-label">⭐ 我的评分</span>
+                                        <span class="rating-stars">${starsHtml}</span>
+                                        <span class="rating-score">${r.rating ? r.rating + '/10' : '未评分'}</span>
+                                    </div>
+                                    <div class="review-content">
+                                        <div class="review-label">📝 我的评论</div>
+                                        <div class="text-format-toolbar">
+                                            <button class="format-btn" data-cmd="bold" title="加粗"><b>B</b></button>
+                                            <button class="format-btn" data-cmd="underline" title="下划线"><u>U</u></button>
+                                            <button class="format-btn" data-cmd="strikeThrough" title="删除线"><s>S</s></button>
+                                            <select class="font-size-select" title="字号">
+                                                <option value="1">小号</option>
+                                                <option value="3" selected>正常</option>
+                                                <option value="5">大号</option>
+                                            </select>
+                                        </div>
+                                        <div class="review-text" contenteditable="true" data-game-id="${r.game_id}">${escapeHTML(r.comment || '点击此处写下你的评论...')}</div>
+                                    </div>
+                                    <div class="review-meta">
+                                        <div class="meta-item">
+                                            <span class="meta-icon">📅</span>
+                                            <span>游玩日期：</span>
+                                            <input type="date" class="diary-date-input" value="${playDate}" data-game-id="${r.game_id}" />
+                                        </div>
+                                        <div class="meta-item">
+                                            <span class="meta-icon">🕐</span>
+                                            <span>评论时间：${timeStr}</span>
+                                        </div>
+                                    </div>
+                                    <div class="review-actions">
+                                        <button class="action-btn diary-export-btn" data-game-id="${r.game_id}">📷 导出图片</button>
+                                        <button class="action-btn danger diary-delete-btn" data-game-id="${r.game_id}">🗑️ 删除</button>
+                                        <button class="action-btn primary diary-save-btn" data-game-id="${r.game_id}">💾 保存</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -11644,13 +11682,13 @@
             }
 
             function bindDiaryEvents() {
-                document.querySelectorAll('.diary-format-btn').forEach(btn => {
+                document.querySelectorAll('.format-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.execCommand(this.dataset.cmd, false, null);
                     });
                 });
 
-                document.querySelectorAll('.diary-font-size-select').forEach(select => {
+                document.querySelectorAll('.font-size-select').forEach(select => {
                     select.addEventListener('change', function() {
                         document.execCommand('fontSize', false, this.value);
                     });
@@ -11679,7 +11717,7 @@
                 document.querySelectorAll('.diary-save-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const gameId = Number(this.dataset.gameId);
-                        const reviewText = document.querySelector(`.diary-review-text[data-game-id="${gameId}"]`)?.innerText || '';
+                        const reviewText = document.querySelector(`.review-text[data-game-id="${gameId}"]`)?.innerText || '';
                         const cleanText = reviewText === '点击此处写下你的评论...' ? null : reviewText.trim() || null;
                         const review = userData.reviews.find(r => r.game_id === gameId);
                         if (review) {
