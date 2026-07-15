@@ -548,16 +548,6 @@
             box-shadow: 0 6px 32px rgba(184, 162, 214, 0.40);
         }
 
-        [data-theme="dark"] #diaryModalClose {
-            background: rgba(255, 255, 255, 0.12);
-            color: var(--text);
-        }
-
-        [data-theme="dark"] #diaryModalClose:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
         @media (max-width:768px) {
             #backToTop {
                 bottom: 20px;
@@ -4407,14 +4397,17 @@
         }
 
         /* ================================================================
-   游戏日记样式
+   游戏日记样式 - 独立子页面
    ================================================================ */
-        .diary-modal {
-            max-width: 900px;
-            width: 90%;
-            min-height: auto;
-            max-height: 85vh;
-            margin: 0 auto;
+        .diary-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 1000;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
         }
@@ -4422,7 +4415,7 @@
         /* 封面视图 - 仿书皮封面 */
         .diary-cover {
             text-align: center;
-            padding: 40px 30px;
+            padding: 50px 40px;
             background:
                 repeating-linear-gradient(
                     0deg,
@@ -4435,11 +4428,11 @@
             border-radius: 16px;
             border: 2px solid rgba(155, 138, 189, 0.25);
             max-width: 450px;
-            margin: auto;
-            width: 100%;
+            margin: 80px auto;
+            width: 90%;
             position: relative;
             box-shadow:
-                0 2px 8px rgba(60, 30, 80, 0.08),
+                0 4px 20px rgba(60, 30, 80, 0.12),
                 inset 0 1px 0 rgba(255, 255, 255, 0.5),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.05);
         }
@@ -4540,6 +4533,7 @@
             flex-direction: column;
             flex: 1;
             overflow: hidden;
+            padding: 20px;
         }
 
         #diaryContent {
@@ -4555,9 +4549,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+            padding: 12px 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
             flex-shrink: 0;
         }
 
@@ -5047,30 +5043,6 @@
             display: none !important;
         }
 
-        #diaryModalClose {
-            display: flex !important;
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.08);
-            color: var(--text);
-            font-size: 1rem;
-            cursor: pointer;
-            z-index: 10;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        #diaryModalClose:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
         /* ================================================================
    移动端适配 (补充)
    ================================================================ */
@@ -5460,10 +5432,7 @@
             }
 
             /* 游戏日记移动端适配 - 评价在上，游戏信息在下 */
-            .diary-modal {
-                max-width: 100%;
-                width: 100%;
-                margin: 10px;
+            .diary-page {
                 padding: 0;
             }
 
@@ -8269,40 +8238,36 @@
     </div>
 
     <!-- ================================================================
-    ★ 游戏日记弹窗
+    ★ 游戏日记 - 独立子页面
     ================================================================ -->
-    <div class="modal-overlay" id="diaryModalOverlay">
-        <div class="modal diary-modal" id="diaryModal">
-            <button class="modal-close" id="diaryModalClose">✕</button>
-            
-            <!-- 封面视图 -->
-            <div id="diaryCoverView">
-                <div class="diary-cover">
-                    <div class="diary-cover-icon">📖</div>
-                    <div class="diary-cover-title">游戏日记</div>
-                    <div class="diary-cover-user">
-                        <div class="diary-cover-avatar" id="diaryCoverAvatar">👤</div>
-                        <div class="diary-cover-username" id="diaryCoverUsername">用户</div>
-                    </div>
-                    <div class="diary-cover-stats" id="diaryCoverStats">已记录 0 款游戏 · 标记玩过 0 款 · 成就 0/0</div>
-                    <div class="diary-cover-achievement" id="diaryCoverAchievement">🎯 暂无成就</div>
-                    <div class="diary-cover-slogan">记录我的游戏成长史</div>
-                    <button class="diary-cover-btn" id="diaryOpenBtn">翻开日记</button>
+    <div id="diaryPage" class="diary-page" style="display:none;">
+        <!-- 封面视图 -->
+        <div id="diaryCoverView">
+            <div class="diary-cover">
+                <div class="diary-cover-icon">📖</div>
+                <div class="diary-cover-title">游戏日记</div>
+                <div class="diary-cover-user">
+                    <div class="diary-cover-avatar" id="diaryCoverAvatar">👤</div>
+                    <div class="diary-cover-username" id="diaryCoverUsername">用户</div>
                 </div>
+                <div class="diary-cover-stats" id="diaryCoverStats">已记录 0 款游戏 · 标记玩过 0 款 · 成就 0/0</div>
+                <div class="diary-cover-achievement" id="diaryCoverAchievement">🎯 暂无成就</div>
+                <div class="diary-cover-slogan">记录我的游戏成长史</div>
+                <button class="diary-cover-btn" id="diaryOpenBtn">翻开日记</button>
             </div>
-            
-            <!-- 内容视图 -->
-            <div id="diaryContentView" style="display:none;">
-                <div class="diary-toolbar">
-                    <button class="diary-back-btn" id="diaryBackBtn">← 返回封面</button>
-                    <select class="diary-sort-select" id="diarySortSelect">
-                        <option value="play_date">按游玩日期</option>
-                        <option value="rating">按评分</option>
-                        <option value="created_at">按评论时间</option>
-                    </select>
-                </div>
-                <div id="diaryContent"></div>
+        </div>
+        
+        <!-- 内容视图 -->
+        <div id="diaryContentView" style="display:none;">
+            <div class="diary-toolbar">
+                <button class="diary-back-btn" id="diaryBackBtn">← 返回封面</button>
+                <select class="diary-sort-select" id="diarySortSelect">
+                    <option value="play_date">按游玩日期</option>
+                    <option value="rating">按评分</option>
+                    <option value="created_at">按评论时间</option>
+                </select>
             </div>
+            <div id="diaryContent"></div>
         </div>
     </div>
 
@@ -11427,14 +11392,14 @@
                     showToast('请先登录查看你的游戏日记', 1500);
                     return;
                 }
-                const overlay = document.getElementById('diaryModalOverlay');
+                const diaryPage = document.getElementById('diaryPage');
                 showDiaryCover();
-                overlay.classList.add('show');
+                diaryPage.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
             }
 
             function closeDiaryModal() {
-                document.getElementById('diaryModalOverlay').classList.remove('show');
+                document.getElementById('diaryPage').style.display = 'none';
                 document.body.style.overflow = '';
                 // 隐藏固定翻页导航和卷边效果
                 const pageNav = document.getElementById('diaryPageNavFixed');
@@ -14107,7 +14072,7 @@
                             closeImageViewer();
                             return;
                         }
-                        if (document.getElementById('diaryModalOverlay').classList.contains('show')) {
+                        if (document.getElementById('diaryPage').style.display === 'flex') {
                             closeDiaryModal();
                             return;
                         }
@@ -14227,10 +14192,6 @@
                     if (e.target === this) closeEditModal();
                 });
 
-                document.getElementById('diaryModalClose').addEventListener('click', closeDiaryModal);
-                document.getElementById('diaryModalOverlay').addEventListener('click', function (e) {
-                    if (e.target === this) closeDiaryModal();
-                });
                 document.getElementById('diaryOpenBtn').addEventListener('click', showDiaryContent);
                 document.getElementById('diaryBackBtn').addEventListener('click', showDiaryCover);
                 document.getElementById('diarySortSelect').addEventListener('change', function() {
