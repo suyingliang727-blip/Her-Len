@@ -4416,13 +4416,46 @@
         .diary-cover {
             text-align: center;
             padding: 75px 60px;
-            background: rgba(250, 247, 253, 0.82);
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(213, 207, 224, 0.03) 2px,
+                    rgba(213, 207, 224, 0.03) 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(213, 207, 224, 0.03) 2px,
+                    rgba(213, 207, 224, 0.03) 4px
+                ),
+                linear-gradient(135deg, rgba(250, 247, 253, 0.9) 0%, rgba(246, 242, 250, 0.85) 50%, rgba(250, 247, 253, 0.9) 100%);
             border-radius: 20px;
             border: 1px solid rgba(213, 207, 224, 0.35);
             max-width: 675px;
             margin: 80px auto;
             width: 90%;
-            box-shadow: 0 16px 64px rgba(60, 30, 80, 0.15);
+            box-shadow: 
+                0 16px 64px rgba(60, 30, 80, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(213, 207, 224, 0.2);
+            position: relative;
+        }
+
+        .diary-cover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(155, 138, 189, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(155, 138, 189, 0.06) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .diary-cover-icon {
@@ -4777,6 +4810,7 @@
         .screenshot-thumb.gif-thumb {
             width: auto;
             height: 50px;
+            overflow: visible;
         }
 
         .screenshot-thumb.gif-thumb img.gif-screenshot {
@@ -5663,6 +5697,7 @@
 
             .screenshot-thumb.gif-thumb {
                 height: 40px;
+                overflow: visible;
             }
 
             .screenshot-thumb.gif-thumb img.gif-screenshot {
@@ -11874,7 +11909,7 @@
                 document.querySelectorAll('.diary-export-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const gameId = Number(this.dataset.gameId);
-                        const entry = document.querySelector(`.diary-entry[data-game-id="${gameId}"]`);
+                        const entry = document.querySelector(`.diary-entry-wrapper`);
                         if (!entry) return;
                         
                         try {
