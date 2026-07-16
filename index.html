@@ -4618,6 +4618,14 @@
             animation: diaryFlipIn 0.4s ease forwards;
         }
 
+        .diary-flip-out-prev {
+            animation: diaryFlipOutPrev 0.4s ease forwards;
+        }
+
+        .diary-flip-in-prev {
+            animation: diaryFlipInPrev 0.4s ease forwards;
+        }
+
         .diary-slide-out-left {
             animation: diarySlideOutLeft 0.35s ease forwards;
         }
@@ -4644,6 +4652,16 @@
             100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
         }
 
+        @keyframes diaryFlipOutPrev {
+            0% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+            100% { transform: perspective(1500px) rotateY(15deg); opacity: 0; }
+        }
+
+        @keyframes diaryFlipInPrev {
+            0% { transform: perspective(1500px) rotateY(-15deg); opacity: 0; }
+            100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+        }
+
         @keyframes diarySlideOutLeft {
             0% { transform: translateX(0); opacity: 1; }
             100% { transform: translateX(-30px); opacity: 0; }
@@ -4666,7 +4684,7 @@
 
         .diary-entry-wrapper {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px;
             transform-origin: center center;
         }
 
@@ -4684,9 +4702,9 @@
             border-radius: 20px 0 0 20px;
             border: 1px solid rgba(213, 207, 224, 0.35);
             border-right: none;
-            padding: 30px;
+            padding: 35px 40px;
             position: relative;
-            min-height: 600px;
+            min-height: 850px;
         }
 
         .diary-page-left::before {
@@ -4700,17 +4718,60 @@
             border-radius: 20px 0 0 20px;
         }
 
-        /* 右页 - 评论内容 */
+        /* 右页 - 评论内容（翻书动画用） */
         .diary-page-right {
             flex: 1;
             background: rgba(250, 247, 253, 0.82);
             border-radius: 0 20px 20px 0;
             border: 1px solid rgba(213, 207, 224, 0.35);
             border-left: 1px dashed rgba(213, 207, 224, 0.50);
-            padding: 30px;
+            padding: 35px 40px;
             position: relative;
-            min-height: 600px;
+            min-height: 850px;
             overflow: hidden;
+            transform-origin: left center;
+            backface-visibility: hidden;
+            transition: transform 0.7s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        /* 翻书动画 - 右页翻出（下一页） */
+        .diary-page-right.turn-out-next {
+            animation: diaryTurnOutNext 0.7s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+        }
+
+        /* 翻书动画 - 右页翻入（下一页） */
+        .diary-page-right.turn-in-next {
+            animation: diaryTurnInNext 0.7s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+        }
+
+        /* 翻书动画 - 右页翻出（上一页） */
+        .diary-page-right.turn-out-prev {
+            animation: diaryTurnOutPrev 0.7s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+        }
+
+        /* 翻书动画 - 右页翻入（上一页） */
+        .diary-page-right.turn-in-prev {
+            animation: diaryTurnInPrev 0.7s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+        }
+
+        @keyframes diaryTurnOutNext {
+            0% { transform: perspective(1500px) rotateY(0deg); }
+            100% { transform: perspective(1500px) rotateY(-180deg); }
+        }
+
+        @keyframes diaryTurnInNext {
+            0% { transform: perspective(1500px) rotateY(180deg); }
+            100% { transform: perspective(1500px) rotateY(0deg); }
+        }
+
+        @keyframes diaryTurnOutPrev {
+            0% { transform: perspective(1500px) rotateY(0deg); }
+            100% { transform: perspective(1500px) rotateY(180deg); }
+        }
+
+        @keyframes diaryTurnInPrev {
+            0% { transform: perspective(1500px) rotateY(-180deg); }
+            100% { transform: perspective(1500px) rotateY(0deg); }
         }
 
         .diary-page-right::before {
@@ -4885,9 +4946,9 @@
         }
 
         .screenshot-thumb {
-            width: 120px;
-            height: 75px;
-            border-radius: 6px;
+            width: 150px;
+            height: 95px;
+            border-radius: 8px;
             overflow: hidden;
             flex-shrink: 0;
             border: 1px solid rgba(213, 207, 224, 0.35);
@@ -4904,18 +4965,18 @@
             object-fit: cover;
         }
 
-        /* GIF截图 - 不裁剪，保持原始比例 */
+        /* GIF截图 - 固定宽度，保持原始比例 */
         .screenshot-thumb.gif-thumb {
-            width: auto;
-            height: 75px;
-            overflow: visible;
+            width: 150px;
+            height: 95px;
+            overflow: hidden;
         }
 
         .screenshot-thumb.gif-thumb img.gif-screenshot {
+            width: 100%;
+            height: 100%;
             object-fit: contain;
-            max-height: 75px;
-            width: auto;
-            height: auto;
+            background: rgba(246, 242, 250, 0.5);
         }
 
         /* 右页内容 */
@@ -5840,12 +5901,15 @@
             }
 
             .screenshot-thumb.gif-thumb {
+                width: 60px;
                 height: 40px;
-                overflow: visible;
+                overflow: hidden;
             }
 
             .screenshot-thumb.gif-thumb img.gif-screenshot {
-                max-height: 40px;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
             }
 
             .screenshots-title {
@@ -11822,18 +11886,28 @@
                 }, 300);
             }
 
-            // 翻页动效
+            // 翻书动效 - 右页以书脊为轴翻页
             function flipDiaryPage(direction) {
-                const wrapper = document.querySelector('.diary-entry-wrapper');
-                if (!wrapper) return;
-                const outClass = direction === 'next' ? 'diary-flip-out' : 'diary-flip-in';
-                const inClass = direction === 'next' ? 'diary-flip-in' : 'diary-flip-out';
-                wrapper.classList.add(outClass);
+                const rightPage = document.querySelector('.diary-page-right');
+                if (!rightPage) return;
+                const outClass = direction === 'next' ? 'turn-out-next' : 'turn-out-prev';
+                const inClass = direction === 'next' ? 'turn-in-next' : 'turn-in-prev';
+                // 先翻出
+                rightPage.classList.add(outClass);
+                // 动画中途切换DOM内容
                 setTimeout(() => {
-                    wrapper.classList.remove(outClass);
-                    wrapper.classList.add(inClass);
-                    setTimeout(() => wrapper.classList.remove(inClass), 400);
-                }, 200);
+                    renderDiaryPage();
+                    const newRightPage = document.querySelector('.diary-page-right');
+                    if (newRightPage) {
+                        // 清理旧动画类
+                        newRightPage.classList.remove(outClass);
+                        // 翻入新页
+                        newRightPage.classList.add(inClass);
+                        setTimeout(() => newRightPage.classList.remove(inClass), 700);
+                    }
+                }, 350);
+                // 清理翻出动画类
+                setTimeout(() => rightPage.classList.remove(outClass), 700);
             }
 
             // 当前日记页码
@@ -12018,14 +12092,12 @@
                     if (diaryCurrentPage > 0) {
                         diaryCurrentPage--;
                         flipDiaryPage('prev');
-                        setTimeout(() => renderDiaryPage(), 200);
                     }
                 });
                 document.getElementById('diaryNextBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage < diarySortedReviews.length - 1) {
                         diaryCurrentPage++;
                         flipDiaryPage('next');
-                        setTimeout(() => renderDiaryPage(), 200);
                     }
                 });
             }
