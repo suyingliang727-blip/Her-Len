@@ -8855,6 +8855,12 @@
                 return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             }
 
+            // URL转义 - 只转义HTML实体，不转义URL特殊字符
+            function escapeURL(s) {
+                if (!s) return '';
+                return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
             function generateId() {
                 return Date.now() + Math.floor(Math.random() * 1000);
             }
@@ -11995,7 +12001,8 @@
                                     const isGif = /\.gif(\?|$)/i.test(s);
                                     const imgClass = isGif ? ' class="gif-screenshot"' : '';
                                     const loading = isGif ? '' : ' loading="lazy"';
-                                    return `<div class="screenshot-thumb${isGif ? ' gif-thumb' : ''}"><img${imgClass} src="${escapeHTML(s)}"${loading} /></div>`;
+                                    const src = escapeURL(s);
+                                    return `<div class="screenshot-thumb${isGif ? ' gif-thumb' : ''}"><img${imgClass} src="${src}"${loading} /></div>`;
                                 }).join('')}
                             </div>
                         </div>
