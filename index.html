@@ -4554,6 +4554,30 @@
             box-shadow: 0 9px 30px rgba(155, 138, 189, 0.5);
         }
 
+        /* 收起日记按钮 - 左下角 */
+        .diary-close-btn {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            padding: 12px 24px;
+            background: rgba(155, 138, 189, 0.15);
+            color: #9b8abd;
+            border: 1px solid rgba(155, 138, 189, 0.30);
+            border-radius: 24px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 5;
+        }
+
+        .diary-close-btn:hover {
+            background: rgba(155, 138, 189, 0.25);
+            color: #7e6fa0;
+            border-color: rgba(155, 138, 189, 0.50);
+            transform: translateY(-2px);
+        }
+
         /* 内容视图 */
         #diaryContentView {
             display: flex;
@@ -8673,6 +8697,7 @@
         <!-- 封面视图 -->
         <div id="diaryCoverView">
             <div class="diary-cover">
+                <button class="diary-close-btn" id="diaryCloseCoverBtn">收起日记</button>
                 <div class="diary-cover-icon">📖</div>
                 <div class="diary-cover-title">游戏日记</div>
                 <div class="diary-cover-user">
@@ -11993,17 +12018,23 @@
 
                 let screenshotsHtml = '';
                 if (gameScreenshots.length > 0) {
+                    screenshotsHtml = gameScreenshots.map((s, idx) => {
+                        const isGif = /\.gif(\?|$)/i.test(s);
+                        const isVideo = /\.(mp4|webm|mov|avi)(\?|$)/i.test(s);
+                        if (isVideo) {
+                            return `<div class="screenshot-wrap video-wrap"><video src="${escapeURL(s)}" autoplay loop muted playsinline onclick="this.paused?this.play():this.pause()" /></div>`;
+                        }
+                        const wrapClass = 'screenshot-wrap' + (isGif ? ' gif-img' : '');
+                        const badge = isGif ? '<span class="gif-badge">GIF</span>' : '';
+                        const loadingAttr = isGif ? '' : 'loading="lazy"';
+                        const src = escapeURL(s);
+                        return `<div class="${wrapClass}"><img ${loadingAttr} src="${src}" alt="游戏截图 ${idx + 1}" />${badge}</div>`;
+                    }).join('');
                     screenshotsHtml = `
                         <div class="game-screenshots">
                             <div class="screenshots-title">📸 游戏截图</div>
-                            <div class="screenshots-scroll">
-                                ${gameScreenshots.map(s => {
-                                    const isGif = /\.gif(\?|$)/i.test(s);
-                                    const imgClass = isGif ? ' class="gif-screenshot"' : '';
-                                    const loading = isGif ? '' : ' loading="lazy"';
-                                    const src = escapeURL(s);
-                                    return `<div class="screenshot-thumb${isGif ? ' gif-thumb' : ''}"><img${imgClass} src="${src}"${loading} /></div>`;
-                                }).join('')}
+                            <div class="detail-screenshots-grid">
+                                ${screenshotsHtml}
                             </div>
                         </div>
                     `;
@@ -14685,6 +14716,7 @@
 
                 document.getElementById('diaryOpenBtn').addEventListener('click', showDiaryContent);
                 document.getElementById('diaryBackBtn').addEventListener('click', showDiaryCover);
+                document.getElementById('diaryCloseCoverBtn').addEventListener('click', closeDiaryModal);
                 document.getElementById('diarySortSelect').addEventListener('change', function() {
                     diaryCurrentPage = 0;
                     renderDiaryContent();
