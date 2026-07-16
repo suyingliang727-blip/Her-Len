@@ -1940,6 +1940,16 @@
 
         .texture-card > * { position: relative; z-index: 1; }
 
+        .detail-screenshots.texture-card::before,
+        .detail-screenshots.texture-card::after {
+            display: none;
+        }
+
+        .detail-screenshots.texture-card {
+            background-image: none;
+            box-shadow: none;
+        }
+
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -8809,12 +8819,12 @@
         </div>
     </div>
 
-    <!-- MOD 编辑弹窗 -->
-    <div class="mod-edit-overlay" id="modEditOverlay" onclick="if(event.target===this)closeModEdit();">
+            <!-- MOD 编辑弹窗 -->
+    <div class="mod-edit-overlay" id="modEditOverlay">
         <div class="mod-edit-modal">
             <div class="mod-edit-header">
                 <span class="mod-edit-title">✏️ 编辑 MOD 分享</span>
-                <button class="mod-edit-close" onclick="closeModEdit()">✕</button>
+                <button class="mod-edit-close" id="modEditCloseBtn">✕</button>
             </div>
             <div class="mod-edit-body">
                 <div class="form-row">
@@ -8848,7 +8858,7 @@
                 </div>
             </div>
             <div class="mod-edit-footer">
-                <button class="btn" onclick="closeModEdit()">取消</button>
+                <button class="btn" id="modEditCancelBtn">取消</button>
                 <button class="btn btn-primary" id="modEditSaveBtn">💾 保存修改</button>
             </div>
         </div>
@@ -13185,6 +13195,18 @@
                 overlay.dataset.postId = post.id;
                 overlay.classList.add('show');
 
+                const closeBtn = document.getElementById('modEditCloseBtn');
+                const cancelBtn = document.getElementById('modEditCancelBtn');
+                const onClose = function (e) {
+                    e.stopPropagation();
+                    closeModEdit();
+                };
+                closeBtn.onclick = onClose;
+                cancelBtn.onclick = onClose;
+                overlay.onclick = function (e) {
+                    if (e.target === overlay) closeModEdit();
+                };
+
                 const saveBtn = document.getElementById('modEditSaveBtn');
                 saveBtn.onclick = async function () {
                     const title = document.getElementById('modEditTitle').value.trim();
@@ -13725,6 +13747,28 @@
                 const posts = await fetchModPosts();
                 modPosts = posts;
 
+                if (posts.length > 0 && supabaseClient) {
+                    try {
+                        const postIds = posts.map(p => p.id);
+                        const [likesRes, thanksRes, commentsRes] = await Promise.all([
+                            supabaseClient.from('mod_likes').select('post_id').in('post_id', postIds),
+                            supabaseClient.from('mod_thanks').select('post_id').in('post_id', postIds),
+                            supabaseClient.from('mod_comments').select('post_id').in('post_id', postIds)
+                        ]);
+                        const likesMap = {};
+                        const thanksMap = {};
+                        const commentsMap = {};
+                        if (likesRes.data) likesRes.data.forEach(l => { likesMap[l.post_id] = (likesMap[l.post_id] || 0) + 1; });
+                        if (thanksRes.data) thanksRes.data.forEach(t => { thanksMap[t.post_id] = (thanksMap[t.post_id] || 0) + 1; });
+                        if (commentsRes.data) commentsRes.data.forEach(c => { commentsMap[c.post_id] = (commentsMap[c.post_id] || 0) + 1; });
+                        posts.forEach(p => {
+                            p.likes_count = likesMap[p.id] || p.likes_count || 0;
+                            p.thanks_count = thanksMap[p.id] || p.thanks_count || 0;
+                            p.comments_count = commentsMap[p.id] || p.comments_count || 0;
+                        });
+                    } catch (_) { }
+                }
+
                 if (posts.length === 0 && modPage === 0) {
                     listEl.innerHTML = '';
                     if (emptyEl) emptyEl.style.display = '';
@@ -14012,6 +14056,19 @@
                 const overlay = document.getElementById('modDetailOverlay');
                 const container = document.getElementById('modDetailContainer');
                 if (!overlay || !container) return;
+
+                if (supabaseClient) {
+                    try {
+                        const [likesRes, thanksRes, commentsRes] = await Promise.all([
+                            supabaseClient.from('mod_likes').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
+                            supabaseClient.from('mod_thanks').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
+                            supabaseClient.from('mod_comments').select('id', { count: 'exact', head: true }).eq('post_id', post.id)
+                        ]);
+                        post.likes_count = likesRes.count || post.likes_count || 0;
+                        post.thanks_count = thanksRes.count || post.thanks_count || 0;
+                        post.comments_count = commentsRes.count || post.comments_count || 0;
+                    } catch (_) { }
+                }
 
                 const isOwn = currentUser && post.user_id === currentUser.id;
                 const typeClass = MOD_TYPE_CLASSES[post.mod_type] || 'other';
