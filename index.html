@@ -4716,6 +4716,7 @@
             display: flex;
             gap: 0;
             width: 100%;
+            max-height: 1870px;
             filter: drop-shadow(0 16px 64px rgba(60, 30, 80, 0.25));
         }
 
@@ -4728,7 +4729,9 @@
             border-right: none;
             padding: 35px 40px;
             position: relative;
-            min-height: 850px;
+            min-height: auto;
+            max-height: 1870px;
+            overflow-y: auto;
         }
 
         .diary-page-left::before {
@@ -4751,7 +4754,8 @@
             border-left: 1px dashed rgba(213, 207, 224, 0.50);
             padding: 35px 40px;
             position: relative;
-            min-height: 850px;
+            min-height: auto;
+            max-height: 1870px;
             overflow: hidden;
             transform-origin: left center;
             backface-visibility: hidden;
@@ -4970,8 +4974,8 @@
         }
 
         .screenshot-thumb {
-            width: 150px;
-            height: 95px;
+            width: 100px;
+            height: 70px;
             border-radius: 8px;
             overflow: hidden;
             flex-shrink: 0;
@@ -4991,8 +4995,8 @@
 
         /* GIF截图 - 固定宽度，保持原始比例 */
         .screenshot-thumb.gif-thumb {
-            width: 150px;
-            height: 95px;
+            width: 100px;
+            height: 70px;
             overflow: hidden;
         }
 
@@ -12000,7 +12004,7 @@
                 const gameChinese = game.hasChinese || '';
                 const gameRelease = game.releaseDate || '';
                 const gamePlatforms = Array.isArray(game.platforms) ? game.platforms.join('、') : (game.platforms || '');
-                const gameScreenshots = Array.isArray(game.screenshots) ? game.screenshots.slice(0, 4) : [];
+                const gameScreenshots = Array.isArray(game.screenshots) ? game.screenshots.slice(0, 2) : [];
 
                 const starsHtml = r.rating ?
                     `${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}` :
