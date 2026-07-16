@@ -1893,6 +1893,53 @@
    ★★★ 详情页 — 全新排版 (桌面端两栏 / 移动端单栏) ★★★
    ================================================================ */
 
+        /* 材质纹理：纸质+噪点+内阴影+光晕 */
+        .texture-card {
+            position: relative;
+            background-color: rgba(248, 244, 252, 0.72);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.035) 3px,
+                    rgba(155, 138, 189, 0.035) 4px
+                );
+            border: 1px solid rgba(190, 180, 210, 0.5);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 rgba(60, 30, 80, 0.04),
+                inset 2px 0 8px rgba(155, 138, 189, 0.04),
+                inset -2px 0 8px rgba(155, 138, 189, 0.04),
+                0 1px 3px rgba(60, 30, 80, 0.06),
+                0 6px 20px rgba(60, 30, 80, 0.05);
+            overflow: hidden;
+        }
+
+        .texture-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, transparent 35%),
+                radial-gradient(ellipse at 10% 5%, rgba(255, 255, 255, 0.12) 0%, transparent 35%),
+                radial-gradient(ellipse at 15% 10%, rgba(155, 138, 189, 0.08) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .texture-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+            z-index: 0;
+        }
+
+        .texture-card > * { position: relative; z-index: 1; }
+
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -2116,10 +2163,8 @@
         /* ---------- 详细简介 ---------- */
         .detail-description {
             grid-area: desc;
-            background: var(--surface2);
             border-radius: 14px;
             padding: 16px 20px;
-            border: 1px solid var(--border);
             font-size: 0.92rem;
             line-height: 1.8;
             color: var(--text);
@@ -2130,10 +2175,8 @@
         /* ---------- 底部：其他信息 + 实机展示图 ---------- */
         .detail-other-info {
             grid-area: other;
-            background: var(--surface2);
             border-radius: 14px;
             padding: 16px 18px;
-            border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -2208,10 +2251,8 @@
         /* ---------- 截图区域：根据张数自适应 ---------- */
         .detail-screenshots {
             grid-area: screenshots;
-            background: var(--surface2);
             border-radius: 14px;
             padding: 16px 18px;
-            border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             min-height: 0;
@@ -2748,6 +2789,157 @@
 
         .mod-report-submit:hover {
             background: #dc2626;
+        }
+
+        /* MOD 编辑弹窗 */
+        .mod-edit-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .mod-edit-overlay.show {
+            display: flex;
+        }
+
+        .mod-edit-modal {
+            background: var(--surface2);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 16px 64px rgba(60, 30, 80, 0.25);
+        }
+
+        .mod-edit-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mod-edit-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .mod-edit-close {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: var(--text3);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .mod-edit-close:hover {
+            color: var(--text);
+            background: var(--tag-bg);
+        }
+
+        .mod-edit-body {
+            padding: 16px 20px;
+        }
+
+        .mod-edit-body .form-group {
+            margin-bottom: 12px;
+        }
+
+        .mod-edit-body .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 3px;
+            color: var(--text2);
+        }
+
+        .mod-edit-body .form-group input,
+        .mod-edit-body .form-group select,
+        .mod-edit-body .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.88rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .mod-edit-body .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .mod-edit-body .form-group input:focus,
+        .mod-edit-body .form-group select:focus,
+        .mod-edit-body .form-group textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        .mod-edit-body .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mod-edit-body .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .mod-edit-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .mod-edit-footer .btn {
+            padding: 7px 18px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .mod-edit-footer .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .mod-edit-footer .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .mod-edit-footer .btn-primary:hover {
+            background: var(--accent2);
+            border-color: var(--accent2);
+            color: #fff;
         }
 
         /* ================================================================
@@ -7966,6 +8158,22 @@
             background: rgba(192, 57, 43, 0.08);
         }
 
+        .mod-post-edit-btn {
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .mod-post-edit-btn:hover {
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
+        }
+
         .mod-post-link-btn {
             display: inline-flex;
             align-items: center;
@@ -8597,6 +8805,51 @@
             <div class="mod-report-footer">
                 <button class="mod-report-cancel" onclick="closeModReport()">取消</button>
                 <button class="mod-report-submit" onclick="submitModReport()">提交举报</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOD 编辑弹窗 -->
+    <div class="mod-edit-overlay" id="modEditOverlay" onclick="if(event.target===this)closeModEdit();">
+        <div class="mod-edit-modal">
+            <div class="mod-edit-header">
+                <span class="mod-edit-title">✏️ 编辑 MOD 分享</span>
+                <button class="mod-edit-close" onclick="closeModEdit()">✕</button>
+            </div>
+            <div class="mod-edit-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>游戏名称</label>
+                        <input type="text" id="modEditGameName" placeholder="输入游戏名称..." />
+                    </div>
+                    <div class="form-group">
+                        <label>MOD 类型</label>
+                        <select id="modEditType">
+                            <option value="翻译补丁">🌐 翻译补丁</option>
+                            <option value="模型MOD">🧱 模型MOD</option>
+                            <option value="美化MOD">✨ 美化MOD</option>
+                            <option value="功能MOD">⚙️ 功能MOD</option>
+                            <option value="剧情MOD">📖 剧情MOD</option>
+                            <option value="其他">📦 其他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" id="modEditTitle" placeholder="MOD标题..." maxlength="100" />
+                </div>
+                <div class="form-group">
+                    <label>MOD 下载/分享链接</label>
+                    <input type="url" id="modEditLink" placeholder="https://..." />
+                </div>
+                <div class="form-group">
+                    <label>详细描述（选填）</label>
+                    <textarea id="modEditContent" placeholder="描述你的MOD内容、使用方法、注意事项等..." rows="5" maxlength="2000"></textarea>
+                </div>
+            </div>
+            <div class="mod-edit-footer">
+                <button class="btn" onclick="closeModEdit()">取消</button>
+                <button class="btn btn-primary" id="modEditSaveBtn">💾 保存修改</button>
             </div>
         </div>
     </div>
@@ -11501,11 +11754,11 @@
                                 </div>
                             </div>
 
-                            <div class="detail-description">
+                            <div class="detail-description texture-card">
                                 ${escapeHTML(game.fullDescription || game.description || '暂无简介')}
                             </div>
 
-                            <div class="detail-other-info">
+                            <div class="detail-other-info texture-card">
                                 <table class="detail-info-table">
                                     ${otherRows}
                                 </table>
@@ -11513,7 +11766,7 @@
                                 ${linksHTML}
                             </div>
 
-                            <div class="detail-screenshots">
+                            <div class="detail-screenshots texture-card">
                                 <h3>📸 游戏截图</h3>
                                 <div class="${screenshotsGridClass}">
                                     ${screenshotsHTML}
@@ -12908,6 +13161,71 @@
                 }
             }
 
+            async function updateModPost(postId, updates) {
+                if (!currentUser || !supabaseClient) return false;
+                try {
+                    const { error } = await supabaseClient.from('mod_posts')
+                        .update(updates).eq('id', postId).eq('user_id', currentUser.id);
+                    if (error) throw error;
+                    return true;
+                } catch (e) {
+                    console.error('❌ 更新MOD失败:', e);
+                    return false;
+                }
+            }
+
+            function openModEdit(post) {
+                if (!post || !currentUser) return;
+                const overlay = document.getElementById('modEditOverlay');
+                document.getElementById('modEditGameName').value = post.game_name || '';
+                document.getElementById('modEditType').value = post.mod_type || '其他';
+                document.getElementById('modEditTitle').value = post.title || '';
+                document.getElementById('modEditLink').value = post.mod_link || '';
+                document.getElementById('modEditContent').value = post.content || '';
+                overlay.dataset.postId = post.id;
+                overlay.classList.add('show');
+
+                const saveBtn = document.getElementById('modEditSaveBtn');
+                saveBtn.onclick = async function () {
+                    const title = document.getElementById('modEditTitle').value.trim();
+                    const gameName = document.getElementById('modEditGameName').value.trim();
+                    const modLink = document.getElementById('modEditLink').value.trim();
+                    if (!title) { showToast('请输入标题', 1500); return; }
+                    if (!gameName) { showToast('请输入游戏名称', 1500); return; }
+                    if (!modLink) { showToast('请输入MOD链接', 1500); return; }
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = '保存中...';
+                    const ok = await updateModPost(post.id, {
+                        title,
+                        game_name: gameName,
+                        mod_type: document.getElementById('modEditType').value,
+                        mod_link: modLink,
+                        content: document.getElementById('modEditContent').value.trim() || null
+                    });
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 保存修改';
+                    if (ok) {
+                        showToast('✅ 修改已保存', 1500);
+                        closeModEdit();
+                        Object.assign(post, {
+                            title, game_name: gameName,
+                            mod_type: document.getElementById('modEditType').value,
+                            mod_link: modLink,
+                            content: document.getElementById('modEditContent').value.trim() || null
+                        });
+                        await renderModPostList();
+                    } else {
+                        showToast('⚠️ 保存失败，请重试', 2000);
+                    }
+                };
+            }
+
+            function closeModEdit() {
+                const overlay = document.getElementById('modEditOverlay');
+                overlay.classList.remove('show');
+                delete overlay.dataset.postId;
+            }
+
             async function toggleForceBadge(postId, field) {
                 if (!isAdmin || !supabaseClient) return;
                 const post = modPosts.find(p => p.id === postId);
@@ -13443,6 +13761,8 @@
                     const typeIcon = MOD_TYPE_ICONS[post.mod_type] || '📦';
                     const liked = likedSet.has(post.id);
                     const thanked = thankedSet.has(post.id);
+                    const editHtml = isOwn ?
+                        `<button class="mod-post-edit-btn" data-post-id="${post.id}">✏️ 编辑</button>` : '';
                     const deleteHtml = isOwn ?
                         `<button class="mod-post-delete-btn" data-post-id="${post.id}">🗑 删除</button>` : '';
                     const reportHtml = !isOwn ?
@@ -13501,6 +13821,7 @@
                                     🔗 查看MOD
                                 </a>
                                 ${reportHtml}
+                                ${editHtml}
                                 ${deleteHtml}
                             </div>
                         </div>`;
@@ -13512,7 +13833,7 @@
 
                 listEl.querySelectorAll('.mod-post-item').forEach(item => {
                     item.addEventListener('click', function (e) {
-                        if (e.target.closest('.mod-post-action-btn') || e.target.closest('.mod-post-link-btn') || e.target.closest('.mod-post-delete-btn')) return;
+                        if (e.target.closest('.mod-post-action-btn') || e.target.closest('.mod-post-link-btn') || e.target.closest('.mod-post-delete-btn') || e.target.closest('.mod-post-edit-btn')) return;
                         const postId = Number(this.dataset.postId);
                         const post = modPosts.find(p => p.id === postId);
                         if (post) openModDetail(post);
@@ -13557,6 +13878,15 @@
                         const userId = this.dataset.userId;
                         if (!userId) return;
                         await showAuthorCard(userId, this);
+                    });
+                });
+
+                listEl.querySelectorAll('.mod-post-edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const postId = Number(this.dataset.postId);
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post) openModEdit(post);
                     });
                 });
 
@@ -13740,6 +14070,8 @@
                         🔑 <a style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="closeModDetail();openAuthModal();">登录</a> 后即可评论
                     </div>`;
 
+                const editHtml = isOwn ?
+                    `<button class="btn btn-sm" id="modDetailEditBtn" style="color:var(--accent);border-color:var(--accent);">✏️ 编辑</button>` : '';
                 const deleteHtml = (isOwn || isAdmin) ?
                     `<button class="btn btn-sm" id="modDetailDeleteBtn" style="color:var(--danger);border-color:var(--danger);">🗑 删除</button>` : '';
 
@@ -13788,6 +14120,7 @@
                                 </button>
                             </div>
                         </div>` : ''}
+                        ${editHtml}
                         ${deleteHtml}
                     </div>
                     ${thanksListHtml}
@@ -13833,6 +14166,13 @@
                     authorEl.addEventListener('click', async function () {
                         const userId = this.dataset.userId;
                         if (userId) await showAuthorCard(userId, this);
+                    });
+                }
+
+                const editBtn = container.querySelector('#modDetailEditBtn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', function () {
+                        openModEdit(post);
                     });
                 }
 
