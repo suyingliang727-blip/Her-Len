@@ -13249,23 +13249,31 @@
             }
 
             async function toggleForceBadge(postId, field) {
-                if (!isAdmin || !supabaseClient) return;
+                if (!isAdmin || !supabaseClient) {
+                    showToast('⚠️ 管理员未登录', 2000);
+                    return;
+                }
                 const post = modPosts.find(p => p.id === postId);
-                if (!post) return;
+                if (!post) {
+                    showToast('⚠️ 找不到帖子', 2000);
+                    return;
+                }
                 const newVal = !post[field];
+                const label = field === 'force_hot' ? '热榜' : '精选';
                 try {
-                    const { error } = await supabaseClient.from('mod_posts')
-                        .update({ [field]: newVal }).eq('id', postId);
+                    const { data, error } = await supabaseClient.from('mod_posts')
+                        .update({ [field]: newVal }).eq('id', postId).select();
                     if (error) throw error;
                     post[field] = newVal;
-                    const label = field === 'force_hot' ? '热榜' : '精选';
                     showToast(newVal ? `✅ 已设为${label}` : `✅ 已取消${label}`, 1500);
-                    renderModPostList();
+                    await renderModPostList();
                 } catch (e) {
                     console.error('❌ 更新徽章失败:', e);
-                    showToast('⚠️ 操作失败', 2000);
+                    const msg = e.message || e.error?.message || '未知错误';
+                    showToast(`⚠️ 操作失败: ${msg}`, 3000);
                 }
             }
+            window.toggleForceBadge = toggleForceBadge;
 
             async function toggleModLike(postId) {
                 if (!currentUser || !supabaseClient) {
