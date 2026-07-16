@@ -4416,7 +4416,7 @@
         .diary-cover {
             text-align: center;
             padding: 75px 60px;
-            background: 
+            background:
                 repeating-linear-gradient(
                     0deg,
                     transparent,
@@ -4437,11 +4437,25 @@
             max-width: 675px;
             margin: 80px auto;
             width: 90%;
-            box-shadow: 
-                0 16px 64px rgba(60, 30, 80, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 -1px 0 rgba(213, 207, 224, 0.2);
+            box-shadow:
+                0 20px 60px rgba(60, 30, 80, 0.15),
+                inset 0 2px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -2px 4px rgba(213, 207, 224, 0.2);
             position: relative;
+            overflow: hidden;
+        }
+
+        .diary-cover::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            border: 1px solid rgba(213, 207, 224, 0.30);
+            border-radius: 12px;
+            pointer-events: none;
+            z-index: 1;
         }
 
         .diary-cover::before {
@@ -4452,15 +4466,18 @@
             right: 0;
             bottom: 0;
             border-radius: 20px;
-            background: 
-                radial-gradient(ellipse at 20% 20%, rgba(155, 138, 189, 0.08) 0%, transparent 50%),
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(155, 138, 189, 0.10) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 80%, rgba(155, 138, 189, 0.06) 0%, transparent 50%);
             pointer-events: none;
+            z-index: 2;
         }
 
         .diary-cover-icon {
             font-size: 6rem;
             margin-bottom: 18px;
+            position: relative;
+            z-index: 3;
         }
 
         .diary-cover-title {
@@ -4468,6 +4485,8 @@
             font-weight: 700;
             color: #3d3546;
             margin-bottom: 30px;
+            position: relative;
+            z-index: 3;
         }
 
         .diary-cover-user {
@@ -4590,9 +4609,65 @@
         }
 
         /* 日记展开 - 桌面端左右分栏 */
+        /* 日记翻页动画 */
+        .diary-flip-out {
+            animation: diaryFlipOut 0.4s ease forwards;
+        }
+
+        .diary-flip-in {
+            animation: diaryFlipIn 0.4s ease forwards;
+        }
+
+        .diary-slide-out-left {
+            animation: diarySlideOutLeft 0.35s ease forwards;
+        }
+
+        .diary-slide-in-right {
+            animation: diarySlideInRight 0.35s ease forwards;
+        }
+
+        .diary-slide-in-left {
+            animation: diarySlideInLeft 0.35s ease forwards;
+        }
+
+        .diary-slide-out-right {
+            animation: diarySlideOutRight 0.35s ease forwards;
+        }
+
+        @keyframes diaryFlipOut {
+            0% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+            100% { transform: perspective(1500px) rotateY(-15deg); opacity: 0; }
+        }
+
+        @keyframes diaryFlipIn {
+            0% { transform: perspective(1500px) rotateY(15deg); opacity: 0; }
+            100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+        }
+
+        @keyframes diarySlideOutLeft {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-30px); opacity: 0; }
+        }
+
+        @keyframes diarySlideInRight {
+            0% { transform: translateX(30px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes diarySlideInLeft {
+            0% { transform: translateX(-30px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes diarySlideOutRight {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(30px); opacity: 0; }
+        }
+
         .diary-entry-wrapper {
             width: 100%;
             max-width: 1200px;
+            transform-origin: center center;
         }
 
         .diary-spread {
@@ -4774,30 +4849,53 @@
         }
 
         .game-screenshots {
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .screenshots-title {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: #9b8abd;
-            margin-bottom: 10px;
-            font-weight: 500;
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .screenshots-scroll {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             overflow-x: auto;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(155, 138, 189, 0.3) transparent;
+        }
+
+        .screenshots-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .screenshots-scroll::-webkit-scrollbar-thumb {
+            background: rgba(155, 138, 189, 0.3);
+            border-radius: 3px;
+        }
+
+        .screenshots-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(155, 138, 189, 0.5);
         }
 
         .screenshot-thumb {
-            width: 80px;
-            height: 50px;
+            width: 120px;
+            height: 75px;
             border-radius: 6px;
             overflow: hidden;
             flex-shrink: 0;
             border: 1px solid rgba(213, 207, 224, 0.35);
+            transition: transform 0.2s;
+        }
+
+        .screenshot-thumb:hover {
+            transform: scale(1.05);
         }
 
         .screenshot-thumb img {
@@ -4809,13 +4907,13 @@
         /* GIF截图 - 不裁剪，保持原始比例 */
         .screenshot-thumb.gif-thumb {
             width: auto;
-            height: 50px;
+            height: 75px;
             overflow: visible;
         }
 
         .screenshot-thumb.gif-thumb img.gif-screenshot {
             object-fit: contain;
-            max-height: 50px;
+            max-height: 75px;
             width: auto;
             height: auto;
         }
@@ -5907,6 +6005,14 @@
             .diary-cover {
                 padding: 40px 30px;
                 margin: 30px auto;
+            }
+
+            .diary-cover::after {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+                bottom: 8px;
+                border-radius: 10px;
             }
 
             .diary-cover-icon {
@@ -11056,7 +11162,8 @@
                         }
                         const wrapClass = 'screenshot-wrap' + (isGif ? ' gif-img' : '');
                         const badge = isGif ? '<span class="gif-badge">GIF</span>' : '';
-                        return `<div class="${wrapClass}"><img src="${escapeHTML(url)}" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}" loading="lazy" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />${badge}</div>`;
+                        const loadingAttr = isGif ? '' : 'loading="lazy"'; // GIF不使用lazy加载，避免浏览器懒加载占位符干扰动画播放
+                        return `<div class="${wrapClass}"><img ${loadingAttr} src="${escapeHTML(url)}" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />${badge}</div>`;
                     }).join('');
                 } else {
                     screenshotsHTML = `<div style="color:var(--text3);font-size:0.85rem;padding:8px 0;">暂无截图</div>`;
@@ -11663,8 +11770,16 @@
             }
 
             function showDiaryCover() {
-                document.getElementById('diaryCoverView').style.display = '';
-                document.getElementById('diaryContentView').style.display = 'none';
+                const coverView = document.getElementById('diaryCoverView');
+                const contentView = document.getElementById('diaryContentView');
+                contentView.classList.add('diary-slide-out-right');
+                setTimeout(() => {
+                    contentView.style.display = 'none';
+                    contentView.classList.remove('diary-slide-out-right');
+                    coverView.classList.add('diary-slide-in-left');
+                    coverView.style.display = '';
+                    setTimeout(() => coverView.classList.remove('diary-slide-in-left'), 400);
+                }, 300);
                 
                 const reviews = userData.reviews || [];
                 const played = userData.played || [];
@@ -11694,9 +11809,31 @@
             }
 
             function showDiaryContent() {
-                document.getElementById('diaryCoverView').style.display = 'none';
-                document.getElementById('diaryContentView').style.display = '';
-                renderDiaryContent();
+                const coverView = document.getElementById('diaryCoverView');
+                const contentView = document.getElementById('diaryContentView');
+                coverView.classList.add('diary-slide-out-left');
+                setTimeout(() => {
+                    coverView.style.display = 'none';
+                    coverView.classList.remove('diary-slide-out-left');
+                    contentView.classList.add('diary-slide-in-right');
+                    contentView.style.display = '';
+                    renderDiaryContent();
+                    setTimeout(() => contentView.classList.remove('diary-slide-in-right'), 400);
+                }, 300);
+            }
+
+            // 翻页动效
+            function flipDiaryPage(direction) {
+                const wrapper = document.querySelector('.diary-entry-wrapper');
+                if (!wrapper) return;
+                const outClass = direction === 'next' ? 'diary-flip-out' : 'diary-flip-in';
+                const inClass = direction === 'next' ? 'diary-flip-in' : 'diary-flip-out';
+                wrapper.classList.add(outClass);
+                setTimeout(() => {
+                    wrapper.classList.remove(outClass);
+                    wrapper.classList.add(inClass);
+                    setTimeout(() => wrapper.classList.remove(inClass), 400);
+                }, 200);
             }
 
             // 当前日记页码
@@ -11758,8 +11895,6 @@
                 const gameChinese = game.hasChinese || '';
                 const gameRelease = game.releaseDate || '';
                 const gamePlatforms = Array.isArray(game.platforms) ? game.platforms.join('、') : (game.platforms || '');
-                const gameDuration = game.mainStoryDuration || '';
-                const gamePrice = game.lowestPrice || '';
                 const gameScreenshots = Array.isArray(game.screenshots) ? game.screenshots.slice(0, 4) : [];
 
                 const starsHtml = r.rating ?
@@ -11800,8 +11935,6 @@
                 if (gameChinese) infoItems += `<div class="game-info-item"><span class="game-info-label">🌐 中文</span><span class="game-info-value">${escapeHTML(gameChinese)}</span></div>`;
                 if (gameRelease) infoItems += `<div class="game-info-item"><span class="game-info-label">📅 发行日期</span><span class="game-info-value">${escapeHTML(gameRelease)}</span></div>`;
                 if (gamePlatforms) infoItems += `<div class="game-info-item"><span class="game-info-label">🖥 平台</span><span class="game-info-value">${escapeHTML(gamePlatforms)}</span></div>`;
-                if (gameDuration) infoItems += `<div class="game-info-item"><span class="game-info-label">⏰ 主线时长</span><span class="game-info-value">${escapeHTML(gameDuration)}</span></div>`;
-                if (gamePrice) infoItems += `<div class="game-info-item"><span class="game-info-label">💰 最低价格</span><span class="game-info-value">${escapeHTML(gamePrice)}</span></div>`;
 
                 const html = `
                     <div class="diary-entry-wrapper">
@@ -11884,13 +12017,15 @@
                 document.getElementById('diaryPrevBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage > 0) {
                         diaryCurrentPage--;
-                        renderDiaryPage();
+                        flipDiaryPage('prev');
+                        setTimeout(() => renderDiaryPage(), 200);
                     }
                 });
                 document.getElementById('diaryNextBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage < diarySortedReviews.length - 1) {
                         diaryCurrentPage++;
-                        renderDiaryPage();
+                        flipDiaryPage('next');
+                        setTimeout(() => renderDiaryPage(), 200);
                     }
                 });
             }
