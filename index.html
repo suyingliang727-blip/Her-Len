@@ -4716,7 +4716,7 @@
             display: flex;
             gap: 0;
             width: 100%;
-            max-height: 1870px;
+            max-height: 1590px;
             filter: drop-shadow(0 16px 64px rgba(60, 30, 80, 0.25));
         }
 
@@ -4727,10 +4727,10 @@
             border-radius: 20px 0 0 20px;
             border: 1px solid rgba(213, 207, 224, 0.35);
             border-right: none;
-            padding: 35px 40px;
+            padding: 30px 35px;
             position: relative;
             min-height: auto;
-            max-height: 1870px;
+            max-height: 1590px;
             overflow-y: auto;
         }
 
@@ -4752,10 +4752,10 @@
             border-radius: 0 20px 20px 0;
             border: 1px solid rgba(213, 207, 224, 0.35);
             border-left: 1px dashed rgba(213, 207, 224, 0.50);
-            padding: 35px 40px;
+            padding: 30px 35px;
             position: relative;
             min-height: auto;
-            max-height: 1870px;
+            max-height: 1590px;
             overflow: hidden;
             transform-origin: left center;
             backface-visibility: hidden;
@@ -12236,19 +12236,39 @@
                             if (progressText) progressText.textContent = '⏳ 正在处理GIF图片...';
                             if (progressBar) progressBar.style.width = '30%';
 
-                            // GIF图片处理：暂停所有动画，保留当前帧
+                            // GIF图片处理：等待所有GIF完全加载后，截取当前帧保留
                             const gifImages = entry.querySelectorAll('img[src*=".gif"], img[src*="gif"]');
-                            gifImages.forEach(img => {
-                                if (img.src) {
-                                    const canvas = document.createElement('canvas');
-                                    canvas.width = img.naturalWidth || img.width;
-                                    canvas.height = img.naturalHeight || img.height;
-                                    const ctx = canvas.getContext('2d');
-                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                    img.dataset.originalSrc = img.src;
-                                    img.src = canvas.toDataURL('image/png');
-                                }
-                            });
+                            if (gifImages.length > 0) {
+                                // 等待所有GIF图片完全加载
+                                await Promise.all(
+                                    Array.from(gifImages).map(img => {
+                                        return new Promise(resolve => {
+                                            if (img.complete && img.naturalWidth > 0) {
+                                                resolve();
+                                            } else {
+                                                img.onload = () => resolve();
+                                                img.onerror = () => resolve(); // 即使加载失败也继续
+                                                // 如果5秒后还没加载完成，也继续
+                                                setTimeout(resolve, 5000);
+                                            }
+                                        });
+                                    })
+                                );
+
+                                // 现在截取每帧GIF为PNG
+                                gifImages.forEach(img => {
+                                    if (img.src && img.naturalWidth > 0) {
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = img.naturalWidth;
+                                        canvas.height = img.naturalHeight;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                        img.dataset.originalSrc = img.src;
+                                        img.src = canvas.toDataURL('image/png');
+                                    }
+                                });
+                            }
 
                             if (progressText) progressText.textContent = '⏳ 正在渲染日记页面...';
                             if (progressBar) progressBar.style.width = '50%';
