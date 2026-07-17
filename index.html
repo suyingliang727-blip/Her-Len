@@ -5041,16 +5041,10 @@
                 radial-gradient(ellipse at 85% 10%, rgba(155,138,189,0.08) 0%, transparent 50%);
         }
 
-        /* texture-card 美化 - 内边框高光 */
+        /* 禁用日记页 texture-card 的 ::after，避免与书脊冲突 */
         .diary-page-left.texture-card::after,
         .diary-page-right.texture-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            pointer-events: none;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
-            z-index: 0;
+            display: none;
         }
 
         /* 书脊效果 */
@@ -10096,7 +10090,7 @@
                 setSyncStatus('syncing', '正在展开地图');
                 try {
                     const { data, error } = await client.from('games')
-                        .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
+                        .select('id, title, description, cover, genre, gameplay, platforms, screenshots, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
                         .neq('id', '1')
                         .neq('id', '2')
                         .order('id', { ascending: true });
@@ -10108,6 +10102,7 @@
                             genre: row.genre || [],
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
+                            screenshots: row.screenshots || [],
                             isReleased: row.isReleased !== undefined ? row.isReleased : true,
                             hasDemo: row.hasDemo || false,
                             isPSExclusive: row.isPSExclusive || false,
