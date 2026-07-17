@@ -5407,6 +5407,17 @@
             border-color: #c0392b;
         }
 
+        .diary-save-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .diary-save-btn[disabled] {
+            background: rgba(155, 138, 189, 0.5);
+            color: #fff;
+            border-color: rgba(155, 138, 189, 0.5);
+        }
+
         /* 底部操作栏 */
         .diary-bottom-bar {
             display: flex;
@@ -12545,7 +12556,9 @@
                             this.innerHTML = '';
                         }
                     });
-                    el.addEventListener('blur', function() {
+                    el.addEventListener('blur', function(e) {
+                        const related = e.relatedTarget;
+                        if (related && (related.classList.contains('diary-save-btn') || related.classList.contains('diary-delete-btn'))) return;
                         if (!this.textContent.trim()) {
                             this.innerHTML = '点击此处写下你的评论...';
                         }
@@ -12574,28 +12587,43 @@
 
                 document.querySelectorAll('.diary-save-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
-                        const gameId = Number(this.dataset.gameId);
+                        const btn = this;
+                        const gameId = Number(btn.dataset.gameId);
                         const el = document.querySelector(`.review-text[data-game-id="${gameId}"]`);
-                        if (!el) return;
+                        if (!el) { showToast('⚠️ 未找到编辑区', 1500); return; }
                         const rawHtml = el.innerHTML || '';
                         const textContent = el.textContent || '';
                         const isPlaceholder = textContent === '点击此处写下你的评论...';
                         const cleanText = isPlaceholder ? null : sanitizeCommentHTML(rawHtml).trim() || null;
                         const review = userData.reviews.find(r => r.game_id === gameId);
-                        if (review) {
+                        if (!review) { showToast('⚠️ 未找到评论数据', 1500); return; }
+
+                        const origText = btn.textContent;
+                        btn.disabled = true;
+                        btn.textContent = '⏳ 保存中...';
+
+                        try {
                             review.comment = cleanText;
                             review.updated_at = new Date().toISOString();
                             saveUserData();
+
+                            let cloudOk = true;
                             if (SUPABASE_ENABLED && supabaseClient && currentUser) {
                                 const { error } = await supabaseClient.from('user_reviews')
                                     .update({ comment: cleanText, updated_at: review.updated_at })
                                     .eq('user_id', currentUser.id)
                                     .eq('game_id', gameId);
-                                if (error) {
-                                    showToast('云端同步失败', 1500);
-                                }
+                                if (error) { cloudOk = false; console.error('云端同步失败:', error); }
                             }
-                            showToast('保存成功！');
+
+                            btn.textContent = '✅ 已保存';
+                            showToast(cloudOk ? '✅ 保存成功（已云端同步）' : '✅ 本地已保存（云端同步失败）', 2000);
+                            setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 1500);
+                        } catch (e) {
+                            console.error('保存失败:', e);
+                            btn.textContent = '❌ 失败';
+                            showToast('❌ 保存失败: ' + (e.message || '未知错误'), 2500);
+                            setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
                         }
                     });
                 });
