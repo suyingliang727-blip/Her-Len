@@ -4962,7 +4962,6 @@
             background: rgba(250, 247, 253, 0.82);
             border-radius: 0 20px 20px 0;
             border: 1px solid rgba(213, 207, 224, 0.35);
-            border-left: 1px dashed rgba(213, 207, 224, 0.50);
             padding: 20px 25px;
             position: relative;
             overflow: hidden;
@@ -5023,51 +5022,47 @@
             border-radius: 0 20px 20px 0;
         }
 
-        /* texture-card 美化 - 左页：合并书脊阴影 + 光泽叠层 */
+        /* texture-card 美化 - 左页：中心折痕阴影 + 光泽叠层 */
         .diary-page-left.texture-card::before {
             background:
-                linear-gradient(90deg, rgba(60, 30, 80, 0.08) 0%, transparent 30px),
+                linear-gradient(90deg, rgba(60, 30, 80, 0.06) 0%, transparent 20px),
                 linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 35%),
                 radial-gradient(ellipse at 10% 5%, rgba(255,255,255,0.12) 0%, transparent 35%),
                 radial-gradient(ellipse at 15% 10%, rgba(155,138,189,0.08) 0%, transparent 50%);
         }
 
-        /* texture-card 美化 - 右页：合并书脊阴影 + 光泽叠层 */
+        /* texture-card 美化 - 右页：中心折痕阴影 + 光泽叠层 */
         .diary-page-right.texture-card::before {
             background:
-                linear-gradient(-90deg, rgba(60, 30, 80, 0.08) 0%, transparent 30px),
+                linear-gradient(-90deg, rgba(60, 30, 80, 0.06) 0%, transparent 20px),
                 linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 35%),
                 radial-gradient(ellipse at 90% 5%, rgba(255,255,255,0.12) 0%, transparent 35%),
                 radial-gradient(ellipse at 85% 10%, rgba(155,138,189,0.08) 0%, transparent 50%);
         }
 
-        /* 禁用日记页 texture-card 的 ::after，避免与书脊冲突 */
-        .diary-page-left.texture-card::after,
-        .diary-page-right.texture-card::after {
-            display: none;
-        }
-
-        /* 书脊效果 */
-        .diary-spine {
-            width: 20px;
-            background: linear-gradient(90deg, rgba(213, 207, 224, 0.50) 0%, rgba(213, 207, 224, 0.70) 50%, rgba(213, 207, 224, 0.50) 100%);
-            position: relative;
-        }
-
-        .diary-spine::before,
-        .diary-spine::after {
+        /* 无书脊模式 - 左页右侧阴影（模拟书页中缝） */
+        .diary-page-left.texture-card::after {
             content: '';
             position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 8px;
-            height: 8px;
-            background: #9b8abd;
-            border-radius: 50%;
+            right: 0; top: 0; bottom: 0;
+            width: 12px;
+            pointer-events: none;
+            border-radius: inherit;
+            box-shadow: inset -4px 0 8px -2px rgba(60, 30, 80, 0.10);
+            z-index: 2;
         }
 
-        .diary-spine::before { top: 20px; }
-        .diary-spine::after { bottom: 20px; }
+        /* 无书脊模式 - 右页左侧阴影（模拟书页中缝） */
+        .diary-page-right.texture-card::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 12px;
+            pointer-events: none;
+            border-radius: inherit;
+            box-shadow: inset 4px 0 8px -2px rgba(60, 30, 80, 0.10);
+            z-index: 2;
+        }
 
         /* 页面头部 */
         .page-header {
@@ -6185,11 +6180,6 @@
                 max-width: 130px;
                 font-size: 0.7rem;
                 padding: 2px 6px;
-            }
-
-            /* 隐藏书脊 */
-            .diary-spine {
-                display: none;
             }
 
             /* 游戏信息区 */
@@ -12581,8 +12571,7 @@
                     <div class="diary-entry-wrapper">
                         <div class="diary-spread" data-game-id="${r.game_id}">
                             <!-- 左页 - 游戏信息 -->
-                            <div class="diary-page-left texture-card">
-                                <div class="page-header">
+                            <div class="diary-page-left texture-card">                                <div class="page-header">
                                     <div class="page-brand">Her Lens</div>
                                     <div class="page-title">📖 游戏信息</div>
                                 </div>
@@ -12593,8 +12582,6 @@
                                 ${infoItems ? `<div class="game-info">${infoItems}</div>` : ''}
                                 ${screenshotsHtml}
                             </div>
-                            <!-- 书脊 -->
-                            <div class="diary-spine"></div>
                             <!-- 右页 - 评论内容 -->
                             <div class="diary-page-right texture-card">
                                 <div class="page-header">
