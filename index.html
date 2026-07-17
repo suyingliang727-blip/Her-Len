@@ -5326,6 +5326,7 @@
             max-height: 320px;
             overflow-y: auto;
             outline: none;
+            white-space: pre-wrap;
         }
 
         .review-text:focus {
@@ -9231,6 +9232,35 @@
                 return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             }
 
+            function sanitizeCommentHTML(html) {
+                if (!html) return '';
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                const allowed = ['B', 'U', 'S', 'FONT'];
+                (function walk(node) {
+                    [...node.childNodes].forEach(child => {
+                        if (child.nodeType === 1) {
+                            if (!allowed.includes(child.tagName)) {
+                                node.replaceChild(document.createTextNode(child.textContent), child);
+                            } else {
+                                [...child.attributes].forEach(attr => {
+                                    if (!(child.tagName === 'FONT' && attr.name === 'size')) child.removeAttribute(attr.name);
+                                });
+                                walk(child);
+                            }
+                        }
+                    });
+                })(div);
+                return div.innerHTML;
+            }
+
+            function stripCommentHTML(html) {
+                if (!html) return '';
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                return div.textContent || '';
+            }
+
             // URL转义 - 只转义HTML实体，不转义URL特殊字符
             function escapeURL(s) {
                 if (!s) return '';
@@ -9687,7 +9717,7 @@
                                     <div style="margin-top:6px;">
                                         <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
                                             <span style="font-weight:600;">我的评论：</span>
-                                            <span style="flex:1;word-break:break-word;">${escapeHTML(savedComment)}</span>
+                                            <span style="flex:1;word-break:break-word;">${stripCommentHTML(savedComment)}</span>
                                             <button class="btn btn-sm" id="editCommentBtn" style="padding:2px 10px;">编辑</button>
                                             <button class="btn btn-sm" id="deleteCommentBtn" style="padding:2px 10px;color:var(--danger);border-color:var(--danger);">删除</button>
                                         </div>
@@ -9772,7 +9802,7 @@
                                     if (exist) { exist.remove(); return; }
                                     const ea = document.createElement('div');
                                     ea.className = 'comment-edit-area';
-                                    ea.innerHTML = '<textarea maxlength="500">' + escapeHTML(savedComment) + '</textarea><div class="comment-edit-actions"><button class="btn btn-sm" id="cancelEditBtn">取消</button><button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button></div>';
+                                    ea.innerHTML = '<textarea maxlength="500">' + stripCommentHTML(savedComment) + '</textarea><div class="comment-edit-actions"><button class="btn btn-sm" id="cancelEditBtn">取消</button><button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button></div>';
                                     body.appendChild(ea);
                                     const ta = ea.querySelector('textarea');
                                     ta.focus();
@@ -11688,7 +11718,7 @@
                                 <div style="margin-top:6px;">
                                     <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
                                         <span style="font-weight:600;">我的评论：</span>
-                                        <span style="flex:1;word-break:break-word;">${escapeHTML(userComment)}</span>
+                                        <span style="flex:1;word-break:break-word;">${stripCommentHTML(userComment)}</span>
                                         <button class="btn btn-sm" id="editCommentBtn" style="padding:2px 10px;">编辑</button>
                                         <button class="btn btn-sm" id="deleteCommentBtn" style="padding:2px 10px;color:var(--danger);border-color:var(--danger);">删除</button>
                                     </div>
@@ -11932,7 +11962,7 @@
                             const editArea = document.createElement('div');
                             editArea.className = 'comment-edit-area';
                             editArea.innerHTML = `
-                                <textarea maxlength="500">${escapeHTML(userComment)}</textarea>
+                                <textarea maxlength="500">${stripCommentHTML(userComment)}</textarea>
                                 <div class="comment-edit-actions">
                                     <button class="btn btn-sm" id="cancelEditBtn">取消</button>
                                     <button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button>
@@ -12042,7 +12072,7 @@
                 }) : '';
                 const commentText = r.comment || '';
                 const shareBtnHtml =
-                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(commentText)}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-rating="${r.rating || ''}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
+                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-rating="${r.rating || ''}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 return `
                     <div class="comment-item">
                         <div class="comment-header">
@@ -12051,7 +12081,7 @@
                             ${stars}
                             <span class="comment-time">${time}</span>
                         </div>
-                        ${commentText ? `<div class="comment-text">${escapeHTML(commentText)}</div>` : ''}
+                        ${commentText ? `<div class="comment-text">${stripCommentHTML(commentText)}</div>` : ''}
                         <div class="comment-actions">
                             ${shareBtnHtml}
                         </div>
@@ -12454,7 +12484,7 @@
                                                 <option value="5">大号</option>
                                             </select>
                                         </div>
-                                        <div class="review-text" contenteditable="true" data-game-id="${r.game_id}">${escapeHTML(r.comment || '点击此处写下你的评论...')}</div>
+                                        <div class="review-text" contenteditable="true" data-game-id="${r.game_id}">${r.comment ? sanitizeCommentHTML(r.comment) : '点击此处写下你的评论...'}</div>
                                     </div>
                                 </div>
                             </div>
@@ -12509,6 +12539,19 @@
                     });
                 });
 
+                document.querySelectorAll('.review-text[data-game-id]').forEach(el => {
+                    el.addEventListener('focus', function() {
+                        if (this.textContent === '点击此处写下你的评论...') {
+                            this.innerHTML = '';
+                        }
+                    });
+                    el.addEventListener('blur', function() {
+                        if (!this.textContent.trim()) {
+                            this.innerHTML = '点击此处写下你的评论...';
+                        }
+                    });
+                });
+
                 document.querySelectorAll('.diary-date-input').forEach(input => {
                     input.addEventListener('change', async function() {
                         const gameId = Number(this.dataset.gameId);
@@ -12532,8 +12575,12 @@
                 document.querySelectorAll('.diary-save-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const gameId = Number(this.dataset.gameId);
-                        const reviewText = document.querySelector(`.review-text[data-game-id="${gameId}"]`)?.innerText || '';
-                        const cleanText = reviewText === '点击此处写下你的评论...' ? null : reviewText.trim() || null;
+                        const el = document.querySelector(`.review-text[data-game-id="${gameId}"]`);
+                        if (!el) return;
+                        const rawHtml = el.innerHTML || '';
+                        const textContent = el.textContent || '';
+                        const isPlaceholder = textContent === '点击此处写下你的评论...';
+                        const cleanText = isPlaceholder ? null : sanitizeCommentHTML(rawHtml).trim() || null;
                         const review = userData.reviews.find(r => r.game_id === gameId);
                         if (review) {
                             review.comment = cleanText;
