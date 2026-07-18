@@ -13145,32 +13145,47 @@
                     block.style.display = 'none';
                     return;
                 }
-                // 评分分布：5星(9-10) / 4星(7-8) / 3星(5-6) / 2星(3-4) / 1星(1-2)
-                let s5 = 0, s4 = 0, s3 = 0, s2 = 0, s1 = 0, totalHours = 0;
+                // 评分分布：10星(10) / 9星(9) / 8星(8) / 7星(7) / 6星(6) / 5星(5) / 4星(4) / 3星(3) / 2星(2) / 1星(1)
+                let s10 = 0, s9 = 0, s8 = 0, s7 = 0, s6 = 0, s5 = 0, s4 = 0, s3 = 0, s2 = 0, s1 = 0, totalHours = 0;
                 reviews.forEach(r => {
-                    const rating = r.rating || 0;
-                    if (rating >= 9) s5++;
-                    else if (rating >= 7) s4++;
-                    else if (rating >= 5) s3++;
-                    else if (rating >= 3) s2++;
+                    const rating = Math.round(r.rating) || 0;
+                    if (rating === 10) s10++;
+                    else if (rating === 9) s9++;
+                    else if (rating === 8) s8++;
+                    else if (rating === 7) s7++;
+                    else if (rating === 6) s6++;
+                    else if (rating === 5) s5++;
+                    else if (rating === 4) s4++;
+                    else if (rating === 3) s3++;
+                    else if (rating === 2) s2++;
                     else s1++;
                     totalHours += parseFloat(r.play_hours) || 0;
                 });
                 const total = reviews.length;
-                const p5End = (s5 / total * 100);
-                const p4End = p5End + (s4 / total * 100);
-                const p3End = p4End + (s3 / total * 100);
-                const p2End = p3End + (s2 / total * 100);
+                const p10 = s10 / total * 100;
+                const p9 = p10 + s9 / total * 100;
+                const p8 = p9 + s8 / total * 100;
+                const p7 = p8 + s7 / total * 100;
+                const p6 = p7 + s6 / total * 100;
+                const p5 = p6 + s5 / total * 100;
+                const p4 = p5 + s4 / total * 100;
+                const p3 = p4 + s3 / total * 100;
+                const p2 = p3 + s2 / total * 100;
 
                 block.style.display = 'flex';
                 block.innerHTML = `
                     <div class="diary-stats-chart">
                         <div class="diary-pie" style="background: conic-gradient(
-                            #f5b342 0% ${p5End}%,
-                            #9b8abd ${p5End}% ${p4End}%,
-                            #b5a9cf ${p4End}% ${p3End}%,
-                            #d0c4d8 ${p3End}% ${p2End}%,
-                            #e2dae8 ${p2End}% 100%
+                            #e74c3c 0% ${p10}%,
+                            #f5b342 ${p10}% ${p9}%,
+                            #f39c12 ${p9}% ${p8}%,
+                            #27ae60 ${p8}% ${p7}%,
+                            #2ecc71 ${p7}% ${p6}%,
+                            #3498db ${p6}% ${p5}%,
+                            #9b59b6 ${p5}% ${p4}%,
+                            #9b8abd ${p4}% ${p3}%,
+                            #b5a9cf ${p3}% ${p2}%,
+                            #e2dae8 ${p2}% 100%
                         );">
                             <div class="diary-pie-center">
                                 <div class="num">${total}</div>
@@ -13178,10 +13193,15 @@
                             </div>
                         </div>
                         <div class="diary-pie-legend">
-                            <div class="lg-item"><span class="lg-dot" style="background:#f5b342"></span>5星<span class="lg-count">${s5}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#9b8abd"></span>4星<span class="lg-count">${s4}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#b5a9cf"></span>3星<span class="lg-count">${s3}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#d0c4d8"></span>2星<span class="lg-count">${s2}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#e74c3c"></span>10星<span class="lg-count">${s10}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#f5b342"></span>9星<span class="lg-count">${s9}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#f39c12"></span>8星<span class="lg-count">${s8}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#27ae60"></span>7星<span class="lg-count">${s7}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#2ecc71"></span>6星<span class="lg-count">${s6}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#3498db"></span>5星<span class="lg-count">${s5}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#9b59b6"></span>4星<span class="lg-count">${s4}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#9b8abd"></span>3星<span class="lg-count">${s3}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#b5a9cf"></span>2星<span class="lg-count">${s2}</span></div>
                             <div class="lg-item"><span class="lg-dot" style="background:#e2dae8"></span>1星<span class="lg-count">${s1}</span></div>
                         </div>
                     </div>
