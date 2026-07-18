@@ -10469,12 +10469,15 @@
                     await deleteReview(gameId);
                     return;
                 }
+                const existingReview = userData.reviews.find(r => r.game_id === gameId);
+                const playHours = existingReview?.play_hours || 0;
                 const reviewData = {
                     game_id: Math.round(Number(gameId)),
                     user_id: currentUser.id,
                     rating: rating,
                     comment: comment || null,
-                    play_date: new Date().toISOString().split('T')[0],
+                    play_date: existingReview?.play_date || new Date().toISOString().split('T')[0],
+                    play_hours: playHours,
                     display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                     avatar_url: currentUser.user_metadata?.avatar_url || null
                 };
@@ -10493,6 +10496,7 @@
                         rating: rating,
                         comment: comment || null,
                         play_date: new Date().toISOString().split('T')[0],
+                        play_hours: 0,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
                     });
@@ -14055,7 +14059,7 @@
                             let cloudOk = true;
                             if (SUPABASE_ENABLED && supabaseClient && currentUser) {
                                 const { error } = await supabaseClient.from('user_reviews')
-                                    .update({ comment: cleanText, updated_at: review.updated_at })
+                                    .update({ comment: cleanText, updated_at: review.updated_at, play_hours: review.play_hours || 0 })
                                     .eq('user_id', currentUser.id)
                                     .eq('game_id', gameId);
                                 if (error) { cloudOk = false; console.error('云端同步失败:', error); }
