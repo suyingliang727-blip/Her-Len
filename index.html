@@ -10617,6 +10617,7 @@
                 updateFilterUI();
                 renderGallery();
             }
+            window.clearAllFilters = clearAllFilters;
 
             function removeFilter(cat, val) {
                 if (activeFilters[cat]) activeFilters[cat].delete(val);
