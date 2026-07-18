@@ -3133,7 +3133,7 @@
         /* ================================================================
    ★★★ 打赏弹窗 — 经典设计 ★★★
    ================================================================ */
-        #tipModalOverlay .modal-overlay {
+        #tipModalOverlay {
             background: var(--overlay);
             padding: 20px;
             display: flex;
@@ -3142,9 +3142,10 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity .3s;
+            z-index: 9999;
         }
 
-        #tipModalOverlay .modal-overlay.show {
+        #tipModalOverlay.show {
             opacity: 1;
             pointer-events: auto;
         }
@@ -3162,7 +3163,7 @@
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        #tipModalOverlay .modal-overlay.show .modal {
+        #tipModalOverlay.show .modal {
             transform: scale(1) translateY(0);
         }
 
@@ -3474,7 +3475,7 @@
             transform: rotate(90deg);
         }
 
-        #achievementModalOverlay .modal-overlay {
+        #achievementModalOverlay {
             background: var(--overlay);
             padding: 20px;
             display: flex;
@@ -3483,9 +3484,10 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity .3s;
+            z-index: 9999;
         }
 
-        #achievementModalOverlay .modal-overlay.show {
+        #achievementModalOverlay.show {
             opacity: 1;
             pointer-events: auto;
         }
@@ -3495,11 +3497,11 @@
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        #achievementModalOverlay .modal-overlay.show .modal {
+        #achievementModalOverlay.show .modal {
             transform: scale(1) translateY(0);
         }
 
-        #authModalOverlay .modal-overlay {
+        #authModalOverlay {
             background: var(--overlay);
             padding: 20px;
             display: flex;
@@ -3508,9 +3510,10 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity .3s;
+            z-index: 9999;
         }
 
-        #authModalOverlay .modal-overlay.show {
+        #authModalOverlay.show {
             opacity: 1;
             pointer-events: auto;
         }
@@ -3528,7 +3531,7 @@
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        #authModalOverlay .modal-overlay.show .modal {
+        #authModalOverlay.show .modal {
             transform: scale(1) translateY(0);
         }
 
@@ -3559,7 +3562,7 @@
             transform: rotate(90deg);
         }
 
-        #profileModalOverlay .modal-overlay {
+        #profileModalOverlay {
             background: var(--overlay);
             padding: 20px;
             display: flex;
@@ -3568,9 +3571,10 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity .3s;
+            z-index: 9999;
         }
 
-        #profileModalOverlay .modal-overlay.show {
+        #profileModalOverlay.show {
             opacity: 1;
             pointer-events: auto;
         }
@@ -3588,7 +3592,7 @@
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        #profileModalOverlay .modal-overlay.show .modal {
+        #profileModalOverlay.show .modal {
             transform: scale(1) translateY(0);
         }
 
@@ -3619,7 +3623,7 @@
             transform: rotate(90deg);
         }
 
-        #myReviewsModalOverlay .modal-overlay {
+        #myReviewsModalOverlay {
             background: var(--overlay);
             padding: 20px;
             display: flex;
@@ -3628,9 +3632,10 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity .3s;
+            z-index: 9999;
         }
 
-        #myReviewsModalOverlay .modal-overlay.show {
+        #myReviewsModalOverlay.show {
             opacity: 1;
             pointer-events: auto;
         }
@@ -3650,7 +3655,7 @@
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        #myReviewsModalOverlay .modal-overlay.show .modal {
+        #myReviewsModalOverlay.show .modal {
             transform: scale(1) translateY(0);
         }
 
@@ -6153,7 +6158,7 @@
                 width: 34px;
             }
 
-            #authModal .modal {
+            #authModalOverlay .modal {
                 max-width: 95%;
                 padding: 20px 16px;
             }
@@ -6188,7 +6193,7 @@
                 height: 34px;
             }
 
-            #profileModal .modal {
+            #profileModalOverlay .modal {
                 max-width: 95%;
                 padding: 20px 16px;
             }
@@ -6679,11 +6684,11 @@
                 border-radius: 14px;
             }
 
-            #authModal .modal {
+            #authModalOverlay .modal {
                 padding: 16px 12px;
             }
 
-            #profileModal .modal {
+            #profileModalOverlay .modal {
                 padding: 16px 12px;
             }
 
@@ -10364,7 +10369,7 @@
                 setSyncStatus('syncing', '正在展开地图');
                 try {
                     const { data, error } = await client.from('games')
-                        .select('id, title, description, cover, genre, gameplay, platforms, screenshots, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
+                        .select('id, title, description, cover, genre, gameplay, platforms, screenshots, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
                         .neq('id', '1')
                         .neq('id', '2')
                         .order('id', { ascending: true });
@@ -10379,6 +10384,7 @@
                             screenshots: row.screenshots || [],
                             isReleased: row.isReleased !== undefined ? row.isReleased : true,
                             hasDemo: row.hasDemo || false,
+                            hasMacSupport: row.hasMacSupport || '不支持Mac',
                             isPSExclusive: row.isPSExclusive || false,
                             isNSExclusive: row.isNSExclusive || false,
                         }));
