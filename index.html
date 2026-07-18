@@ -9899,28 +9899,46 @@
             <div class="guide-step active" data-step="1">
                 <span class="guide-step-icon">🎮</span>
                 <div class="guide-step-title">欢迎来到 Her Lens</div>
-                <div class="guide-step-desc">专注于女性主角游戏的推荐网站，帮你找到下一场冒险。</div>
+                <div class="guide-step-desc">专注于女性主角游戏的推荐网站，帮你找到下一场冒险。<br>这里有精选的游戏库、个人游戏日记和社区分享功能。</div>
             </div>
             <div class="guide-step" data-step="2">
                 <span class="guide-step-icon">🔍</span>
                 <div class="guide-step-title">搜索与筛选</div>
-                <div class="guide-step-desc">使用顶部搜索栏快速查找游戏，或通过题材、玩法等标签精确筛选。<br>快捷键 <kbd>/</kbd> 聚焦搜索框</div>
+                <div class="guide-step-desc">使用顶部搜索栏快速查找游戏，或通过题材、玩法、平台等标签精确筛选。<br>快捷键 <kbd>/</kbd> 聚焦搜索框</div>
             </div>
             <div class="guide-step" data-step="3">
                 <span class="guide-step-icon">🎲</span>
                 <div class="guide-step-title">随机推荐</div>
-                <div class="guide-step-desc">不知道玩什么？点击「🎲 随机」按钮，系统会根据你的偏好推荐游戏。<br>快捷键 <kbd>R</kbd> 随机推荐</div>
+                <div class="guide-step-desc">不知道玩什么？点击「🎲 随机」按钮，系统会推荐游戏。<br>快捷键 <kbd>R</kbd> 随机推荐</div>
             </div>
             <div class="guide-step" data-step="4">
+                <span class="guide-step-icon">❤️</span>
+                <div class="guide-step-title">愿望单与标记</div>
+                <div class="guide-step-desc">点击卡片上的「❤️ 愿望单」收藏想玩的游戏，「✅ 标记玩过」记录通关进度。<br>这些数据会保存在你的账户中。</div>
+            </div>
+            <div class="guide-step" data-step="5">
+                <span class="guide-step-icon">📖</span>
+                <div class="guide-step-title">游戏日记</div>
+                <div class="guide-step-desc">点击顶部「📖 游戏日记」查看你的专属游戏成长史。<br>支持评分、评论、书签翻页、导出分享图片功能。</div>
+            </div>
+            <div class="guide-step" data-step="6">
+                <span class="guide-step-icon">🔧</span>
+                <div class="guide-step-title">MOD 分享区</div>
+                <div class="guide-step-desc">在 MOD 分享区发现游戏增强模组，或分享你制作的 MOD。<br>支持翻译补丁、美化MOD、功能MOD等分类筛选。</div>
+            </div>
+            <div class="guide-step" data-step="7">
                 <span class="guide-step-icon">🔑</span>
                 <div class="guide-step-title">登录同步数据</div>
-                <div class="guide-step-desc">登录后可跨设备同步愿望单、玩过记录和评论，数据永不丢失。</div>
+                <div class="guide-step-desc">登录后可跨设备同步愿望单、玩过记录、评论和游戏日记。<br>数据永不丢失，随时随地访问你的游戏库。</div>
             </div>
             <div class="guide-dots">
                 <span class="guide-dot active" data-dot="1"></span>
                 <span class="guide-dot" data-dot="2"></span>
                 <span class="guide-dot" data-dot="3"></span>
                 <span class="guide-dot" data-dot="4"></span>
+                <span class="guide-dot" data-dot="5"></span>
+                <span class="guide-dot" data-dot="6"></span>
+                <span class="guide-dot" data-dot="7"></span>
             </div>
             <div class="guide-btn-row">
                 <button class="guide-btn" id="guidePrev" style="display:none;">上一步</button>
@@ -13347,6 +13365,8 @@
                 const nextIdx = direction === 'next' ? diaryCurrentPage + 1 : diaryCurrentPage - 1;
                 if (nextIdx < 0 || nextIdx >= diarySortedReviews.length) return;
 
+                playDiaryFlipSound();
+
                 diaryFlipping = true;
                 const front = flipSheet.querySelector('.flip-face-front');
                 const back = flipSheet.querySelector('.flip-face-back');
@@ -13443,7 +13463,7 @@
             const DIARY_DRAFT_KEY = 'heroine_diary_draft_v1';
             const DIARY_READING_KEY = 'heroine_diary_reading_v1';
             let diaryBookmarkCustomOrder = [];      // 自定义顺序的 game_id 数组
-            let diarySoundEnabled = false;          // 翻页音效开关
+            let diarySoundEnabled = true;           // 翻页音效开关
             let _diaryAudioCtx = null;              // 音频上下文
             let _diaryDraftTimer = null;            // 草稿保存定时器
             let _diaryLastTouchX = 0;               // 触摸起点 X
@@ -13710,12 +13730,14 @@
                         const target = parseInt(rb.dataset.page);
                         if (target === diaryCurrentPage) return;
                         if (isMobileView()) {
+                            playDiaryFlipSound();
                             diaryCurrentPage = target;
                             renderDiaryPage();
                         } else if (Math.abs(target - diaryCurrentPage) === 1) {
                             const direction = target > diaryCurrentPage ? 'next' : 'prev';
                             flipDiaryPage(direction);
                         } else {
+                            playDiaryFlipSound();
                             diaryCurrentPage = target;
                             renderDiaryPage();
                         }
@@ -13805,6 +13827,7 @@
                         const target = parseInt(it.dataset.page);
                         document.getElementById('diaryMobileDropdown').style.display = 'none';
                         if (target === diaryCurrentPage) return;
+                        playDiaryFlipSound();
                         diaryCurrentPage = target;
                         renderDiaryPage();
                         document.getElementById('diaryPage').scrollTo({ top: 0, behavior: 'smooth' });
@@ -17102,7 +17125,7 @@
             // ================================================================
             const GUIDE_KEY = 'heroineGuideShown';
             let guideStep = 1;
-            const guideTotalSteps = 4;
+            const guideTotalSteps = 7;
 
             function showGuide() {
                 const overlay = document.getElementById('guideOverlay');
