@@ -8957,6 +8957,377 @@
                 transform: none;
             }
         }
+
+        /* ================================================================
+           ★ 新功能整合样式
+           ================================================================ */
+
+        /* —— 书签拖拽排序 —— */
+        .diary-ribbon .ribbon-drag-handle {
+            cursor: grab;
+            margin-right: 6px;
+            opacity: 0.45;
+            font-size: 0.7rem;
+            transition: opacity 0.2s;
+        }
+        .diary-ribbon:hover .ribbon-drag-handle { opacity: 0.9; }
+        .diary-ribbon.dragging {
+            opacity: 0.5;
+            transform: translateX(-4px) scale(1.02);
+        }
+        .diary-ribbon.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+
+        /* —— 翻页进度条 —— */
+        .diary-progress-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 360px;
+            margin: 0 12px;
+        }
+        .diary-progress-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(213, 207, 224, 0.4);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        .diary-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .diary-progress-text {
+            font-size: 0.72rem;
+            color: var(--text2);
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 64px;
+            text-align: center;
+        }
+        .diary-progress-text strong { color: var(--accent); font-weight: 700; }
+
+        /* —— 分享按钮 —— */
+        .diary-share-btn {
+            padding: 5px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--accent);
+            background: rgba(155, 138, 189, 0.1);
+            color: var(--accent);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .diary-share-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* —— 草稿自动保存提示 —— */
+        .draft-save-tip {
+            position: absolute;
+            bottom: 4px;
+            right: 12px;
+            font-size: 0.62rem;
+            color: var(--text3);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .draft-save-tip.show { opacity: 1; }
+        .draft-save-tip .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        /* —— 翻页音效开关 —— */
+        .diary-sound-btn {
+            padding: 5px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(213, 207, 224, 0.35);
+            background: rgba(250, 247, 253, 0.82);
+            color: var(--text2);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .diary-sound-btn.active { color: var(--accent); border-color: var(--accent); }
+        .diary-sound-btn:hover { border-color: var(--accent); }
+
+        /* —— 骨架屏 —— */
+        .diary-skeleton {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .diary-skeleton-page {
+            flex: 1;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .sk-line {
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, rgba(213,207,224,0.3) 25%, rgba(213,207,224,0.55) 50%, rgba(213,207,224,0.3) 75%);
+            background-size: 200% 100%;
+            animation: skShimmer 1.5s infinite;
+        }
+        .sk-line.short { width: 50%; }
+        .sk-line.medium { width: 75%; }
+        .sk-line.long { width: 100%; }
+        .sk-cover {
+            width: 100%;
+            aspect-ratio: 460/215;
+            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(213,207,224,0.3) 25%, rgba(213,207,224,0.55) 50%, rgba(213,207,224,0.3) 75%);
+            background-size: 200% 100%;
+            animation: skShimmer 1.5s infinite;
+        }
+        @keyframes skShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* —— 日记空状态美化 —— */
+        .diary-empty-fancy {
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--text2);
+        }
+        .diary-empty-fancy .empty-icon-big {
+            font-size: 5rem;
+            display: block;
+            margin-bottom: 18px;
+            opacity: 0.75;
+            animation: emptyFloat 3s ease-in-out infinite;
+        }
+        @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .diary-empty-fancy .empty-title-big {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .diary-empty-fancy .empty-desc-big {
+            font-size: 0.88rem;
+            color: var(--text3);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .diary-empty-fancy .empty-cta-btn {
+            display: inline-block;
+            padding: 10px 28px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(155,138,189,0.35);
+            border: none;
+            transition: all 0.3s;
+        }
+        .diary-empty-fancy .empty-cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(155,138,189,0.45);
+        }
+
+        /* —— 封面统计饼图 —— */
+        .diary-cover-stats-block {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin: 22px auto 28px;
+            flex-wrap: wrap;
+            max-width: 540px;
+        }
+        .diary-stats-chart {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(250, 247, 253, 0.5);
+            border: 1px solid rgba(213, 207, 224, 0.3);
+            border-radius: 14px;
+            padding: 12px 16px;
+        }
+        .diary-pie {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .diary-pie::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 46px; height: 46px;
+            background: rgba(250,247,253,0.95);
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .diary-pie-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2;
+            white-space: nowrap;
+        }
+        .diary-pie-center .num {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.1;
+        }
+        .diary-pie-center .lbl {
+            font-size: 0.55rem;
+            color: var(--text3);
+            line-height: 1.2;
+        }
+        .diary-pie-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.7rem;
+            color: var(--text2);
+        }
+        .diary-pie-legend .lg-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .diary-pie-legend .lg-dot {
+            width: 8px; height: 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .diary-pie-legend .lg-count {
+            margin-left: auto;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* —— 移动端滑动指示 —— */
+        .swipe-hint-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.8rem;
+            color: var(--accent);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8;
+            transition: opacity 0.3s;
+        }
+        .swipe-hint-indicator.left { left: 16px; }
+        .swipe-hint-indicator.right { right: 16px; }
+        .swipe-hint-indicator.show { opacity: 0.5; }
+
+        /* —— 下拉刷新指示 —— */
+        .diary-pull-refresh {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            padding: 8px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0 0 16px 16px;
+            font-size: 0.78rem;
+            color: var(--text2);
+            z-index: 10;
+            transition: transform 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+        .diary-pull-refresh.show { transform: translateX(-50%) translateY(0); }
+        .diary-pull-refresh .pr-icon { transition: transform 0.25s; }
+        .diary-pull-refresh.flip .pr-icon { transform: rotate(180deg); }
+
+        /* —— 游戏时长字段 —— */
+        .playtime-input-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 0.78rem;
+            color: var(--text2);
+        }
+        .playtime-input-row input {
+            width: 60px;
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.78rem;
+        }
+        .playtime-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(155,138,189,0.12);
+            border: 1px solid rgba(155,138,189,0.25);
+            border-radius: 10px;
+            font-size: 0.72rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* —— 工具栏响应式 —— */
+        .diary-toolbar {
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .diary-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .diary-progress-bar-wrap { display: none; }
+            .diary-immersion-btn { display: none; }
+            .diary-sound-btn { display: none; }
+            .diary-share-btn { font-size: 0.72rem; padding: 4px 10px; }
+            .diary-cover-stats-block { gap: 12px; }
+            .diary-stats-chart { padding: 8px 10px; }
+            .diary-pie { width: 64px; height: 64px; }
+            .diary-pie::after { width: 38px; height: 38px; }
+            .diary-pie-center .num { font-size: 0.75rem; }
+            .diary-pie-center .lbl { font-size: 0.5rem; }
+            .diary-pie-legend { font-size: 0.62rem; }
+            .compare-games-row { flex-direction: column; }
+        }
     </style>
 </head>
 
@@ -9456,6 +9827,10 @@
                 <div class="diary-cover-stats" id="diaryCoverStats">已记录 0 款游戏 · 标记玩过 0 款 · 成就 0/0</div>
                 <div class="diary-cover-achievement" id="diaryCoverAchievement">🎯 暂无成就</div>
                 <div class="diary-cover-slogan">记录我的游戏成长史</div>
+
+                <!-- 封面统计饼图 -->
+                <div class="diary-cover-stats-block" id="diaryCoverStatsBlock" style="display:none;"></div>
+
                 <button class="diary-cover-btn" id="diaryOpenBtn">翻开日记</button>
             </div>
         </div>
@@ -9469,7 +9844,20 @@
                     <option value="play_date">按游玩日期</option>
                     <option value="rating">按评分</option>
                     <option value="created_at">按评论时间</option>
+                    <option value="custom">自定义顺序</option>
                 </select>
+                <!-- 翻页进度条 -->
+                <div class="diary-progress-bar-wrap">
+                    <div class="diary-progress-bar" id="diaryProgressBar" title="点击跳转到对应位置">
+                        <div class="diary-progress-bar-fill" id="diaryProgressBarFill"></div>
+                    </div>
+                    <div class="diary-progress-text" id="diaryProgressText">第 <strong>1</strong> 页 / 共 1 页</div>
+                </div>
+                <!-- 右侧功能按钮 -->
+                <div class="diary-toolbar-right">
+                    <button class="diary-sound-btn" id="diarySoundBtn" title="翻页音效开关">🔊 音效</button>
+                    <button class="diary-share-btn" id="diaryShareBtn" title="导出为图片">📷 分享</button>
+                </div>
             </div>
             <div class="diary-mobile-dropdown" id="diaryMobileDropdown" style="display:none;">
                 <div class="diary-mobile-search"><input id="diaryMobileSearch" placeholder="🔍 筛选游戏名..." /></div>
@@ -9477,7 +9865,9 @@
             </div>
             <div class="diary-body-row">
                 <div id="diaryContent"></div>
-                <div id="diaryBookmarkRail"></div>
+                <div id="diaryBookmarkRailWrap">
+                    <div id="diaryBookmarkRail"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -10581,8 +10971,11 @@
             function gameMatchesSearch(game, query) {
                 if (!query) return true;
                 const q = query.toLowerCase();
+                if (q === '免费' || q === 'free') {
+                    return game.lowestPrice && game.lowestPrice.includes('免费');
+                }
                 const fields = [game.title, game.description, game.fullDescription,
-                game.heroineType, game.perspective, game.costumeType,
+                game.heroineType, game.perspective, game.costumeType, game.lowestPrice,
                 ...(game.genre || []), ...(game.gameplay || []), ...(game.platforms || [])
                 ];
                 return fields.some(f => f && f.toLowerCase().includes(q));
@@ -12721,6 +13114,74 @@
                     achievementEl.textContent = '🎯 暂无成就';
                     achievementEl.style.display = '';
                 }
+
+                // ★ 渲染封面统计饼图
+                _renderCoverStatsChart(reviews);
+            }
+
+            // 渲染封面统计饼图
+            function _renderCoverStatsChart(reviews) {
+                const block = document.getElementById('diaryCoverStatsBlock');
+                if (!block) return;
+                if (!reviews || reviews.length === 0) {
+                    block.style.display = 'none';
+                    return;
+                }
+                // 评分分布：5星(9-10) / 4星(7-8) / 3星(5-6) / 2星(3-4) / 1星(1-2)
+                let s5 = 0, s4 = 0, s3 = 0, s2 = 0, s1 = 0, totalHours = 0;
+                reviews.forEach(r => {
+                    const rating = r.rating || 0;
+                    if (rating >= 9) s5++;
+                    else if (rating >= 7) s4++;
+                    else if (rating >= 5) s3++;
+                    else if (rating >= 3) s2++;
+                    else s1++;
+                    totalHours += parseFloat(r.play_hours) || 0;
+                });
+                const total = reviews.length;
+                const p5End = (s5 / total * 100);
+                const p4End = p5End + (s4 / total * 100);
+                const p3End = p4End + (s3 / total * 100);
+                const p2End = p3End + (s2 / total * 100);
+
+                block.style.display = 'flex';
+                block.innerHTML = `
+                    <div class="diary-stats-chart">
+                        <div class="diary-pie" style="background: conic-gradient(
+                            #f5b342 0% ${p5End}%,
+                            #9b8abd ${p5End}% ${p4End}%,
+                            #b5a9cf ${p4End}% ${p3End}%,
+                            #d0c4d8 ${p3End}% ${p2End}%,
+                            #e2dae8 ${p2End}% 100%
+                        );">
+                            <div class="diary-pie-center">
+                                <div class="num">${total}</div>
+                                <div class="lbl">款游戏</div>
+                            </div>
+                        </div>
+                        <div class="diary-pie-legend">
+                            <div class="lg-item"><span class="lg-dot" style="background:#f5b342"></span>5星<span class="lg-count">${s5}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#9b8abd"></span>4星<span class="lg-count">${s4}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#b5a9cf"></span>3星<span class="lg-count">${s3}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#d0c4d8"></span>2星<span class="lg-count">${s2}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#e2dae8"></span>1星<span class="lg-count">${s1}</span></div>
+                        </div>
+                    </div>
+                    ${totalHours > 0 ? `
+                    <div class="diary-stats-chart">
+                        <div class="diary-pie" style="background: conic-gradient(var(--accent) 0% 100%);">
+                            <div class="diary-pie-center">
+                                <div class="num">${Math.round(totalHours)}</div>
+                                <div class="lbl">总时长(h)</div>
+                            </div>
+                        </div>
+                        <div class="diary-pie-legend">
+                            <div class="lg-item"><span class="lg-dot" style="background:var(--accent)"></span>总游玩<span class="lg-count">${Math.round(totalHours)}h</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:var(--accent2)"></span>平均<span class="lg-count">${(totalHours/total).toFixed(1)}h</span></div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
             }
 
             function showDiaryContent() {
@@ -12811,6 +13272,7 @@
                         hour: '2-digit', minute: '2-digit'
                     }) : '';
                 const playDate = r.play_date || '';
+                const playHours = r.play_hours || '';
 
                 return `
                     <div class="page-header">
@@ -12832,6 +13294,11 @@
                             <div class="meta-item">
                                 <span class="meta-icon">🕐</span>
                                 <span>评论时间：${timeStr}</span>
+                            </div>
+                            <div class="playtime-input-row">
+                                <span class="meta-icon">⏱️</span>
+                                <span>游玩时长：</span>
+                                <input type="number" min="0" step="0.5" value="${playHours}" placeholder="0" data-game-id="${r.game_id}" /> 小时
                             </div>
                         </div>
                         <div class="review-content">
@@ -12971,6 +13438,36 @@
             let diaryCurrentPage = 0;
             let diarySortedReviews = [];
 
+            // ★ 新功能整合状态
+            const DIARY_PREFS_KEY = 'heroine_diary_prefs_v1';
+            const DIARY_DRAFT_KEY = 'heroine_diary_draft_v1';
+            const DIARY_READING_KEY = 'heroine_diary_reading_v1';
+            let diaryBookmarkCustomOrder = [];      // 自定义顺序的 game_id 数组
+            let diarySoundEnabled = false;          // 翻页音效开关
+            let _diaryAudioCtx = null;              // 音频上下文
+            let _diaryDraftTimer = null;            // 草稿保存定时器
+            let _diaryLastTouchX = 0;               // 触摸起点 X
+            let _diaryLastTouchY = 0;               // 触摸起点 Y
+            let _diaryLastTapTime = 0;              // 上次点击时间（双击检测）
+
+            // 加载偏好设置
+            function loadDiaryPrefs() {
+                try {
+                    const p = JSON.parse(localStorage.getItem(DIARY_PREFS_KEY) || '{}');
+                    diaryBookmarkCustomOrder = Array.isArray(p.customOrder) ? p.customOrder : [];
+                    diarySoundEnabled = !!p.soundEnabled;
+                } catch (_) {}
+            }
+            function saveDiaryPrefs() {
+                try {
+                    localStorage.setItem(DIARY_PREFS_KEY, JSON.stringify({
+                        customOrder: diaryBookmarkCustomOrder,
+                        soundEnabled: diarySoundEnabled
+                    }));
+                } catch (_) {}
+            }
+            loadDiaryPrefs();
+
             function renderDiaryContent() {
                 const container = document.getElementById('diaryContent');
                 if (!container) return;
@@ -12978,38 +13475,204 @@
                 const reviews = userData.reviews || [];
                 if (reviews.length === 0) {
                     container.innerHTML = `
-                        <div class="diary-empty">
-                            <span class="empty-icon">📝</span>
-                            <p>你还没有记录任何游戏</p>
-                            <p style="font-size:0.85rem;color:var(--text3);margin-top:4px;">去游戏详情页写下你的第一条评价吧！</p>
+                        <div class="diary-empty-fancy">
+                            <span class="empty-icon-big">📖</span>
+                            <div class="empty-title-big">还没有写过游戏日记</div>
+                            <div class="empty-desc-big">记录第一款你玩过的女性主角游戏<br/>开启你的专属游戏日记吧~</div>
+                            <button class="empty-cta-btn" onclick="closeDiaryModal()">✍️ 去写第一篇日记</button>
                         </div>
                     `;
                     const rail = document.getElementById('diaryBookmarkRail');
                     if (rail) rail.innerHTML = '';
+                    updateDiaryProgress();
                     return;
                 }
 
+                // 骨架屏（短暂展示，提升加载感）
+                container.innerHTML = `
+                    <div class="diary-skeleton">
+                        <div class="diary-skeleton-page">
+                            <div class="sk-cover"></div>
+                            <div class="sk-line medium"></div>
+                            <div class="sk-line short"></div>
+                            <div class="sk-line long"></div>
+                            <div class="sk-line long"></div>
+                        </div>
+                        <div class="diary-skeleton-page">
+                            <div class="sk-line short"></div>
+                            <div class="sk-line long"></div>
+                            <div class="sk-line long"></div>
+                            <div class="sk-line medium"></div>
+                            <div class="sk-line long"></div>
+                        </div>
+                    </div>
+                `;
+
+                // 短延时后渲染真实内容
+                setTimeout(() => _renderDiaryContentReal(reviews), 200);
+            }
+
+            function _renderDiaryContentReal(reviews) {
+                const container = document.getElementById('diaryContent');
+                if (!container) return;
+
                 const sortBy = document.getElementById('diarySortSelect')?.value || 'play_date';
-                diarySortedReviews = [...reviews].sort((a, b) => {
-                    if (sortBy === 'play_date') {
-                        const da = a.play_date || a.created_at || '';
-                        const db = b.play_date || b.created_at || '';
-                        return db.localeCompare(da);
-                    } else if (sortBy === 'rating') {
-                        return (b.rating || 0) - (a.rating || 0);
-                    } else {
-                        const da = a.created_at || '';
-                        const db = b.created_at || '';
-                        return db.localeCompare(da);
-                    }
-                });
+                if (sortBy === 'custom' && diaryBookmarkCustomOrder.length > 0) {
+                    // 自定义顺序：先按 customOrder 排，未在列表中的追加到末尾
+                    const orderMap = new Map();
+                    diaryBookmarkCustomOrder.forEach((gid, i) => orderMap.set(Number(gid), i));
+                    diarySortedReviews = [...reviews].sort((a, b) => {
+                        const ia = orderMap.has(Number(a.game_id)) ? orderMap.get(Number(a.game_id)) : 99999;
+                        const ib = orderMap.has(Number(b.game_id)) ? orderMap.get(Number(b.game_id)) : 99999;
+                        return ia - ib;
+                    });
+                } else {
+                    diarySortedReviews = [...reviews].sort((a, b) => {
+                        if (sortBy === 'play_date') {
+                            const da = a.play_date || a.created_at || '';
+                            const db = b.play_date || b.created_at || '';
+                            return db.localeCompare(da);
+                        } else if (sortBy === 'rating') {
+                            return (b.rating || 0) - (a.rating || 0);
+                        } else {
+                            const da = a.created_at || '';
+                            const db = b.created_at || '';
+                            return db.localeCompare(da);
+                        }
+                    });
+                }
 
                 if (diaryCurrentPage >= diarySortedReviews.length) {
                     diaryCurrentPage = 0;
                 }
 
+                // 恢复阅读进度
+                _restoreReadingProgress();
+
                 renderDiaryPage();
                 renderDiaryBookmarks();
+                updateDiaryProgress();
+            }
+
+            // 更新翻页进度条
+            function updateDiaryProgress() {
+                const total = diarySortedReviews.length;
+                const cur = diaryCurrentPage + 1;
+                const fill = document.getElementById('diaryProgressBarFill');
+                const text = document.getElementById('diaryProgressText');
+                if (fill) fill.style.width = total > 0 ? `${(cur / total) * 100}%` : '0%';
+                if (text) text.innerHTML = total > 0 ? `第 <strong>${cur}</strong> 页 / 共 ${total} 页` : '';
+                const mobileLabel = document.getElementById('diaryMobilePageLabel');
+                if (mobileLabel) mobileLabel.textContent = total > 0 ? `${cur}/${total}` : '0/0';
+                // 保存阅读进度
+                if (total > 0) _saveReadingProgress();
+            }
+
+            function _saveReadingProgress() {
+                try {
+                    const r = diarySortedReviews[diaryCurrentPage];
+                    if (!r) return;
+                    localStorage.setItem(DIARY_READING_KEY, JSON.stringify({
+                        gameId: Number(r.game_id),
+                        page: diaryCurrentPage,
+                        ts: Date.now()
+                    }));
+                } catch (_) {}
+            }
+            function _restoreReadingProgress() {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(DIARY_READING_KEY) || 'null');
+                    if (!saved || !saved.gameId) return;
+                    // 7天内有效
+                    if (Date.now() - (saved.ts || 0) > 7 * 24 * 3600 * 1000) return;
+                    const idx = diarySortedReviews.findIndex(r => Number(r.game_id) === Number(saved.gameId));
+                    if (idx >= 0) diaryCurrentPage = idx;
+                } catch (_) {}
+            }
+
+            // 翻页音效（Web Audio 生成轻柔翻书声）
+            function playDiaryFlipSound() {
+                if (!diarySoundEnabled) return;
+                try {
+                    if (!_diaryAudioCtx) _diaryAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const ctx = _diaryAudioCtx;
+                    if (ctx.state === 'suspended') ctx.resume();
+                    // 用白噪声 + 滤波模拟翻页声
+                    const bufferSize = ctx.sampleRate * 0.25;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        const t = i / bufferSize;
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 5) * 0.3;
+                    }
+                    const source = ctx.createBufferSource();
+                    source.buffer = buffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 2000;
+                    filter.Q.value = 1.5;
+                    const gain = ctx.createGain();
+                    gain.gain.value = 0.4;
+                    source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+                    source.start();
+                } catch (_) {}
+            }
+            function toggleDiarySound() {
+                diarySoundEnabled = !diarySoundEnabled;
+                saveDiaryPrefs();
+                const btn = document.getElementById('diarySoundBtn');
+                if (btn) {
+                    btn.classList.toggle('active', diarySoundEnabled);
+                    btn.innerHTML = diarySoundEnabled ? '🔊 音效✓' : '🔊 音效';
+                }
+                showToast(diarySoundEnabled ? '翻页音效已开启' : '翻页音效已关闭', 1500);
+            }
+
+            // 草稿自动保存
+            function autoSaveDraft(gameId, html) {
+                try {
+                    const drafts = JSON.parse(localStorage.getItem(DIARY_DRAFT_KEY) || '{}');
+                    drafts[String(gameId)] = { html, ts: Date.now() };
+                    localStorage.setItem(DIARY_DRAFT_KEY, JSON.stringify(drafts));
+                    // 显示提示
+                    let tip = document.querySelector('.draft-save-tip');
+                    if (!tip) {
+                        const editor = document.querySelector(`.review-text[data-game-id="${gameId}"]`);
+                        if (editor) {
+                            const parent = editor.parentElement;
+                            if (parent) {
+                                parent.style.position = parent.style.position || 'relative';
+                                tip = document.createElement('div');
+                                tip.className = 'draft-save-tip';
+                                parent.appendChild(tip);
+                            }
+                        }
+                    }
+                    if (tip) {
+                        tip.innerHTML = '<span class="dot"></span> 草稿已自动保存';
+                        tip.classList.add('show');
+                        clearTimeout(_diaryDraftTimer);
+                        _diaryDraftTimer = setTimeout(() => tip.classList.remove('show'), 1500);
+                    }
+                } catch (_) {}
+            }
+            function loadDraft(gameId) {
+                try {
+                    const drafts = JSON.parse(localStorage.getItem(DIARY_DRAFT_KEY) || '{}');
+                    const d = drafts[String(gameId)];
+                    if (d && d.html) {
+                        // 1天内有效
+                        if (Date.now() - (d.ts || 0) < 24 * 3600 * 1000) return d.html;
+                    }
+                } catch (_) {}
+                return null;
+            }
+            function clearDraft(gameId) {
+                try {
+                    const drafts = JSON.parse(localStorage.getItem(DIARY_DRAFT_KEY) || '{}');
+                    delete drafts[String(gameId)];
+                    localStorage.setItem(DIARY_DRAFT_KEY, JSON.stringify(drafts));
+                } catch (_) {}
             }
 
             // 渲染桌面端书签丝带
@@ -13020,13 +13683,17 @@
                     rail.innerHTML = '';
                     return;
                 }
+
                 rail.innerHTML = diarySortedReviews.map((r, i) => {
                     const game = games.find(g => g.id === Number(r.game_id));
                     const title = game ? game.title : `游戏 #${r.game_id}`;
                     const rating = r.rating || 0;
                     const date = (r.play_date || '').slice(5);
+                    const gid = Number(r.game_id);
+
                     return `
-                        <div class="diary-ribbon ${i === diaryCurrentPage ? 'active' : ''}" data-page="${i}">
+                        <div class="diary-ribbon ${i === diaryCurrentPage ? 'active' : ''}" data-page="${i}" data-game-id="${gid}" draggable="true">
+                            <span class="ribbon-drag-handle" title="拖拽排序">⋮⋮</span>
                             <div class="ribbon-label">
                                 <span class="ribbon-name">${escapeHTML(title)}</span>
                                 <span class="ribbon-sub">★${rating}　📅 ${date}</span>
@@ -13035,8 +13702,10 @@
                         </div>
                     `;
                 }).join('');
+
                 rail.querySelectorAll('.diary-ribbon').forEach(rb => {
-                    rb.addEventListener('click', () => {
+                    rb.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('ribbon-drag-handle')) return;
                         if (diaryFlipping) return;
                         const target = parseInt(rb.dataset.page);
                         if (target === diaryCurrentPage) return;
@@ -13052,7 +13721,47 @@
                         }
                         document.getElementById('diaryPage').scrollTo({ top: 0, behavior: 'smooth' });
                     });
+
+                    // 拖拽排序
+                    rb.addEventListener('dragstart', (e) => {
+                        rb.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', rb.dataset.page);
+                    });
+                    rb.addEventListener('dragend', () => {
+                        rb.classList.remove('dragging');
+                        rail.querySelectorAll('.diary-ribbon').forEach(r => r.classList.remove('drag-over'));
+                    });
+                    rb.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        rb.classList.add('drag-over');
+                    });
+                    rb.addEventListener('dragleave', () => rb.classList.remove('drag-over'));
+                    rb.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        rb.classList.remove('drag-over');
+                        const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                        const toIdx = parseInt(rb.dataset.page);
+                        if (isNaN(fromIdx) || fromIdx === toIdx) return;
+                        const moved = diarySortedReviews.splice(fromIdx, 1)[0];
+                        diarySortedReviews.splice(toIdx, 0, moved);
+                        _syncCustomOrderFromCurrent();
+                        const sortSel = document.getElementById('diarySortSelect');
+                        if (sortSel) sortSel.value = 'custom';
+                        diaryCurrentPage = toIdx;
+                        saveDiaryPrefs();
+                        renderDiaryBookmarks();
+                        renderDiaryPage();
+                        showToast('✅ 已调整顺序（自定义排序已保存）', 1500);
+                    });
                 });
+            }
+
+            // 同步当前排序到 customOrder
+            function _syncCustomOrderFromCurrent() {
+                diaryBookmarkCustomOrder = diarySortedReviews.map(r => Number(r.game_id));
+                saveDiaryPrefs();
             }
 
             // 更新书签高亮
@@ -13074,8 +13783,11 @@
                 const items = diarySortedReviews.map((r, i) => {
                     const game = games.find(g => g.id === Number(r.game_id));
                     const title = game ? game.title : `游戏 #${r.game_id}`;
-                    return { r, i, title, rating: r.rating || 0 };
-                }).filter(({ title }) => title.toLowerCase().includes(f));
+                    return { r, i, title, rating: r.rating || 0, game };
+                }).filter(({ title }) => {
+                    if (f && !title.toLowerCase().includes(f)) return false;
+                    return true;
+                });
 
                 if (items.length === 0) {
                     list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:0.8rem;">无匹配结果</div>';
@@ -13151,9 +13863,11 @@
 
                 bindDiaryEvents();
                 updateBookmarkActive();
+                updateDiaryProgress();
 
                 document.getElementById('diaryPrevBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage > 0) {
+                        playDiaryFlipSound();
                         if (isMobileView()) {
                             diaryCurrentPage--;
                             renderDiaryPage();
@@ -13165,6 +13879,7 @@
                 });
                 document.getElementById('diaryNextBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage < diarySortedReviews.length - 1) {
+                        playDiaryFlipSound();
                         if (isMobileView()) {
                             diaryCurrentPage++;
                             renderDiaryPage();
@@ -13218,6 +13933,36 @@
                         if (related && (related.classList.contains('diary-save-btn') || related.classList.contains('diary-delete-btn'))) return;
                         if (!this.textContent.trim()) {
                             this.innerHTML = '点击此处写下你的评论...';
+                        }
+                    });
+                    // ★ 草稿自动保存
+                    const gameId = Number(el.dataset.gameId);
+                    el.addEventListener('input', function() {
+                        const text = this.textContent || '';
+                        if (text && text !== '点击此处写下你的评论...') {
+                            autoSaveDraft(gameId, this.innerHTML);
+                        }
+                    });
+                });
+
+                // ★ 游戏时长输入
+                document.querySelectorAll('.playtime-input-row input').forEach(input => {
+                    input.addEventListener('change', async function() {
+                        const gameId = Number(this.dataset.gameId);
+                        const hours = parseFloat(this.value) || 0;
+                        const review = userData.reviews.find(r => r.game_id === gameId);
+                        if (review) {
+                            review.play_hours = hours;
+                            saveUserData();
+                            if (SUPABASE_ENABLED && supabaseClient && currentUser) {
+                                try {
+                                    await supabaseClient.from('user_reviews')
+                                        .update({ play_hours: hours })
+                                        .eq('user_id', currentUser.id)
+                                        .eq('game_id', gameId);
+                                } catch (_) {}
+                            }
+                            showToast(hours > 0 ? `⏱️ 已记录 ${hours}h` : '已清除时长', 1200);
                         }
                     });
                 });
@@ -13274,6 +14019,8 @@
                             }
 
                             btn.textContent = '✅ 已保存';
+                            // ★ 清除草稿
+                            clearDraft(gameId);
                             showToast(cloudOk ? '✅ 保存成功（已云端同步）' : '✅ 本地已保存（云端同步失败）', 2000);
                             setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 1500);
                         } catch (e) {
@@ -13297,6 +14044,229 @@
 
                 // 导出功能已删除
                 // document.querySelectorAll('.diary-export-btn').forEach(btn => { ... });
+            }
+
+            // ================================================================
+            // ★★★ 新功能整合模块 ★★★
+            // ================================================================
+
+            // —— 分享导出图片 ——
+            async function shareDiaryAsImage() {
+                const overlay = document.getElementById('shareFloatOverlay');
+                const container = document.getElementById('shareImageContainer');
+                if (!overlay || !container) return;
+
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);"><div id="shareProgressText">⏳ 准备生成图片...</div><div style="margin-top:12px;width:120px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:12px auto 0;"><div id="shareProgressBar" style="width:0%;height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;"></div></div></div>';
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+
+                const closeBtn = document.getElementById('shareFloatClose');
+                const newClose = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newClose, closeBtn);
+                newClose.addEventListener('click', closeShareFloat);
+                if (!_shareOverlayBound) {
+                    _shareOverlayBound = true;
+                    overlay.addEventListener('click', function (e) {
+                        if (e.target === overlay) {
+                            closeShareFloat();
+                        }
+                    });
+                }
+
+                const progressText = document.getElementById('shareProgressText');
+                const progressBar = document.getElementById('shareProgressBar');
+                const hint = document.getElementById('longPressHint');
+                if (hint) hint.style.display = 'none';
+
+                const wrapper = document.querySelector('.diary-entry-wrapper');
+                if (!wrapper) {
+                    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 未找到日记内容</div><div style="text-align:center;margin-top:12px;"><button class="btn" onclick="closeShareFloat()" style="padding:8px 24px;">关闭</button></div>';
+                    return;
+                }
+
+                try {
+                    if (progressText) progressText.textContent = '⏳ 正在加载图片库...';
+                    if (progressBar) progressBar.style.width = '20%';
+
+                    if (typeof html2canvas === 'undefined') {
+                        throw new Error('图片库未加载');
+                    }
+
+                    if (progressText) progressText.textContent = '⏳ 正在渲染日记页面...';
+                    if (progressBar) progressBar.style.width = '50%';
+
+                    wrapper.classList.add('export-mode');
+                    await new Promise(r => setTimeout(r, 200));
+
+                    if (progressText) progressText.textContent = '⏳ 正在生成图片...';
+                    if (progressBar) progressBar.style.width = '75%';
+
+                    const canvas = await html2canvas(wrapper, {
+                        backgroundColor: '#faf7fd',
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        logging: false
+                    });
+
+                    const dataUrl = canvas.toDataURL('image/png');
+
+                    if (progressBar) progressBar.style.width = '100%';
+
+                    shareImageDataURL = dataUrl;
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.alt = '日记分享图片';
+                    img.style.cssText = 'width:100%;height:auto;display:block;border-radius:16px;';
+                    img.setAttribute('draggable', 'false');
+                    container.innerHTML = '';
+                    container.appendChild(img);
+
+                    const downloadBtn = document.getElementById('shareFloatDownloadBtn');
+                    const isMobile = window.innerWidth <= 768 || isTouchDevice;
+                    if (hint) hint.style.display = isMobile ? 'block' : 'none';
+                    downloadBtn.textContent = isMobile ? '📥 下载图片 (备用)' : '📥 下载分享图片';
+
+                    const newBtn = downloadBtn.cloneNode(true);
+                    downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+                    newBtn.addEventListener('click', function () {
+                        if (shareImageDataURL) {
+                            const link = document.createElement('a');
+                            link.download = `her-lens-diary-${Date.now()}.png`;
+                            link.href = shareImageDataURL;
+                            link.click();
+                            showToast('✅ 图片已下载！', 2000);
+                        }
+                    });
+                } catch (e) {
+                    console.error('分享失败:', e);
+                    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败：' + (e.message || '未知错误') + '</div><div style="text-align:center;margin-top:12px;"><button class="btn" onclick="closeShareFloat()" style="padding:8px 24px;">关闭</button></div>';
+                } finally {
+                    wrapper.classList.remove('export-mode');
+                }
+            }
+
+            // —— 移动端手势 ——
+            function initDiaryMobileGestures() {
+                const diaryPage = document.getElementById('diaryPage');
+                if (!diaryPage) return;
+                let startX = 0, startY = 0, startT = 0;
+                let pullStartY = 0, pulling = false;
+
+                diaryPage.addEventListener('touchstart', (e) => {
+                    if (!isMobileView()) return;
+                    if (document.getElementById('diaryPage').style.display !== 'flex') return;
+                    const t = e.touches[0];
+                    startX = t.clientX;
+                    startY = t.clientY;
+                    startT = Date.now();
+                    _diaryLastTouchX = t.clientX;
+                    _diaryLastTouchY = t.clientY;
+                    // 下拉刷新检测：滚动到顶部
+                    if (diaryPage.scrollTop <= 0) {
+                        pullStartY = t.clientY;
+                        pulling = true;
+                    } else {
+                        pulling = false;
+                    }
+                }, { passive: true });
+
+                diaryPage.addEventListener('touchmove', (e) => {
+                    if (!isMobileView()) return;
+                    const t = e.touches[0];
+                    const dx = t.clientX - _diaryLastTouchX;
+                    const dy = t.clientY - _diaryLastTouchY;
+                    _diaryLastTouchX = t.clientX;
+                    _diaryLastTouchY = t.clientY;
+                    // 显示滑动方向指示
+                    if (Math.abs(dx) > Math.abs(dy) * 1.5 && Math.abs(dx) > 30) {
+                        let hint = document.querySelector('.swipe-hint-indicator.show');
+                        if (!hint) {
+                            hint = document.createElement('div');
+                            hint.className = 'swipe-hint-indicator ' + (dx > 0 ? 'left' : 'right');
+                            hint.textContent = dx > 0 ? '◀' : '▶';
+                            const contentView = document.getElementById('diaryContentView');
+                            if (contentView) {
+                                contentView.style.position = contentView.style.position || 'relative';
+                                contentView.appendChild(hint);
+                                requestAnimationFrame(() => hint.classList.add('show'));
+                                setTimeout(() => { hint.classList.remove('show'); setTimeout(() => hint.remove(), 300); }, 500);
+                            }
+                        }
+                    }
+                }, { passive: true });
+
+                diaryPage.addEventListener('touchend', (e) => {
+                    if (!isMobileView()) return;
+                    const t = e.changedTouches[0];
+                    const dx = t.clientX - startX;
+                    const dy = t.clientY - startY;
+                    const dt = Date.now() - startT;
+
+                    // 水平滑动翻页（距离够、时间短、垂直距离小）
+                    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 600) {
+                        if (dx < 0) {
+                            // 向左滑：下一页
+                            if (diaryCurrentPage < diarySortedReviews.length - 1) {
+                                playDiaryFlipSound();
+                                diaryCurrentPage++;
+                                renderDiaryPage();
+                            }
+                        } else {
+                            // 向右滑：上一页 或 左滑返回封面
+                            if (diaryCurrentPage > 0) {
+                                playDiaryFlipSound();
+                                diaryCurrentPage--;
+                                renderDiaryPage();
+                            } else if (diaryCurrentPage === 0 && dx > 100) {
+                                // 第一页时向右滑，退回封面
+                                showDiaryCover();
+                            }
+                        }
+                        return;
+                    }
+
+                    // 下拉刷新
+                    if (pulling && dy > 80 && Math.abs(dx) < 40 && diaryPage.scrollTop <= 0) {
+                        showToast('🔄 刷新中...', 1000);
+                        setTimeout(() => {
+                            renderDiaryContent();
+                            showToast('✅ 已刷新', 1200);
+                        }, 400);
+                    }
+
+                    // 双击回顶部（顶部区域双击）
+                    const now = Date.now();
+                    if (dt < 300 && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                        if (now - _diaryLastTapTime < 350) {
+                            // 双击
+                            if (startY < 120) {
+                                // 顶部双击 → 回到第一页
+                                if (diaryCurrentPage !== 0) {
+                                    diaryCurrentPage = 0;
+                                    renderDiaryPage();
+                                    showToast('⏫ 回到第一页', 1000);
+                                }
+                                diaryPage.scrollTo({ top: 0, behavior: 'smooth' });
+                            } else {
+                                // 其他位置双击 → 滚动到顶部
+                                diaryPage.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                            _diaryLastTapTime = 0;
+                        } else {
+                            _diaryLastTapTime = now;
+                        }
+                    }
+                }, { passive: true });
+            }
+
+            // —— 初始化新功能按钮状态 ——
+            function initDiaryFeatureButtons() {
+                const soundBtn = document.getElementById('diarySoundBtn');
+                if (soundBtn) {
+                    soundBtn.classList.toggle('active', diarySoundEnabled);
+                    soundBtn.innerHTML = diarySoundEnabled ? '🔊 音效✓' : '🔊 音效';
+                }
             }
 
             // ================================================================
@@ -15769,7 +16739,9 @@
                 });
 
                 document.getElementById('btnRandomPick').addEventListener('click', randomPick);
-                document.getElementById('btnWishlistToggle').addEventListener('click', toggleWishlistMode);
+                document.getElementById('btnWishlistToggle').addEventListener('click', function() {
+                    toggleWishlistMode();
+                });
                 document.getElementById('btnAchievement').addEventListener('click', openAchievementModal);
                 document.getElementById('achievementModalClose').addEventListener('click', closeAchievementModal);
                 document.getElementById('achievementModalOverlay').addEventListener('click', function (e) {
@@ -15898,6 +16870,30 @@
                         renderMobileBookmarkList(e.target.value);
                     });
                 }
+
+                // ★ 新功能事件绑定
+                // 翻页音效按钮
+                document.getElementById('diarySoundBtn')?.addEventListener('click', toggleDiarySound);
+                // 分享导出按钮
+                document.getElementById('diaryShareBtn')?.addEventListener('click', shareDiaryAsImage);
+                // 翻页进度条点击跳转
+                document.getElementById('diaryProgressBar')?.addEventListener('click', function(e) {
+                    if (diarySortedReviews.length === 0) return;
+                    const rect = this.getBoundingClientRect();
+                    const ratio = (e.clientX - rect.left) / rect.width;
+                    const target = Math.floor(ratio * diarySortedReviews.length);
+                    if (target >= 0 && target < diarySortedReviews.length && target !== diaryCurrentPage) {
+                        playDiaryFlipSound();
+                        diaryCurrentPage = target;
+                        renderDiaryPage();
+                        document.getElementById('diaryPage').scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+
+                // 初始化移动端手势
+                initDiaryMobileGestures();
+                // 初始化按钮状态
+                initDiaryFeatureButtons();
 
                 initGuestbookEvents();
 
@@ -16194,7 +17190,33 @@
                             if (localStorage.getItem(GUIDE_KEY) !== 'true') {
                                 showGuide();
                             } else {
-                                showToast('💡 快捷键: /搜索 · 1/2切换视图 · R随机 · Esc关闭', 3000);
+                                showToast('💡 快捷键: /搜索 · 1/2切换视图 · R随机 · ←/→日记翻页 · Esc关闭', 3000);
+                            }
+                            break;
+                        case 'ArrowRight':
+                            // 日记翻到下一页
+                            if (document.getElementById('diaryPage').style.display === 'flex' &&
+                                document.getElementById('diaryContentView').style.display !== 'none' &&
+                                !diaryFlipping) {
+                                if (diaryCurrentPage < diarySortedReviews.length - 1) {
+                                    e.preventDefault();
+                                    playDiaryFlipSound();
+                                    if (isMobileView()) { diaryCurrentPage++; renderDiaryPage(); }
+                                    else flipDiaryPage('next');
+                                }
+                            }
+                            break;
+                        case 'ArrowLeft':
+                            // 日记翻到上一页
+                            if (document.getElementById('diaryPage').style.display === 'flex' &&
+                                document.getElementById('diaryContentView').style.display !== 'none' &&
+                                !diaryFlipping) {
+                                if (diaryCurrentPage > 0) {
+                                    e.preventDefault();
+                                    playDiaryFlipSound();
+                                    if (isMobileView()) { diaryCurrentPage--; renderDiaryPage(); }
+                                    else flipDiaryPage('prev');
+                                }
                             }
                             break;
                     }
