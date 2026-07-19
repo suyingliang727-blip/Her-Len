@@ -14135,8 +14135,16 @@
                     if (progressText) progressText.textContent = '⏳ 正在加载图片库...';
                     if (progressBar) progressBar.style.width = '20%';
 
-                    if (typeof html2canvas === 'undefined') {
-                        throw new Error('图片库未加载');
+                    let html2canvasLib;
+                    try {
+                        html2canvasLib = await window._loadHtml2Canvas();
+                    } catch (loadErr) {
+                        const isFileProtocol = window.location.protocol === 'file:';
+                        if (isFileProtocol) {
+                            throw new Error('图片库无法加载（file://协议限制）<br/><br/>💡 请使用 VS Code Live Server 或其他本地 HTTP 服务器打开本页面，以启用分享图片功能。');
+                        } else {
+                            throw new Error('图片库加载失败，请检查网络连接');
+                        }
                     }
 
                     if (progressText) progressText.textContent = '⏳ 正在渲染日记页面...';
@@ -14148,7 +14156,7 @@
                     if (progressText) progressText.textContent = '⏳ 正在生成图片...';
                     if (progressBar) progressBar.style.width = '75%';
 
-                    const canvas = await html2canvas(wrapper, {
+                    const canvas = await html2canvasLib(wrapper, {
                         backgroundColor: '#faf7fd',
                         scale: 2,
                         useCORS: true,

@@ -1,7 +1,7 @@
-const SITE_VERSION = 'v64';
-const CACHE_NAME = 'her-lens-v64';
-const STATIC_CACHE = 'her-lens-static-v64';
-const IMAGE_CACHE = 'her-lens-images-v64';
+const SITE_VERSION = 'v65';
+const CACHE_NAME = 'her-lens-v65';
+const STATIC_CACHE = 'her-lens-static-v65';
+const IMAGE_CACHE = 'her-lens-images-v65';
 
 const STATIC_ASSETS = [
     './',
