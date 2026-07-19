@@ -16998,7 +16998,7 @@
                     const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
                         supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
                         supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_reviews').select('game_id, rating, comment, play_date, created_at, updated_at').eq(
+                        supabaseClient.from('user_reviews').select('game_id, rating, comment, play_date, play_hours, created_at, updated_at').eq(
                             'user_id', userId)
                     ]);
 
@@ -17013,6 +17013,7 @@
                         rating: item.rating,
                         comment: item.comment,
                         play_date: item.play_date,
+                        play_hours: item.play_hours,
                         created_at: item.created_at,
                         updated_at: item.updated_at
                     }));
@@ -17056,6 +17057,7 @@
                                 rating: local.rating || null,
                                 comment: local.comment || null,
                                 play_date: local.play_date || null,
+                                play_hours: local.play_hours || 0,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                                 avatar_url: currentUser.user_metadata?.avatar_url || null
                             });
@@ -17066,6 +17068,7 @@
                                 rating: local.rating || null,
                                 comment: local.comment || null,
                                 play_date: local.play_date || null,
+                                play_hours: local.play_hours || 0,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                                 avatar_url: currentUser.user_metadata?.avatar_url || null
                             });
