@@ -14147,6 +14147,28 @@
                         }
                     }
 
+                    if (progressText) progressText.textContent = '⏳ 正在加载跨域图片...';
+                    if (progressBar) progressBar.style.width = '35%';
+
+                    const allImgs = wrapper.querySelectorAll('img');
+                    const srcMap = new Map();
+                    await Promise.all(Array.from(allImgs).map(async (img) => {
+                        const src = img.getAttribute('src') || img.src;
+                        if (!src || src.startsWith('data:')) return;
+                        try {
+                            const resp = await fetch(src, { mode: 'cors' });
+                            const blob = await resp.blob();
+                            const dataUrl = await new Promise((res, rej) => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => res(reader.result);
+                                reader.onerror = rej;
+                                reader.readAsDataURL(blob);
+                            });
+                            srcMap.set(img, img.src);
+                            img.src = dataUrl;
+                        } catch (e) { /* skip failed images */ }
+                    }));
+
                     if (progressText) progressText.textContent = '⏳ 正在渲染日记页面...';
                     if (progressBar) progressBar.style.width = '50%';
 
@@ -14159,12 +14181,11 @@
                     const canvas = await html2canvasLib(wrapper, {
                         backgroundColor: '#faf7fd',
                         scale: 2,
-                        useCORS: true,
-                        allowTaint: true,
                         logging: false
                     });
 
                     const dataUrl = canvas.toDataURL('image/png');
+                    srcMap.forEach((origSrc, img) => { img.src = origSrc; });
 
                     if (progressBar) progressBar.style.width = '100%';
 
