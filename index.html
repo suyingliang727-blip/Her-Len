@@ -14152,32 +14152,40 @@
 
                     const allImgs = wrapper.querySelectorAll('img');
                     const srcMap = new Map();
-                    const gifToPng = (dataUrl) => new Promise((res) => {
+                    const gifToPng = (blob) => new Promise((res) => {
+                        const blobUrl = URL.createObjectURL(blob);
                         const im = new Image();
                         im.onload = () => {
                             const c = document.createElement('canvas');
                             c.width = im.naturalWidth; c.height = im.naturalHeight;
                             c.getContext('2d').drawImage(im, 0, 0);
+                            URL.revokeObjectURL(blobUrl);
                             res(c.toDataURL('image/png'));
                         };
-                        im.onerror = () => res(dataUrl);
-                        im.src = dataUrl;
+                        im.onerror = () => { URL.revokeObjectURL(blobUrl); res(null); };
+                        im.src = blobUrl;
                     });
                     await Promise.all(Array.from(allImgs).map(async (img) => {
                         const src = img.getAttribute('src') || img.src;
                         if (!src || src.startsWith('data:')) return;
+                        const isGif = /\.gif(\?|$)/i.test(src);
                         try {
                             const resp = await fetch(src, { mode: 'cors' });
                             const blob = await resp.blob();
-                            let dataUrl = await new Promise((res, rej) => {
+                            if (isGif) {
+                                const pngDataUrl = await gifToPng(blob);
+                                if (pngDataUrl) {
+                                    srcMap.set(img, img.src);
+                                    img.src = pngDataUrl;
+                                    return;
+                                }
+                            }
+                            const dataUrl = await new Promise((res, rej) => {
                                 const reader = new FileReader();
                                 reader.onloadend = () => res(reader.result);
                                 reader.onerror = rej;
                                 reader.readAsDataURL(blob);
                             });
-                            if (blob.type === 'image/gif' || dataUrl.startsWith('data:image/gif')) {
-                                dataUrl = await gifToPng(dataUrl);
-                            }
                             srcMap.set(img, img.src);
                             img.src = dataUrl;
                         } catch (e) { /* skip failed images */ }
