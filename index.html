@@ -10843,7 +10843,7 @@
                 setSyncStatus('syncing', '正在展开地图');
                 try {
                     const { data, error } = await client.from('games')
-                        .select('id, title, description, cover, genre, gameplay, platforms, screenshots, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
+                        .select('id, title, description, fullDescription, cover, genre, gameplay, platforms, screenshots, videos, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
                         .neq('id', '1')
                         .neq('id', '2')
                         .order('id', { ascending: true });
@@ -10856,6 +10856,8 @@
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
                             screenshots: row.screenshots || [],
+    fullDescription: row.fullDescription || '',
+    videos: row.videos || [],
                             isReleased: row.isReleased !== undefined ? row.isReleased : true,
                             hasDemo: row.hasDemo || false,
                             hasMacSupport: row.hasMacSupport || '不支持Mac',
@@ -16996,7 +16998,7 @@
                     if (file) importCSV(file);
                 });
                 document.getElementById('editModalOverlay').addEventListener('click', function (e) {
-                    if (e.target === this) closeEditModal();
+                    // 不允许点击遮罩关闭编辑弹窗，避免误触导致填写内容丢失
                 });
 
                 document.getElementById('diaryOpenBtn').addEventListener('click', showDiaryContent);
