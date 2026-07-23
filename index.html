@@ -11914,8 +11914,12 @@
 
                 const oldCard = _cardMap.get(gameData.id);
                 if (oldCard) {
-                    const bound = _cardEventBound.get(oldCard);
-                    if (bound) { oldCard.removeEventListener('mousemove', bound); oldCard.removeEventListener('mouseleave', bound.leave); }
+                    const old3d = card3DListeners.find(item => item.el === oldCard);
+                    if (old3d) {
+                        oldCard.removeEventListener('mousemove', old3d.handler);
+                        oldCard.removeEventListener('mouseleave', old3d.leave);
+                        card3DListeners = card3DListeners.filter(item => item.el !== oldCard);
+                    }
                     _cardMap.delete(gameData.id);
                     _cardEventBound.delete(oldCard);
                 }
