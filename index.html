@@ -1968,6 +1968,62 @@
             pointer-events: auto;
         }
 
+        /* ---------- 编辑弹窗：居中窄弹窗 ---------- */
+        @media (min-width: 769px) {
+            #editModalOverlay {
+                display: none;
+                align-items: flex-start;
+                justify-content: center;
+                padding: 40px 20px;
+                overflow-y: auto;
+                background: var(--overlay);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+            }
+            #editModalOverlay.show {
+                display: flex;
+            }
+            #editModalOverlay .modal {
+                background: var(--surface2);
+                border-radius: 16px;
+                border: 1px solid var(--border);
+                max-width: 680px;
+                width: 100%;
+                max-height: calc(100vh - 80px);
+                height: auto;
+                min-height: unset;
+                box-shadow: var(--shadow-lg);
+                padding: 20px 24px 24px;
+                overflow-y: auto;
+                margin: 0 auto;
+            }
+            #editModalOverlay .modal .modal-close {
+                display: flex !important;
+                position: sticky;
+                top: 0;
+                float: right;
+                font-size: 1.1rem;
+                cursor: pointer;
+                color: var(--text2);
+                z-index: 10;
+                background: var(--modal-bg);
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid var(--border);
+                transition: all .2s;
+                margin-left: auto;
+                margin-bottom: 8px;
+            }
+            #editModalOverlay .modal .modal-close:hover {
+                color: var(--danger);
+                border-color: var(--danger);
+                transform: rotate(90deg);
+            }
+        }
+
         .modal {
             background: var(--bg);
             border-radius: 0;
@@ -11854,6 +11910,13 @@
                 if (idx >= 0) games[idx] = gameData;
                 else games.push(gameData);
 
+                const oldCard = _cardMap.get(gameData.id);
+                if (oldCard) {
+                    const bound = _cardEventBound.get(oldCard);
+                    if (bound) { oldCard.removeEventListener('mousemove', bound); oldCard.removeEventListener('mouseleave', bound.leave); }
+                    _cardMap.delete(gameData.id);
+                    _cardEventBound.delete(oldCard);
+                }
                 closeEditModal();
                 renderGallery();
                 showToast(`✅ "${title}" 已保存`, 2000);
