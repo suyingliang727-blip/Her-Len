@@ -5,20 +5,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Her Lens · 女性主角游戏</title>
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#9b8abd" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Her Lens" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <script>
         window._lazyLibs = {};
         window._lazyLibs.html2canvas = null;
@@ -4321,14 +4314,6 @@
             font-size: .75rem;
         }
 
-        .turnstile-container {
-            margin: 12px 0;
-            min-height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
         .profile-avatar-wrapper {
             position: relative;
             width: 100px;
@@ -6223,10 +6208,6 @@
             #authModalOverlay .modal {
                 max-width: 95%;
                 padding: 20px 16px;
-            }
-
-            .turnstile-container {
-                min-height: 60px;
             }
 
             .profile-avatar-wrapper {
@@ -9418,12 +9399,6 @@
                 <span class="announcement-icon">💖</span>
                 <span class="announcement-text">用户的打赏将用于维护本网页运行，感谢各位姊妹的大力支持，今后也将持续录入更多女性主角游戏。</span>
             </div>
-            <div class="announcement-item" id="announcementInstallItem" style="display:none;">
-                <span class="announcement-icon">📱</span>
-                <span class="announcement-text">将 Her Lens <strong>安装到主屏幕</strong>，获得类原生 App 体验
-                    <button class="announcement-install-btn" id="announcementInstallBtn">📥 安装</button>
-                </span>
-            </div>
         </div>
         <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
     </div>
@@ -9800,7 +9775,6 @@
                     <label>密码</label>
                     <input type="password" id="loginPassword" placeholder="密码" />
                 </div>
-                <div class="turnstile-container" id="loginTurnstileContainer"></div>
                 <button class="btn btn-accent" id="loginBtn" style="width:100%; padding:12px;">登录</button>
                 <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
                     还没有账号？ <a href="#" id="switchToRegister" style="color:var(--accent);">立即注册</a>
@@ -9818,7 +9792,6 @@
                     <label>密码（至少6位）</label>
                     <input type="password" id="registerPassword" placeholder="设置密码" />
                 </div>
-                <div class="turnstile-container" id="registerTurnstileContainer"></div>
                 <button class="btn btn-accent" id="registerBtn" style="width:100%; padding:12px;">注册</button>
                 <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
                     已有账号？ <a href="#" id="switchToLogin" style="color:var(--accent);">去登录</a>
@@ -10018,8 +9991,6 @@
             const SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
             const SUPABASE_ENABLED = SUPABASE_URL.includes('supabase.co') && SUPABASE_ANON_KEY.length > 10;
-            const TURNSTILE_SITEKEY = '0x4AAAAAADr2wfmpWE2-tfFr';
-
             const DEFAULT_GENRE_OPTIONS = ['丧尸', '悬疑/推理', '恐怖/生存恐怖', '乙女/女性向', '后末日', '百合', '权谋', '魔法', '偶像/娱乐圈',
                 '日常/生活', '校园', '职场', '战争/军事', '犯罪/黑帮', '体育', '艺术/音乐', '烹饪', '动物', '童话/寓言', '神话', '机械生物',
                 '蒸汽朋克', '赛博朋克', '奇幻', '古代', '现代', '黑暗', '超现实', '自然环境', '民间传说', '寻宝', '西幻', '科幻', '宗教',
@@ -10074,8 +10045,6 @@
             let isAdminMode = false;
             let editingGameId = null;
             const ADMIN_USER_ID = 'a7be3d14-7228-4f25-bf4e-00ff67a8894d';
-            let turnstileWidgetId = null;
-            let currentCaptchaToken = null;
             let currentAvatarFile = null;
             let avatarPreviewUrl = null;
             let _dropdownCloseHandler = null;
@@ -10949,7 +10918,7 @@
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
                     gameplay: { label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')), field: 'gameplay' },
                     platforms: { label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')), field: 'platforms' },
-                    heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
+                    heroineType: { label: '主角分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
                     costumeType: { label: '服设分类', options: COSTUME_TYPE_OPTIONS, field: 'costumeType' },
                     hasChinese: { label: '中文', options: CHINESE_OPTIONS, field: 'hasChinese' },
                     perspective: { label: '视角', options: PERSPECTIVE_OPTIONS, field: 'perspective' },
@@ -10962,7 +10931,7 @@
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
                     gameplay: { label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')), field: 'gameplay' },
                     platforms: { label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')), field: 'platforms' },
-                    heroineType: { label: '女主分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
+                    heroineType: { label: '主角分类', options: HEROINE_TYPE_OPTIONS, field: 'heroineType' },
                     perspective: { label: '视角', options: PERSPECTIVE_OPTIONS, field: 'perspective' },
                     hasDemo: { label: 'Demo试玩', options: DEMO_OPTIONS, field: 'hasDemo' },
                     hasChinese: { label: '中文', options: CHINESE_OPTIONS, field: 'hasChinese' }
@@ -11637,7 +11606,7 @@
                 { key: 'hasDemo', label: '有Demo', type: 'checkbox' },
                 { key: 'hasChinese', label: '中文', type: 'select', options: ['有中文', '无中文'] },
                 { key: 'perspective', label: '视角', type: 'select', options: ['第一人称', '第三人称', '可切换人称', '横版'] },
-                { key: 'heroineType', label: '女主分类', type: 'select', options: ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'] },
+                { key: 'heroineType', label: '主角分类', type: 'select', options: ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'] },
                 { key: 'costumeType', label: '服设分类', type: 'select', options: ['服设合理', '服设不合理', '含恶俗设计', '服设可自选'] },
                 { key: 'mainStoryDuration', label: '主线时长', type: 'text' },
                 { key: 'lowestPrice', label: '最低价', type: 'text' },
@@ -11706,7 +11675,7 @@
                     <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="自定义玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋</button></div></div>
                     <div class="form-row">
                         <div class="form-group"><label>👁 视角</label><select id="efPerspective">${['第一人称', '第三人称', '可切换人称', '横版'].map(p => `<option value="${p}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-                        <div class="form-group"><label>👤 女主分类</label><select id="efHeroineType">${['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'].map(h => `<option value="${h}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
+                        <div class="form-group"><label>👤 主角分类</label><select id="efHeroineType">${['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'].map(h => `<option value="${h}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
                         <div class="form-group"><label>👕 服设分类</label><select id="efCostumeType">${['服设合理', '服设不合理', '含恶俗设计', '服设可自选'].map(c => `<option value="${c}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
                     </div>
                     <div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${['有中文', '无中文'].map(c => `<option value="${c}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
@@ -12528,7 +12497,7 @@
                           <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
                           <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                          <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                          <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                           <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
                           <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
                           ${game.mainStoryDuration ? `<tr><td>⏱ 游戏时长</td><td>${escapeHTML(game.mainStoryDuration)}</td></tr>` : ''}
@@ -12538,7 +12507,7 @@
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
                           <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
                           <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                          <tr><td>👤 女主</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
+                          <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
                           <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
                           <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
@@ -16422,50 +16391,12 @@
             // 认证相关
             // ================================================================
 
-            function renderTurnstile(containerId, callback) {
-                if (typeof turnstile === 'undefined') {
-                    console.warn('Turnstile 脚本未加载，请检查网络');
-                    return;
-                }
-                if (turnstileWidgetId) {
-                    try { turnstile.remove(turnstileWidgetId); } catch (_) { }
-                    turnstileWidgetId = null;
-                }
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                container.innerHTML = '';
-                turnstileWidgetId = turnstile.render(container, {
-                    sitekey: TURNSTILE_SITEKEY,
-                    callback: function (token) {
-                        currentCaptchaToken = token;
-                        if (callback) callback(token);
-                    },
-                    'expired-callback': function () {
-                        showToast('人机验证已过期，请重新验证', 2000);
-                        currentCaptchaToken = null;
-                        if (callback) callback(null);
-                    }
-                });
-            }
-
-            function resetTurnstile(containerId) {
-                if (turnstileWidgetId) {
-                    try {
-                        turnstile.reset(turnstileWidgetId);
-                        currentCaptchaToken = null;
-                    } catch (_) { renderTurnstile(containerId, () => { }); }
-                } else {
-                    renderTurnstile(containerId, () => { });
-                }
-            }
-
             function handleLogin() {
                 const email = document.getElementById('loginEmail').value.trim();
                 const password = document.getElementById('loginPassword').value;
                 const errorEl = document.getElementById('authErrorMsg');
 
                 if (!email || !password) { errorEl.textContent = '请填写完整信息'; return; }
-                if (!currentCaptchaToken) { errorEl.textContent = '请完成人机验证'; return; }
 
                 errorEl.textContent = '';
                 const loginBtn = document.getElementById('loginBtn');
@@ -16481,15 +16412,12 @@
 
                 supabaseClient.auth.signInWithPassword({
                     email,
-                    password,
-                    options: { captchaToken: currentCaptchaToken }
+                    password
                 }).then(({ data, error }) => {
                     loginBtn.disabled = false;
                     loginBtn.textContent = '登录';
                     if (error) {
                         errorEl.textContent = error.message;
-                        resetTurnstile('loginTurnstileContainer');
-                        currentCaptchaToken = null;
                     } else {
                         closeAuthModal();
                         showToast('👋 登录成功！', 2000);
@@ -16498,8 +16426,6 @@
                     loginBtn.disabled = false;
                     loginBtn.textContent = '登录';
                     errorEl.textContent = err.message || '登录失败，请重试';
-                    resetTurnstile('loginTurnstileContainer');
-                    currentCaptchaToken = null;
                 });
             }
 
@@ -16510,7 +16436,6 @@
 
                 if (!email || !password) { errorEl.textContent = '请填写完整信息'; return; }
                 if (password.length < 6) { errorEl.textContent = '密码至少6位'; return; }
-                if (!currentCaptchaToken) { errorEl.textContent = '请完成人机验证'; return; }
 
                 errorEl.textContent = '';
                 const registerBtn = document.getElementById('registerBtn');
@@ -16528,7 +16453,6 @@
                     email,
                     password,
                     options: {
-                        captchaToken: currentCaptchaToken,
                         emailRedirectTo: window.location.origin
                     }
                 }).then(({ data, error }) => {
@@ -16536,8 +16460,6 @@
                     registerBtn.textContent = '注册';
                     if (error) {
                         errorEl.textContent = error.message;
-                        resetTurnstile('registerTurnstileContainer');
-                        currentCaptchaToken = null;
                     } else {
                         document.getElementById('registerForm').style.display = 'none';
                         document.getElementById('loginForm').style.display = 'none';
@@ -16548,8 +16470,6 @@
                     registerBtn.disabled = false;
                     registerBtn.textContent = '注册';
                     errorEl.textContent = err.message || '注册失败，请重试';
-                    resetTurnstile('registerTurnstileContainer');
-                    currentCaptchaToken = null;
                 });
             }
 
@@ -16571,17 +16491,11 @@
                 document.getElementById('emailConfirmMessage').style.display = 'none';
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('registerForm').style.display = 'none';
-                renderTurnstile('loginTurnstileContainer', (token) => { currentCaptchaToken = token; });
             }
 
             function closeAuthModal() {
                 document.getElementById('authModalOverlay').classList.remove('show');
                 document.body.style.overflow = '';
-                if (turnstileWidgetId) {
-                    try { turnstile.remove(turnstileWidgetId); } catch (_) { }
-                    turnstileWidgetId = null;
-                }
-                currentCaptchaToken = null;
             }
 
             function switchAuthTab(tab) {
@@ -16599,14 +16513,12 @@
                     loginForm.style.display = 'block';
                     registerForm.style.display = 'none';
                     confirmMsg.style.display = 'none';
-                    renderTurnstile('loginTurnstileContainer', (token) => { currentCaptchaToken = token; });
                 } else {
                     registerTab.classList.add('active');
                     loginTab.classList.remove('active');
                     registerForm.style.display = 'block';
                     loginForm.style.display = 'none';
                     confirmMsg.style.display = 'none';
-                    renderTurnstile('registerTurnstileContainer', (token) => { currentCaptchaToken = token; });
                 }
             }
 
@@ -17745,129 +17657,6 @@
         })();
     </script>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(function (reg) {
-                        console.log('✅ Service Worker registered, scope:', reg.scope);
-                        function checkVersion() {
-                            if (!navigator.serviceWorker.controller) return;
-                            navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
-                        }
-                        navigator.serviceWorker.addEventListener('message', function (e) {
-                            if (e.data && e.data.type === 'VERSION') {
-                                var swVersion = e.data.version;
-                                var localVersion = localStorage.getItem('herlens_sw_version');
-                                if (localVersion && localVersion !== swVersion) {
-                                    localStorage.setItem('herlens_sw_version', swVersion);
-                                    location.reload();
-                                    return;
-                                }
-                                localStorage.setItem('herlens_sw_version', swVersion);
-                            }
-                        });
-                        checkVersion();
-                        reg.addEventListener('updatefound', function () {
-                            var newWorker = reg.installing;
-                            if (newWorker) {
-                                newWorker.addEventListener('statechange', function () {
-                                    if (newWorker.state === 'activated') {
-                                        checkVersion();
-                                    }
-                                });
-                            }
-                        });
-                    })
-                    .catch(function (err) {
-                        console.warn('⚠️ Service Worker registration failed:', err);
-                    });
-            });
-        }
-    </script>
-
-    <script>
-        (function () {
-            var deferredPrompt = null;
-            var installItem = document.getElementById('announcementInstallItem');
-            var installBtn = document.getElementById('announcementInstallBtn');
-
-            function isStandalone() {
-                return window.matchMedia('(display-mode: standalone)').matches ||
-                    window.navigator.standalone === true;
-            }
-
-            if (isStandalone()) {
-                if (installItem) installItem.style.display = 'none';
-                return;
-            }
-
-            window.addEventListener('beforeinstallprompt', function (e) {
-                e.preventDefault();
-                deferredPrompt = e;
-                if (installItem) installItem.style.display = '';
-            });
-
-            window.addEventListener('appinstalled', function () {
-                deferredPrompt = null;
-                if (installItem) installItem.style.display = 'none';
-            });
-
-            if (installBtn) {
-                installBtn.addEventListener('click', function () {
-                    if (!deferredPrompt) {
-                        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                        if (isIOS) {
-                            var toast = document.createElement('div');
-                            toast.className = 'toast-notification';
-                            toast.innerHTML = '📱 iOS 用户请点击 Safari 底部分享按钮，然后选择「添加到主屏幕」';
-                            document.body.appendChild(toast);
-                            requestAnimationFrame(function () { toast.classList.add('show'); });
-                            setTimeout(function () {
-                                toast.classList.remove('show');
-                                setTimeout(function () { toast.remove(); }, 500);
-                            }, 5000);
-                        } else {
-                            var toast = document.createElement('div');
-                            toast.className = 'toast-notification';
-                            toast.textContent = '💡 请使用 Chrome / Edge 浏览器打开以安装 App';
-                            document.body.appendChild(toast);
-                            requestAnimationFrame(function () { toast.classList.add('show'); });
-                            setTimeout(function () {
-                                toast.classList.remove('show');
-                                setTimeout(function () { toast.remove(); }, 5000);
-                            }, 3000);
-                        }
-                        return;
-                    }
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then(function (choice) {
-                        if (choice.outcome === 'accepted') {
-                            var toast = document.createElement('div');
-                            toast.className = 'toast-notification';
-                            toast.textContent = '✅ 正在安装 Her Lens...';
-                            document.body.appendChild(toast);
-                            requestAnimationFrame(function () { toast.classList.add('show'); });
-                            setTimeout(function () {
-                                toast.classList.remove('show');
-                                setTimeout(function () { toast.remove(); }, 500);
-                            }, 2500);
-                        }
-                        deferredPrompt = null;
-                    });
-                });
-            }
-
-            if (!('beforeinstallprompt' in window) && !isStandalone()) {
-                var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                if (isIOS && installItem) {
-                    installItem.style.display = '';
-                }
-            }
-        })();
-    </script>
-</body>
+    </body>
 
 </html>
