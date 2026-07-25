@@ -3263,39 +3263,60 @@
             padding: 24px 20px;
             border: 2px solid var(--accent);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        #tipModalOverlay #tipModal .tip-card .big-icon {
-            font-size: 3rem;
-            margin-bottom: 8px;
+        #tipModalOverlay #tipModal .tip-card .tip-qrcode {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
         }
 
-        #tipModalOverlay #tipModal .tip-card h3 {
-            color: var(--text);
-            margin-bottom: 6px;
-            font-size: 1.1rem;
-        }
-
-        #tipModalOverlay #tipModal .tip-card p {
+        #tipModalOverlay #tipModal .tip-card .tip-hint {
             color: var(--text2);
             font-size: 0.85rem;
-            margin-bottom: 16px;
+            margin-top: 12px;
+            margin-bottom: 0;
         }
 
-        #tipModalOverlay #tipModal .tip-card .tip-btn {
-            display: inline-block;
+        #tipModalOverlay #tipModal .tip-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            color: var(--text3);
+            font-size: 0.8rem;
+        }
+
+        #tipModalOverlay #tipModal .tip-divider::before,
+        #tipModalOverlay #tipModal .tip-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        #tipModalOverlay #tipModal .tip-link-btn {
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
             padding: 12px 32px;
             background: var(--accent);
             color: #fff;
             border-radius: 30px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all .2s;
         }
 
-        #tipModalOverlay #tipModal .tip-card .tip-btn:hover {
+        #tipModalOverlay #tipModal .tip-link-btn:hover {
             background: var(--accent2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(155, 138, 189, 0.30);
         }
 
         #tipModalOverlay #tipModal .tip-footer {
@@ -7026,17 +7047,13 @@
                 padding: 18px 14px 22px;
             }
 
-            #tipModalOverlay .tip-card .big-icon {
-                font-size: 2.8rem;
+            #tipModalOverlay .tip-card .tip-qrcode {
+                max-width: 240px;
             }
 
-            #tipModalOverlay .tip-card h3 {
-                font-size: 1.1rem;
-            }
-
-            #tipModalOverlay .tip-card .tip-btn {
+            #tipModalOverlay .tip-link-btn {
                 padding: 10px 28px;
-                font-size: 0.95rem;
+                font-size: 0.9rem;
             }
         }
 
@@ -9742,15 +9759,14 @@
             <h2>🪙 打赏作者</h2>
             <p class="tip-sub">感谢姊妹支持，你的鼓励是我持续更新网站的动力。</p>
             <div class="tip-card">
-                <div class="big-icon">⚡</div>
-                <h3>爱发电 · 订阅支持</h3>
-                <p>选择你的发电方案，助力女性主角游戏持续更新</p>
-                <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer" class="tip-btn">
-                    🔗 前往支持
-                </a>
-                <p style="color:var(--text3);font-size:0.7rem;margin-top:14px;">点击按钮将跳转至爱发电平台，你的支持安全可靠</p>
+                <img src="赞赏码.jpg" alt="微信赞赏码" class="tip-qrcode">
+                <p class="tip-hint">微信扫一扫，赞赏任意金额</p>
             </div>
-            <div class="tip-footer">💡 打赏链接已内嵌，点击即可支持创作者</div>
+            <div class="tip-divider"><span>或者</span></div>
+            <a href="https://ifdian.net/a/HERLen/plan" target="_blank" rel="noopener noreferrer" class="tip-link-btn">
+                ⚡ 前往爱发电订阅支持
+            </a>
+            <div class="tip-footer">💡 两种方式均可，感谢你的支持</div>
         </div>
     </div>
 
