@@ -2450,7 +2450,15 @@ function renderQuestion() {
     document.getElementById('btnNext').textContent = currentQuestion === getTotalQuestions() - 1 ? '揭晓答案 ✨' : '下一题 →';
 }
 
+var _autoNextTimer = null;
+
 function selectOption(idx) {
+    // 取消之前的自动跳转定时器（防止快速切换选项时重复触发）
+    if (_autoNextTimer) {
+        clearTimeout(_autoNextTimer);
+        _autoNextTimer = null;
+    }
+
     answers[currentQuestion] = idx;
 
     // 如果是分支点题目，设置分支状态
@@ -2473,6 +2481,12 @@ function selectOption(idx) {
     });
 
     document.getElementById('btnNext').disabled = false;
+
+    // 自动进入下一题（给选中动画留 450ms 展示时间）
+    _autoNextTimer = setTimeout(function() {
+        _autoNextTimer = null;
+        nextQuestion();
+    }, 450);
 }
 
 function nextQuestion() {
