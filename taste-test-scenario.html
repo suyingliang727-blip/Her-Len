@@ -526,6 +526,46 @@ body {
 </div>
 <script>
 // ================================================================
+// 本地存储相关
+// ================================================================
+var STORAGE_KEY_TASTE = 'herlens_taste_test_result';
+
+function saveResultToStorage(result, mbti, branchState, answers) {
+    var data = {
+        result: result,
+        mbti: mbti,
+        branchState: branchState,
+        answers: answers,
+        timestamp: Date.now()
+    };
+    try {
+        localStorage.setItem(STORAGE_KEY_TASTE, JSON.stringify(data));
+    } catch(e) {
+        console.warn('保存测试结果失败:', e);
+    }
+}
+
+function loadResultFromStorage() {
+    try {
+        var data = localStorage.getItem(STORAGE_KEY_TASTE);
+        if (data) {
+            return JSON.parse(data);
+        }
+    } catch(e) {
+        console.warn('读取测试结果失败:', e);
+    }
+    return null;
+}
+
+function clearResultFromStorage() {
+    try {
+        localStorage.removeItem(STORAGE_KEY_TASTE);
+    } catch(e) {
+        console.warn('清除测试结果失败:', e);
+    }
+}
+
+// ================================================================
 // 39道场景选择题（6章叙事线 + 3分支点）
 // ================================================================
 // 每题4个选项，每个选项直接给对应职业加分
@@ -2287,7 +2327,12 @@ function selectMBTI(code) {
 
 function submitMBTI() {
     showScreen('screenLoading');
-    setTimeout(function() { showScreen('screenResult'); renderResult(pendingResult, selectedMBTI); }, 2200);
+    setTimeout(function() { 
+        showScreen('screenResult'); 
+        renderResult(pendingResult, selectedMBTI);
+        // 保存结果到本地存储
+        saveResultToStorage(pendingResult, selectedMBTI, branchState, answers);
+    }, 2200);
 }
 
 var currentQuestion = 0;
@@ -2789,7 +2834,8 @@ function renderResult(resultTypes, mbti) {
         g.dims.forEach(function(d) { var r = scores[d.key]||0, p = Math.max(5,Math.min(98,Math.round((r+6)/12*100))); matchBars += '<div class="match-row"><span class="match-label">'+d.label+'</span><div class="match-track"><div class="match-fill" style="width:0%;background:'+t.gradient+'" data-target="'+p+'"></div></div><span class="match-value">'+p+'%</span></div>'; });
     });
     var gameRecs = '';
-    t.games.forEach(function(g, i) { gameRecs += '<a class="game-rec" href="index.html?gameTitle='+encodeURIComponent(g.title)+'" target="_blank"><div class="rec-num">'+(i+1)+'</div><div class="rec-info"><div class="rec-title">'+g.title+'</div><div class="rec-desc">'+g.desc+'</div></div></a>'; });
+    var baseUrl = 'https://her-len.pages.dev/';
+    t.games.forEach(function(g, i) { gameRecs += '<a class="game-rec" href="'+baseUrl+'index.html?gameTitle='+encodeURIComponent(g.title)+'" target="_blank" rel="noopener noreferrer"><div class="rec-num">'+(i+1)+'</div><div class="rec-info"><div class="rec-title">'+g.title+'</div><div class="rec-desc">'+g.desc+'</div></div></a>'; });
     var subHTML = '';
     if (resultTypes.secondary) { var st = playerTypes[resultTypes.secondary]; subHTML = '<div style="margin:1.5rem 0"><h3 style="font-size:0.88rem;color:var(--text3);margin-bottom:0.8rem;font-weight:500">副职业倾向</h3><div style="display:flex;gap:0.8rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;align-items:center"><div style="width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;background:'+st.gradient+'">'+st.icon+'</div><div style="flex:1"><div style="font-size:0.75rem;color:var(--text3)">你的第二职业</div><div style="font-size:1rem;font-weight:600;color:var(--text)">'+st.name+'</div><div style="font-size:0.8rem;color:var(--text3);margin-top:0.1rem">匹配度 '+resultTypes.secondaryPct+'%</div></div></div></div>'; }
     var compHTML = '';
@@ -2825,7 +2871,7 @@ function renderResult(resultTypes, mbti) {
         '<div class="share-actions">' +
         '<button class="btn-primary" onclick="shareResult(\''+resultTypes.primary+'\')">📤 分享我的职业</button>' +
         '<button class="btn-secondary" onclick="restart()">🔄 重新鉴定</button>' +
-        '<button class="btn-secondary" onclick="window.open(\'https://her-len.pages.dev/\', \'_blank\')">🏠 前往 Her Lens</button>' +
+        '<button class="btn-secondary" onclick="window.open(\'https://her-len.pages.dev/\', \'_blank\', \'noopener,noreferrer\')">🏠 前往 Her Lens</button>' +
         '</div>' +
         '<div style="text-align:center;margin-top:1rem;font-size:0.75rem;color:var(--text3);opacity:0.7;">仅供娱乐</div>';
     setTimeout(function() { renderSpectrum(); renderTopTraits(); renderBranchPath(); renderCharacterMatch(resultTypes.primary); }, 200);
@@ -3176,7 +3222,30 @@ function shareResult(typeKey) {
 }
 function fallback(text) { if (navigator.clipboard) { navigator.clipboard.writeText(text).then(function() { showToast('✅ 分享文案已复制到剪贴板！'); }).catch(function() { showToast('请截图分享给好友'); }); } else { showToast('请截图分享给好友'); } }
 function showToast(msg) { var t=document.createElement('div'); t.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(60,30,80,0.9);color:#fff;padding:0.7rem 1.5rem;border-radius:24px;font-size:0.9rem;z-index:99999;animation:fadeInUp 0.3s ease;backdrop-filter:blur(10px);'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){t.style.transition='0.3s';t.style.opacity='0';t.style.transform='translateX(-50%) translateY(10px)';setTimeout(function(){t.remove();},300);},2500); }
-function restart() { startQuiz(); }
+function restart() {
+    clearResultFromStorage();
+    startQuiz();
+}
+
+// 页面加载时检查是否有保存的结果
+window.addEventListener('DOMContentLoaded', function() {
+    var savedData = loadResultFromStorage();
+    if (savedData && savedData.result) {
+        // 有保存的结果，直接显示结果页面
+        pendingResult = savedData.result;
+        selectedMBTI = savedData.mbti;
+        if (savedData.branchState) {
+            branchState = savedData.branchState;
+        }
+        if (savedData.answers) {
+            answers = savedData.answers;
+            // 重新计算职业分数
+            calculateCareerScores();
+        }
+        showScreen('screenResult');
+        renderResult(savedData.result, savedData.mbti);
+    }
+});
 </script>
 
 </body></html>
