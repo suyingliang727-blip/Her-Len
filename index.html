@@ -3412,11 +3412,11 @@
         }
 
         /* ================================================================
-   ★★★ 玩过记录卡片 — 宽屏8列 ★★★
+   ★★★ 玩过记录卡片 — 宽屏5列 ★★★
    ================================================================ */
         .played-grid {
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
             margin-bottom: 18px;
         }
@@ -3462,9 +3462,13 @@
             font-weight: 500;
             color: var(--text);
             text-align: center;
-            white-space: nowrap;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 1.4;
+            min-height: calc(0.92rem * 1.4 * 2 + 10px * 2);
             background: var(--surface);
             border-top: 1px solid var(--border);
         }
@@ -3496,13 +3500,13 @@
         /* 响应式：玩过记录卡片列数递减 */
         @media (max-width: 1200px) {
             .played-grid {
-                grid-template-columns: repeat(6, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
         @media (max-width: 992px) {
             .played-grid {
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -3867,18 +3871,20 @@
         /* ================================================================
    ★★★ 其他弹窗 (成就/登录/个人资料/我的评论) ★★★
    ================================================================ */
-        #achievementModal .modal {
-            max-width: 650px;
+        #achievementModalOverlay .modal {
+            max-width: 900px;
             margin: 0 auto;
             border-radius: 24px;
             padding: 28px 24px;
             min-height: auto;
+            max-height: calc(100vh - 40px);
             background: var(--modal-bg);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-lg);
+            overflow-y: auto;
         }
 
-        #achievementModal .modal-close {
+        #achievementModalOverlay .modal-close {
             display: flex !important;
             position: sticky;
             top: 0;
@@ -3899,7 +3905,7 @@
             margin-bottom: 4px;
         }
 
-        #achievementModal .modal-close:hover {
+        #achievementModalOverlay .modal-close:hover {
             color: var(--danger);
             border-color: var(--danger);
             transform: rotate(90deg);
@@ -4127,6 +4133,11 @@
             margin-bottom: 20px;
             border-bottom: 2px solid var(--border);
             justify-content: center;
+            position: sticky;
+            top: 0;
+            background: var(--modal-bg);
+            z-index: 5;
+            padding-top: 4px;
         }
 
         .achievement-tab-btn {
@@ -6862,7 +6873,7 @@
                 font-size: .65rem;
             }
 
-            #achievementModal .modal {
+            #achievementModalOverlay .modal {
                 max-width: 95%;
                 margin: 10px auto;
             }
@@ -11990,6 +12001,8 @@
                             const game = games.find(g => g.id === id);
                             if (game) {
                                 window._detailFrom = 'played';
+                                const modal = document.querySelector('#achievementModalOverlay .modal');
+                                if (modal) window._playedScrollPos = modal.scrollTop;
                                 closeAchievementModal();
                                 setTimeout(() => showDetailModal(game, { from: 'played' }), 100);
                             }
@@ -14634,6 +14647,13 @@
                             switchAchievementTab('played');
                         } else {
                             switchAchievementTab('played');
+                        }
+                        const savedScroll = window._playedScrollPos;
+                        if (typeof savedScroll === 'number' && savedScroll > 0) {
+                            requestAnimationFrame(function () {
+                                const modal = document.querySelector('#achievementModalOverlay .modal');
+                                if (modal) modal.scrollTop = savedScroll;
+                            });
                         }
                         window._detailFrom = 'gallery';
                     }, 200);
@@ -20437,9 +20457,6 @@
                     toggleExcludePlayedMode();
                 });
                 document.getElementById('achievementModalClose').addEventListener('click', closeAchievementModal);
-                document.getElementById('achievementModalOverlay').addEventListener('click', function (e) {
-                    if (e.target === this) closeAchievementModal();
-                });
 
                 document.querySelectorAll('.achievement-tab-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
