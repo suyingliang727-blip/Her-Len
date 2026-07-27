@@ -4361,6 +4361,178 @@
             white-space: pre-wrap;
         }
 
+        /* ===== 游戏评论嵌套回复样式 ===== */
+        .comment-reply-btn {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .comment-reply-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
+        }
+
+        .comment-reply-list {
+            margin-top: 8px;
+            padding-left: 16px;
+            border-left: 2px solid var(--border);
+        }
+
+        .comment-reply-item {
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .comment-reply-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-reply-item-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .comment-reply-item-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+        }
+
+        .comment-reply-item-name {
+            font-weight: 600;
+            font-size: 0.72rem;
+            color: var(--text);
+        }
+
+        .comment-reply-item-time {
+            font-size: 0.62rem;
+            color: var(--text3);
+        }
+
+        .comment-reply-item-content {
+            font-size: 0.78rem;
+            color: var(--text2);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .comment-reply-to-label {
+            color: var(--accent);
+            font-size: 0.72rem;
+            margin-right: 4px;
+        }
+
+        .comment-reply-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 3px;
+        }
+
+        .comment-reply-item-actions .comment-reply-btn,
+        .comment-reply-item-actions .comment-reply-delete-btn {
+            font-size: 0.6rem;
+            padding: 1px 6px;
+            opacity: 0.7;
+        }
+
+        .comment-reply-delete-btn {
+            font-size: 0.6rem;
+            padding: 1px 6px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .comment-reply-delete-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .comment-nested-reply-list {
+            margin-top: 6px;
+            padding-left: 14px;
+            border-left: 2px solid var(--border);
+        }
+
+        .comment-nested-reply-compose {
+            margin-top: 6px;
+            padding: 8px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .comment-nested-reply-compose textarea {
+            width: 100%;
+            min-height: 36px;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.78rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .comment-nested-reply-compose textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .comment-reply-compose {
+            margin-top: 8px;
+            padding: 8px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .comment-reply-compose textarea {
+            width: 100%;
+            min-height: 50px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.82rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .comment-reply-compose textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .comment-reply-compose-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .comment-reply-compose-actions .btn {
+            padding: 4px 12px;
+            font-size: 0.78rem;
+        }
+
         .review-login-prompt {
             text-align: center;
             color: var(--text3);
@@ -8484,6 +8656,57 @@
             margin-right: 4px;
         }
 
+        /* ===== 嵌套回复样式 ===== */
+        .reply-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .reply-item-actions .guestbook-reply-btn,
+        .reply-item-actions .guestbook-delete-btn {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .reply-item-actions .guestbook-reply-btn:hover,
+        .reply-item-actions .guestbook-delete-btn:hover {
+            opacity: 1;
+        }
+
+        .nested-reply-list {
+            margin-top: 8px;
+            padding-left: 16px;
+            border-left: 2px solid var(--border);
+        }
+
+        .nested-reply-list .reply-item-avatar {
+            width: 18px;
+            height: 18px;
+        }
+
+        .nested-reply-list .reply-item-name {
+            font-size: 0.72rem;
+        }
+
+        .nested-reply-list .reply-item-content {
+            font-size: 0.78rem;
+        }
+
+        .nested-reply-compose {
+            margin-top: 6px;
+            padding-left: 0;
+        }
+
+        .nested-reply-compose textarea {
+            font-size: 0.78rem;
+            min-height: 36px;
+            padding: 6px 8px;
+        }
+
         @media (max-width: 768px) {
             .guestbook-modal .modal {
                 max-width: 95%;
@@ -10084,6 +10307,62 @@
             word-break: break-word;
         }
 
+        /* ===== MOD评论嵌套回复样式 ===== */
+        .mod-reply-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .mod-reply-item-actions .mod-comment-reply-btn,
+        .mod-reply-item-actions .mod-comment-delete {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .mod-reply-item-actions .mod-comment-reply-btn:hover,
+        .mod-reply-item-actions .mod-comment-delete:hover {
+            opacity: 1;
+        }
+
+        .mod-reply-to-label {
+            color: var(--accent);
+            font-size: 0.75rem;
+            margin-right: 4px;
+        }
+
+        .mod-nested-reply-list {
+            margin-top: 8px;
+            padding-left: 16px;
+            border-left: 2px solid var(--border);
+        }
+
+        .mod-nested-reply-list .mod-reply-item-avatar {
+            width: 18px;
+            height: 18px;
+        }
+
+        .mod-nested-reply-list .mod-reply-item-name {
+            font-size: 0.72rem;
+        }
+
+        .mod-nested-reply-list .mod-reply-item-content {
+            font-size: 0.78rem;
+        }
+
+        .mod-nested-reply-compose {
+            margin-top: 6px;
+        }
+
+        .mod-nested-reply-compose textarea {
+            font-size: 0.78rem;
+            min-height: 36px;
+            padding: 6px 8px;
+        }
+
         .mod-empty {
             text-align: center;
             padding: 50px 20px;
@@ -11146,6 +11425,8 @@
             let supabaseClient = null;
             if (SUPABASE_ENABLED) {
                 try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) { supabaseClient = null; }
+                // 后台静默迁移本地回复数据到云端（仅执行一次）
+                migrateLocalRepliesToCloud().catch(e => console.warn('[Migration] 异常:', e));
             }
 
             let games = [];
@@ -11821,6 +12102,7 @@
                                 commentsList.appendChild(newEl);
                             }
                             bindReviewShareButtons(newEl);
+                            bindGameCommentReplyEvents(newEl);
                             setTimeout(function () { newEl.style.opacity = '1'; }, 50);
                         }
                     }
@@ -14276,7 +14558,7 @@
             // ================================================================
             // 社区评论 (带分享按钮 + 分页)
             // ================================================================
-            function renderReviewItem(r, gameId) {
+            async function renderReviewItem(r, gameId) {
                 const avatar = r.avatar_url ?
                     `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
                     `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
@@ -14285,10 +14567,21 @@
                     year: 'numeric', month: 'long', day: 'numeric'
                 }) : '';
                 const commentText = r.comment || '';
+                const reviewId = `${gameId}_${r.user_id}`;
                 const shareBtnHtml =
                     `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-rating="${r.rating || ''}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
+                const replyBtnHtml = `<button class="comment-reply-btn" data-review-id="${reviewId}">💬 回复</button>`;
+
+                // 获取回复树
+                const flatReplies = await getGameCommentRepliesForReview(reviewId);
+                const replyTree = buildGameReplyTree([...flatReplies]);
+                let repliesHtml = '';
+                if (replyTree.length > 0) {
+                    repliesHtml = '<div class="comment-reply-list">' + renderGameReplyTree(replyTree, reviewId, 0, flatReplies) + '</div>';
+                }
+
                 return `
-                    <div class="comment-item">
+                    <div class="comment-item" data-review-id="${reviewId}">
                         <div class="comment-header">
                             ${avatar}
                             <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
@@ -14298,6 +14591,15 @@
                         ${commentText ? `<div class="comment-text">${stripCommentHTML(commentText)}</div>` : ''}
                         <div class="comment-actions">
                             ${shareBtnHtml}
+                            ${replyBtnHtml}
+                        </div>
+                        ${repliesHtml}
+                        <div class="comment-reply-compose" id="gameReplyCompose-${reviewId}" style="display:none;">
+                            <textarea id="gameReplyInput-${reviewId}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                            <div class="comment-reply-compose-actions">
+                                <button class="btn btn-sm game-reply-cancel-btn" data-review-id="${reviewId}">取消</button>
+                                <button class="btn btn-sm btn-accent game-reply-submit-btn" data-review-id="${reviewId}" data-reply-to-user-id="${r.user_id}">发送</button>
+                            </div>
                         </div>
                     </div>`;
             }
@@ -14319,6 +14621,126 @@
                             createdAt: this.dataset.date || ''
                         };
                         buildShareFloat(game, reviewData);
+                    });
+                });
+            }
+
+            // 绑定游戏评论回复事件
+            function bindGameCommentReplyEvents(container) {
+                // 回复按钮（含嵌套回复）
+                container.querySelectorAll('.comment-reply-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const reviewId = this.dataset.reviewId;
+                        const replyId = this.dataset.replyId;
+
+                        // 先隐藏同级其他输入框
+                        const parent = this.closest('.comment-reply-item') || this.closest('.comment-item');
+                        if (parent) {
+                            parent.querySelectorAll('.comment-nested-reply-compose, .comment-reply-compose').forEach(c => {
+                                c.style.display = 'none';
+                            });
+                        }
+
+                        if (replyId) {
+                            // 嵌套回复
+                            const composeEl = document.getElementById('gameNestedReplyCompose-' + reviewId + '-' + replyId);
+                            if (composeEl) {
+                                composeEl.style.display = 'block';
+                                document.getElementById('gameNestedReplyInput-' + reviewId + '-' + replyId)?.focus();
+                            }
+                        } else {
+                            // 一级回复
+                            const composeEl = document.getElementById('gameReplyCompose-' + reviewId);
+                            if (composeEl) {
+                                composeEl.style.display = 'block';
+                                document.getElementById('gameReplyInput-' + reviewId)?.focus();
+                            }
+                        }
+                    });
+                });
+
+                // 一级回复取消按钮
+                container.querySelectorAll('.game-reply-cancel-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const reviewId = this.dataset.reviewId;
+                        const composeEl = document.getElementById('gameReplyCompose-' + reviewId);
+                        if (composeEl) composeEl.style.display = 'none';
+                    });
+                });
+
+                // 一级回复提交按钮
+                container.querySelectorAll('.game-reply-submit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const reviewId = this.dataset.reviewId;
+                        const replyToUserId = this.dataset.replyToUserId;
+                        const input = document.getElementById('gameReplyInput-' + reviewId);
+                        if (!input) return;
+                        const text = input.value.trim();
+                        if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        await addGameCommentReply(String(reviewId), text, replyToUserId);
+
+                        // 发送通知
+                        if (supabaseClient) {
+                            try {
+                                await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
+                            } catch (_) {}
+                        }
+
+                        showToast('✅ 回复成功', 1500);
+                        // 重新渲染评论列表
+                        const gameId = reviewId.split('_')[0];
+                        loadCommunityReviews(Number(gameId));
+                    });
+                });
+
+                // 嵌套回复取消按钮
+                container.querySelectorAll('.game-nested-reply-cancel-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const reviewId = this.dataset.reviewId;
+                        const replyId = this.dataset.replyId;
+                        const composeEl = document.getElementById('gameNestedReplyCompose-' + reviewId + '-' + replyId);
+                        if (composeEl) composeEl.style.display = 'none';
+                    });
+                });
+
+                // 嵌套回复提交按钮
+                container.querySelectorAll('.game-nested-reply-submit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const reviewId = this.dataset.reviewId;
+                        const parentReplyId = Number(this.dataset.parentReplyId);
+                        const replyToUserId = this.dataset.replyToUserId;
+                        const input = document.getElementById('gameNestedReplyInput-' + reviewId + '-' + parentReplyId);
+                        if (!input) return;
+                        const text = input.value.trim();
+                        if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        await addGameCommentReply(String(reviewId), text, replyToUserId, parentReplyId);
+
+                        // 发送通知
+                        if (supabaseClient) {
+                            try {
+                                await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
+                            } catch (_) {}
+                        }
+
+                        showToast('✅ 回复成功', 1500);
+                        const gameId = reviewId.split('_')[0];
+                        loadCommunityReviews(Number(gameId));
+                    });
+                });
+
+                // 回复删除按钮
+                container.querySelectorAll('.comment-reply-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        const reviewId = this.dataset.reviewId;
+                        const replyId = Number(this.dataset.replyId);
+                        if (!confirm('确定删除这条回复吗？')) return;
+                        await deleteGameCommentReply(String(reviewId), replyId);
+                        showToast('✅ 回复已删除', 1500);
+                        const gameId = reviewId.split('_')[0];
+                        loadCommunityReviews(Number(gameId));
                     });
                 });
             }
@@ -14349,7 +14771,7 @@
                 }
 
                 let html = '';
-                reviews.forEach(r => { html += renderReviewItem(r, gameId); });
+                for (const r of reviews) { html += await renderReviewItem(r, gameId); }
 
                 const hasMore = reviews.length >= REVIEW_PAGE_SIZE;
                 if (hasMore) {
@@ -14360,6 +14782,7 @@
 
                 commentsList.innerHTML = html;
                 bindReviewShareButtons(commentsList);
+                bindGameCommentReplyEvents(commentsList);
 
                 const loadMoreBtn = commentsList.querySelector('#reviewLoadMoreBtn');
                 if (loadMoreBtn) {
@@ -14372,12 +14795,13 @@
                         _reviewPage[gid] = nextPage;
                         if (moreReviews.length > 0) {
                             const moreWrap = document.createElement('div');
-                            moreReviews.forEach(r => { moreWrap.innerHTML += renderReviewItem(r, gid); });
+                            for (const r of moreReviews) { moreWrap.innerHTML += await renderReviewItem(r, gid); }
                             const existingLoadMore = commentsList.querySelector('.review-load-more');
                             while (moreWrap.firstChild) {
                                 commentsList.insertBefore(moreWrap.firstChild, existingLoadMore);
                             }
                             bindReviewShareButtons(commentsList);
+                            bindGameCommentReplyEvents(commentsList);
                         }
                         if (moreReviews.length < REVIEW_PAGE_SIZE) {
                             const lm = commentsList.querySelector('.review-load-more');
@@ -15746,6 +16170,218 @@
             let guestbookListener = null;
             let _guestbookDebounce = null;
 
+            // ===== 游戏评论回复功能（本地存储） =====
+            const GAME_COMMENT_REPLIES_KEY = 'heroine_game_comment_replies_v1';
+
+            function getGameCommentReplies() {
+                try {
+                    return JSON.parse(localStorage.getItem(GAME_COMMENT_REPLIES_KEY) || '{}');
+                } catch (_) {
+                    return {};
+                }
+            }
+
+            function saveGameCommentReplies(replies) {
+                try {
+                    localStorage.setItem(GAME_COMMENT_REPLIES_KEY, JSON.stringify(replies));
+                } catch (_) {}
+            }
+
+            async function addGameCommentReply(reviewId, content, replyTo = null, parentReplyId = null) {
+                if (!currentUser) return null;
+                const metadata = currentUser.user_metadata || {};
+                const replyData = {
+                    review_id: String(reviewId),
+                    game_id: Number(reviewId.split('_')[0]) || null,
+                    user_id: currentUser.id,
+                    content: content,
+                    reply_to: replyTo || null,
+                    parent_reply_id: parentReplyId || null,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null
+                };
+
+                // 云端写入
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('game_comment_replies')
+                            .insert(replyData)
+                            .select('id, created_at')
+                            .single();
+                        if (!error && data) {
+                            return {
+                                id: data.id,
+                                review_id: replyData.review_id,
+                                user_id: replyData.user_id,
+                                content: replyData.content,
+                                display_name: metadata.display_name || currentUser.email || '用户',
+                                avatar_url: metadata.avatar_url || null,
+                                reply_to: replyTo,
+                                parent_reply_id: parentReplyId || null,
+                                created_at: data.created_at
+                            };
+                        }
+                    } catch (_) {}
+                }
+
+                // 本地存储（云端失败或无 Supabase 时走这里）
+                const replies = getGameCommentReplies();
+                if (!replies[reviewId]) replies[reviewId] = [];
+                const newReply = {
+                    id: Date.now(),
+                    user_id: currentUser.id,
+                    content: content,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null,
+                    reply_to: replyTo,
+                    parent_reply_id: parentReplyId || null,
+                    created_at: new Date().toISOString()
+                };
+                replies[reviewId].push(newReply);
+                saveGameCommentReplies(replies);
+                return newReply;
+            }
+
+            async function deleteGameCommentReply(reviewId, replyId) {
+                // 云端删除（CASCADE 会自动清理子回复）
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('game_comment_replies').delete().eq('id', Number(replyId));
+                    } catch (_) {}
+                }
+
+                // localStorage 回退：递归收集要删除的所有ID
+                const replies = getGameCommentReplies();
+                if (replies[reviewId]) {
+                    function collectChildIds(targetId, items) {
+                        const ids = [targetId];
+                        let found = true;
+                        while (found) {
+                            found = false;
+                            items.forEach(r => {
+                                if (ids.includes(r.parent_reply_id) && !ids.includes(r.id)) {
+                                    ids.push(r.id);
+                                    found = true;
+                                }
+                            });
+                        }
+                        return ids;
+                    }
+                    const idsToDelete = collectChildIds(replyId, replies[reviewId]);
+                    replies[reviewId] = replies[reviewId].filter(r => !idsToDelete.includes(r.id));
+                    saveGameCommentReplies(replies);
+                }
+            }
+
+            async function getGameCommentRepliesForReview(reviewId) {
+                // 优先云端
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('game_comment_replies')
+                            .select('*')
+                            .eq('review_id', String(reviewId))
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            return data.map(r => ({
+                                id: r.id,
+                                review_id: r.review_id,
+                                user_id: r.user_id,
+                                content: r.content,
+                                display_name: r.display_name || '用户',
+                                avatar_url: r.avatar_url || null,
+                                reply_to: r.reply_to,
+                                parent_reply_id: r.parent_reply_id,
+                                created_at: r.created_at
+                            }));
+                        }
+                    } catch (_) {}
+                }
+                // localStorage 回退
+                const replies = getGameCommentReplies();
+                return replies[String(reviewId)] || [];
+            }
+
+            function formatGameCommentReplyTime(isoStr) {
+                const d = new Date(isoStr);
+                const now = new Date();
+                const diffMs = now - d;
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) return '刚刚';
+                if (diffMin < 60) return diffMin + '分钟前';
+                const diffH = Math.floor(diffMin / 60);
+                if (diffH < 24) return diffH + '小时前';
+                const diffD = Math.floor(diffH / 24);
+                if (diffD < 30) return diffD + '天前';
+                return d.toLocaleDateString('zh-CN');
+            }
+
+            function buildGameReplyTree(flatReplies) {
+                const map = {};
+                const roots = [];
+                flatReplies.forEach(r => {
+                    r._children = [];
+                    map[r.id] = r;
+                });
+                flatReplies.forEach(r => {
+                    if (r.parent_reply_id && map[r.parent_reply_id]) {
+                        map[r.parent_reply_id]._children.push(r);
+                    } else {
+                        roots.push(r);
+                    }
+                });
+                return roots;
+            }
+
+            function renderGameReplyTree(nodes, reviewId, depth, flatReplies) {
+                const maxDepth = 4;
+                const isTooDeep = depth >= maxDepth;
+                let html = '';
+                nodes.forEach(reply => {
+                    const isReplyOwn = currentUser && reply.user_id === currentUser.id;
+                    const replyAvatar = reply.avatar_url ?
+                        `<img src="${escapeHTML(reply.avatar_url)}" class="comment-reply-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="comment-reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.5rem;">👤</div>`;
+                    const replyTime = formatGameCommentReplyTime(reply.created_at);
+                    let replyToLabel = '';
+                    if (reply.reply_to && flatReplies) {
+                        const target = flatReplies.find(r => r.user_id === reply.reply_to);
+                        if (target) {
+                            replyToLabel = `<span class="comment-reply-to-label">@${escapeHTML(target.display_name)}</span>`;
+                        }
+                    }
+                    const deleteHtml = (isReplyOwn || isAdmin) ?
+                        `<button class="comment-reply-delete-btn" data-review-id="${reviewId}" data-reply-id="${reply.id}">删除</button>` : '';
+                    const showReplyBtn = !isTooDeep ?
+                        `<button class="comment-reply-btn" data-review-id="${reviewId}" data-reply-id="${reply.id}">💬 回复</button>` : '';
+
+                    html += `
+                        <div class="comment-reply-item" data-reply-id="${reply.id}">
+                            <div class="comment-reply-item-header">
+                                ${replyAvatar}
+                                <span class="comment-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                <span class="comment-reply-item-time">${replyTime}</span>
+                            </div>
+                            <div class="comment-reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
+                            ${showReplyBtn || deleteHtml ? `<div class="comment-reply-item-actions">${showReplyBtn}${deleteHtml}</div>` : ''}
+                            ${!isTooDeep ? `
+                                <div class="comment-nested-reply-compose" id="gameNestedReplyCompose-${reviewId}-${reply.id}" style="display:none;">
+                                    <textarea id="gameNestedReplyInput-${reviewId}-${reply.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                                    <div class="comment-reply-compose-actions">
+                                        <button class="btn btn-sm game-nested-reply-cancel-btn" data-review-id="${reviewId}" data-reply-id="${reply.id}">取消</button>
+                                        <button class="btn btn-sm btn-accent game-nested-reply-submit-btn" data-review-id="${reviewId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}">发送</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${reply._children && reply._children.length > 0 ? `
+                                <div class="comment-nested-reply-list">${renderGameReplyTree(reply._children, reviewId, depth + 1, flatReplies)}</div>
+                            ` : ''}
+                        </div>`;
+                });
+                return html;
+            }
+
             // ===== 留言板回复功能（本地存储） =====
             const GUESTBOOK_REPLIES_KEY = 'heroine_guestbook_replies_v1';
 
@@ -15763,11 +16399,46 @@
                 } catch (_) {}
             }
 
-            function addGuestbookReply(parentId, content, replyTo = null) {
+            async function addGuestbookReply(parentId, content, replyTo = null, parentReplyId = null) {
                 if (!currentUser) return null;
+                const metadata = currentUser.user_metadata || {};
+                const replyData = {
+                    message_id: Number(parentId),
+                    user_id: currentUser.id,
+                    content: content,
+                    reply_to: replyTo || null,
+                    parent_reply_id: parentReplyId || null,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null
+                };
+
+                // 云端写入
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('site_guestbook_replies')
+                            .insert(replyData)
+                            .select('id, created_at')
+                            .single();
+                        if (!error && data) {
+                            return {
+                                id: data.id,
+                                message_id: replyData.message_id,
+                                user_id: replyData.user_id,
+                                content: replyData.content,
+                                display_name: metadata.display_name || currentUser.email || '用户',
+                                avatar_url: metadata.avatar_url || null,
+                                reply_to: replyTo,
+                                parent_reply_id: parentReplyId || null,
+                                created_at: data.created_at
+                            };
+                        }
+                    } catch (_) {}
+                }
+
+                // localStorage 回退
                 const replies = getGuestbookReplies();
                 if (!replies[parentId]) replies[parentId] = [];
-                const metadata = currentUser.user_metadata || {};
                 const newReply = {
                     id: Date.now(),
                     user_id: currentUser.id,
@@ -15775,6 +16446,7 @@
                     display_name: metadata.display_name || currentUser.email || '用户',
                     avatar_url: metadata.avatar_url || null,
                     reply_to: replyTo,
+                    parent_reply_id: parentReplyId || null,
                     created_at: new Date().toISOString()
                 };
                 replies[parentId].push(newReply);
@@ -15782,15 +16454,62 @@
                 return newReply;
             }
 
-            function deleteGuestbookReply(parentId, replyId) {
+            async function deleteGuestbookReply(parentId, replyId) {
+                // 云端删除（CASCADE 会自动清理子回复）
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('site_guestbook_replies').delete().eq('id', Number(replyId));
+                    } catch (_) {}
+                }
+
+                // localStorage 回退：递归收集要删除的所有ID
                 const replies = getGuestbookReplies();
                 if (replies[parentId]) {
-                    replies[parentId] = replies[parentId].filter(r => r.id !== replyId);
+                    function collectChildIds(targetId, items) {
+                        const ids = [targetId];
+                        let found = true;
+                        while (found) {
+                            found = false;
+                            items.forEach(r => {
+                                if (ids.includes(r.parent_reply_id) && !ids.includes(r.id)) {
+                                    ids.push(r.id);
+                                    found = true;
+                                }
+                            });
+                        }
+                        return ids;
+                    }
+                    const idsToDelete = collectChildIds(replyId, replies[parentId]);
+                    replies[parentId] = replies[parentId].filter(r => !idsToDelete.includes(r.id));
                     saveGuestbookReplies(replies);
                 }
             }
 
-            function getGuestbookRepliesForMessage(msgId) {
+            async function getGuestbookRepliesForMessage(msgId) {
+                // 优先云端
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('site_guestbook_replies')
+                            .select('*')
+                            .eq('message_id', Number(msgId))
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            return data.map(r => ({
+                                id: r.id,
+                                message_id: r.message_id,
+                                user_id: r.user_id,
+                                content: r.content,
+                                display_name: r.display_name || '用户',
+                                avatar_url: r.avatar_url || null,
+                                reply_to: r.reply_to,
+                                parent_reply_id: r.parent_reply_id,
+                                created_at: r.created_at
+                            }));
+                        }
+                    } catch (_) {}
+                }
+                // localStorage 回退
                 const replies = getGuestbookReplies();
                 return replies[String(msgId)] || [];
             }
@@ -15807,6 +16526,178 @@
                 const diffD = Math.floor(diffH / 24);
                 if (diffD < 30) return diffD + '天前';
                 return d.toLocaleDateString('zh-CN');
+            }
+
+            // ===== localStorage → Supabase 一次性迁移 =====
+            async function migrateLocalRepliesToCloud() {
+                if (!supabaseClient) return;
+                const MIGRATION_FLAG_KEY = 'heroine_replies_migrated_v1';
+                if (localStorage.getItem(MIGRATION_FLAG_KEY)) return;
+
+                console.log('[Migration] 开始将本地回复数据迁移到云端...');
+
+                // 1. 留言板回复迁移
+                try {
+                    const guestbookReplies = getGuestbookReplies();
+                    const gbRows = [];
+                    for (const [parentId, items] of Object.entries(guestbookReplies)) {
+                        for (const r of items) {
+                            gbRows.push({
+                                message_id: Number(parentId),
+                                user_id: r.user_id,
+                                content: r.content,
+                                reply_to: r.reply_to || null,
+                                parent_reply_id: r.parent_reply_id || null,
+                                display_name: r.display_name || '用户',
+                                avatar_url: r.avatar_url || null,
+                                created_at: r.created_at
+                            });
+                        }
+                    }
+                    if (gbRows.length > 0) {
+                        const { error } = await supabaseClient.from('site_guestbook_replies').insert(gbRows);
+                        if (!error) {
+                            console.log(`[Migration] 留言板回复：成功迁移 ${gbRows.length} 条`);
+                        } else {
+                            console.warn('[Migration] 留言板回复迁移失败:', error.message);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Migration] 留言板回复迁移异常:', e);
+                }
+
+                // 2. MOD评论回复迁移
+                try {
+                    const modReplies = getModCommentReplies();
+                    const modRows = [];
+                    for (const [commentId, items] of Object.entries(modReplies)) {
+                        for (const r of items) {
+                            modRows.push({
+                                comment_id: Number(commentId),
+                                user_id: r.user_id,
+                                content: r.content,
+                                reply_to: r.reply_to || null,
+                                parent_reply_id: r.parent_reply_id || null,
+                                display_name: r.display_name || '用户',
+                                avatar_url: r.avatar_url || null,
+                                created_at: r.created_at
+                            });
+                        }
+                    }
+                    if (modRows.length > 0) {
+                        const { error } = await supabaseClient.from('mod_comment_replies').insert(modRows);
+                        if (!error) {
+                            console.log(`[Migration] MOD评论回复：成功迁移 ${modRows.length} 条`);
+                        } else {
+                            console.warn('[Migration] MOD评论回复迁移失败:', error.message);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Migration] MOD评论回复迁移异常:', e);
+                }
+
+                // 3. 游戏评论回复迁移
+                try {
+                    const gameReplies = getGameCommentReplies();
+                    const gameRows = [];
+                    for (const [reviewId, items] of Object.entries(gameReplies)) {
+                        for (const r of items) {
+                            const gameId = Number(String(reviewId).split('_')[0]) || null;
+                            gameRows.push({
+                                review_id: String(reviewId),
+                                game_id: gameId,
+                                user_id: r.user_id,
+                                content: r.content,
+                                reply_to: r.reply_to || null,
+                                parent_reply_id: r.parent_reply_id || null,
+                                display_name: r.display_name || '用户',
+                                avatar_url: r.avatar_url || null,
+                                created_at: r.created_at
+                            });
+                        }
+                    }
+                    if (gameRows.length > 0) {
+                        const { error } = await supabaseClient.from('game_comment_replies').insert(gameRows);
+                        if (!error) {
+                            console.log(`[Migration] 游戏评论回复：成功迁移 ${gameRows.length} 条`);
+                        } else {
+                            console.warn('[Migration] 游戏评论回复迁移失败:', error.message);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Migration] 游戏评论回复迁移异常:', e);
+                }
+
+                // 标记迁移完成（即使部分失败也标记，避免重复尝试导致冲突）
+                localStorage.setItem(MIGRATION_FLAG_KEY, 'done');
+                console.log('[Migration] 迁移流程结束');
+            }
+
+            // 构建回复树：将扁平列表转为嵌套树结构
+            function buildReplyTree(flatReplies) {
+                const map = {};
+                const roots = [];
+                flatReplies.forEach(r => {
+                    r._children = [];
+                    map[r.id] = r;
+                });
+                flatReplies.forEach(r => {
+                    if (r.parent_reply_id && map[r.parent_reply_id]) {
+                        map[r.parent_reply_id]._children.push(r);
+                    } else {
+                        roots.push(r);
+                    }
+                });
+                return roots;
+            }
+
+            // 递归渲染回复树
+            function renderReplyTree(nodes, msgId, depth, flatReplies) {
+                const maxDepth = 4;
+                const isTooDeep = depth >= maxDepth;
+                let html = '';
+                nodes.forEach(reply => {
+                    const isReplyOwn = currentUser && reply.user_id === currentUser.id;
+                    const replyAvatar = reply.avatar_url ?
+                        `<img src="${escapeHTML(reply.avatar_url)}" class="reply-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;">👤</div>`;
+                    const replyTime = formatGuestbookReplyTime(reply.created_at);
+                    let replyToLabel = '';
+                    if (reply.reply_to && flatReplies) {
+                        const target = flatReplies.find(r => r.user_id === reply.reply_to);
+                        if (target) {
+                            replyToLabel = `<span class="reply-to-label">@${escapeHTML(target.display_name)}</span>`;
+                        }
+                    }
+                    const deleteHtml = (isReplyOwn || isAdmin) ?
+                        `<button class="guestbook-delete-btn" data-msg-id="${msgId}" data-reply-id="${reply.id}">删除</button>` : '';
+                    const showReplyBtn = !isTooDeep ?
+                        `<button class="guestbook-reply-btn" data-msg-id="${msgId}" data-reply-id="${reply.id}">💬 回复</button>` : '';
+
+                    html += `
+                        <div class="reply-item" data-reply-id="${reply.id}">
+                            <div class="reply-item-header">
+                                ${replyAvatar}
+                                <span class="reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                <span class="reply-item-time">${replyTime}</span>
+                            </div>
+                            <div class="reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
+                            ${showReplyBtn || deleteHtml ? `<div class="reply-item-actions">${showReplyBtn}${deleteHtml}</div>` : ''}
+                            ${!isTooDeep ? `
+                                <div class="nested-reply-compose reply-compose" id="nestedReplyCompose-${msgId}-${reply.id}" style="display:none;">
+                                    <textarea id="nestedReplyInput-${msgId}-${reply.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                                    <div class="reply-compose-actions">
+                                        <button class="btn btn-sm nested-reply-cancel-btn" data-msg-id="${msgId}" data-reply-id="${reply.id}">取消</button>
+                                        <button class="btn btn-sm btn-accent nested-reply-submit-btn" data-msg-id="${msgId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}" data-reply-to-name="${escapeHTML(reply.display_name || '用户')}">发送</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${reply._children && reply._children.length > 0 ? `
+                                <div class="nested-reply-list">${renderReplyTree(reply._children, msgId, depth + 1, flatReplies)}</div>
+                            ` : ''}
+                        </div>`;
+                });
+                return html;
             }
 
             // ===== MOD评论回复和点赞功能（本地存储） =====
@@ -15827,17 +16718,54 @@
                 } catch (_) {}
             }
 
-            function addModCommentReply(commentId, content) {
+            async function addModCommentReply(commentId, content, replyTo = null, parentReplyId = null) {
                 if (!currentUser) return null;
+                const metadata = currentUser.user_metadata || {};
+                const replyData = {
+                    comment_id: Number(commentId),
+                    user_id: currentUser.id,
+                    content: content,
+                    reply_to: replyTo || null,
+                    parent_reply_id: parentReplyId || null,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null
+                };
+
+                // 云端写入
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('mod_comment_replies')
+                            .insert(replyData)
+                            .select('id, created_at')
+                            .single();
+                        if (!error && data) {
+                            return {
+                                id: data.id,
+                                comment_id: replyData.comment_id,
+                                user_id: replyData.user_id,
+                                content: replyData.content,
+                                display_name: metadata.display_name || currentUser.email || '用户',
+                                avatar_url: metadata.avatar_url || null,
+                                reply_to: replyTo,
+                                parent_reply_id: parentReplyId || null,
+                                created_at: data.created_at
+                            };
+                        }
+                    } catch (_) {}
+                }
+
+                // localStorage 回退
                 const replies = getModCommentReplies();
                 if (!replies[commentId]) replies[commentId] = [];
-                const metadata = currentUser.user_metadata || {};
                 const newReply = {
                     id: Date.now(),
                     user_id: currentUser.id,
                     content: content,
                     display_name: metadata.display_name || currentUser.email || '用户',
                     avatar_url: metadata.avatar_url || null,
+                    reply_to: replyTo,
+                    parent_reply_id: parentReplyId || null,
                     created_at: new Date().toISOString()
                 };
                 replies[commentId].push(newReply);
@@ -15845,17 +16773,131 @@
                 return newReply;
             }
 
-            function deleteModCommentReply(commentId, replyId) {
+            async function deleteModCommentReply(commentId, replyId) {
+                // 云端删除（CASCADE 会自动清理子回复）
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('mod_comment_replies').delete().eq('id', Number(replyId));
+                    } catch (_) {}
+                }
+
+                // localStorage 回退：递归收集要删除的所有ID
                 const replies = getModCommentReplies();
                 if (replies[commentId]) {
-                    replies[commentId] = replies[commentId].filter(r => r.id !== replyId);
+                    function collectChildIds(targetId, items) {
+                        const ids = [targetId];
+                        let found = true;
+                        while (found) {
+                            found = false;
+                            items.forEach(r => {
+                                if (ids.includes(r.parent_reply_id) && !ids.includes(r.id)) {
+                                    ids.push(r.id);
+                                    found = true;
+                                }
+                            });
+                        }
+                        return ids;
+                    }
+                    const idsToDelete = collectChildIds(replyId, replies[commentId]);
+                    replies[commentId] = replies[commentId].filter(r => !idsToDelete.includes(r.id));
                     saveModCommentReplies(replies);
                 }
             }
 
-            function getModCommentRepliesForComment(commentId) {
+            async function getModCommentRepliesForComment(commentId) {
+                // 优先云端
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('mod_comment_replies')
+                            .select('*')
+                            .eq('comment_id', Number(commentId))
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            return data.map(r => ({
+                                id: r.id,
+                                comment_id: r.comment_id,
+                                user_id: r.user_id,
+                                content: r.content,
+                                display_name: r.display_name || '用户',
+                                avatar_url: r.avatar_url || null,
+                                reply_to: r.reply_to,
+                                parent_reply_id: r.parent_reply_id,
+                                created_at: r.created_at
+                            }));
+                        }
+                    } catch (_) {}
+                }
+                // localStorage 回退
                 const replies = getModCommentReplies();
                 return replies[String(commentId)] || [];
+            }
+
+            // 构建MOD评论回复树
+            function buildModReplyTree(flatReplies) {
+                const map = {};
+                const roots = [];
+                flatReplies.forEach(r => {
+                    r._children = [];
+                    map[r.id] = r;
+                });
+                flatReplies.forEach(r => {
+                    if (r.parent_reply_id && map[r.parent_reply_id]) {
+                        map[r.parent_reply_id]._children.push(r);
+                    } else {
+                        roots.push(r);
+                    }
+                });
+                return roots;
+            }
+
+            // 递归渲染MOD评论回复树
+            function renderModReplyTree(nodes, commentId, depth, flatReplies) {
+                const maxDepth = 4;
+                const isTooDeep = depth >= maxDepth;
+                let html = '';
+                nodes.forEach(reply => {
+                    const isReplyOwn = currentUser && reply.user_id === currentUser.id;
+                    const replyAvatar = reply.avatar_url ?
+                        `<img src="${escapeHTML(reply.avatar_url)}" class="mod-reply-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<div class="mod-reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.5rem;">👤</div>`;
+                    const replyTime = formatModTime(reply.created_at);
+                    let replyToLabel = '';
+                    if (reply.reply_to && flatReplies) {
+                        const target = flatReplies.find(r => r.user_id === reply.reply_to);
+                        if (target) {
+                            replyToLabel = `<span class="mod-reply-to-label">@${escapeHTML(target.display_name)}</span>`;
+                        }
+                    }
+                    const deleteHtml = (isReplyOwn || isAdmin) ?
+                        `<button class="mod-comment-delete" data-comment-id="${commentId}" data-reply-id="${reply.id}">删除</button>` : '';
+                    const showReplyBtn = !isTooDeep ?
+                        `<button class="mod-comment-reply-btn" data-comment-id="${commentId}" data-reply-id="${reply.id}">💬 回复</button>` : '';
+
+                    html += `
+                        <div class="mod-reply-item" data-reply-id="${reply.id}">
+                            <div class="mod-reply-item-header">
+                                ${replyAvatar}
+                                <span class="mod-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                <span class="mod-reply-item-time">${replyTime}</span>
+                            </div>
+                            <div class="mod-reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
+                            ${showReplyBtn || deleteHtml ? `<div class="mod-reply-item-actions">${showReplyBtn}${deleteHtml}</div>` : ''}
+                            ${!isTooDeep ? `
+                                <div class="mod-nested-reply-compose mod-reply-compose" id="modNestedReplyCompose-${commentId}-${reply.id}" style="display:none;">
+                                    <textarea id="modNestedReplyInput-${commentId}-${reply.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                                    <div class="mod-reply-compose-actions">
+                                        <button class="btn btn-sm mod-nested-reply-cancel-btn" data-comment-id="${commentId}" data-reply-id="${reply.id}">取消</button>
+                                        <button class="btn btn-sm btn-accent mod-nested-reply-submit-btn" data-comment-id="${commentId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}">发送</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${reply._children && reply._children.length > 0 ? `
+                                <div class="mod-nested-reply-list">${renderModReplyTree(reply._children, commentId, depth + 1, flatReplies)}</div>
+                            ` : ''}
+                        </div>`;
+                });
+                return html;
             }
 
             function getModCommentLikes() {
@@ -16147,7 +17189,7 @@
                 }
 
                 let html = '';
-                messages.forEach(msg => {
+                for (const msg of messages) {
                     const isOwn = currentUser && msg.user_id === currentUser.id;
                     const avatarHtml = msg.avatar_url ?
                         `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" />` :
@@ -16168,38 +17210,12 @@
                     const deleteHtml = (isOwn || isAdmin) ?
                         `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
 
-                    // 获取回复列表
-                    const replies = getGuestbookRepliesForMessage(msg.id);
+                    // 获取回复列表并构建树
+                    const flatReplies = await getGuestbookRepliesForMessage(msg.id);
+                    const replyTree = buildReplyTree([...flatReplies]);
                     let repliesHtml = '';
-                    if (replies.length > 0) {
-                        repliesHtml = '<div class="reply-list">';
-                        replies.forEach(reply => {
-                            const isReplyOwn = currentUser && reply.user_id === currentUser.id;
-                            const replyAvatar = reply.avatar_url ?
-                                `<img src="${escapeHTML(reply.avatar_url)}" class="reply-item-avatar" referrerpolicy="no-referrer" />` :
-                                `<div class="reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;">👤</div>`;
-                            const replyTime = formatGuestbookReplyTime(reply.created_at);
-                            let replyToLabel = '';
-                            if (reply.reply_to) {
-                                const replyToUser = replies.find(r => r.user_id === reply.reply_to);
-                                if (replyToUser) {
-                                    replyToLabel = `<span class="reply-to-label">@${escapeHTML(replyToUser.display_name)}</span>`;
-                                }
-                            }
-                            const deleteReplyHtml = (isReplyOwn || isAdmin) ?
-                                `<button class="guestbook-delete-btn" data-msg-id="${msg.id}" data-reply-id="${reply.id}" style="font-size:0.65rem;">删除</button>` : '';
-                            repliesHtml += `
-                                <div class="reply-item" data-reply-id="${reply.id}">
-                                    <div class="reply-item-header">
-                                        ${replyAvatar}
-                                        <span class="reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
-                                        <span class="reply-item-time">${replyTime}</span>
-                                        ${deleteReplyHtml}
-                                    </div>
-                                    <div class="reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
-                                </div>`;
-                        });
-                        repliesHtml += '</div>';
+                    if (replyTree.length > 0) {
+                        repliesHtml = '<div class="reply-list">' + renderReplyTree(replyTree, msg.id, 0, flatReplies) + '</div>';
                     }
 
                     html += `
@@ -16251,7 +17267,7 @@
                         if (replyId) {
                             // 删除回复
                             if (!confirm('确定删除这条回复吗？')) return;
-                            deleteGuestbookReply(String(msgId), Number(replyId));
+                            await deleteGuestbookReply(String(msgId), Number(replyId));
                             showToast('✅ 回复已删除', 1500);
                             await renderGuestbookList();
                         } else {
@@ -16262,25 +17278,78 @@
                             await renderGuestbookList();
                         }
                     });
-                });
+                }
 
-                // 回复按钮事件
+                // 回复按钮事件（含嵌套回复）
                 listEl.querySelectorAll('.guestbook-reply-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const msgId = this.dataset.msgId;
-                        const composeEl = document.getElementById('replyCompose-' + msgId);
-                        if (composeEl) {
-                            const isHidden = composeEl.style.display === 'none';
-                            composeEl.style.display = isHidden ? 'block' : 'none';
-                            if (isHidden) {
+                        const replyId = this.dataset.replyId; // 嵌套回复时有值
+
+                        // 先隐藏同级其他输入框
+                        const parent = this.closest('.reply-item') || this.closest('.guestbook-item');
+                        if (parent) {
+                            parent.querySelectorAll('.nested-reply-compose, .reply-compose').forEach(c => {
+                                c.style.display = 'none';
+                            });
+                        }
+
+                        if (replyId) {
+                            // 嵌套回复：打开子回复输入框
+                            const composeEl = document.getElementById('nestedReplyCompose-' + msgId + '-' + replyId);
+                            if (composeEl) {
+                                composeEl.style.display = 'block';
+                                document.getElementById('nestedReplyInput-' + msgId + '-' + replyId)?.focus();
+                            }
+                        } else {
+                            // 一级回复：打开留言级输入框
+                            const composeEl = document.getElementById('replyCompose-' + msgId);
+                            if (composeEl) {
+                                composeEl.style.display = 'block';
                                 document.getElementById('replyInput-' + msgId)?.focus();
                             }
                         }
                     });
                 });
 
-                // 回复提交按钮事件
+                // 嵌套回复取消按钮
+                listEl.querySelectorAll('.nested-reply-cancel-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const msgId = this.dataset.msgId;
+                        const replyId = this.dataset.replyId;
+                        const composeEl = document.getElementById('nestedReplyCompose-' + msgId + '-' + replyId);
+                        if (composeEl) composeEl.style.display = 'none';
+                    });
+                });
+
+                // 嵌套回复提交按钮
+                listEl.querySelectorAll('.nested-reply-submit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const msgId = this.dataset.msgId;
+                        const parentReplyId = Number(this.dataset.parentReplyId);
+                        const replyToUserId = this.dataset.replyToUserId;
+                        const replyToName = this.dataset.replyToName;
+                        const input = document.getElementById('nestedReplyInput-' + msgId + '-' + parentReplyId);
+                        if (!input) return;
+                        const text = input.value.trim();
+                        if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        await addGuestbookReply(String(msgId), text, replyToUserId, parentReplyId);
+
+                        // 发送通知
+                        if (supabaseClient) {
+                            try {
+                                await createReplyNotification(replyToUserId, 'guestbook', Number(msgId), '留言板', text);
+                            } catch (_) {}
+                        }
+
+                        showToast('✅ 回复成功', 1500);
+                        await renderGuestbookList();
+                    });
+                });
+
+                // 回复提交按钮事件（一级回复）
                 listEl.querySelectorAll('.reply-submit-btn').forEach(btn => {
                     btn.addEventListener('click', async function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
@@ -16289,7 +17358,7 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        addGuestbookReply(String(msgId), text);
+                        await addGuestbookReply(String(msgId), text);
                         
                         // 发送通知给留言作者
                         if (supabaseClient) {
@@ -16364,7 +17433,7 @@
                                 `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
 
                             // 获取回复列表
-                            const replies = getGuestbookRepliesForMessage(msg.id);
+                            const replies = await getGuestbookRepliesForMessage(msg.id);
                             let repliesHtml = '';
                             if (replies.length > 0) {
                                 repliesHtml = '<div class="reply-list">';
@@ -16442,7 +17511,7 @@
                                     if (replyId) {
                                         // 删除回复
                                         if (!confirm('确定删除这条回复吗？')) return;
-                                        deleteGuestbookReply(String(msgId), Number(replyId));
+                                        await deleteGuestbookReply(String(msgId), Number(replyId));
                                         showToast('✅ 回复已删除', 1500);
                                         await renderGuestbookList();
                                     } else {
@@ -16480,7 +17549,7 @@
                                     if (!input) return;
                                     const text = input.value.trim();
                                     if (!text) { showToast('回复内容不能为空', 1500); return; }
-                                    addGuestbookReply(String(msgId), text);
+                                    await addGuestbookReply(String(msgId), text);
                                     // 发送通知给留言作者
                                     if (supabaseClient) {
                                         try {
@@ -18029,7 +19098,7 @@
                 }
 
                 let commentsHtml = '';
-                comments.forEach(c => {
+                for (const c of comments) {
                     const isCommentOwn = currentUser && c.user_id === currentUser.id;
                     const cAvatar = c.avatar_url ?
                         `<img src="${escapeHTML(c.avatar_url)}" class="mod-comment-avatar" referrerpolicy="no-referrer" />` :
@@ -18037,31 +19106,12 @@
                     const deleteBtn = (isCommentOwn || isAdmin) ?
                         `<button class="mod-comment-delete" data-comment-id="${c.id}">删除</button>` : '';
 
-                    // 获取回复列表
-                    const replies = getModCommentRepliesForComment(c.id);
+                    // 获取回复列表并构建树
+                    const flatModReplies = await getModCommentRepliesForComment(c.id);
+                    const modReplyTree = buildModReplyTree([...flatModReplies]);
                     let repliesHtml = '';
-                    if (replies.length > 0) {
-                        repliesHtml = '<div class="mod-reply-list">';
-                        replies.forEach(reply => {
-                            const isReplyOwn = currentUser && reply.user_id === currentUser.id;
-                            const replyAvatar = reply.avatar_url ?
-                                `<img src="${escapeHTML(reply.avatar_url)}" class="mod-reply-item-avatar" referrerpolicy="no-referrer" />` :
-                                `<div class="mod-reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.5rem;">👤</div>`;
-                            const replyTime = formatModTime(reply.created_at);
-                            const deleteReplyHtml = (isReplyOwn || isAdmin) ?
-                                `<button class="mod-comment-delete" data-comment-id="${c.id}" data-reply-id="${reply.id}" style="font-size:0.6rem;">删除</button>` : '';
-                            repliesHtml += `
-                                <div class="mod-reply-item" data-reply-id="${reply.id}">
-                                    <div class="mod-reply-item-header">
-                                        ${replyAvatar}
-                                        <span class="mod-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
-                                        <span class="mod-reply-item-time">${replyTime}</span>
-                                        ${deleteReplyHtml}
-                                    </div>
-                                    <div class="mod-reply-item-content">${escapeHTML(reply.content)}</div>
-                                </div>`;
-                        });
-                        repliesHtml += '</div>';
+                    if (modReplyTree.length > 0) {
+                        repliesHtml = '<div class="mod-reply-list">' + renderModReplyTree(modReplyTree, c.id, 0, flatModReplies) + '</div>';
                     }
 
                     // 点赞信息
@@ -18094,7 +19144,7 @@
                                 </div>
                             </div>
                         </div>`;
-                });
+                }
 
                 const commentArea = currentUser ? `
                     <div class="mod-comment-compose">
@@ -18249,23 +19299,77 @@
                     });
                 }
 
-                // 评论回复按钮事件
+                // 评论回复按钮事件（含嵌套回复）
                 container.querySelectorAll('.mod-comment-reply-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const commentId = this.dataset.commentId;
-                        const composeEl = document.getElementById('modReplyCompose-' + commentId);
-                        if (composeEl) {
-                            const isHidden = composeEl.style.display === 'none';
-                            composeEl.style.display = isHidden ? 'block' : 'none';
-                            if (isHidden) {
+                        const replyId = this.dataset.replyId; // 嵌套回复时有值
+
+                        // 先隐藏同级其他输入框
+                        const parent = this.closest('.mod-reply-item') || this.closest('.mod-comment-item');
+                        if (parent) {
+                            parent.querySelectorAll('.mod-nested-reply-compose, .mod-reply-compose').forEach(c => {
+                                c.style.display = 'none';
+                            });
+                        }
+
+                        if (replyId) {
+                            // 嵌套回复
+                            const composeEl = document.getElementById('modNestedReplyCompose-' + commentId + '-' + replyId);
+                            if (composeEl) {
+                                composeEl.style.display = 'block';
+                                document.getElementById('modNestedReplyInput-' + commentId + '-' + replyId)?.focus();
+                            }
+                        } else {
+                            // 一级回复
+                            const composeEl = document.getElementById('modReplyCompose-' + commentId);
+                            if (composeEl) {
+                                composeEl.style.display = 'block';
                                 document.getElementById('modReplyInput-' + commentId)?.focus();
                             }
                         }
                     });
                 });
 
-                // 评论回复提交按钮事件
+                // 嵌套回复取消按钮
+                container.querySelectorAll('.mod-nested-reply-cancel-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const commentId = this.dataset.commentId;
+                        const replyId = this.dataset.replyId;
+                        const composeEl = document.getElementById('modNestedReplyCompose-' + commentId + '-' + replyId);
+                        if (composeEl) composeEl.style.display = 'none';
+                    });
+                });
+
+                // 嵌套回复提交按钮
+                container.querySelectorAll('.mod-nested-reply-submit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const commentId = this.dataset.commentId;
+                        const parentReplyId = Number(this.dataset.parentReplyId);
+                        const replyToUserId = this.dataset.replyToUserId;
+                        const input = document.getElementById('modNestedReplyInput-' + commentId + '-' + parentReplyId);
+                        if (!input) return;
+                        const text = input.value.trim();
+                        if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        await addModCommentReply(String(commentId), text, replyToUserId, parentReplyId);
+
+                        // 发送通知
+                        if (supabaseClient) {
+                            try {
+                                await createReplyNotification(replyToUserId, 'mod_comment', Number(commentId), post.title, text);
+                            } catch (_) {}
+                        }
+
+                        showToast('✅ 回复成功', 1500);
+                        closeModDetail();
+                        const updated = modPosts.find(p => p.id === post.id);
+                        if (updated) openModDetail(updated);
+                    });
+                });
+
+                // 评论回复提交按钮事件（一级回复）
                 container.querySelectorAll('.mod-reply-submit-btn').forEach(btn => {
                     btn.addEventListener('click', async function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
@@ -18274,7 +19378,7 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        addModCommentReply(String(commentId), text);
+                        await addModCommentReply(String(commentId), text);
                         
                         // 发送通知给评论作者
                         if (supabaseClient) {
@@ -18331,7 +19435,7 @@
                         if (replyId) {
                             // 删除回复
                             if (!confirm('确定删除这条回复吗？')) return;
-                            deleteModCommentReply(String(commentId), Number(replyId));
+                            await deleteModCommentReply(String(commentId), Number(replyId));
                             showToast('✅ 回复已删除', 1500);
                             closeModDetail();
                             const updated = modPosts.find(p => p.id === post.id);
