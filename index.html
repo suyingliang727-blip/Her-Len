@@ -11987,7 +11987,7 @@
                     `<div class="played-grid-header">🎮 我的游戏足迹 · 共 ${playedGames.length} 款</div><div class="played-grid">`;
                 playedGames.forEach(game => {
                     const coverHtml = game.cover ?
-                        `<img class="item-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" />` :
+                        `<img class="item-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" loading="lazy" referrerpolicy="no-referrer" />` :
                         `<div class="item-cover-placeholder">🎮</div>`;
                     gridHtml +=
                         `<div class="played-grid-item" data-game-id="${game.id}">${coverHtml}<div class="item-title">${escapeHTML(game.title)}</div></div>`;
@@ -21296,6 +21296,15 @@
             }
 
             let scrollTimeout = null;
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                }).catch(function () { });
+            }
+
             init();
         })();
     </script>
