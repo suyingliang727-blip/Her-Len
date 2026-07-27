@@ -17240,7 +17240,7 @@
                                 </div>
                             </div>
                         </div>`;
-                });
+                }
                 listEl.innerHTML = html;
 
                 // 加载更多按钮
@@ -17278,7 +17278,7 @@
                             await renderGuestbookList();
                         }
                     });
-                }
+                });
 
                 // 回复按钮事件（含嵌套回复）
                 listEl.querySelectorAll('.guestbook-reply-btn').forEach(btn => {
@@ -17411,7 +17411,7 @@
                     if (messages.length > prevCount) {
                         const newMsgs = messages.slice(prevCount);
                         let newHtml = '';
-                        newMsgs.forEach(msg => {
+                        for (const msg of newMsgs) {
                             const isOwn = currentUser && msg.user_id === currentUser.id;
                             const avatarHtml = msg.avatar_url ?
                                 `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" />` :
@@ -17488,7 +17488,7 @@
                                         </div>
                                     </div>
                                 </div>`;
-                        });
+                        }
                         const frag = document.createRange().createContextualFragment(newHtml);
                         listEl.appendChild(frag);
                         newMsgs.forEach(msg => {
