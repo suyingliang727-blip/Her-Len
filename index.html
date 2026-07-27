@@ -16500,7 +16500,7 @@
                 try {
                     const { data, error } = await supabaseClient
                         .from('site_announcements')
-                        .select('id, title, content, type, link_text, link_url, created_at, pinned, display_date')
+                        .select('id, title, content, created_at, updated_at, pinned, display_date')
                         .order('pinned', { ascending: false })
                         .order('display_date', { ascending: false, nullsFirst: false })
                         .order('created_at', { ascending: false })
