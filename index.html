@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Her Lens · 女性主角游戏</title>
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
@@ -120,6 +120,9 @@
             --backdrop-blur-level: 0px;
             --card-3d-enabled: 0;
             --bg-animation-enabled: 0;
+            --accent-light: rgba(155, 138, 189, 0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
         }
 
         @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -368,6 +371,7 @@
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
             --card-bg-glass: rgba(255, 255, 255, 0.04);
             --card-border-glass: rgba(255, 255, 255, 0.06);
+            --accent-light: rgba(184, 162, 214, 0.15);
         }
 
         [data-theme="dark"] .header-dropdown-menu {
@@ -743,18 +747,15 @@
         .filter-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            gap: 8px;
             min-height: 48px;
-            gap: 12px;
             position: relative;
         }
 
         .site-logo {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            letter-spacing: 0.06em;
             background: var(--logo-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -764,58 +765,217 @@
             line-height: 1.2;
             cursor: default;
             user-select: none;
-            position: relative;
-            z-index: 2;
+            margin-right: 8px;
         }
 
-        .site-logo::after {
-            content: '🔑';
-            font-size: 0.6rem;
-            position: absolute;
-            top: -4px;
-            right: -18px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            -webkit-text-fill-color: initial;
-            color: var(--text3);
+        /* ===== 顶部导航栏 ===== */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
         }
 
-        .site-logo:hover::after {
-            opacity: 0.3;
-        }
-
-        .header-center {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        .filter-header .site-title {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--accent);
-            letter-spacing: .02em;
-            white-space: nowrap;
-        }
-
-        .filter-header .site-subtitle {
-            font-size: .9rem;
+        .top-nav-item {
+            background: none;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
             color: var(--text2);
-            margin-top: 2px;
-            font-style: italic;
+            cursor: pointer;
+            transition: all 0.2s ease;
             white-space: nowrap;
+            font-family: inherit;
+            position: relative;
+        }
+
+        .top-nav-item:hover {
+            color: var(--text);
+            background: var(--card-hover);
+        }
+
+        .top-nav-item.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .top-nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+
+        a.top-nav-item {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .header-action-link {
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .header-action-link:hover {
+            background: var(--accent);
+            color: #fff;
         }
 
         .header-right {
             flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             position: relative;
+            margin-left: 12px;
+        }
+
+        .nav-user-item {
+            position: relative;
+        }
+
+        .top-nav-user-btn {
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .top-nav-user-btn:hover {
+            color: var(--text);
+            background: var(--card-hover);
+        }
+
+        .nav-user-icon {
+            font-size: 0.9rem;
+        }
+
+        /* ===== 网站标题区域 ===== */
+        .site-title-section {
+            text-align: center;
+            padding: 10px 0 6px;
+        }
+
+        .site-title-section .site-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: .02em;
+            white-space: nowrap;
+            line-height: 1.3;
+            cursor: default;
+        }
+
+        .site-title-section .site-subtitle {
+            font-size: .82rem;
+            color: var(--text2);
+            margin-top: 2px;
+            font-style: italic;
+            white-space: nowrap;
+        }
+
+        .nav-user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 200px;
+            background: var(--modal-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.25s ease;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .nav-user-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-user-dropdown-inner {
+            padding: 6px;
+        }
+
+        .nav-user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-user-dropdown-item:hover {
+            background: var(--accent-light);
+        }
+
+        .nav-user-dropdown-item.danger {
+            color: var(--danger);
+        }
+
+        .nav-user-dropdown-item .item-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-user-dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 8px;
+        }
+
+        .nav-user-dropdown-header {
+            padding: 12px 14px 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 4px;
+        }
+
+        .nav-user-dropdown-username {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .nav-user-dropdown-email {
+            font-size: 0.78rem;
+            color: var(--text3);
+            margin-top: 2px;
         }
 
         .notif-bell-wrap {
@@ -1015,6 +1175,10 @@
             border-radius: 0 20px 20px 0;
         }
 
+        .view-tab:nth-child(2) {
+            border-right: none;
+        }
+
         .view-tab.active {
             background: var(--view-tab-active);
             color: var(--view-tab-text);
@@ -1142,6 +1306,10 @@
             color: #fff;
             border-color: var(--accent);
             font-weight: 600;
+        }
+
+        .filter-cat-btn.active.has-selection {
+            color: #fff;
         }
 
         .filter-cat-btn.has-selection {
@@ -1368,6 +1536,32 @@
             transform: scale(1.2);
         }
 
+        .btn-exclude-played {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .btn-exclude-played:hover {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        .btn-exclude-played.active {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        .btn-exclude-played .check-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-exclude-played:hover .check-icon {
+            transform: scale(1.2);
+        }
+
         .btn-achievement {
             border-color: var(--gold);
             color: var(--gold);
@@ -1587,6 +1781,152 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 20px;
+        }
+
+        /* ===== 系列作品视图 ===== */
+        .series-view-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text3);
+        }
+        .series-view-empty .empty-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+        .series-group {
+            margin-bottom: 32px;
+            grid-column: 1 / -1;
+        }
+        .series-group-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .series-group-cards .gallery-card {
+            flex: 0 0 220px;
+            min-width: 0;
+        }
+        .series-group-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .series-group-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+            background: linear-gradient(135deg, #b8a2d6 0%, #9b8abd 100%);
+            flex-shrink: 0;
+        }
+        .series-group-badge {
+            font-size: 12px;
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* 详情页系列区块 */
+        .detail-series-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            grid-column: 1 / -1;
+        }
+        .detail-series-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .detail-series-section h3::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            border-radius: 2px;
+            background: linear-gradient(135deg, #b8a2d6 0%, #9b8abd 100%);
+        }
+        .detail-series-list {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .detail-series-list::-webkit-scrollbar { height: 4px; }
+        .detail-series-list::-webkit-scrollbar-track { background: transparent; }
+        .detail-series-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .detail-series-item {
+            flex-shrink: 0;
+            width: 220px;
+            cursor: pointer;
+            transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--card-bg-glass);
+            border: 1px solid var(--card-border-glass);
+            box-shadow: var(--glass-shadow);
+        }
+        .detail-series-item:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,.18); border-color: var(--accent); }
+        .detail-series-item.current {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .detail-series-item-cover {
+            width: 100%;
+            aspect-ratio: 460/215;
+            overflow: hidden;
+            background: var(--tag-bg);
+            position: relative;
+        }
+        .detail-series-item.current .detail-series-item-cover {
+            border-color: var(--accent);
+        }
+        .detail-series-item-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        .detail-series-item-cover img.loaded {
+            opacity: 1;
+        }
+        .detail-series-item-cover .card-cover-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--text3);
+            background: var(--tag-bg);
+            z-index: 1;
+        }
+        .detail-series-item-body {
+            padding: 10px 14px 8px;
+        }
+        .detail-series-item-title {
+            font-weight: 700;
+            font-size: .95rem;
+            color: var(--text);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .detail-series-item-date {
+            font-size: .68rem;
+            color: var(--text3);
+            margin-top: 4px;
         }
 
         .gallery-card {
@@ -1852,6 +2192,17 @@
         .gallery-card .card-admin-actions button.btn-del:hover {
             border-color: var(--danger);
             color: var(--danger);
+        }
+
+        .gallery-card .card-rating-count {
+            font-size: .68rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: var(--glass-bg-light);
+            color: var(--tag-text);
+            white-space: nowrap;
+            display: inline-block;
+            min-height: 0;
         }
 
         .gallery-card .card-parallax-bg {
@@ -2483,6 +2834,7 @@
             margin-top: 16px;
             padding-top: 16px;
             border-top: 2px solid var(--border);
+            grid-column: 1 / -1;
         }
 
         .detail-related-mods-title {
@@ -4148,34 +4500,86 @@
 
         .toast-notification {
             position: fixed;
-            bottom: 30px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--glass-bg-light);
+            transform: translate(-50%, -50%) scale(0.8);
+            background-color: rgba(248, 244, 252, 0.92);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.035) 3px,
+                    rgba(155, 138, 189, 0.035) 4px
+                );
             color: var(--text);
-            padding: 14px 28px;
+            padding: 24px 48px;
             border-radius: 16px;
-            border: 1px solid var(--accent);
-            box-shadow: var(--shadow-lg);
-            z-index: 999;
-            font-size: 1rem;
+            border: 1px solid rgba(190, 180, 210, 0.6);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(60, 30, 80, 0.04),
+                inset 2px 0 10px rgba(155, 138, 189, 0.06),
+                inset -2px 0 10px rgba(155, 138, 189, 0.06),
+                0 8px 32px rgba(60, 30, 80, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+            z-index: 1100;
+            font-size: 1.1rem;
             font-weight: 600;
             max-width: 90vw;
             text-align: center;
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
             opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            overflow: hidden;
         }
 
+        .toast-notification::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 15% 10%, rgba(255, 255, 255, 0.18) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .toast-notification::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+            z-index: 0;
+        }
+
+        .toast-notification > * { position: relative; z-index: 1; }
+
         .toast-notification.show {
-            transform: translateX(-50%) translateY(0);
+            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
         }
 
         .toast-notification.achievement-toast {
-            border-color: var(--gold);
-            background: rgba(245, 166, 35, 0.10);
-            box-shadow: 0 0 40px var(--gold-glow);
-            font-size: 1.05rem;
+            border-color: rgba(245, 166, 35, 0.5);
+            background-color: rgba(255, 248, 235, 0.92);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(245, 166, 35, 0.04) 3px,
+                    rgba(245, 166, 35, 0.04) 4px
+                );
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(180, 100, 20, 0.05),
+                inset 2px 0 10px rgba(245, 166, 35, 0.08),
+                inset -2px 0 10px rgba(245, 166, 35, 0.08),
+                0 8px 32px rgba(180, 100, 20, 0.2),
+                0 0 30px var(--gold-glow);
+            font-size: 1.15rem;
         }
 
         .scroll-progress {
@@ -5607,13 +6011,6 @@
             overflow: hidden;
         }
 
-        .review-label {
-            font-size: 0.9rem;
-            color: #8c8099;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
         /* 文本格式化工具栏 */
         .review-label {
             font-weight: 600;
@@ -5978,6 +6375,65 @@
                 gap: 12px;
             }
 
+            /* 系列作品视图移动端适配 */
+            .series-group-title {
+                font-size: 1rem;
+            }
+            .series-group-badge {
+                font-size: 0.68rem;
+            }
+            .series-group-cards {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .series-group-cards .gallery-card {
+                flex: none;
+                width: auto;
+                border-radius: 16px;
+                display: flex;
+                flex-direction: column;
+                aspect-ratio: 2/3;
+            }
+            .series-group-cards .gallery-card .card-cover-wrap {
+                aspect-ratio: 16/7;
+            }
+            .series-group-cards .gallery-card .card-body {
+                padding: 6px 10px 4px;
+                gap: 2px;
+                flex: 1;
+                overflow: hidden;
+            }
+            .series-group-cards .gallery-card .card-title {
+                font-size: .8rem;
+                line-height: 1.2;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .series-group-cards .gallery-card .card-desc {
+                font-size: .65rem;
+                line-height: 1.3;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            .series-group-cards .gallery-card .card-meta {
+                gap: 2px;
+                margin-top: 1px;
+            }
+            .series-group-cards .gallery-card .card-meta span {
+                font-size: .52rem;
+                padding: 1px 4px;
+            }
+            .series-group-cards .gallery-card .card-heroine-tag {
+                font-size: 0.55rem;
+                padding: 1px 8px;
+                top: 4px;
+                left: 4px;
+            }
+
             .filter-sticky {
                 padding: 10px 8px 8px;
             }
@@ -5985,48 +6441,59 @@
             .filter-header {
                 flex-wrap: wrap;
                 gap: 6px;
-                justify-content: center;
                 min-height: auto;
                 padding: 4px 0;
             }
 
             .site-logo {
-                font-size: 1.2rem;
-                z-index: 2;
+                font-size: 1.1rem;
+                margin-right: 4px;
             }
 
-            .site-logo::after {
-                display: none;
-            }
-
-            .header-center {
-                position: static;
-                transform: none;
-                flex: 1 1 100%;
+            .top-nav {
                 order: 3;
-                pointer-events: auto;
-                padding: 2px 0;
+                flex: 1 1 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2px;
+                margin-top: 4px;
             }
 
-            .filter-header .site-title {
-                font-size: 1.2rem;
-                white-space: normal;
-            }
-
-            .filter-header .site-subtitle {
-                font-size: .75rem;
-                white-space: normal;
+            .top-nav-item {
+                padding: 5px 10px;
+                font-size: 0.78rem;
             }
 
             .header-right {
                 margin-left: auto;
-                position: relative;
-                z-index: 99900;
+                flex-shrink: 0;
+            }
+
+            .header-action-link {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+
+            .top-nav-user-btn {
+                padding: 5px 8px;
+                font-size: 0.78rem;
+            }
+
+            .site-title-section {
+                padding: 8px 0 4px;
+            }
+
+            .site-title-section .site-title {
+                font-size: 1.2rem;
+            }
+
+            .site-title-section .site-subtitle {
+                font-size: 0.72rem;
             }
 
             .view-tab {
-                padding: 6px 16px;
-                font-size: .8rem;
+                padding: 6px 14px;
+                font-size: .78rem;
             }
 
             .search-row {
@@ -6194,6 +6661,11 @@
                 padding: 1px 8px;
                 top: 4px;
                 left: 4px;
+            }
+
+            .gallery-card .card-rating-count {
+                font-size: .58rem;
+                padding: 0 10px 4px;
             }
 
             .btn-random {
@@ -6736,6 +7208,42 @@
                 gap: 10px;
             }
 
+            /* 系列作品视图超小屏适配 */
+            .series-group-title {
+                font-size: 0.88rem;
+            }
+            .series-group-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .top-nav-item {
+                padding: 4px 7px;
+                font-size: 0.7rem;
+            }
+
+            .header-action-link {
+                padding: 3px 6px;
+                font-size: 0.7rem;
+            }
+
+            .site-logo {
+                font-size: 1rem;
+            }
+
+            .site-title-section .site-title {
+                font-size: 1.1rem;
+            }
+
+            .site-title-section .site-subtitle {
+                font-size: 0.68rem;
+            }
+
+            .view-tab {
+                padding: 5px 12px;
+                font-size: .75rem;
+            }
+
             .toolbar-left {
                 gap: 4px;
             }
@@ -7014,6 +7522,34 @@
                 gap: 8px;
             }
 
+            /* 系列作品区块移动端适配 */
+            .detail-series-section {
+                margin: 0 14px 16px;
+                padding: 14px;
+            }
+
+            .detail-series-section h3 {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+
+            .detail-series-item {
+                width: 90px;
+            }
+
+            .detail-series-item-cover {
+                width: 90px;
+                height: 108px;
+            }
+
+            .detail-series-item-title {
+                font-size: 0.72rem;
+            }
+
+            .detail-series-item-date {
+                font-size: 0.68rem;
+            }
+
             .detail-links .detail-link-btn {
                 font-size: 0.9rem;
                 padding: 4px 14px;
@@ -7125,6 +7661,21 @@
 
             .detail-screenshots-grid.screenshots-2 img {
                 max-height: none;
+            }
+
+            /* 系列作品区块超小屏适配 */
+            .detail-series-section {
+                margin: 0 10px 12px;
+                padding: 12px;
+            }
+
+            .detail-series-item {
+                width: 80px;
+            }
+
+            .detail-series-item-cover {
+                width: 80px;
+                height: 96px;
             }
 
             #imageViewerOverlay img {
@@ -7788,6 +8339,151 @@
             color: var(--text);
         }
 
+        /* ===== 回复按钮样式 ===== */
+        .guestbook-reply-btn, .comment-reply-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .guestbook-reply-btn:hover, .comment-reply-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
+        }
+
+        /* ===== 点赞按钮样式 ===== */
+        .comment-like-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .comment-like-btn:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.08);
+        }
+
+        .comment-like-btn.liked {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.12);
+        }
+
+        /* ===== 回复输入框样式 ===== */
+        .reply-compose {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .reply-compose textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.85rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .reply-compose textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(155, 138, 189, 0.15);
+        }
+
+        .reply-compose-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .reply-compose-actions .btn {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+
+        /* ===== 回复列表样式 ===== */
+        .reply-list {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 2px solid var(--border);
+        }
+
+        .reply-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .reply-item:last-child {
+            border-bottom: none;
+        }
+
+        .reply-item-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .reply-item-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+        }
+
+        .reply-item-name {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text);
+        }
+
+        .reply-item-time {
+            font-size: 0.65rem;
+            color: var(--text3);
+        }
+
+        .reply-item-content {
+            font-size: 0.82rem;
+            color: var(--text2);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .reply-to-label {
+            color: var(--accent);
+            font-size: 0.75rem;
+            margin-right: 4px;
+        }
+
         @media (max-width: 768px) {
             .guestbook-modal .modal {
                 max-width: 95%;
@@ -7912,6 +8608,295 @@
             width: 20px;
             text-align: center;
             flex-shrink: 0;
+        }
+
+        /* ================================================================
+   ★★★ 公告板块 ★★★
+   ================================================================ */
+        .announcements-section {
+            display: none;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 16px 20px 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .announcements-section.show {
+            display: block;
+        }
+
+        .announcements-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .announcements-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent2);
+        }
+
+        .announcements-subtitle {
+            font-size: 0.85rem;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        .announcements-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .announcement-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .announcement-card:hover {
+            box-shadow: 0 4px 20px rgba(60, 30, 80, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .announcement-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .announcement-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            font-size: 0.8rem;
+            color: var(--text3);
+        }
+
+        .announcement-card-date {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .announcement-card-body {
+            font-size: 0.9rem;
+            color: var(--text2);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .announcement-card-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .announcement-card:hover .announcement-card-actions {
+            opacity: 1;
+        }
+
+        .announcement-card-action-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--text2);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .announcement-card-action-btn:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .announcement-card-action-btn.danger:hover {
+            background: rgba(192, 57, 43, 0.1);
+            color: var(--danger);
+        }
+
+        .announcement-card.pinned {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--surface) 0%, var(--accent-light) 100%);
+        }
+
+        .announcement-card.pinned .announcement-card-title {
+            font-size: calc(1.1rem + 5px);
+        }
+
+        .announcement-card-pin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .announcement-card-action-btn.pin-btn {
+            color: var(--accent);
+        }
+
+        .announcement-card-action-btn.pin-btn:hover {
+            background: var(--accent-light);
+        }
+
+        .announcements-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text3);
+            font-size: 0.9rem;
+        }
+
+        /* 公告编辑弹窗 */
+        .announcement-edit-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+
+        .announcement-edit-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .announcement-edit-modal {
+            background: var(--modal-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .announcement-edit-overlay.show .announcement-edit-modal {
+            transform: translateY(0);
+        }
+
+        .announcement-edit-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .announcement-edit-form .form-group {
+            margin-bottom: 16px;
+        }
+
+        .announcement-edit-form label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin-bottom: 6px;
+        }
+
+        .announcement-edit-form input[type="text"],
+        .announcement-edit-form textarea,
+        .announcement-edit-form input[type="date"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: var(--input-bg);
+            color: var(--text);
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .announcement-edit-form input[type="text"]:focus,
+        .announcement-edit-form textarea:focus,
+        .announcement-edit-form input[type="date"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .announcement-edit-form textarea {
+            min-height: 160px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .announcement-edit-form .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .announcement-edit-form .form-row .form-group {
+            flex: 1;
+        }
+
+        .announcement-edit-form .pin-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .announcement-edit-form .pin-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .announcement-edit-form .pin-toggle-label {
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+
+        .announcement-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .announcement-edit-actions .btn {
+            padding: 8px 20px;
+            font-size: 0.88rem;
         }
 
         /* ================================================================
@@ -8956,6 +9941,149 @@
             background: rgba(192, 57, 43, 0.08);
         }
 
+        /* ===== MOD评论回复和点赞样式 ===== */
+        .mod-comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .mod-comment-reply-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.72rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .mod-comment-reply-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(155, 138, 189, 0.08);
+        }
+
+        .mod-comment-like-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.72rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .mod-comment-like-btn:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.08);
+        }
+
+        .mod-comment-like-btn.liked {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.12);
+        }
+
+        .mod-reply-compose {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .mod-reply-compose textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.85rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .mod-reply-compose textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(155, 138, 189, 0.15);
+        }
+
+        .mod-reply-compose-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .mod-reply-compose-actions .btn {
+            padding: 4px 12px;
+            font-size: 0.78rem;
+        }
+
+        .mod-reply-list {
+            margin-top: 10px;
+            padding-left: 16px;
+            border-left: 2px solid var(--border);
+        }
+
+        .mod-reply-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .mod-reply-item:last-child {
+            border-bottom: none;
+        }
+
+        .mod-reply-item-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .mod-reply-item-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--tag-bg);
+        }
+
+        .mod-reply-item-name {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text);
+        }
+
+        .mod-reply-item-time {
+            font-size: 0.65rem;
+            color: var(--text3);
+        }
+
+        .mod-reply-item-content {
+            font-size: 0.82rem;
+            color: var(--text2);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
         .mod-empty {
             text-align: center;
             padding: 50px 20px;
@@ -9104,20 +10232,6 @@
             border-radius: 50%;
             background: var(--success);
         }
-
-        /* —— 翻页音效开关 —— */
-        .diary-sound-btn {
-            padding: 5px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(213, 207, 224, 0.35);
-            background: rgba(250, 247, 253, 0.82);
-            color: var(--text2);
-            font-size: 0.78rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .diary-sound-btn.active { color: var(--accent); border-color: var(--accent); }
-        .diary-sound-btn:hover { border-color: var(--accent); }
 
         /* —— 骨架屏 —— */
         .diary-skeleton {
@@ -9405,47 +10519,21 @@
         <span class="arrow">↑</span>
     </button>
 
-    <!-- ===== 公告栏 ===== -->
-    <div class="announcement-bar" id="announcementBar">
-        <div class="announcement-content">
-            <div class="announcement-item">
-                <span class="announcement-icon">📢</span>
-                <span class="announcement-text">网站内容持续更新中，欢迎常来看看！<strong>新游戏</strong>、<strong>新资讯</strong>会陆续添加。</span>
-            </div>
-            <div class="announcement-item">
-                <span class="announcement-icon">💖</span>
-                <span class="announcement-text">用户的打赏将用于维护本网页运行，感谢各位姊妹的大力支持，今后也将持续录入更多女性主角游戏。</span>
-            </div>
-        </div>
-        <button class="announcement-close" id="announcementClose" aria-label="关闭公告">✕</button>
-    </div>
-    <div id="announcementToggle"
-        style="display:none; text-align:center; padding:8px; cursor:pointer; color:var(--accent); font-size:0.85rem; border-bottom:1.5px solid var(--border); background:var(--announcement-bg); user-select:none;">
-        📢 展开公告
-    </div>
-
     <!-- ===== 筛选栏 ===== -->
     <div class="filter-sticky" id="filterSticky">
         <div class="filter-header">
             <div class="site-logo" id="siteLogo">Her Lens</div>
-            <div class="header-center">
-                <div class="header-dropdown" id="mainViewDropdown">
-                    <button class="header-dropdown-btn" id="mainViewDropdownBtn">
-                        <div class="site-title" id="siteTitle">🎮 女性主角游戏</div>
-                        <span class="dropdown-arrow-icon">▼</span>
-                    </button>
-                    <div class="header-dropdown-menu" id="mainViewDropdownMenu">
-                        <button class="header-dropdown-item active" data-main-view="games">
-                            <span class="item-icon">🎮</span> 游戏总览
-                        </button>
-                        <button class="header-dropdown-item" data-main-view="mods">
-                            <span class="item-icon">🔧</span> MOD总览
-                        </button>
-                    </div>
-                </div>
-                <div class="site-subtitle" id="siteSubtitle">*请从中选择你的下一场冒险*</div>
-            </div>
+            <nav class="top-nav" id="topNav">
+                <button class="top-nav-item active" data-nav="games">游戏总览</button>
+                <button class="top-nav-item" data-nav="mods">MOD总览</button>
+                <button class="top-nav-item" data-nav="test" id="navPersonalityTest">人格测试</button>
+                <button class="top-nav-item" data-nav="announcements">网站公告</button>
+                <button class="top-nav-item" id="navGuestbook" title="留言板 - 和大家聊聊天">留言板</button>
+                <button class="top-nav-item" id="navTip" title="打赏网页，支持创作">打赏网页</button>
+            </nav>
             <div class="header-right">
+                <a href="https://gcn7znx9qc0z.feishu.cn/share/base/form/shrcnGpkv97cNzBIz73NCyDhFyd" target="_blank"
+                    rel="noopener noreferrer" class="header-action-link" id="navSubmit" title="我要投稿，推荐你喜欢的女性主角游戏">📝 投稿</a>
                 <div class="notif-bell-wrap" id="notifBellWrap" style="display:none;">
                     <button class="notif-bell-btn" id="notifBellBtn" title="通知">🔔</button>
                     <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
@@ -9459,13 +10547,29 @@
                         </div>
                     </div>
                 </div>
-                <div id="authStatusContainer"></div>
+                <div id="authStatusContainer" style="display:none;"></div>
+                <div class="nav-user-item" id="navUserItem">
+                    <button class="top-nav-user-btn" id="navUserBtn">
+                        <span class="nav-user-icon">👤</span>
+                        <span class="nav-user-text" id="navUserText">登录</span>
+                    </button>
+                    <div class="nav-user-dropdown" id="navUserDropdown">
+                        <div class="nav-user-dropdown-inner" id="navUserDropdownInner">
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div class="site-title-section">
+            <div class="site-title">女性主角游戏</div>
+            <div class="site-subtitle">*请从中选择你的下一场冒险*</div>
         </div>
 
         <div class="view-tabs" id="viewTabs">
             <span class="view-tab active" data-view="released">📀 已发售游戏</span>
             <span class="view-tab" data-view="unreleased">⏳ 未发售游戏</span>
+            <span class="view-tab" data-view="series">📚 系列作品</span>
         </div>
 
         <div class="search-row" id="searchRow">
@@ -9484,8 +10588,6 @@
     <!-- ===== 工具栏 ===== -->
     <div class="toolbar" id="toolbar">
         <div class="toolbar-left">
-            <span class="result-count" id="resultCount">共 <span class="count-number" id="countNumber">0</span>款游戏</span>
-
             <div class="sort-btn-group" id="sortBtnGroup">
                 <button class="sort-btn active" data-sort="default">📋 默认</button>
                 <button class="sort-btn" data-sort="newest">📅 最新</button>
@@ -9500,15 +10602,11 @@
                 <span class="heart-icon">❤️</span> 愿望单
             </button>
 
-            <button class="btn btn-sm btn-achievement" id="btnAchievement" title="查看已解锁的成就">
-                <span class="trophy-icon">🏆</span> 成就
-                <span class="badge-dot" id="achievementDot" style="display:none;"></span>
+            <button class="btn btn-sm btn-exclude-played" id="btnExcludePlayed" title="排除已标记玩过的游戏">
+                <span class="check-icon">✅</span> 排除已玩
             </button>
 
-            <button class="btn btn-sm" id="btnManualSync" title="手动同步数据">🔄 刷新</button>
-
-            <button class="btn btn-sm" id="btnGuestbook" title="留言板 - 和大家聊聊天"
-                style="border-color:var(--accent);color:var(--accent);">💬 留言板</button>
+            <span class="result-count" id="resultCount">共 <span class="count-number" id="countNumber">0</span>款游戏</span>
 
             <button class="btn btn-sm" id="btnToggleAdmin" title="切换管理模式" style="display:none;">🔧 管理</button>
             <button class="btn btn-sm" id="btnAddGame" title="手动添加游戏" style="display:none;">＋ 添加</button>
@@ -9519,19 +10617,7 @@
         </div>
 
         <div style="display:flex;align-items:center;gap:6px; flex-wrap:wrap;">
-            <span class="watermark">制作者 by Mega比格犬</span>
-            <a href="https://gcn7znx9qc0z.feishu.cn/share/base/form/shrcnGpkv97cNzBIz73NCyDhFyd" target="_blank"
-                rel="noopener noreferrer" class="submit-link" title="我要投稿，推荐你喜欢的女性主角游戏">
-                <span class="submit-icon">📝</span> 我要投稿
-            </a>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:0px;">
-                <button class="coin-tip-btn" id="btnTip" title="打赏作者，支持创作">🪙</button>
-                <span style="font-size:0.55rem;color:var(--text3);line-height:1.2;">打赏作者</span>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:0px;">
-                <button class="theme-toggle" id="btnThemeToggle" title="切换深色/浅色模式">🌓</button>
-                <span style="font-size:0.55rem;color:var(--text3);line-height:1.2;">切换主题</span>
-            </div>
+            <button class="theme-toggle" id="btnThemeToggle" title="切换深色/浅色模式">🌓</button>
         </div>
     </div>
 
@@ -9590,6 +10676,22 @@
         </div>
         <div class="guestbook-load-more" id="modLoadMore" style="display:none;">
             <button id="modLoadMoreBtn">加载更多...</button>
+        </div>
+    </div>
+
+    <!-- ===== 公告板块 ===== -->
+    <div class="announcements-section" id="announcementsSection">
+        <div class="announcements-header">
+            <div class="announcements-header-left">
+                <div class="announcements-title">📢 网站公告</div>
+                <div class="announcements-subtitle">网站更新日志与重要通知</div>
+            </div>
+            <div class="announcements-header-right">
+                <button class="btn btn-sm btn-accent" id="btnAddAnnouncement" style="display:none;">✏️ 发布公告</button>
+            </div>
+        </div>
+        <div class="announcements-list" id="announcementsList">
+            <div class="announcements-empty">加载中...</div>
         </div>
     </div>
 
@@ -9900,7 +11002,6 @@
                 </div>
                 <!-- 右侧功能按钮 -->
                 <div class="diary-toolbar-right">
-                    <button class="diary-sound-btn" id="diarySoundBtn" title="翻页音效开关">🔊 音效</button>
                     <button class="diary-share-btn" id="diaryShareBtn" title="导出为图片">📷 分享</button>
                 </div>
             </div>
@@ -9997,6 +11098,11 @@
         按 <kbd>?</kbd> 查看快捷键 · <kbd>/</kbd> 搜索 · <kbd>R</kbd> 随机
     </div>
 
+    <!-- ===== 页脚水印 ===== -->
+    <div style="text-align:center; padding:24px 20px 40px; color:var(--text3); font-size:0.78rem; opacity:0.7; letter-spacing:0.04em;">
+        制作者 by Mega比格犬
+    </div>
+
     <script>
         (function () {
             'use strict';
@@ -10020,7 +11126,7 @@
                 '整理', '砍杀', '塔防', '跑酷', '跳跃', '赛车/驾驶', '探索', '烹饪', '牌组构建', '自走棋', '刷宝', '弹幕', '密室逃脱'
             ];
             const PLATFORM_OPTIONS = ['PC', 'PS', 'Xbox', '移动端', 'NS1', 'NS2', '全平台', 'nds/3ds'];
-            const HEROINE_TYPE_OPTIONS = ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'];
+            const HEROINE_TYPE_OPTIONS = ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主', '无性别默认女'];
             const COSTUME_TYPE_OPTIONS = ['服设合理', '服设不合理', '含恶俗设计', '服设可自选'];
             const PERSPECTIVE_OPTIONS = ['第一人称', '第三人称', '可切换人称', '横版'];
             const CHINESE_OPTIONS = ['有中文', '无中文'];
@@ -10050,6 +11156,7 @@
             let currentSort = 'default';
             let searchQuery = '';
             let wishlistMode = false;
+            let excludePlayedMode = false;
             let userData = { wishlist: [], played: [], achievements: [], reviews: [] };
             let searchTimeout = null;
             let cardObserver = null;
@@ -10124,10 +11231,6 @@
             function escapeURL(s) {
                 if (!s) return '';
                 return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-            }
-
-            function generateId() {
-                return Date.now() + Math.floor(Math.random() * 1000);
             }
 
             // ================================================================
@@ -10208,8 +11311,8 @@
                 localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
                 if (supabaseClient) {
                     Promise.all([
-                        supabaseClient.from('games').upsert({ id: 999999, title: '__custom_genres__', genre: customGenres, isReleased: true }, { onConflict: 'id' }),
-                        supabaseClient.from('games').upsert({ id: 999998, title: '__custom_gameplays__', gameplay: customGameplays, isReleased: true }, { onConflict: 'id' })
+                        supabaseClient.from('games').upsert({ id: 1, title: '__custom_genres__', genre: customGenres, isReleased: true }, { onConflict: 'id' }),
+                        supabaseClient.from('games').upsert({ id: 2, title: '__custom_gameplays__', gameplay: customGameplays, isReleased: true }, { onConflict: 'id' })
                     ]).catch(() => { });
                 }
             }
@@ -10768,7 +11871,9 @@
                 try {
                     const from = page * REVIEW_PAGE_SIZE;
                     const to = from + REVIEW_PAGE_SIZE - 1;
-                    const { data, error } = await supabaseClient.from('user_reviews').select('*').eq('game_id', Number(gameId))
+                    const { data, error } = await supabaseClient.from('user_reviews')
+                        .select('id, game_id, user_id, rating, comment, play_date, play_hours, display_name, avatar_url, created_at, updated_at')
+                        .eq('game_id', Number(gameId))
                         .order('created_at', { ascending: false }).range(from, to);
                     if (error) throw error;
                     return data || [];
@@ -10793,6 +11898,21 @@
                     _ratingStatsCache[cacheKey] = { average, count, ts: Date.now() };
                     return { average, count };
                 } catch (e) { console.error('❌ 获取评分统计失败:', e); return { average: null, count: 0 }; }
+            }
+
+            async function loadCardRatingStats() {
+                const els = document.querySelectorAll('.card-rating-count');
+                if (!els.length) return;
+                const tasks = Array.from(els).map(async (el) => {
+                    const gameId = Number(el.dataset.gameId);
+                    if (!gameId || el.dataset.loaded) return;
+                    el.dataset.loaded = '1';
+                    const stats = await fetchGameRatingStats(gameId);
+                    if (stats.count > 0) {
+                        el.textContent = '📝 ' + stats.count + '人评分';
+                    }
+                });
+                await Promise.all(tasks);
             }
 
             // ================================================================
@@ -10828,7 +11948,7 @@
                 setSyncStatus('syncing', '正在展开地图');
                 try {
                     const { data, error } = await client.from('games')
-                        .select('id, title, description, fullDescription, cover, genre, gameplay, platforms, screenshots, videos, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice')
+                        .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder')
                         .neq('id', '1')
                         .neq('id', '2')
                         .order('id', { ascending: true });
@@ -10840,14 +11960,13 @@
                             genre: row.genre || [],
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
-                            screenshots: row.screenshots || [],
-    fullDescription: row.fullDescription || '',
-    videos: row.videos || [],
                             isReleased: row.isReleased !== undefined ? row.isReleased : true,
                             hasDemo: row.hasDemo || false,
                             hasMacSupport: row.hasMacSupport || '不支持Mac',
                             isPSExclusive: row.isPSExclusive || false,
                             isNSExclusive: row.isNSExclusive || false,
+                            series: row.series || '',
+                            seriesOrder: row.seriesOrder || 0,
                         }));
                         setSyncStatus('synced');
                         return parsed;
@@ -10871,25 +11990,32 @@
             }
 
             async function loadGames() {
-                let data = null;
+                // 1. 先从本地缓存加载（立即显示）
+                const local = localStorage.getItem(STORAGE_KEY);
+                if (local) {
+                    try {
+                        const parsed = JSON.parse(local);
+                        games = parsed.map(g => ({ ...g, id: Number(g.id) }));
+                        games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
+                        if (currentView === 'series') renderSeriesView(); else renderGallery(); // 立即渲染缓存数据
+                    } catch (_) { games = []; }
+                }
+
+                // 2. 从云端刷新数据（后台静默更新）
                 if (SUPABASE_ENABLED && supabaseClient) {
                     try {
-                        data = await loadFromSupabase();
-                    } catch (_) { data = null; }
+                        const freshData = await loadFromSupabase();
+                        if (freshData && freshData.length > 0) {
+                            games = freshData;
+                            // 更新本地缓存
+                            try {
+                                localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+                            } catch (_) {}
+                            if (currentView === 'series') renderSeriesView(); else renderGallery(); // 用新数据重新渲染
+                        }
+                    } catch (_) {}
                 }
-                if (data && data.length > 0) {
-                    games = data;
-                } else {
-                    const local = localStorage.getItem(STORAGE_KEY);
-                    if (local) {
-                        try {
-                            const parsed = JSON.parse(local);
-                            games = parsed.map(g => ({ ...g, id: Number(g.id) }));
-                        } catch (_) { games = []; }
-                    } else {
-                        games = [];
-                    }
-                }
+
                 games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
                 return games;
             }
@@ -10905,6 +12031,7 @@
                         currentTheme = d.theme || 'system';
                         if (!['light', 'dark', 'system'].includes(currentTheme)) currentTheme = 'system';
                         currentView = d.currentView || 'released';
+                        if (currentView === 'series') currentView = 'released';
                         currentSort = d.currentSort || 'default';
                         if (!['default', 'newest', 'oldest'].includes(currentSort)) currentSort = 'default';
                         isAdminMode = d.isAdminMode || false;
@@ -10998,7 +12125,11 @@
                 resetActiveFilters();
                 activeFilterCat = null;
                 updateFilterUI();
-                renderGallery();
+                if (view === 'series') {
+                    renderSeriesView();
+                } else {
+                    renderGallery();
+                }
                 saveSettings();
             }
 
@@ -11024,7 +12155,7 @@
             function sortGames(gameList) {
                 const sorted = [...gameList];
                 if (currentSort === 'default') {
-                    sorted.sort((a, b) => a.id - b.id);
+                    sorted.sort((a, b) => b.id - a.id);
                 } else if (currentSort === 'newest') {
                     sorted.sort((a, b) => (b.releaseDate || '1970-01-01').localeCompare(a.releaseDate || '1970-01-01'));
                 } else if (currentSort === 'oldest') {
@@ -11054,6 +12185,7 @@
                     if (game.isReleased !== (currentView === 'released')) return false;
                     if (searchQuery && !gameMatchesSearch(game, searchQuery)) return false;
                     if (wishlistMode && !isInWishlist(game.id)) return false;
+                    if (excludePlayedMode && isPlayed(game.id)) return false;
                     for (const [cat, sel] of Object.entries(activeFilters)) {
                         if (sel.size === 0) continue;
                         const field = map[cat]?.field;
@@ -11157,6 +12289,105 @@
                 );
             }
 
+            // ================================================================
+            // 系列作品视图
+            // ================================================================
+            function renderSeriesView() {
+                const grid = document.getElementById('galleryGrid');
+                const no = document.getElementById('noResults');
+                const countNum = document.getElementById('countNumber');
+
+                // 收集所有有系列的游戏
+                const seriesMap = {};
+                games.forEach(g => {
+                    if (g.series && g.series.trim()) {
+                        if (!seriesMap[g.series]) seriesMap[g.series] = [];
+                        seriesMap[g.series].push(g);
+                    }
+                });
+
+                // 按系列名排序，系列内按 seriesOrder 排序
+                const seriesNames = Object.keys(seriesMap).sort((a, b) => a.localeCompare(b, 'zh'));
+                seriesNames.forEach(name => {
+                    seriesMap[name].sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
+                });
+
+                const totalSeries = seriesNames.length;
+                const totalGames = seriesNames.reduce((sum, name) => sum + seriesMap[name].length, 0);
+                countNum.textContent = totalGames;
+
+                if (totalSeries === 0) {
+                    grid.innerHTML = '';
+                    no.style.display = 'block';
+                    no.innerHTML = `
+                        <div class="series-view-empty">
+                            <span class="empty-icon">📚</span>
+                            <div style="font-size:1.1rem;font-weight:600;margin-bottom:8px;">暂无系列作品</div>
+                            <div style="font-size:0.85rem;">在编辑游戏时填写「所属系列」字段，游戏就会自动归类到这里</div>
+                        </div>`;
+                    return;
+                }
+
+                no.style.display = 'none';
+
+                let html = '';
+                seriesNames.forEach(name => {
+                    const list = seriesMap[name];
+                    const cardsHtml = list.map(g => {
+                        const coverHtml = g.cover
+                            ? `<img class="card-cover" src="${escapeHTML(g.cover)}" referrerpolicy="no-referrer" loading="lazy" decoding="async" onload="this.classList.add('loaded');const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.add('hidden');" onerror="const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.remove('hidden');" />`
+                            : '';
+                        const placeholderCls = g.cover ? '' : ' style="position:relative;z-index:2;"';
+                        const placeholderHtml = `<div class="card-cover-placeholder"${placeholderCls}>🎮</div>`;
+                        const metaSpans = [];
+                        if (g.hasChinese === '有中文') {
+                            metaSpans.push('<span class="accent-tag">中文</span>');
+                        } else if (g.hasChinese === '无中文') {
+                            metaSpans.push('<span class="tag-muted">无中文</span>');
+                        }
+                        if (g.isReleased) {
+                            (g.genre || []).slice(0, 3).forEach(t => metaSpans.push(`<span>${escapeHTML(t)}</span>`));
+                            (g.gameplay || []).slice(0, 2).forEach(t => metaSpans.push(`<span>${escapeHTML(t)}</span>`));
+                        } else {
+                            if (g.hasDemo) metaSpans.push('<span class="accent-tag">有Demo</span>');
+                            (g.genre || []).slice(0, 3).forEach(t => metaSpans.push(`<span>${escapeHTML(t)}</span>`));
+                            (g.gameplay || []).slice(0, 2).forEach(t => metaSpans.push(`<span>${escapeHTML(t)}</span>`));
+                        }
+                        if (g.releaseDate) metaSpans.push(`<span>${escapeHTML(g.releaseDate)}</span>`);
+                        const heroineTag = g.heroineType ? `<div class="card-heroine-tag">${escapeHTML(g.heroineType)}</div>` : '';
+                        return `
+                            <div class="gallery-card visible" onclick="openSeriesGameDetail(${g.id})">
+                                <div class="card-cover-wrap">
+                                    ${coverHtml}
+                                    ${placeholderHtml}
+                                    ${heroineTag}
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-title">${escapeHTML(g.title)}</div>
+                                    <div class="card-desc">${escapeHTML(g.description || '')}</div>
+                                    <div class="card-meta">${metaSpans.join('')}</div>
+                                </div>
+                            </div>`;
+                    }).join('');
+
+                    html += `
+                        <div class="series-group">
+                            <div class="series-group-title">📚 ${escapeHTML(name)} <span class="series-group-badge">${list.length} 部作品</span></div>
+                            <div class="series-group-cards">${cardsHtml}</div>
+                        </div>`;
+                });
+
+                grid.innerHTML = html;
+                loadCardRatingStats();
+            }
+
+            window.openSeriesGameDetail = function(gameId) {
+                const game = games.find(g => g.id === gameId);
+                if (game) {
+                    showDetailModal(game, { from: 'series' });
+                }
+            };
+
             function updateSearchClearBtn() {
                 const btn = document.getElementById('searchClearBtn');
                 if (!btn) return;
@@ -11215,6 +12446,20 @@
                 }
             }
 
+            function toggleExcludePlayedMode() {
+                excludePlayedMode = !excludePlayedMode;
+                const btn = document.getElementById('btnExcludePlayed');
+                if (btn) {
+                    btn.classList.toggle('active', excludePlayedMode);
+                    btn.innerHTML = excludePlayedMode ? '<span class="check-icon">✅</span> 排除已玩 (开)' : '<span class="check-icon">✅</span> 排除已玩';
+                }
+                renderGallery();
+                if (excludePlayedMode) {
+                    const count = getFilteredGames().length;
+                    showToast(`🎮 排除已玩后剩余 ${count} 款游戏`, 1800);
+                }
+            }
+
             // ================================================================
             // 渲染卡片 (性能优化：复用已有DOM节点)
             // ================================================================
@@ -11222,6 +12467,7 @@
             let _cardEventBound = new WeakSet();
 
             function renderGallery() {
+                if (currentView === 'series') { renderSeriesView(); return; }
                 const filtered = getFilteredGames();
                 const grid = document.getElementById('galleryGrid');
                 const no = document.getElementById('noResults');
@@ -11403,6 +12649,7 @@
                 });
 
                 updateAchievementDot();
+                loadCardRatingStats();
             }
 
             function createCardElement(game) {
@@ -11515,6 +12762,10 @@
                     sp.textContent = game.releaseDate;
                     meta.appendChild(sp);
                 }
+                const ratingCount = document.createElement('div');
+                ratingCount.className = 'card-rating-count';
+                ratingCount.dataset.gameId = game.id;
+                meta.appendChild(ratingCount);
                 body.appendChild(meta);
                 card.appendChild(body);
 
@@ -11606,6 +12857,7 @@
                 if (!isAdmin) { showToast('⚠️ 仅管理员可使用', 1500); return; }
                 isAdminMode = !isAdminMode;
                 updateAdminUI();
+                _cardMap.clear();
                 renderGallery();
                 showToast(isAdminMode ? '🔧 管理模式已开启' : '🔧 管理模式已关闭', 1500);
             }
@@ -11622,7 +12874,7 @@
                 { key: 'hasDemo', label: '有Demo', type: 'checkbox' },
                 { key: 'hasChinese', label: '中文', type: 'select', options: ['有中文', '无中文'] },
                 { key: 'perspective', label: '视角', type: 'select', options: ['第一人称', '第三人称', '可切换人称', '横版'] },
-                { key: 'heroineType', label: '主角分类', type: 'select', options: ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'] },
+                { key: 'heroineType', label: '主角分类', type: 'select', options: ['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主', '无性别默认女'] },
                 { key: 'costumeType', label: '服设分类', type: 'select', options: ['服设合理', '服设不合理', '含恶俗设计', '服设可自选'] },
                 { key: 'mainStoryDuration', label: '主线时长', type: 'text' },
                 { key: 'lowestPrice', label: '最低价', type: 'text' },
@@ -11641,7 +12893,8 @@
                     costumeType: '服设合理', hasMacSupport: '不支持Mac', steamLink: '',
                     steamAppId: '', isPSExclusive: false, isNSExclusive: false,
                     hasDemo: false, mainStoryDuration: '', lowestPrice: '', videos: [],
-                    screenshots: [], otherLinks: '', isReleased: true
+                    screenshots: [], otherLinks: '', isReleased: true,
+                    series: '', seriesOrder: 0
                 };
             }
 
@@ -11691,8 +12944,12 @@
                     <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="自定义玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋</button></div></div>
                     <div class="form-row">
                         <div class="form-group"><label>👁 视角</label><select id="efPerspective">${['第一人称', '第三人称', '可切换人称', '横版'].map(p => `<option value="${p}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-                        <div class="form-group"><label>👤 主角分类</label><select id="efHeroineType">${['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主'].map(h => `<option value="${h}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
+                        <div class="form-group"><label>👤 主角分类</label><select id="efHeroineType">${['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主', '无性别默认女'].map(h => `<option value="${h}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
                         <div class="form-group"><label>👕 服设分类</label><select id="efCostumeType">${['服设合理', '服设不合理', '含恶俗设计', '服设可自选'].map(c => `<option value="${c}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>📚 所属系列</label><input type="text" id="efSeries" value="${escapeHTML(data.series || '')}" placeholder="如：地平线、猎天使魔女（留空=无系列）"></div>
+                        <div class="form-group" style="max-width:120px;"><label>系列排序</label><input type="number" id="efSeriesOrder" value="${data.seriesOrder || 0}" min="0" placeholder="0"></div>
                     </div>
                     <div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${['有中文', '无中文'].map(c => `<option value="${c}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
                     <div class="form-group" id="efMacRow"><label>🍎 Mac适配</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div>
@@ -11869,7 +13126,9 @@
                     videos: getVal('efVideos').split('\n').filter(l => l.trim()),
                     screenshots: getVal('efScreenshots').split('\n').filter(l => l.trim()),
                     otherLinks: getVal('efOtherLinks').trim(),
-                    isReleased: getCheck('efIsReleased')
+                    isReleased: getCheck('efIsReleased'),
+                    series: getVal('efSeries').trim(),
+                    seriesOrder: parseInt(getVal('efSeriesOrder')) || 0
                 };
 
                 for (const field of ['cover', 'steamLink']) {
@@ -11968,7 +13227,9 @@
                                     cover: '', steamLink: '', steamAppId: '',
                                     isPSExclusive: false, isNSExclusive: false,
                                     hasMacSupport: '', videos: [], screenshots: [],
-                                    otherLinks: '', isReleased: true
+                                    otherLinks: '', isReleased: true,
+                                    series: (row['系列名'] || '').trim(),
+                                    seriesOrder: parseInt(row['系列排序']) || 0
                                 };
                                 games.push(game);
                                 added++;
@@ -12663,6 +13924,35 @@
                     `<button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn">${isPlayed(game.id) ? '✅ 取消玩过标记' : '⬜ 标记为玩过'}</button>` :
                     '';
 
+                // 构建系列作品区块HTML
+                let seriesSectionHtml = '';
+                if (game.series && game.series.trim()) {
+                    const seriesGames = games.filter(g => g.series === game.series).sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
+                    if (seriesGames.length > 1) {
+                        const seriesItemsHtml = seriesGames.map(g => {
+                            const isCurrent = g.id === game.id;
+                            const coverHtml = g.cover
+                                ? `<img src="${escapeHTML(g.cover)}" referrerpolicy="no-referrer" loading="lazy" onload="this.classList.add('loaded');const ph=this.closest('.detail-series-item-cover')?.querySelector('.card-cover-placeholder');if(ph)ph.style.display='none';" />`
+                                : '';
+                            const placeholderHtml = g.cover ? '' : `<div class="card-cover-placeholder" style="position:relative;z-index:2;">🎮</div>`;
+                            return `
+                                <div class="detail-series-item${isCurrent ? ' current' : ''}" ${!isCurrent ? `onclick="openSeriesGameDetail(${g.id})"` : ''}>
+                                    <div class="detail-series-item-cover">${coverHtml}${placeholderHtml}</div>
+                                    <div class="detail-series-item-body">
+                                        <div class="detail-series-item-title">${escapeHTML(g.title)}</div>
+                                        <div class="detail-series-item-date">${escapeHTML(g.releaseDate || '未知')}</div>
+                                    </div>
+                                </div>`;
+                        }).join('');
+
+                        seriesSectionHtml = `
+                            <div class="detail-series-section">
+                                <h3>📚 系列作品 · ${escapeHTML(game.series)}</h3>
+                                <div class="detail-series-list">${seriesItemsHtml}</div>
+                            </div>`;
+                    }
+                }
+
                 modal.innerHTML = `
                         <div class="detail-container">
 
@@ -12729,6 +14019,8 @@
                                 <div class="detail-related-mods-title">🔧 相关MOD分享</div>
                                 <div id="detailRelatedModsList" style="text-align:center;color:var(--text3);padding:8px 0;font-size:0.85rem;">加载中...</div>
                             </div>
+
+                            ${seriesSectionHtml}
 
                         </div>
                     `;
@@ -12958,6 +14250,26 @@
                         }
                     }
                 }
+                // 支持通过游戏标题跳转（来自人格测试推荐）
+                const gameTitle = params.get('gameTitle');
+                if (gameTitle) {
+                    const decoded = decodeURIComponent(gameTitle);
+                    const game = games.find(g => g.title === decoded);
+                    if (game) {
+                        const url = new URL(window.location);
+                        url.searchParams.delete('gameTitle');
+                        url.searchParams.set('game', game.id);
+                        window.history.replaceState({ gameId: game.id }, '', url.toString());
+                        setTimeout(() => {
+                            showDetailModal(game, { from: 'gallery' });
+                        }, 200);
+                        return true;
+                    } else {
+                        const url = new URL(window.location);
+                        url.searchParams.delete('gameTitle');
+                        window.history.replaceState({ gameId: null }, '', url.toString());
+                    }
+                }
                 return false;
             }
 
@@ -13017,14 +14329,19 @@
                 if (!statsDisplay || !commentsList) return;
 
                 _reviewPage[gameId] = 0;
-                const stats = await fetchGameRatingStats(gameId);
+                
+                // 并行获取评分统计和评论列表
+                const [stats, reviews] = await Promise.all([
+                    fetchGameRatingStats(gameId),
+                    fetchGameReviews(gameId, 0)
+                ]);
+
                 if (stats.average !== null) {
                     statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 10 （共 <strong>${stats.count}</strong> 人评分）`;
                 } else {
                     statsDisplay.textContent = '暂无评分';
                 }
 
-                const reviews = await fetchGameReviews(gameId, 0);
                 if (reviews.length === 0) {
                     commentsList.innerHTML =
                         `<div style="text-align:center;color:var(--text3);padding:12px;">暂无评论，快来写下你的第一条吧！</div>`;
@@ -13541,8 +14858,6 @@
             const DIARY_DRAFT_KEY = 'heroine_diary_draft_v1';
             const DIARY_READING_KEY = 'heroine_diary_reading_v1';
             let diaryBookmarkCustomOrder = [];      // 自定义顺序的 game_id 数组
-            let diarySoundEnabled = true;           // 翻页音效开关
-            let _diaryAudioCtx = null;              // 音频上下文
             let _diaryDraftTimer = null;            // 草稿保存定时器
             let _diaryLastTouchX = 0;               // 触摸起点 X
             let _diaryLastTouchY = 0;               // 触摸起点 Y
@@ -13553,14 +14868,12 @@
                 try {
                     const p = JSON.parse(localStorage.getItem(DIARY_PREFS_KEY) || '{}');
                     diaryBookmarkCustomOrder = Array.isArray(p.customOrder) ? p.customOrder : [];
-                    diarySoundEnabled = !!p.soundEnabled;
                 } catch (_) {}
             }
             function saveDiaryPrefs() {
                 try {
                     localStorage.setItem(DIARY_PREFS_KEY, JSON.stringify({
-                        customOrder: diaryBookmarkCustomOrder,
-                        soundEnabled: diarySoundEnabled
+                        customOrder: diaryBookmarkCustomOrder
                     }));
                 } catch (_) {}
             }
@@ -13688,43 +15001,8 @@
                 } catch (_) {}
             }
 
-            // 翻页音效（Web Audio 生成轻柔翻书声）
-            function playDiaryFlipSound() {
-                if (!diarySoundEnabled) return;
-                try {
-                    if (!_diaryAudioCtx) _diaryAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const ctx = _diaryAudioCtx;
-                    if (ctx.state === 'suspended') ctx.resume();
-                    // 用白噪声 + 滤波模拟翻页声
-                    const bufferSize = ctx.sampleRate * 0.25;
-                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                    const data = buffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        const t = i / bufferSize;
-                        data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 5) * 0.3;
-                    }
-                    const source = ctx.createBufferSource();
-                    source.buffer = buffer;
-                    const filter = ctx.createBiquadFilter();
-                    filter.type = 'bandpass';
-                    filter.frequency.value = 2000;
-                    filter.Q.value = 1.5;
-                    const gain = ctx.createGain();
-                    gain.gain.value = 0.4;
-                    source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-                    source.start();
-                } catch (_) {}
-            }
-            function toggleDiarySound() {
-                diarySoundEnabled = !diarySoundEnabled;
-                saveDiaryPrefs();
-                const btn = document.getElementById('diarySoundBtn');
-                if (btn) {
-                    btn.classList.toggle('active', diarySoundEnabled);
-                    btn.innerHTML = diarySoundEnabled ? '🔊 音效✓' : '🔊 音效';
-                }
-                showToast(diarySoundEnabled ? '翻页音效已开启' : '翻页音效已关闭', 1500);
-            }
+            // 翻页音效已移除
+            function playDiaryFlipSound() {}
 
             // 草稿自动保存
             function autoSaveDraft(gameId, html) {
@@ -14412,15 +15690,6 @@
                 }, { passive: true });
             }
 
-            // —— 初始化新功能按钮状态 ——
-            function initDiaryFeatureButtons() {
-                const soundBtn = document.getElementById('diarySoundBtn');
-                if (soundBtn) {
-                    soundBtn.classList.toggle('active', diarySoundEnabled);
-                    soundBtn.innerHTML = diarySoundEnabled ? '🔊 音效✓' : '🔊 音效';
-                }
-            }
-
             // ================================================================
             // ★★★ 留言板 ★★★
             // ================================================================
@@ -14430,6 +15699,159 @@
             let guestbookTotalCount = 0;
             const GUESTBOOK_REACTIONS = ['❤️', '👍', '🎮', '💬', '✨'];
             let guestbookListener = null;
+            let _guestbookDebounce = null;
+
+            // ===== 留言板回复功能（本地存储） =====
+            const GUESTBOOK_REPLIES_KEY = 'heroine_guestbook_replies_v1';
+
+            function getGuestbookReplies() {
+                try {
+                    return JSON.parse(localStorage.getItem(GUESTBOOK_REPLIES_KEY) || '{}');
+                } catch (_) {
+                    return {};
+                }
+            }
+
+            function saveGuestbookReplies(replies) {
+                try {
+                    localStorage.setItem(GUESTBOOK_REPLIES_KEY, JSON.stringify(replies));
+                } catch (_) {}
+            }
+
+            function addGuestbookReply(parentId, content, replyTo = null) {
+                if (!currentUser) return null;
+                const replies = getGuestbookReplies();
+                if (!replies[parentId]) replies[parentId] = [];
+                const metadata = currentUser.user_metadata || {};
+                const newReply = {
+                    id: Date.now(),
+                    user_id: currentUser.id,
+                    content: content,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null,
+                    reply_to: replyTo,
+                    created_at: new Date().toISOString()
+                };
+                replies[parentId].push(newReply);
+                saveGuestbookReplies(replies);
+                return newReply;
+            }
+
+            function deleteGuestbookReply(parentId, replyId) {
+                const replies = getGuestbookReplies();
+                if (replies[parentId]) {
+                    replies[parentId] = replies[parentId].filter(r => r.id !== replyId);
+                    saveGuestbookReplies(replies);
+                }
+            }
+
+            function getGuestbookRepliesForMessage(msgId) {
+                const replies = getGuestbookReplies();
+                return replies[String(msgId)] || [];
+            }
+
+            function formatGuestbookReplyTime(isoStr) {
+                const d = new Date(isoStr);
+                const now = new Date();
+                const diffMs = now - d;
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) return '刚刚';
+                if (diffMin < 60) return diffMin + '分钟前';
+                const diffH = Math.floor(diffMin / 60);
+                if (diffH < 24) return diffH + '小时前';
+                const diffD = Math.floor(diffH / 24);
+                if (diffD < 30) return diffD + '天前';
+                return d.toLocaleDateString('zh-CN');
+            }
+
+            // ===== MOD评论回复和点赞功能（本地存储） =====
+            const MOD_COMMENT_REPLIES_KEY = 'heroine_mod_comment_replies_v1';
+            const MOD_COMMENT_LIKES_KEY = 'heroine_mod_comment_likes_v1';
+
+            function getModCommentReplies() {
+                try {
+                    return JSON.parse(localStorage.getItem(MOD_COMMENT_REPLIES_KEY) || '{}');
+                } catch (_) {
+                    return {};
+                }
+            }
+
+            function saveModCommentReplies(replies) {
+                try {
+                    localStorage.setItem(MOD_COMMENT_REPLIES_KEY, JSON.stringify(replies));
+                } catch (_) {}
+            }
+
+            function addModCommentReply(commentId, content) {
+                if (!currentUser) return null;
+                const replies = getModCommentReplies();
+                if (!replies[commentId]) replies[commentId] = [];
+                const metadata = currentUser.user_metadata || {};
+                const newReply = {
+                    id: Date.now(),
+                    user_id: currentUser.id,
+                    content: content,
+                    display_name: metadata.display_name || currentUser.email || '用户',
+                    avatar_url: metadata.avatar_url || null,
+                    created_at: new Date().toISOString()
+                };
+                replies[commentId].push(newReply);
+                saveModCommentReplies(replies);
+                return newReply;
+            }
+
+            function deleteModCommentReply(commentId, replyId) {
+                const replies = getModCommentReplies();
+                if (replies[commentId]) {
+                    replies[commentId] = replies[commentId].filter(r => r.id !== replyId);
+                    saveModCommentReplies(replies);
+                }
+            }
+
+            function getModCommentRepliesForComment(commentId) {
+                const replies = getModCommentReplies();
+                return replies[String(commentId)] || [];
+            }
+
+            function getModCommentLikes() {
+                try {
+                    return JSON.parse(localStorage.getItem(MOD_COMMENT_LIKES_KEY) || '{}');
+                } catch (_) {
+                    return {};
+                }
+            }
+
+            function saveModCommentLikes(likes) {
+                try {
+                    localStorage.setItem(MOD_COMMENT_LIKES_KEY, JSON.stringify(likes));
+                } catch (_) {}
+            }
+
+            function toggleModCommentLike(commentId) {
+                if (!currentUser) return false;
+                const likes = getModCommentLikes();
+                if (!likes[commentId]) likes[commentId] = [];
+                const userId = currentUser.id;
+                const idx = likes[commentId].indexOf(userId);
+                if (idx === -1) {
+                    likes[commentId].push(userId);
+                } else {
+                    likes[commentId].splice(idx, 1);
+                }
+                saveModCommentLikes(likes);
+                return idx === -1;
+            }
+
+            function isModCommentLiked(commentId) {
+                if (!currentUser) return false;
+                const likes = getModCommentLikes();
+                return (likes[commentId] || []).includes(currentUser.id);
+            }
+
+            function getModCommentLikeCount(commentId) {
+                const likes = getModCommentLikes();
+                return (likes[commentId] || []).length;
+            }
 
             function getGuestbookTable() {
                 if (!supabaseClient) return null;
@@ -14447,29 +15869,30 @@
                 }
                 try {
                     let query = table.select('*', { count: 'exact' });
+                    query = query.order('created_at', { ascending: false });
+                    
                     if (guestbookSort === 'hottest') {
-                        query = query.order('created_at', { ascending: false });
-                    } else {
-                        query = query.order('created_at', { ascending: false });
-                    }
-                    if (guestbookSort === 'hottest') {
-                        const { data, error, count } = await query;
+                        // 最热排序：限制最多加载100条，避免全表扫描
+                        const { data: rawData, error, count } = await query.limit(100);
                         if (error) throw error;
                         guestbookTotalCount = count || 0;
-                        let result = data || [];
+                        let result = rawData || [];
+                        // 按反应总数排序
                         result = [...result].sort((a, b) => {
                             const aTotal = Object.values(a.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
                             const bTotal = Object.values(b.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
                             return bTotal - aTotal;
                         });
-                        const from = 0;
-                        const to = (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE - 1;
-                        result = result.slice(from, to + 1);
+                        // 客户端分页
+                        const from = guestbookPage * GUESTBOOK_PAGE_SIZE;
+                        const to = from + GUESTBOOK_PAGE_SIZE;
+                        result = result.slice(from, to);
                         _guestbookCache = { data: result, key: cacheKey, ts: Date.now(), totalCount: guestbookTotalCount };
                         return result;
                     } else {
-                        const from = 0;
-                        const to = (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE - 1;
+                        // 最新排序：使用服务端分页
+                        const from = guestbookPage * GUESTBOOK_PAGE_SIZE;
+                        const to = from + GUESTBOOK_PAGE_SIZE - 1;
                         query = query.range(from, to);
                         const { data, error, count } = await query;
                         if (error) throw error;
@@ -14642,13 +16065,14 @@
 
                 await renderGuestbookList();
 
-                // 订阅实时更新
+                // 订阅实时更新（添加防抖避免频繁刷新）
                 if (supabaseClient && !guestbookListener) {
                     try {
                         guestbookListener = supabaseClient
                             .channel('guestbook-changes')
                             .on('postgres_changes', { event: '*', schema: 'public', table: 'site_guestbook' }, () => {
-                                renderGuestbookList();
+                                clearTimeout(_guestbookDebounce);
+                                _guestbookDebounce = setTimeout(() => renderGuestbookList(), 1000);
                             })
                             .subscribe();
                     } catch (_) { }
@@ -14699,6 +16123,40 @@
                     const deleteHtml = (isOwn || isAdmin) ?
                         `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
 
+                    // 获取回复列表
+                    const replies = getGuestbookRepliesForMessage(msg.id);
+                    let repliesHtml = '';
+                    if (replies.length > 0) {
+                        repliesHtml = '<div class="reply-list">';
+                        replies.forEach(reply => {
+                            const isReplyOwn = currentUser && reply.user_id === currentUser.id;
+                            const replyAvatar = reply.avatar_url ?
+                                `<img src="${escapeHTML(reply.avatar_url)}" class="reply-item-avatar" referrerpolicy="no-referrer" />` :
+                                `<div class="reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;">👤</div>`;
+                            const replyTime = formatGuestbookReplyTime(reply.created_at);
+                            let replyToLabel = '';
+                            if (reply.reply_to) {
+                                const replyToUser = replies.find(r => r.user_id === reply.reply_to);
+                                if (replyToUser) {
+                                    replyToLabel = `<span class="reply-to-label">@${escapeHTML(replyToUser.display_name)}</span>`;
+                                }
+                            }
+                            const deleteReplyHtml = (isReplyOwn || isAdmin) ?
+                                `<button class="guestbook-delete-btn" data-msg-id="${msg.id}" data-reply-id="${reply.id}" style="font-size:0.65rem;">删除</button>` : '';
+                            repliesHtml += `
+                                <div class="reply-item" data-reply-id="${reply.id}">
+                                    <div class="reply-item-header">
+                                        ${replyAvatar}
+                                        <span class="reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                        <span class="reply-item-time">${replyTime}</span>
+                                        ${deleteReplyHtml}
+                                    </div>
+                                    <div class="reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
+                                </div>`;
+                        });
+                        repliesHtml += '</div>';
+                    }
+
                     html += `
                         <div class="guestbook-item" data-msg-id="${msg.id}">
                             <div class="guestbook-item-header">
@@ -14709,7 +16167,16 @@
                             <div class="guestbook-item-content">${escapeHTML(msg.content)}</div>
                             <div class="guestbook-item-actions">
                                 ${reactionsHtml}
+                                <button class="guestbook-reply-btn" data-msg-id="${msg.id}">💬 回复</button>
                                 ${deleteHtml}
+                            </div>
+                            ${repliesHtml}
+                            <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
+                                <textarea id="replyInput-${msg.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                                <div class="reply-compose-actions">
+                                    <button class="btn btn-sm" onclick="document.getElementById('replyCompose-${msg.id}').style.display='none'">取消</button>
+                                    <button class="btn btn-sm btn-accent reply-submit-btn" data-msg-id="${msg.id}">发送</button>
+                                </div>
                             </div>
                         </div>`;
                 });
@@ -14734,10 +16201,65 @@
 
                 listEl.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
                     btn.addEventListener('click', async function () {
-                        if (!confirm('确定删除这条留言吗？')) return;
                         const msgId = Number(this.dataset.msgId);
-                        await deleteGuestbookMessage(msgId);
-                        showToast('✅ 留言已删除', 1500);
+                        const replyId = this.dataset.replyId;
+                        if (replyId) {
+                            // 删除回复
+                            if (!confirm('确定删除这条回复吗？')) return;
+                            deleteGuestbookReply(String(msgId), Number(replyId));
+                            showToast('✅ 回复已删除', 1500);
+                            await renderGuestbookList();
+                        } else {
+                            // 删除母留言
+                            if (!confirm('确定删除这条留言吗？')) return;
+                            await deleteGuestbookMessage(msgId);
+                            showToast('✅ 留言已删除', 1500);
+                            await renderGuestbookList();
+                        }
+                    });
+                });
+
+                // 回复按钮事件
+                listEl.querySelectorAll('.guestbook-reply-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const msgId = this.dataset.msgId;
+                        const composeEl = document.getElementById('replyCompose-' + msgId);
+                        if (composeEl) {
+                            const isHidden = composeEl.style.display === 'none';
+                            composeEl.style.display = isHidden ? 'block' : 'none';
+                            if (isHidden) {
+                                document.getElementById('replyInput-' + msgId)?.focus();
+                            }
+                        }
+                    });
+                });
+
+                // 回复提交按钮事件
+                listEl.querySelectorAll('.reply-submit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const msgId = this.dataset.msgId;
+                        const input = document.getElementById('replyInput-' + msgId);
+                        if (!input) return;
+                        const text = input.value.trim();
+                        if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        addGuestbookReply(String(msgId), text);
+                        
+                        // 发送通知给留言作者
+                        if (supabaseClient) {
+                            try {
+                                const { data: msg } = await supabaseClient.from('site_guestbook')
+                                    .select('user_id')
+                                    .eq('id', msgId)
+                                    .single();
+                                if (msg && msg.user_id) {
+                                    await createReplyNotification(msg.user_id, 'guestbook', msgId, '留言板', text);
+                                }
+                            } catch (_) {}
+                        }
+                        
+                        showToast('✅ 回复成功', 1500);
                         await renderGuestbookList();
                     });
                 });
@@ -14761,7 +16283,7 @@
             }
 
             function initGuestbookEvents() {
-                document.getElementById('btnGuestbook')?.addEventListener('click', openGuestbookModal);
+                document.getElementById('navGuestbook')?.addEventListener('click', openGuestbookModal);
                 document.getElementById('guestbookModalClose')?.addEventListener('click', closeGuestbookModal);
                 document.getElementById('guestbookModalOverlay')?.addEventListener('click', function (e) {
                     if (e.target === this) closeGuestbookModal();
@@ -14795,6 +16317,41 @@
                             });
                             const deleteHtml = (isOwn || isAdmin) ?
                                 `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
+
+                            // 获取回复列表
+                            const replies = getGuestbookRepliesForMessage(msg.id);
+                            let repliesHtml = '';
+                            if (replies.length > 0) {
+                                repliesHtml = '<div class="reply-list">';
+                                replies.forEach(reply => {
+                                    const isReplyOwn = currentUser && reply.user_id === currentUser.id;
+                                    const replyAvatar = reply.avatar_url ?
+                                        `<img src="${escapeHTML(reply.avatar_url)}" class="reply-item-avatar" referrerpolicy="no-referrer" />` :
+                                        `<div class="reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;">👤</div>`;
+                                    const replyTime = formatGuestbookReplyTime(reply.created_at);
+                                    let replyToLabel = '';
+                                    if (reply.reply_to) {
+                                        const replyToUser = replies.find(r => r.user_id === reply.reply_to);
+                                        if (replyToUser) {
+                                            replyToLabel = `<span class="reply-to-label">@${escapeHTML(replyToUser.display_name)}</span>`;
+                                        }
+                                    }
+                                    const deleteReplyHtml = (isReplyOwn || isAdmin) ?
+                                        `<button class="guestbook-delete-btn" data-msg-id="${msg.id}" data-reply-id="${reply.id}" style="font-size:0.65rem;">删除</button>` : '';
+                                    repliesHtml += `
+                                        <div class="reply-item" data-reply-id="${reply.id}">
+                                            <div class="reply-item-header">
+                                                ${replyAvatar}
+                                                <span class="reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                                <span class="reply-item-time">${replyTime}</span>
+                                                ${deleteReplyHtml}
+                                            </div>
+                                            <div class="reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
+                                        </div>`;
+                                });
+                                repliesHtml += '</div>';
+                            }
+
                             newHtml += `
                                 <div class="guestbook-item" data-msg-id="${msg.id}">
                                     <div class="guestbook-item-header">
@@ -14805,7 +16362,16 @@
                                     <div class="guestbook-item-content">${escapeHTML(msg.content)}</div>
                                     <div class="guestbook-item-actions">
                                         ${reactionsHtml}
+                                        <button class="guestbook-reply-btn" data-msg-id="${msg.id}">💬 回复</button>
                                         ${deleteHtml}
+                                    </div>
+                                    ${repliesHtml}
+                                    <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
+                                        <textarea id="replyInput-${msg.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                                        <div class="reply-compose-actions">
+                                            <button class="btn btn-sm" onclick="document.getElementById('replyCompose-${msg.id}').style.display='none'">取消</button>
+                                            <button class="btn btn-sm btn-accent reply-submit-btn" data-msg-id="${msg.id}">发送</button>
+                                        </div>
                                     </div>
                                 </div>`;
                         });
@@ -14823,13 +16389,66 @@
                                     await renderGuestbookList();
                                 });
                             });
-                            const deleteBtn = item.querySelector('.guestbook-delete-btn');
-                            if (deleteBtn) {
-                                deleteBtn.addEventListener('click', async function () {
-                                    if (!confirm('确定删除这条留言吗？')) return;
+                            // 删除按钮事件（支持留言和回复删除）
+                            item.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
+                                btn.addEventListener('click', async function () {
                                     const msgId = Number(this.dataset.msgId);
-                                    await deleteGuestbookMessage(msgId);
-                                    showToast('✅ 留言已删除', 1500);
+                                    const replyId = this.dataset.replyId;
+                                    if (replyId) {
+                                        // 删除回复
+                                        if (!confirm('确定删除这条回复吗？')) return;
+                                        deleteGuestbookReply(String(msgId), Number(replyId));
+                                        showToast('✅ 回复已删除', 1500);
+                                        await renderGuestbookList();
+                                    } else {
+                                        // 删除母留言
+                                        if (!confirm('确定删除这条留言吗？')) return;
+                                        await deleteGuestbookMessage(msgId);
+                                        showToast('✅ 留言已删除', 1500);
+                                        await renderGuestbookList();
+                                    }
+                                });
+                            });
+                            // 回复按钮事件
+                            const replyBtn = item.querySelector('.guestbook-reply-btn');
+                            if (replyBtn) {
+                                replyBtn.addEventListener('click', function () {
+                                    if (!currentUser) { showToast('请先登录', 1500); return; }
+                                    const msgId = this.dataset.msgId;
+                                    const composeEl = document.getElementById('replyCompose-' + msgId);
+                                    if (composeEl) {
+                                        const isHidden = composeEl.style.display === 'none';
+                                        composeEl.style.display = isHidden ? 'block' : 'none';
+                                        if (isHidden) {
+                                            document.getElementById('replyInput-' + msgId)?.focus();
+                                        }
+                                    }
+                                });
+                            }
+                            // 回复提交按钮事件
+                            const replySubmitBtn = item.querySelector('.reply-submit-btn');
+                            if (replySubmitBtn) {
+                                replySubmitBtn.addEventListener('click', async function () {
+                                    if (!currentUser) { showToast('请先登录', 1500); return; }
+                                    const msgId = this.dataset.msgId;
+                                    const input = document.getElementById('replyInput-' + msgId);
+                                    if (!input) return;
+                                    const text = input.value.trim();
+                                    if (!text) { showToast('回复内容不能为空', 1500); return; }
+                                    addGuestbookReply(String(msgId), text);
+                                    // 发送通知给留言作者
+                                    if (supabaseClient) {
+                                        try {
+                                            const { data: msgData } = await supabaseClient.from('site_guestbook')
+                                                .select('user_id')
+                                                .eq('id', msgId)
+                                                .single();
+                                            if (msgData && msgData.user_id) {
+                                                await createReplyNotification(msgData.user_id, 'guestbook', msgId, '留言板', text);
+                                            }
+                                        } catch (_) {}
+                                    }
+                                    showToast('✅ 回复成功', 1500);
                                     await renderGuestbookList();
                                 });
                             }
@@ -14854,6 +16473,295 @@
             }
 
             // ================================================================
+            // ★★★ 公告系统 ★★★
+            // ================================================================
+            let announcements = [];
+            let editingAnnouncementId = null;
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                return d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            }
+
+            async function loadAnnouncements() {
+                const listEl = document.getElementById('announcementsList');
+                if (!listEl) return;
+
+                listEl.innerHTML = '<div class="announcements-empty">加载中...</div>';
+
+                if (!supabaseClient) {
+                    listEl.innerHTML = '<div class="announcements-empty">数据库连接不可用</div>';
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('site_announcements')
+                        .select('id, title, content, type, link_text, link_url, created_at, pinned, display_date')
+                        .order('pinned', { ascending: false })
+                        .order('display_date', { ascending: false, nullsFirst: false })
+                        .order('created_at', { ascending: false })
+                        .limit(50);
+
+                    if (error) throw error;
+
+                    announcements = data || [];
+                    renderAnnouncements();
+                } catch (e) {
+                    console.error('加载公告失败:', e);
+                    // 如果表不存在，显示空状态
+                    if (e.message && e.message.includes('does not exist')) {
+                        announcements = [];
+                        renderAnnouncements();
+                    } else {
+                        listEl.innerHTML = '<div class="announcements-empty">加载失败，请刷新重试</div>';
+                    }
+                }
+            }
+
+            function renderAnnouncements() {
+                const listEl = document.getElementById('announcementsList');
+                const addBtn = document.getElementById('btnAddAnnouncement');
+                if (!listEl) return;
+
+                // 显示/隐藏发布按钮
+                if (addBtn) {
+                    addBtn.style.display = isAdmin ? '' : 'none';
+                }
+
+                if (announcements.length === 0) {
+                    listEl.innerHTML = '<div class="announcements-empty">暂无公告</div>';
+                    return;
+                }
+
+                listEl.innerHTML = announcements.map(item => {
+                    const isPinned = item.pinned;
+                    const pinnedClass = isPinned ? ' pinned' : '';
+                    const pinnedBadge = isPinned ? '<span class="announcement-card-pin-badge">📌 置顶</span>' : '';
+                    const pinBtn = isAdmin ? `<button class="announcement-card-action-btn pin-btn" onclick="togglePinAnnouncement('${item.id}', ${!isPinned})">${isPinned ? '取消置顶' : '置顶'}</button>` : '';
+                    const adminActions = isAdmin ? `
+                        <div class="announcement-card-actions">
+                            ${pinBtn}
+                            <button class="announcement-card-action-btn" onclick="editAnnouncement('${item.id}')">编辑</button>
+                            <button class="announcement-card-action-btn danger" onclick="deleteAnnouncement('${item.id}')">删除</button>
+                        </div>
+                    ` : '';
+
+                    const displayDate = item.display_date || item.created_at;
+
+                    return `
+                        <div class="announcement-card${pinnedClass}">
+                            ${adminActions}
+                            <div class="announcement-card-title">${escapeHTML(item.title || '')}${pinnedBadge}</div>
+                            <div class="announcement-card-meta">
+                                <span class="announcement-card-date">📅 ${formatDate(displayDate)}</span>
+                            </div>
+                            <div class="announcement-card-body">${escapeHTML(item.content || '')}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function openAnnouncementEditModal(id) {
+                editingAnnouncementId = id || null;
+
+                // 创建弹窗HTML
+                let overlay = document.getElementById('announcementEditOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'announcementEditOverlay';
+                    overlay.className = 'announcement-edit-overlay';
+                    overlay.innerHTML = `
+                        <div class="announcement-edit-modal">
+                            <div class="announcement-edit-title" id="announcementEditTitle">发布公告</div>
+                            <form class="announcement-edit-form" id="announcementEditForm">
+                                <div class="form-group">
+                                    <label>标题</label>
+                                    <input type="text" id="announcementTitleInput" placeholder="请输入公告标题" maxlength="100" required />
+                                </div>
+                                <div class="form-group">
+                                    <label>正文</label>
+                                    <textarea id="announcementContentInput" placeholder="请输入公告内容" required></textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>显示日期</label>
+                                        <input type="date" id="announcementDateInput" />
+                                    </div>
+                                    <div class="form-group" style="display:flex;align-items:flex-end;">
+                                        <label class="pin-toggle">
+                                            <input type="checkbox" id="announcementPinInput" />
+                                            <span class="pin-toggle-label">📌 置顶公告</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="announcement-edit-actions">
+                                    <button type="button" class="btn" id="announcementCancelBtn">取消</button>
+                                    <button type="submit" class="btn btn-accent" id="announcementSubmitBtn">发布</button>
+                                </div>
+                            </form>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    // 绑定事件
+                    overlay.addEventListener('click', function (e) {
+                        if (e.target === overlay) {
+                            closeAnnouncementEditModal();
+                        }
+                    });
+
+                    document.getElementById('announcementCancelBtn').addEventListener('click', closeAnnouncementEditModal);
+
+                    document.getElementById('announcementEditForm').addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        await saveAnnouncement();
+                    });
+                }
+
+                const titleEl = document.getElementById('announcementEditTitle');
+                const titleInput = document.getElementById('announcementTitleInput');
+                const contentInput = document.getElementById('announcementContentInput');
+                const dateInput = document.getElementById('announcementDateInput');
+                const pinInput = document.getElementById('announcementPinInput');
+                const submitBtn = document.getElementById('announcementSubmitBtn');
+
+                if (id) {
+                    const item = announcements.find(a => a.id === id);
+                    if (item) {
+                        titleEl.textContent = '编辑公告';
+                        titleInput.value = item.title || '';
+                        contentInput.value = item.content || '';
+                        dateInput.value = item.display_date || '';
+                        pinInput.checked = !!item.pinned;
+                        submitBtn.textContent = '保存';
+                    }
+                } else {
+                    titleEl.textContent = '发布公告';
+                    titleInput.value = '';
+                    contentInput.value = '';
+                    dateInput.value = '';
+                    pinInput.checked = false;
+                    submitBtn.textContent = '发布';
+                }
+
+                overlay.classList.add('show');
+            }
+
+            function closeAnnouncementEditModal() {
+                const overlay = document.getElementById('announcementEditOverlay');
+                if (overlay) {
+                    overlay.classList.remove('show');
+                }
+                editingAnnouncementId = null;
+            }
+
+            async function saveAnnouncement() {
+                if (!supabaseClient || !isAdmin) return;
+
+                const titleInput = document.getElementById('announcementTitleInput');
+                const contentInput = document.getElementById('announcementContentInput');
+                const dateInput = document.getElementById('announcementDateInput');
+                const pinInput = document.getElementById('announcementPinInput');
+                const submitBtn = document.getElementById('announcementSubmitBtn');
+
+                const title = titleInput.value.trim();
+                const content = contentInput.value.trim();
+                const display_date = dateInput.value || null;
+                const pinned = pinInput.checked;
+
+                if (!title || !content) {
+                    showToast('请填写标题和正文', 2000);
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = '保存中...';
+
+                try {
+                    if (editingAnnouncementId) {
+                        // 更新
+                        const { error } = await supabaseClient
+                            .from('site_announcements')
+                            .update({ title, content, display_date, pinned, updated_at: new Date().toISOString() })
+                            .eq('id', editingAnnouncementId);
+                        if (error) throw error;
+                        showToast('公告已更新', 2000);
+                    } else {
+                        // 新建
+                        const { error } = await supabaseClient
+                            .from('site_announcements')
+                            .insert([{ title, content, display_date, pinned }]);
+                        if (error) throw error;
+                        showToast('公告已发布', 2000);
+                    }
+
+                    closeAnnouncementEditModal();
+                    loadAnnouncements();
+                } catch (e) {
+                    console.error('保存公告失败:', e);
+                    showToast('保存失败：' + (e.message || '未知错误'), 3000);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = editingAnnouncementId ? '保存' : '发布';
+                }
+            }
+
+            async function deleteAnnouncement(id) {
+                if (!supabaseClient || !isAdmin) return;
+
+                if (!confirm('确定要删除这条公告吗？')) return;
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('site_announcements')
+                        .delete()
+                        .eq('id', id);
+                    if (error) throw error;
+                    showToast('公告已删除', 2000);
+                    loadAnnouncements();
+                } catch (e) {
+                    console.error('删除公告失败:', e);
+                    showToast('删除失败：' + (e.message || '未知错误'), 3000);
+                }
+            }
+
+            async function togglePinAnnouncement(id, pin) {
+                if (!supabaseClient || !isAdmin) return;
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('site_announcements')
+                        .update({ pinned: pin, updated_at: new Date().toISOString() })
+                        .eq('id', id);
+                    if (error) throw error;
+                    showToast(pin ? '已置顶' : '已取消置顶', 1500);
+                    loadAnnouncements();
+                } catch (e) {
+                    console.error('置顶操作失败:', e);
+                    showToast('操作失败：' + (e.message || '未知错误'), 3000);
+                }
+            }
+
+            // 绑定发布按钮
+            function initAnnouncementEvents() {
+                const addBtn = document.getElementById('btnAddAnnouncement');
+                if (addBtn) {
+                    addBtn.addEventListener('click', function () {
+                        openAnnouncementEditModal();
+                    });
+                }
+            }
+
+            // 全局暴露
+            window.editAnnouncement = function (id) { openAnnouncementEditModal(id); };
+            window.deleteAnnouncement = function (id) { deleteAnnouncement(id); };
+            window.togglePinAnnouncement = function (id, pin) { togglePinAnnouncement(id, pin); };
+
+            // ================================================================
             // ★★★ MOD 板块 ★★★
             // ================================================================
             const MOD_PAGE_SIZE = 20;
@@ -14864,6 +16772,7 @@
             let modTotalCount = 0;
             let currentMainView = 'games';
             let modListener = null;
+            let _modDebounce = null;
 
             const MOD_TYPES = ['翻译补丁', '模型MOD', '美化MOD', '功能MOD', '剧情MOD', '其他'];
             const MOD_TYPE_ICONS = {
@@ -14879,20 +16788,17 @@
                 if (currentMainView === view) return;
                 currentMainView = view;
 
-                const dropdownBtn = document.getElementById('mainViewDropdownBtn');
-                const dropdownMenu = document.getElementById('mainViewDropdownMenu');
-                const subtitle = document.getElementById('siteSubtitle');
                 const galleryContainer = document.getElementById('galleryContainer');
                 const modSection = document.getElementById('modSection');
+                const announcementsSection = document.getElementById('announcementsSection');
                 const filterSticky = document.getElementById('filterSticky');
                 const toolbar = document.getElementById('toolbar');
                 const noResults = document.getElementById('noResults');
 
-                document.querySelectorAll('.header-dropdown-item').forEach(item => {
-                    item.classList.toggle('active', item.dataset.mainView === view);
+                // 更新顶部导航激活状态
+                document.querySelectorAll('.top-nav-item[data-nav]').forEach(item => {
+                    item.classList.toggle('active', item.dataset.nav === view);
                 });
-                if (dropdownBtn) dropdownBtn.classList.remove('open');
-                if (dropdownMenu) dropdownMenu.classList.remove('show');
 
                 const viewTabs = document.getElementById('viewTabs');
                 const searchRow = document.getElementById('searchRow');
@@ -14900,11 +16806,21 @@
                 const filterOptionsPanel = document.getElementById('filterOptionsPanel');
                 const activeFiltersBar = document.getElementById('activeFiltersBar');
 
+                // 先全部隐藏
+                if (galleryContainer) galleryContainer.style.display = 'none';
+                if (modSection) modSection.classList.remove('show');
+                if (announcementsSection) announcementsSection.classList.remove('show');
+                if (viewTabs) viewTabs.style.display = 'none';
+                if (searchRow) searchRow.style.display = 'none';
+                if (filterCategoryRow) filterCategoryRow.style.display = 'none';
+                if (filterOptionsPanel) filterOptionsPanel.style.display = 'none';
+                if (activeFiltersBar) activeFiltersBar.style.display = 'none';
+                if (toolbar) toolbar.style.display = 'none';
+                if (noResults) noResults.style.display = 'none';
+                if (filterSticky) filterSticky.style.display = '';
+
                 if (view === 'games') {
-                    if (subtitle) subtitle.textContent = '*请从中选择你的下一场冒险*';
                     if (galleryContainer) { galleryContainer.style.display = ''; galleryContainer.classList.remove('show'); }
-                    if (modSection) modSection.classList.remove('show');
-                    if (filterSticky) filterSticky.style.display = '';
                     if (viewTabs) viewTabs.style.display = '';
                     if (searchRow) searchRow.style.display = '';
                     if (filterCategoryRow) filterCategoryRow.style.display = '';
@@ -14914,49 +16830,48 @@
                     document.title = 'Her Lens · 女性主角游戏';
                     renderGallery();
                     window.scrollTo(0, 0);
-                } else {
-                    if (subtitle) subtitle.textContent = '*分享你发现的优质MOD*';
-                    if (galleryContainer) galleryContainer.style.display = 'none';
+                } else if (view === 'mods') {
                     if (modSection) modSection.classList.add('show');
-                    if (filterSticky) filterSticky.style.display = '';
-                    if (viewTabs) viewTabs.style.display = 'none';
-                    if (searchRow) searchRow.style.display = 'none';
-                    if (filterCategoryRow) filterCategoryRow.style.display = 'none';
-                    if (filterOptionsPanel) filterOptionsPanel.style.display = 'none';
-                    if (activeFiltersBar) activeFiltersBar.style.display = 'none';
-                    if (toolbar) toolbar.style.display = 'none';
-                    if (noResults) noResults.style.display = 'none';
                     document.title = 'Her Lens · MOD分享区';
                     renderModSection();
+                    window.scrollTo(0, 0);
+                } else if (view === 'announcements') {
+                    if (announcementsSection) announcementsSection.classList.add('show');
+                    document.title = 'Her Lens · 网站公告';
+                    loadAnnouncements();
                     window.scrollTo(0, 0);
                 }
             }
 
-            function initDropdownEvents() {
-                const dropdownBtn = document.getElementById('mainViewDropdownBtn');
-                const dropdownMenu = document.getElementById('mainViewDropdownMenu');
-                if (!dropdownBtn || !dropdownMenu) return;
-
-                dropdownBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    const isOpen = dropdownMenu.classList.contains('show');
-                    dropdownMenu.classList.toggle('show');
-                    dropdownBtn.classList.toggle('open');
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (!dropdownMenu.contains(e.target) && !dropdownBtn.contains(e.target)) {
-                        dropdownMenu.classList.remove('show');
-                        dropdownBtn.classList.remove('open');
-                    }
-                });
-
-                dropdownMenu.querySelectorAll('.header-dropdown-item').forEach(item => {
+            function initTopNavEvents() {
+                // 导航栏点击切换
+                document.querySelectorAll('.top-nav-item[data-nav]').forEach(item => {
                     item.addEventListener('click', function (e) {
                         e.stopPropagation();
-                        switchMainView(this.dataset.mainView);
+                        const nav = this.dataset.nav;
+                        if (nav === 'test') {
+                            window.open('demo-taste-test-scenario.html', '_blank');
+                            return;
+                        }
+                        switchMainView(nav);
                     });
                 });
+
+                // 用户菜单下拉
+                const navUserBtn = document.getElementById('navUserBtn');
+                const navUserDropdown = document.getElementById('navUserDropdown');
+                if (navUserBtn && navUserDropdown) {
+                    navUserBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const isOpen = navUserDropdown.classList.contains('show');
+                        navUserDropdown.classList.toggle('show');
+                    });
+                    document.addEventListener('click', function (e) {
+                        if (!navUserDropdown.contains(e.target) && !navUserBtn.contains(e.target)) {
+                            navUserDropdown.classList.remove('show');
+                        }
+                    });
+                }
             }
 
             async function fetchModPosts() {
@@ -15137,18 +17052,23 @@
                 try {
                     const { data: existing } = await supabaseClient.from('mod_likes')
                         .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+                    
+                    // 并行执行删除/插入和计数更新
                     if (existing) {
-                        await supabaseClient.from('mod_likes').delete().eq('id', existing.id);
-                        await supabaseClient.rpc('decrement_mod_likes', { pid: postId });
+                        await Promise.all([
+                            supabaseClient.from('mod_likes').delete().eq('id', existing.id),
+                            supabaseClient.rpc('decrement_mod_likes', { pid: postId })
+                        ]);
                     } else {
-                        await supabaseClient.from('mod_likes').insert({
-                            post_id: postId, user_id: currentUser.id
-                        });
-                        await supabaseClient.rpc('increment_mod_likes', { pid: postId });
                         const post = modPosts.find(p => p.id === postId);
-                        if (post && post.user_id) {
-                            await createModNotification(post.user_id, 'like', postId);
-                        }
+                        await Promise.all([
+                            supabaseClient.from('mod_likes').insert({
+                                post_id: postId, user_id: currentUser.id
+                            }),
+                            supabaseClient.rpc('increment_mod_likes', { pid: postId }),
+                            // 通知发送并行执行，不阻塞主流程
+                            (post && post.user_id) ? createModNotification(post.user_id, 'like', postId) : Promise.resolve()
+                        ]);
                     }
                 } catch (e) {
                     console.error('❌ 点赞操作失败:', e);
@@ -15181,22 +17101,28 @@
                 try {
                     const { data: existing } = await supabaseClient.from('mod_thanks')
                         .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+                    
+                    // 并行执行删除/插入和计数更新
                     if (existing) {
-                        await supabaseClient.from('mod_thanks').delete().eq('id', existing.id);
-                        await supabaseClient.rpc('decrement_mod_thanks', { pid: postId });
+                        await Promise.all([
+                            supabaseClient.from('mod_thanks').delete().eq('id', existing.id),
+                            supabaseClient.rpc('decrement_mod_thanks', { pid: postId })
+                        ]);
                     } else {
                         const metadata = currentUser.user_metadata || {};
-                        await supabaseClient.from('mod_thanks').insert({
-                            post_id: postId,
-                            user_id: currentUser.id,
-                            display_name: metadata.display_name || currentUser.email || '用户',
-                            avatar_url: metadata.avatar_url || null
-                        });
-                        await supabaseClient.rpc('increment_mod_thanks', { pid: postId });
                         const post = modPosts.find(p => p.id === postId);
-                        if (post && post.user_id && post.user_id !== currentUser.id) {
-                            await createModNotification(post.user_id, 'thanks', postId);
-                        }
+                        await Promise.all([
+                            supabaseClient.from('mod_thanks').insert({
+                                post_id: postId,
+                                user_id: currentUser.id,
+                                display_name: metadata.display_name || currentUser.email || '用户',
+                                avatar_url: metadata.avatar_url || null
+                            }),
+                            supabaseClient.rpc('increment_mod_thanks', { pid: postId }),
+                            // 通知发送并行执行，不阻塞主流程
+                            (post && post.user_id && post.user_id !== currentUser.id) ? 
+                                createModNotification(post.user_id, 'thanks', postId) : Promise.resolve()
+                        ]);
                     }
                 } catch (e) {
                     console.error('❌ 感谢操作失败:', e);
@@ -15227,8 +17153,10 @@
                 if (!supabaseClient) return [];
                 try {
                     const { data, error } = await supabaseClient.from('mod_comments')
-                        .select('*').eq('post_id', postId)
-                        .order('created_at', { ascending: true });
+                        .select('id, post_id, user_id, display_name, avatar_url, content, created_at')
+                        .eq('post_id', postId)
+                        .order('created_at', { ascending: true })
+                        .limit(100);
                     if (error) throw error;
                     return data || [];
                 } catch (e) {
@@ -15305,7 +17233,10 @@
                         modListener = supabaseClient
                             .channel('mod-changes')
                             .on('postgres_changes', { event: '*', schema: 'public', table: 'mod_posts' }, () => {
-                                if (currentMainView === 'mods') renderModPostList();
+                                clearTimeout(_modDebounce);
+                                _modDebounce = setTimeout(() => {
+                                    if (currentMainView === 'mods') renderModPostList();
+                                }, 1000);
                             })
                             .subscribe();
                     } catch (_) { }
@@ -15353,7 +17284,7 @@
 
                 markAll.addEventListener('click', async function () {
                     if (!supabaseClient || !currentUser) return;
-                    await supabaseClient.from('mod_notifications')
+                    await supabaseClient.from('notifications')
                         .update({ is_read: true })
                         .eq('user_id', currentUser.id)
                         .eq('is_read', false);
@@ -15366,7 +17297,7 @@
             async function loadUnreadCount() {
                 if (!supabaseClient || !currentUser) return;
                 try {
-                    const { count } = await supabaseClient.from('mod_notifications')
+                    const { count } = await supabaseClient.from('notifications')
                         .select('*', { count: 'exact', head: true })
                         .eq('user_id', currentUser.id)
                         .eq('is_read', false);
@@ -15389,8 +17320,8 @@
             async function loadNotifications() {
                 if (!supabaseClient || !currentUser) return;
                 try {
-                    const { data } = await supabaseClient.from('mod_notifications')
-                        .select('*')
+                    const { data } = await supabaseClient.from('notifications')
+                        .select('id, user_id, actor_id, actor_name, actor_avatar, type, target_type, target_id, target_title, content, is_read, created_at')
                         .eq('user_id', currentUser.id)
                         .order('created_at', { ascending: false })
                         .limit(30);
@@ -15409,12 +17340,42 @@
                     const avatarHtml = n.actor_avatar ?
                         `<img class="notif-item-avatar" src="${escapeHTML(n.actor_avatar)}" referrerpolicy="no-referrer" />` :
                         `<div class="notif-item-avatar-placeholder">👤</div>`;
-                    const typeText = n.type === 'like' ? '赞了你的 MOD 分享' : n.type === 'thanks' ? '感谢了你的 MOD 分享' : '评论了你的 MOD 分享';
-                    const preview = n.type === 'comment' && n.comment_content ?
-                        `<div class="notif-item-preview">"${escapeHTML(n.comment_content.substring(0, 60))}"</div>` : '';
+                    
+                    let typeText = '';
+                    let preview = '';
+                    switch (n.type) {
+                        case 'like':
+                            typeText = '赞了你的 MOD 分享';
+                            break;
+                        case 'thanks':
+                            typeText = '感谢了你的 MOD 分享';
+                            break;
+                        case 'comment':
+                            typeText = '评论了你的 MOD 分享';
+                            preview = n.content ? `<div class="notif-item-preview">"${escapeHTML(n.content.substring(0, 60))}"</div>` : '';
+                            break;
+                        case 'reply':
+                            if (n.target_type === 'guestbook') {
+                                typeText = '回复了你的留言';
+                            } else {
+                                typeText = '回复了你的评论';
+                            }
+                            preview = n.content ? `<div class="notif-item-preview">"${escapeHTML(n.content.substring(0, 60))}"</div>` : '';
+                            break;
+                        case 'comment_like':
+                            if (n.target_type === 'guestbook') {
+                                typeText = '赞了你的留言';
+                            } else {
+                                typeText = '赞了你的评论';
+                            }
+                            break;
+                        default:
+                            typeText = '与你互动';
+                    }
+
                     const time = formatModTime(n.created_at);
                     const unreadCls = n.is_read ? '' : ' unread';
-                    return `<div class="notif-item${unreadCls}" data-notif-id="${n.id}" data-post-id="${n.post_id}">
+                    return `<div class="notif-item${unreadCls}" data-notif-id="${n.id}" data-target-type="${n.target_type}" data-target-id="${n.target_id}">
                         ${avatarHtml}
                         <div class="notif-item-body">
                             <div class="notif-item-text"><strong>${escapeHTML(n.actor_name || '用户')}</strong> ${typeText}</div>
@@ -15427,9 +17388,10 @@
                 listEl.querySelectorAll('.notif-item').forEach(item => {
                     item.addEventListener('click', async function () {
                         const notifId = Number(this.dataset.notifId);
-                        const postId = Number(this.dataset.postId);
+                        const targetType = this.dataset.targetType;
+                        const targetId = Number(this.dataset.targetId);
                         if (supabaseClient && currentUser) {
-                            await supabaseClient.from('mod_notifications')
+                            await supabaseClient.from('notifications')
                                 .update({ is_read: true })
                                 .eq('id', notifId)
                                 .eq('user_id', currentUser.id);
@@ -15437,9 +17399,15 @@
                             updateNotifBadge();
                         }
                         document.getElementById('notifPanel').classList.remove('show');
-                        if (currentMainView !== 'mods') switchMainView('mods');
-                        const post = modPosts.find(p => p.id === postId);
-                        if (post) setTimeout(() => openModDetail(post), 200);
+                        
+                        // 根据目标类型跳转
+                        if (targetType === 'mod_post') {
+                            if (currentMainView !== 'mods') switchMainView('mods');
+                            const post = modPosts.find(p => p.id === targetId);
+                            if (post) setTimeout(() => openModDetail(post), 200);
+                        } else if (targetType === 'guestbook') {
+                            openGuestbookModal();
+                        }
                     });
                 });
             }
@@ -15448,11 +17416,11 @@
                 if (!supabaseClient || !currentUser || _notifListener) return;
                 try {
                     _notifListener = supabaseClient
-                        .channel('mod-notifs-' + currentUser.id)
+                        .channel('notif-' + currentUser.id)
                         .on('postgres_changes', {
                             event: 'INSERT',
                             schema: 'public',
-                            table: 'mod_notifications',
+                            table: 'notifications',
                             filter: `user_id=eq.${currentUser.id}`
                         }, (payload) => {
                             _unreadCount++;
@@ -15474,17 +17442,63 @@
                 const displayName = metadata.display_name || currentUser.email || '用户';
                 const avatarUrl = metadata.avatar_url || null;
                 try {
-                    await supabaseClient.from('mod_notifications').insert({
+                    await supabaseClient.from('notifications').insert({
                         user_id: postOwnerId,
                         actor_id: currentUser.id,
                         actor_name: displayName,
                         actor_avatar: avatarUrl,
-                        post_id: postId,
                         type: type,
-                        comment_content: commentContent || ''
+                        target_type: 'mod_post',
+                        target_id: postId,
+                        content: commentContent || ''
                     });
                 } catch (e) {
                     console.error('❌ 通知发送失败:', e);
+                }
+            }
+
+            async function createReplyNotification(targetUserId, targetType, targetId, targetTitle, replyContent) {
+                if (!supabaseClient || !currentUser) return;
+                if (targetUserId === currentUser.id) return;
+                const metadata = currentUser.user_metadata || {};
+                const displayName = metadata.display_name || currentUser.email || '用户';
+                const avatarUrl = metadata.avatar_url || null;
+                try {
+                    await supabaseClient.from('notifications').insert({
+                        user_id: targetUserId,
+                        actor_id: currentUser.id,
+                        actor_name: displayName,
+                        actor_avatar: avatarUrl,
+                        type: 'reply',
+                        target_type: targetType,
+                        target_id: targetId,
+                        target_title: targetTitle || '',
+                        content: replyContent || ''
+                    });
+                } catch (e) {
+                    console.error('❌ 回复通知发送失败:', e);
+                }
+            }
+
+            async function createCommentLikeNotification(targetUserId, targetId, targetType) {
+                if (!supabaseClient || !currentUser) return;
+                if (targetUserId === currentUser.id) return;
+                const metadata = currentUser.user_metadata || {};
+                const displayName = metadata.display_name || currentUser.email || '用户';
+                const avatarUrl = metadata.avatar_url || null;
+                try {
+                    await supabaseClient.from('notifications').insert({
+                        user_id: targetUserId,
+                        actor_id: currentUser.id,
+                        actor_name: displayName,
+                        actor_avatar: avatarUrl,
+                        type: 'comment_like',
+                        target_type: targetType,
+                        target_id: targetId,
+                        content: ''
+                    });
+                } catch (e) {
+                    console.error('❌ 点赞通知发送失败:', e);
                 }
             }
 
@@ -15609,14 +17623,23 @@
                 const posts = await fetchModPosts();
                 modPosts = posts;
 
+                // 合并所有查询为单个并行批次（从2批次优化为1批次）
                 if (posts.length > 0 && supabaseClient) {
                     try {
                         const postIds = posts.map(p => p.id);
-                        const [likesRes, thanksRes, commentsRes] = await Promise.all([
+                        const [likesRes, thanksRes, commentsRes, userLikesRes, userThanksRes] = await Promise.all([
+                            // 计数查询
                             supabaseClient.from('mod_likes').select('post_id').in('post_id', postIds),
                             supabaseClient.from('mod_thanks').select('post_id').in('post_id', postIds),
-                            supabaseClient.from('mod_comments').select('post_id').in('post_id', postIds)
+                            supabaseClient.from('mod_comments').select('post_id').in('post_id', postIds),
+                            // 用户状态查询
+                            currentUser ? supabaseClient.from('mod_likes')
+                                .select('post_id').eq('user_id', currentUser.id).in('post_id', postIds) : { data: null },
+                            currentUser ? supabaseClient.from('mod_thanks')
+                                .select('post_id').eq('user_id', currentUser.id).in('post_id', postIds) : { data: null }
                         ]);
+                        
+                        // 处理计数
                         const likesMap = {};
                         const thanksMap = {};
                         const commentsMap = {};
@@ -15628,7 +17651,20 @@
                             p.thanks_count = thanksMap[p.id] || p.thanks_count || 0;
                             p.comments_count = commentsMap[p.id] || p.comments_count || 0;
                         });
+                        
+                        // 处理用户状态
+                        let likedSet = new Set();
+                        let thankedSet = new Set();
+                        if (userLikesRes.data) userLikesRes.data.forEach(l => likedSet.add(l.post_id));
+                        if (userThanksRes.data) userThanksRes.data.forEach(t => thankedSet.add(t.post_id));
+                        
+                        // 存储用户状态供后续使用
+                        window._modLikedSet = likedSet;
+                        window._modThankedSet = thankedSet;
                     } catch (_) { }
+                } else {
+                    window._modLikedSet = new Set();
+                    window._modThankedSet = new Set();
                 }
 
                 if (posts.length === 0 && modPage === 0) {
@@ -15641,21 +17677,9 @@
                 if (emptyEl) emptyEl.style.display = 'none';
                 if (statsEl) statsEl.innerHTML = `共 <strong>${modTotalCount}</strong> 个MOD`;
 
-                let likedSet = new Set();
-                let thankedSet = new Set();
-                if (currentUser && posts.length > 0 && supabaseClient) {
-                    try {
-                        const postIds = posts.map(p => p.id);
-                        const [likesRes, thanksRes] = await Promise.all([
-                            supabaseClient.from('mod_likes')
-                                .select('post_id').eq('user_id', currentUser.id).in('post_id', postIds),
-                            supabaseClient.from('mod_thanks')
-                                .select('post_id').eq('user_id', currentUser.id).in('post_id', postIds)
-                        ]);
-                        if (likesRes.data) likesRes.data.forEach(l => likedSet.add(l.post_id));
-                        if (thanksRes.data) thanksRes.data.forEach(t => thankedSet.add(t.post_id));
-                    } catch (_) { }
-                }
+                // 使用已获取的用户状态（在前面的并行查询中已获取）
+                const likedSet = window._modLikedSet || new Set();
+                const thankedSet = window._modThankedSet || new Set();
 
                 let html = '';
                 for (const post of posts) {
@@ -15919,32 +17943,35 @@
                 const container = document.getElementById('modDetailContainer');
                 if (!overlay || !container) return;
 
-                if (supabaseClient) {
-                    try {
-                        const [likesRes, thanksRes, commentsRes] = await Promise.all([
-                            supabaseClient.from('mod_likes').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
-                            supabaseClient.from('mod_thanks').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
-                            supabaseClient.from('mod_comments').select('id', { count: 'exact', head: true }).eq('post_id', post.id)
-                        ]);
-                        post.likes_count = likesRes.count || post.likes_count || 0;
-                        post.thanks_count = thanksRes.count || post.thanks_count || 0;
-                        post.comments_count = commentsRes.count || post.comments_count || 0;
-                    } catch (_) { }
-                }
+                // 并行执行所有独立查询（从4批次优化为2批次）
+                const [counts, userState, thanksList, comments] = await Promise.all([
+                    // 批次1：计数查询
+                    supabaseClient ? Promise.all([
+                        supabaseClient.from('mod_likes').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
+                        supabaseClient.from('mod_thanks').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
+                        supabaseClient.from('mod_comments').select('id', { count: 'exact', head: true }).eq('post_id', post.id)
+                    ]).catch(() => [null, null, null]) : [null, null, null],
+                    // 批次2：用户状态查询
+                    currentUser && supabaseClient ? Promise.all([
+                        checkUserModLike(post.id),
+                        checkUserModThanks(post.id)
+                    ]).catch(() => [false, false]) : [false, false],
+                    // 批次3：感谢列表
+                    fetchModThanksList(post.id).catch(() => []),
+                    // 批次4：评论列表
+                    fetchModComments(post.id).catch(() => [])
+                ]);
+
+                // 更新计数
+                if (counts[0]) post.likes_count = counts[0].count || post.likes_count || 0;
+                if (counts[1]) post.thanks_count = counts[1].count || post.thanks_count || 0;
+                if (counts[2]) post.comments_count = counts[2].count || post.comments_count || 0;
 
                 const isOwn = currentUser && post.user_id === currentUser.id;
                 const typeClass = MOD_TYPE_CLASSES[post.mod_type] || 'other';
                 const typeIcon = MOD_TYPE_ICONS[post.mod_type] || '📦';
-                let liked = false;
-                let thanked = false;
-                if (currentUser) {
-                    [liked, thanked] = await Promise.all([
-                        checkUserModLike(post.id),
-                        checkUserModThanks(post.id)
-                    ]);
-                }
+                const [liked, thanked] = userState;
 
-                const thanksList = await fetchModThanksList(post.id);
                 let thanksListHtml = '';
                 if (thanksList.length > 0) {
                     const avatars = thanksList.slice(0, 10).map(t => {
@@ -15956,8 +17983,6 @@
                     thanksListHtml = `<div class="mod-thanks-list"><span class="mod-thanks-label">💖 感谢作者：</span>${avatars}${extra}</div>`;
                 }
 
-                const comments = await fetchModComments(post.id);
-
                 let commentsHtml = '';
                 comments.forEach(c => {
                     const isCommentOwn = currentUser && c.user_id === currentUser.id;
@@ -15966,6 +17991,38 @@
                         `<div class="mod-comment-avatar-placeholder">👤</div>`;
                     const deleteBtn = (isCommentOwn || isAdmin) ?
                         `<button class="mod-comment-delete" data-comment-id="${c.id}">删除</button>` : '';
+
+                    // 获取回复列表
+                    const replies = getModCommentRepliesForComment(c.id);
+                    let repliesHtml = '';
+                    if (replies.length > 0) {
+                        repliesHtml = '<div class="mod-reply-list">';
+                        replies.forEach(reply => {
+                            const isReplyOwn = currentUser && reply.user_id === currentUser.id;
+                            const replyAvatar = reply.avatar_url ?
+                                `<img src="${escapeHTML(reply.avatar_url)}" class="mod-reply-item-avatar" referrerpolicy="no-referrer" />` :
+                                `<div class="mod-reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.5rem;">👤</div>`;
+                            const replyTime = formatModTime(reply.created_at);
+                            const deleteReplyHtml = (isReplyOwn || isAdmin) ?
+                                `<button class="mod-comment-delete" data-comment-id="${c.id}" data-reply-id="${reply.id}" style="font-size:0.6rem;">删除</button>` : '';
+                            repliesHtml += `
+                                <div class="mod-reply-item" data-reply-id="${reply.id}">
+                                    <div class="mod-reply-item-header">
+                                        ${replyAvatar}
+                                        <span class="mod-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                        <span class="mod-reply-item-time">${replyTime}</span>
+                                        ${deleteReplyHtml}
+                                    </div>
+                                    <div class="mod-reply-item-content">${escapeHTML(reply.content)}</div>
+                                </div>`;
+                        });
+                        repliesHtml += '</div>';
+                    }
+
+                    // 点赞信息
+                    const likeCount = getModCommentLikeCount(c.id);
+                    const isLiked = isModCommentLiked(c.id);
+
                     commentsHtml += `
                         <div class="mod-comment-item" data-comment-id="${c.id}">
                             ${cAvatar}
@@ -15976,6 +18033,20 @@
                                     ${deleteBtn}
                                 </div>
                                 <div class="mod-comment-text">${escapeHTML(c.content)}</div>
+                                <div class="mod-comment-actions">
+                                    <button class="mod-comment-like-btn${isLiked ? ' liked' : ''}" data-comment-id="${c.id}">
+                                        ${isLiked ? '❤️' : '🤍'} <span class="like-count">${likeCount > 0 ? likeCount : ''}</span>
+                                    </button>
+                                    <button class="mod-comment-reply-btn" data-comment-id="${c.id}">💬 回复</button>
+                                </div>
+                                ${repliesHtml}
+                                <div class="mod-reply-compose" id="modReplyCompose-${c.id}" style="display:none;">
+                                    <textarea id="modReplyInput-${c.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
+                                    <div class="mod-reply-compose-actions">
+                                        <button class="btn btn-sm" onclick="document.getElementById('modReplyCompose-${c.id}').style.display='none'">取消</button>
+                                        <button class="btn btn-sm btn-accent mod-reply-submit-btn" data-comment-id="${c.id}">发送</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>`;
                 });
@@ -16105,17 +18176,6 @@
                     });
                 }
 
-                container.querySelectorAll('.mod-comment-delete').forEach(btn => {
-                    btn.addEventListener('click', async function () {
-                        if (!confirm('确定删除这条评论吗？')) return;
-                        const commentId = Number(this.dataset.commentId);
-                        await deleteModComment(commentId);
-                        closeModDetail();
-                        const updated = modPosts.find(p => p.id === post.id);
-                        if (updated) openModDetail(updated);
-                    });
-                });
-
                 const commentInput = container.querySelector('#modCommentInput');
                 const commentSubmitBtn = container.querySelector('#modCommentSubmitBtn');
                 if (commentSubmitBtn && commentInput) {
@@ -16143,6 +18203,105 @@
                         }
                     });
                 }
+
+                // 评论回复按钮事件
+                container.querySelectorAll('.mod-comment-reply-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const commentId = this.dataset.commentId;
+                        const composeEl = document.getElementById('modReplyCompose-' + commentId);
+                        if (composeEl) {
+                            const isHidden = composeEl.style.display === 'none';
+                            composeEl.style.display = isHidden ? 'block' : 'none';
+                            if (isHidden) {
+                                document.getElementById('modReplyInput-' + commentId)?.focus();
+                            }
+                        }
+                    });
+                });
+
+                // 评论回复提交按钮事件
+                container.querySelectorAll('.mod-reply-submit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const commentId = this.dataset.commentId;
+                        const input = document.getElementById('modReplyInput-' + commentId);
+                        if (!input) return;
+                        const text = input.value.trim();
+                        if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        addModCommentReply(String(commentId), text);
+                        
+                        // 发送通知给评论作者
+                        if (supabaseClient) {
+                            try {
+                                const { data: comment } = await supabaseClient.from('mod_comments')
+                                    .select('user_id')
+                                    .eq('id', commentId)
+                                    .single();
+                                if (comment && comment.user_id) {
+                                    await createReplyNotification(comment.user_id, 'mod_comment', commentId, post.title, text);
+                                }
+                            } catch (_) {}
+                        }
+                        
+                        showToast('✅ 回复成功', 1500);
+                        closeModDetail();
+                        const updated = modPosts.find(p => p.id === post.id);
+                        if (updated) openModDetail(updated);
+                    });
+                });
+
+                // 评论点赞按钮事件
+                container.querySelectorAll('.mod-comment-like-btn').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const commentId = this.dataset.commentId;
+                        const wasLiked = this.classList.contains('liked');
+                        const countEl = this.querySelector('.like-count');
+                        const oldCount = Number(countEl?.textContent || 0);
+                        this.classList.toggle('liked');
+                        this.innerHTML = (wasLiked ? '🤍' : '❤️') + ` <span class="like-count">${wasLiked ? (oldCount > 1 ? oldCount - 1 : '') : oldCount + 1}</span>`;
+                        toggleModCommentLike(String(commentId));
+                        
+                        // 发送通知给评论作者（仅点赞时发送）
+                        if (!wasLiked && supabaseClient) {
+                            try {
+                                const { data: comment } = await supabaseClient.from('mod_comments')
+                                    .select('user_id')
+                                    .eq('id', commentId)
+                                    .single();
+                                if (comment && comment.user_id) {
+                                    await createCommentLikeNotification(comment.user_id, commentId, 'mod_comment');
+                                }
+                            } catch (_) {}
+                        }
+                    });
+                });
+
+                // 评论删除按钮事件（包括回复删除）
+                container.querySelectorAll('.mod-comment-delete').forEach(btn => {
+                    btn.addEventListener('click', async function () {
+                        const commentId = this.dataset.commentId;
+                        const replyId = this.dataset.replyId;
+                        if (replyId) {
+                            // 删除回复
+                            if (!confirm('确定删除这条回复吗？')) return;
+                            deleteModCommentReply(String(commentId), Number(replyId));
+                            showToast('✅ 回复已删除', 1500);
+                            closeModDetail();
+                            const updated = modPosts.find(p => p.id === post.id);
+                            if (updated) openModDetail(updated);
+                        } else {
+                            // 删除母评论
+                            if (!confirm('确定删除这条评论吗？')) return;
+                            await deleteModComment(Number(commentId));
+                            showToast('✅ 评论已删除', 1500);
+                            closeModDetail();
+                            const updated = modPosts.find(p => p.id === post.id);
+                            if (updated) openModDetail(updated);
+                        }
+                    });
+                });
             }
 
             function closeModDetail() {
@@ -16315,15 +18474,13 @@
                     const modSection = document.getElementById('modSection');
                     const filterSticky = document.getElementById('filterSticky');
                     const toolbar = document.getElementById('toolbar');
-                    const subtitle = document.getElementById('siteSubtitle');
-                    if (subtitle) subtitle.textContent = '*请从中选择你的下一场冒险*';
                     if (galleryContainer) galleryContainer.style.display = '';
                     if (modSection) modSection.classList.remove('show');
                     if (filterSticky) filterSticky.style.display = '';
                     if (toolbar) toolbar.style.display = '';
                     document.title = 'Her Lens · 女性主角游戏';
-                    document.querySelectorAll('.header-dropdown-item').forEach(item => {
-                        item.classList.toggle('active', item.dataset.mainView === 'games');
+                    document.querySelectorAll('.top-nav-item[data-nav]').forEach(item => {
+                        item.classList.toggle('active', item.dataset.nav === 'games');
                     });
                     renderGallery();
                     showDetailModal(game, { from: 'mod' });
@@ -16683,7 +18840,9 @@
 
             function updateUIForLoggedIn(user) {
                 const container = document.getElementById('authStatusContainer');
-                if (!container) return;
+                const navUserText = document.getElementById('navUserText');
+                const navUserDropdownInner = document.getElementById('navUserDropdownInner');
+                const navUserBtn = document.getElementById('navUserBtn');
 
                 const metadata = user.user_metadata || {};
                 const displayName = metadata.display_name || user.email || '用户';
@@ -16692,12 +18851,70 @@
                 let avatarHTML = '';
                 if (avatarUrl) {
                     avatarHTML =
-                        `<img src="${escapeHTML(avatarUrl)}" alt="头像" class="user-avatar" referrerpolicy="no-referrer" />`;
+                        `<img src="${escapeHTML(avatarUrl)}" alt="头像" class="user-avatar" referrerpolicy="no-referrer" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />`;
                 } else {
-                    avatarHTML = `<span style="font-size:1.3rem; line-height:1; margin:0 4px;">👤</span>`;
+                    avatarHTML = `<span class="nav-user-icon">👤</span>`;
                 }
 
-                container.innerHTML = `
+                // 更新导航栏用户按钮
+                if (navUserText && navUserBtn) {
+                    const iconSpan = navUserBtn.querySelector('.nav-user-icon');
+                    if (iconSpan && avatarUrl) {
+                        iconSpan.outerHTML = `<span class="nav-user-icon">${avatarHTML}</span>`;
+                    }
+                    navUserText.textContent = displayName.length > 6 ? displayName.slice(0, 6) + '…' : displayName;
+                }
+
+                // 更新导航栏下拉菜单
+                if (navUserDropdownInner) {
+                    navUserDropdownInner.innerHTML = `
+                        <div class="nav-user-dropdown-header">
+                            <div class="nav-user-dropdown-username">${escapeHTML(displayName)}</div>
+                            <div class="nav-user-dropdown-email">${escapeHTML(user.email || '')}</div>
+                        </div>
+                        <div class="nav-user-dropdown-item" id="navProfileEditBtn">
+                            <span class="item-icon">✏️</span> 编辑资料
+                        </div>
+                        <div class="nav-user-dropdown-item" id="navDiaryBtn">
+                            <span class="item-icon">📖</span> 游戏日记
+                        </div>
+                        <div class="nav-user-dropdown-item" id="navAchievementBtn">
+                            <span class="item-icon">🏆</span> 成就
+                        </div>
+                        <div class="nav-user-dropdown-divider"></div>
+                        <div class="nav-user-dropdown-item danger" id="navLogoutBtn">
+                            <span class="item-icon">🚪</span> 登出
+                        </div>
+                    `;
+
+                    document.getElementById('navProfileEditBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('navUserDropdown').classList.remove('show');
+                        openProfileModal();
+                    });
+
+                    document.getElementById('navDiaryBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('navUserDropdown').classList.remove('show');
+                        openDiaryModal();
+                    });
+
+                    document.getElementById('navAchievementBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('navUserDropdown').classList.remove('show');
+                        openAchievementModal();
+                    });
+
+                    document.getElementById('navLogoutBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('navUserDropdown').classList.remove('show');
+                        handleLogout();
+                    });
+                }
+
+                // 保留原来的 authStatusContainer 渲染（兼容）
+                if (container) {
+                    container.innerHTML = `
                         <div class="user-menu-wrapper" id="userMenuWrapper">
                             ${avatarHTML}
                             <span class="user-name" title="${escapeHTML(displayName)}">${escapeHTML(displayName)}</span>
@@ -16711,58 +18928,94 @@
                         </div>
                     `;
 
-                const wrapper = document.getElementById('userMenuWrapper');
-                const dropdown = document.getElementById('userDropdownMenu');
-                const arrow = document.getElementById('dropdownArrow');
+                    const wrapper = document.getElementById('userMenuWrapper');
+                    const dropdown = document.getElementById('userDropdownMenu');
+                    const arrow = document.getElementById('dropdownArrow');
 
-                if (wrapper && dropdown) {
-                    wrapper.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        const isOpen = dropdown.classList.contains('show');
-                        dropdown.classList.toggle('show');
-                        if (arrow) arrow.classList.toggle('open');
-                    });
-                    if (_dropdownCloseHandler) {
-                        document.removeEventListener('click', _dropdownCloseHandler);
-                    }
-                    _dropdownCloseHandler = function closeDropdown(e) {
-                        if (!wrapper.contains(e.target)) {
-                            dropdown.classList.remove('show');
-                            if (arrow) arrow.classList.remove('open');
+                    if (wrapper && dropdown) {
+                        wrapper.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            const isOpen = dropdown.classList.contains('show');
+                            dropdown.classList.toggle('show');
+                            if (arrow) arrow.classList.toggle('open');
+                        });
+                        if (_dropdownCloseHandler) {
+                            document.removeEventListener('click', _dropdownCloseHandler);
                         }
-                    };
-                    document.addEventListener('click', _dropdownCloseHandler);
+                        _dropdownCloseHandler = function closeDropdown(e) {
+                            if (!wrapper.contains(e.target)) {
+                                dropdown.classList.remove('show');
+                                if (arrow) arrow.classList.remove('open');
+                            }
+                        };
+                        document.addEventListener('click', _dropdownCloseHandler);
+                    }
+
+                    document.getElementById('profileEditBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('userDropdownMenu').classList.remove('show');
+                        if (arrow) arrow.classList.remove('open');
+                        openProfileModal();
+                    });
+
+                    document.getElementById('diaryBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('userDropdownMenu').classList.remove('show');
+                        if (arrow) arrow.classList.remove('open');
+                        openDiaryModal();
+                    });
+
+                    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('userDropdownMenu').classList.remove('show');
+                        if (arrow) arrow.classList.remove('open');
+                        handleLogout();
+                    });
                 }
-
-                document.getElementById('profileEditBtn').addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    document.getElementById('userDropdownMenu').classList.remove('show');
-                    if (arrow) arrow.classList.remove('open');
-                    openProfileModal();
-                });
-
-                document.getElementById('diaryBtn').addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    document.getElementById('userDropdownMenu').classList.remove('show');
-                    if (arrow) arrow.classList.remove('open');
-                    openDiaryModal();
-                });
-
-                document.getElementById('logoutBtn').addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    document.getElementById('userDropdownMenu').classList.remove('show');
-                    if (arrow) arrow.classList.remove('open');
-                    handleLogout();
-                });
             }
 
             function updateUIForLoggedOut() {
                 const container = document.getElementById('authStatusContainer');
-                if (!container) return;
-                container.innerHTML = `
+                const navUserText = document.getElementById('navUserText');
+                const navUserBtn = document.getElementById('navUserBtn');
+                const navUserDropdownInner = document.getElementById('navUserDropdownInner');
+
+                // 更新导航栏用户按钮
+                if (navUserText) {
+                    navUserText.textContent = '登录';
+                }
+                if (navUserBtn) {
+                    const iconSpan = navUserBtn.querySelector('.nav-user-icon');
+                    if (iconSpan) {
+                        iconSpan.innerHTML = '👤';
+                    }
+                    // 点击打开登录弹窗
+                    navUserBtn.onclick = function (e) {
+                        e.stopPropagation();
+                        openAuthModal();
+                    };
+                }
+                if (navUserDropdownInner) {
+                    navUserDropdownInner.innerHTML = `
+                        <div class="nav-user-dropdown-item" id="navShowLoginBtn">
+                            <span class="item-icon">🔑</span> 登录 / 注册
+                        </div>
+                    `;
+                    document.getElementById('navShowLoginBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('navUserDropdown').classList.remove('show');
+                        openAuthModal();
+                    });
+                }
+
+                // 保留原来的 authStatusContainer 渲染（兼容）
+                if (container) {
+                    container.innerHTML = `
                         <button class="login-btn-header" id="showLoginBtn">🔑 登录</button>
                     `;
-                document.getElementById('showLoginBtn').addEventListener('click', openAuthModal);
+                    document.getElementById('showLoginBtn').addEventListener('click', openAuthModal);
+                }
+
                 isAdmin = false;
                 isAdminMode = false;
                 updateAdminUI();
@@ -16783,19 +19036,23 @@
 
                 const searchInput = document.getElementById('searchInput');
                 const clearBtn = document.getElementById('searchClearBtn');
-                searchInput.addEventListener('input', function () { setSearchQuery(this.value); });
-                clearBtn.addEventListener('click', function () {
-                    searchInput.value = '';
-                    setSearchQuery('');
-                    searchInput.focus();
-                });
-                searchInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape') {
-                        this.value = '';
-                        setSearchQuery('');
-                        this.blur();
+                if (searchInput) {
+                    searchInput.addEventListener('input', function () { setSearchQuery(this.value); });
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', function () {
+                            searchInput.value = '';
+                            setSearchQuery('');
+                            searchInput.focus();
+                        });
                     }
-                });
+                    searchInput.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            this.value = '';
+                            setSearchQuery('');
+                            this.blur();
+                        }
+                    });
+                }
 
                 document.addEventListener('keydown', function (e) {
                     if (e.key === 'Escape') {
@@ -16827,7 +19084,7 @@
                     }
                 });
 
-                document.getElementById('btnTip').addEventListener('click', openTipModal);
+                document.getElementById('navTip').addEventListener('click', openTipModal);
                 document.getElementById('tipModalClose').addEventListener('click', closeTipModal);
                 document.getElementById('tipModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeTipModal();
@@ -16837,7 +19094,9 @@
                 document.getElementById('btnWishlistToggle').addEventListener('click', function() {
                     toggleWishlistMode();
                 });
-                document.getElementById('btnAchievement').addEventListener('click', openAchievementModal);
+                document.getElementById('btnExcludePlayed').addEventListener('click', function() {
+                    toggleExcludePlayedMode();
+                });
                 document.getElementById('achievementModalClose').addEventListener('click', closeAchievementModal);
                 document.getElementById('achievementModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeAchievementModal();
@@ -16903,19 +19162,6 @@
                     }
                 });
 
-                document.getElementById('btnManualSync').addEventListener('click', function () {
-                    if (currentUser) {
-                        showToast('🔄 正在同步...', 1500);
-                        syncUserDataWithCloud().then(() => {
-                            _processPendingCloudOps();
-                            renderGallery();
-                            showToast('✅ 同步完成', 1500);
-                        });
-                    } else {
-                        showToast('请先登录', 1500);
-                    }
-                });
-
                 document.getElementById('btnToggleAdmin').addEventListener('click', toggleAdminMode);
                 document.getElementById('btnAddGame').addEventListener('click', function () {
                     if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
@@ -16967,8 +19213,6 @@
                 }
 
                 // ★ 新功能事件绑定
-                // 翻页音效按钮
-                document.getElementById('diarySoundBtn')?.addEventListener('click', toggleDiarySound);
                 // 分享导出按钮
                 document.getElementById('diaryShareBtn')?.addEventListener('click', shareDiaryAsImage);
                 // 翻页进度条点击跳转
@@ -16987,8 +19231,6 @@
 
                 // 初始化移动端手势
                 initDiaryMobileGestures();
-                // 初始化按钮状态
-                initDiaryFeatureButtons();
 
                 initGuestbookEvents();
 
@@ -17268,10 +19510,10 @@
                     switch (e.key) {
                         case '/':
                             e.preventDefault();
-                            const searchInput = document.getElementById('searchInput');
-                            if (searchInput) {
-                                searchInput.focus();
-                                searchInput.select();
+                            const searchInputEl = document.getElementById('searchInput');
+                            if (searchInputEl) {
+                                searchInputEl.focus();
+                                searchInputEl.select();
                             }
                             break;
                         case '1':
@@ -17279,6 +19521,9 @@
                             break;
                         case '2':
                             if (!e.ctrlKey && !e.metaKey) { switchView('unreleased'); showToast('⏳ 未发售游戏', 1200); }
+                            break;
+                        case '3':
+                            if (!e.ctrlKey && !e.metaKey) { switchView('series'); showToast('📚 系列作品', 1200); }
                             break;
                         case 'r':
                         case 'R':
@@ -17288,7 +19533,7 @@
                             if (localStorage.getItem(GUIDE_KEY) !== 'true') {
                                 showGuide();
                             } else {
-                                showToast('💡 快捷键: /搜索 · 1/2切换视图 · R随机 · ←/→日记翻页 · Esc关闭', 3000);
+                                showToast('💡 快捷键: /搜索 · 1/2/3切换视图 · R随机 · ←/→日记翻页 · Esc关闭', 3000);
                             }
                             break;
                         case 'ArrowRight':
@@ -17557,9 +19802,12 @@
                 resetActiveFilters();
                 bindGlobalEvents();
                 updateAdminUI();
-                renderGallery();
+                if (currentView === 'series') {
+                    renderSeriesView();
+                } else {
+                    renderGallery();
+                }
                 updateFilterUI();
-                document.getElementById('siteTitle').textContent = '🎮 女性主角游戏';
                 updateAchievementDot();
 
                 initBackToTop();
@@ -17568,7 +19816,8 @@
                 initKeyboardShortcuts();
                 initSystemThemeListener();
                 initConfetti();
-                initDropdownEvents();
+                initTopNavEvents();
+                initAnnouncementEvents();
                 initModLoadMoreEvent();
 
                 document.addEventListener('click', function (e) {
@@ -17595,9 +19844,7 @@
                             if (overlay.classList.contains('show')) {
                                 closeAuthModal();
                             }
-                            setTimeout(() => {
-                                syncUserDataWithCloud().then(() => _processPendingCloudOps());
-                            }, 300);
+                            // 初始同步由 init() 中的 getSession() 处理，此处不再重复
                         } else {
                             currentUser = null;
                             updateUIForLoggedOut();
@@ -17608,6 +19855,10 @@
                                 supabaseClient.removeChannel(_notifListener);
                                 _notifListener = null;
                             }
+                            if (modListener) {
+                                supabaseClient.removeChannel(modListener);
+                                modListener = null;
+                            }
                         }
                     });
 
@@ -17617,6 +19868,7 @@
                         updateUIForLoggedIn(currentUser);
                         updateAdminUI();
                         initNotifSystem();
+                        // 初始同步延迟500ms，避免与其他初始化竞争
                         setTimeout(() => {
                             syncUserDataWithCloud().then(() => _processPendingCloudOps());
                         }, 500);
@@ -17633,6 +19885,10 @@
                     const url = new URL(window.location);
                     if (url.searchParams.has('game')) {
                         url.searchParams.delete('game');
+                        window.history.replaceState({ gameId: null }, '', url.toString());
+                    }
+                    if (url.searchParams.has('gameTitle')) {
+                        url.searchParams.delete('gameTitle');
                         window.history.replaceState({ gameId: null }, '', url.toString());
                     }
                 }
@@ -17653,7 +19909,8 @@
                 console.log(`⌨️ 快捷键: /搜索 · 1/2切换 · R随机 · ?帮助`);
 
                 if (currentUser) {
-                    await syncUserDataWithCloud();
+                    // 初始同步已在 getSession() 处理器中调度（500ms延迟）
+                    // 此处仅设置定期同步（每5分钟）
                     setInterval(() => {
                         if (document.visibilityState === 'visible' && currentUser) {
                             syncUserDataWithCloud().then(() => _processPendingCloudOps());
