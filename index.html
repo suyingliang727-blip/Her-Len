@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Her Lens · 女性主角游戏</title>
 
+    <!-- 安全策略 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://tydbvpmigvzsnlmsjuby.supabase.co wss://tydbvpmigvzsnlmsjuby.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta name="robots" content="index, follow" />
+
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
@@ -8919,6 +8927,47 @@
             line-height: 1.7;
             white-space: pre-wrap;
             word-break: break-word;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .announcement-card-body.expanded {
+            max-height: 2000px;
+            opacity: 1;
+            margin-top: 12px;
+        }
+
+        .announcement-expand-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+
+        .announcement-expand-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+
+        .announcement-expand-btn .arrow {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .announcement-expand-btn.expanded .arrow {
+            transform: rotate(180deg);
         }
 
         .announcement-card-actions {
@@ -11467,11 +11516,64 @@
             }
 
             // ================================================================
+            // 安全初始化
+            // ================================================================
+            (function initSecurity() {
+                // 防止点击劫持
+                if (window.self !== window.top) {
+                    document.body.innerHTML = '<div style="text-align:center;padding:50px;font-family:sans-serif;"><h1>安全提示</h1><p>该页面不允许在iframe中显示。</p></div>';
+                    throw new Error('iframe clickjacking blocked');
+                }
+
+                // 防止覆盖关键函数
+                const originalAlert = window.alert;
+                const originalConfirm = window.confirm;
+                const originalPrompt = window.prompt;
+                Object.defineProperty(window, 'alert', {
+                    value: originalAlert,
+                    writable: false,
+                    configurable: false
+                });
+                Object.defineProperty(window, 'confirm', {
+                    value: originalConfirm,
+                    writable: false,
+                    configurable: false
+                });
+                Object.defineProperty(window, 'prompt', {
+                    value: originalPrompt,
+                    writable: false,
+                    configurable: false
+                });
+
+                // 清除URL中的危险参数
+                try {
+                    const url = new URL(window.location.href);
+                    const dangerousParams = ['javascript', 'data', 'vbscript'];
+                    let hasDangerous = false;
+                    url.searchParams.forEach(function (value) {
+                        if (dangerousParams.some(function (p) { return String(value).toLowerCase().includes(p); })) {
+                            hasDangerous = true;
+                        }
+                    });
+                    if (hasDangerous) {
+                        window.history.replaceState({}, document.title, url.pathname);
+                    }
+                } catch (e) { }
+
+                // 防止localStorage被恶意脚本读取
+                const originalGetItem = Storage.prototype.getItem;
+                Storage.prototype.getItem = function (key) {
+                    if (typeof key !== 'string') return null;
+                    return originalGetItem.call(this, key);
+                };
+            })();
+
+            // ================================================================
             // 工具函数
             // ================================================================
             function escapeHTML(s) {
                 if (!s) return '';
-                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/`/g, '&#96;');
             }
 
             function sanitizeCommentHTML(html) {
@@ -11511,7 +11613,43 @@
             // URL转义 - 只转义HTML实体，不转义URL特殊字符
             function escapeURL(s) {
                 if (!s) return '';
-                return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            // 验证URL是否安全
+            function isValidURL(url) {
+                if (!url) return false;
+                try {
+                    const parsed = new URL(url);
+                    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:'];
+                    return allowedProtocols.includes(parsed.protocol);
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // 验证是否为javascript:协议攻击
+            function isDangerousURL(url) {
+                if (!url) return true;
+                const trimmed = url.trim().toLowerCase();
+                return /^javascript\s*:/i.test(trimmed) || /^data\s*:/i.test(trimmed) || /^vbscript\s*:/i.test(trimmed);
+            }
+
+            // 清理用户输入（去除危险字符）
+            function sanitizeInput(input) {
+                if (!input) return '';
+                return String(input)
+                    .replace(/[<>]/g, '')
+                    .replace(/['"]/g, '')
+                    .replace(/javascript:/gi, '')
+                    .replace(/data:/gi, '')
+                    .trim();
+            }
+
+            // 限制输入长度
+            function truncateInput(input, maxLength) {
+                if (!input) return '';
+                return String(input).slice(0, maxLength);
             }
 
             // ================================================================
@@ -16401,14 +16539,22 @@
 
             async function addGuestbookReply(parentId, content, replyTo = null, parentReplyId = null) {
                 if (!currentUser) return null;
+                // 输入验证
+                if (!content || typeof content !== 'string') return null;
+                const cleanContent = content.trim().slice(0, 300);
+                if (cleanContent.length === 0) return null;
+                if (/<script/i.test(cleanContent) || /javascript\s*:/i.test(cleanContent) || /data\s*:/i.test(cleanContent)) {
+                    showToast('⚠️ 包含不允许的内容', 1500);
+                    return null;
+                }
                 const metadata = currentUser.user_metadata || {};
                 const replyData = {
                     message_id: Number(parentId),
                     user_id: currentUser.id,
-                    content: content,
+                    content: cleanContent,
                     reply_to: replyTo || null,
                     parent_reply_id: parentReplyId || null,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    display_name: (metadata.display_name || currentUser.email || '用户').slice(0, 50),
                     avatar_url: metadata.avatar_url || null
                 };
 
@@ -16996,11 +17142,19 @@
 
             async function postGuestbookMessage(content) {
                 if (!currentUser || !supabaseClient) return null;
+                // 输入验证
+                if (!content || typeof content !== 'string') return null;
+                const cleanContent = content.trim().slice(0, 500);
+                if (cleanContent.length === 0) return null;
+                if (/<script/i.test(cleanContent) || /javascript\s*:/i.test(cleanContent) || /data\s*:/i.test(cleanContent)) {
+                    showToast('⚠️ 包含不允许的内容', 1500);
+                    return null;
+                }
                 const metadata = currentUser.user_metadata || {};
                 const record = {
                     user_id: currentUser.id,
-                    content: content,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    content: cleanContent,
+                    display_name: (metadata.display_name || currentUser.email || '用户').slice(0, 50),
                     avatar_url: metadata.avatar_url || null,
                     reactions: {}
                 };
@@ -17116,9 +17270,15 @@
                         });
                     }
                     if (submitBtn && input) {
+                        let lastSubmitTime = 0;
                         submitBtn.addEventListener('click', async function () {
+                            const now = Date.now();
+                            if (now - lastSubmitTime < 3000) { showToast('操作太频繁，请稍后再试', 1500); return; }
                             const text = input.value.trim();
                             if (!text) { showToast('留言内容不能为空', 1500); return; }
+                            if (text.length > 500) { showToast('留言内容过长', 1500); return; }
+                            if (/javascript\s*:/i.test(text) || /data\s*:/i.test(text) || /vbscript\s*:/i.test(text)) { showToast('留言包含不允许的内容', 1500); return; }
+                            lastSubmitTime = now;
                             submitBtn.disabled = true;
                             submitBtn.textContent = '发布中...';
                             const result = await postGuestbookMessage(text);
@@ -17673,7 +17833,11 @@
                             <div class="announcement-card-meta">
                                 <span class="announcement-card-date">📅 ${formatDate(displayDate)}</span>
                             </div>
-                            <div class="announcement-card-body">${escapeHTML(item.content || '')}</div>
+                            <div class="announcement-card-body" id="annBody-${item.id}">${escapeHTML(item.content || '')}</div>
+                            <button class="announcement-expand-btn" onclick="toggleAnnouncement('${item.id}')">
+                                <span>展开详情</span>
+                                <span class="arrow">▼</span>
+                            </button>
                         </div>
                     `;
                 }).join('');
@@ -17823,6 +17987,19 @@
                     submitBtn.textContent = editingAnnouncementId ? '保存' : '发布';
                 }
             }
+
+            function toggleAnnouncement(id) {
+                const body = document.getElementById('annBody-' + id);
+                if (!body) return;
+                const btn = body.nextElementSibling;
+                const isExpanded = body.classList.contains('expanded');
+                body.classList.toggle('expanded');
+                if (btn) {
+                    btn.classList.toggle('expanded');
+                    btn.querySelector('span:first-child').textContent = isExpanded ? '展开详情' : '收起详情';
+                }
+            }
+            window.toggleAnnouncement = toggleAnnouncement;
 
             async function deleteAnnouncement(id) {
                 if (!supabaseClient || !isAdmin) return;
@@ -18672,23 +18849,29 @@
                         });
                     }
                     if (submitBtn) {
+                        let lastModSubmitTime = 0;
                         submitBtn.addEventListener('click', async function () {
+                            const now = Date.now();
+                            if (now - lastModSubmitTime < 5000) { showToast('操作太频繁，请稍后再试', 1500); return; }
                             const gameName = document.getElementById('modGameName')?.value.trim();
                             const modType = document.getElementById('modType')?.value;
                             const title = document.getElementById('modTitle')?.value.trim();
                             const modLink = document.getElementById('modLink')?.value.trim();
                             const contentText = document.getElementById('modContent')?.value.trim();
                             if (!gameName) { showToast('请输入游戏名称', 1500); return; }
+                            if (gameName.length > 100) { showToast('游戏名称过长', 1500); return; }
                             if (!title) { showToast('请输入标题', 1500); return; }
+                            if (title.length > 100) { showToast('标题过长', 1500); return; }
                             if (!modLink) { showToast('请输入MOD链接', 1500); return; }
-                            if (/^javascript\s*:/i.test(modLink)) { showToast('⚠️ 不允许该协议链接', 1500); return; }
-                            try { new URL(modLink); } catch (_) {
-                                showToast('请输入有效的链接地址', 1500); return;
-                            }
+                            if (isDangerousURL(modLink)) { showToast('⚠️ 不允许该协议链接', 1500); return; }
+                            if (!isValidURL(modLink)) { showToast('请输入有效的链接地址', 1500); return; }
+                            if (contentText && contentText.length > 1000) { showToast('内容过长', 1500); return; }
+                            if (contentText && (/<script/i.test(contentText) || /javascript\s*:/i.test(contentText))) { showToast('内容包含不允许的字符', 1500); return; }
+                            lastModSubmitTime = now;
                             submitBtn.disabled = true;
                             submitBtn.textContent = '发布中...';
                             const result = await createModPost({
-                                gameName, modType, title, modLink, content: contentText
+                                gameName: truncateInput(gameName, 100), modType, title: truncateInput(title, 100), modLink, content: contentText ? truncateInput(contentText, 1000) : null
                             });
                             if (result) {
                                 document.getElementById('modGameName').value = '';
@@ -20186,7 +20369,11 @@
                 const searchInput = document.getElementById('searchInput');
                 const clearBtn = document.getElementById('searchClearBtn');
                 if (searchInput) {
-                    searchInput.addEventListener('input', function () { setSearchQuery(this.value); });
+                    searchInput.addEventListener('input', function () {
+                        const val = this.value.replace(/[<>]/g, '').slice(0, 100);
+                        this.value = val;
+                        setSearchQuery(val);
+                    });
                     if (clearBtn) {
                         clearBtn.addEventListener('click', function () {
                             searchInput.value = '';
