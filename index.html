@@ -14687,6 +14687,10 @@
                 const playDate = r.play_date || '';
                 const playHours = r.play_hours || '';
 
+                // 优先加载草稿（如果存在且未过期）
+                const draftHtml = loadDraft(r.game_id);
+                const reviewDisplay = draftHtml || (r.comment ? sanitizeCommentHTML(r.comment) : '点击此处写下你的评论...');
+
                 return `
                     <div class="page-header">
                         <div class="page-brand">Her Lens</div>
@@ -14734,7 +14738,7 @@
                                     <option value="5">大号</option>
                                 </select>
                             </div>
-                            <div class="review-text" contenteditable="true" data-game-id="${r.game_id}">${r.comment ? sanitizeCommentHTML(r.comment) : '点击此处写下你的评论...'}</div>
+                            <div class="review-text" contenteditable="true" data-game-id="${r.game_id}">${reviewDisplay}</div>
                         </div>
                     </div>
                 `;
@@ -14747,8 +14751,28 @@
                 return window.innerWidth <= 768;
             }
 
+            // 检查当前日记页是否有未保存的编辑内容
+            function hasUnsavedDiaryChanges() {
+                const reviewText = document.querySelector('.review-text[data-game-id]');
+                if (!reviewText) return false;
+                const gameId = Number(reviewText.dataset.gameId);
+                const currentHtml = reviewText.innerHTML;
+                const savedComment = userData.reviews.find(r => r.game_id === gameId)?.comment || '';
+                const draftHtml = loadDraft(gameId);
+                const savedHtml = sanitizeCommentHTML(savedComment);
+                // 有草稿且草稿与已保存内容不同 → 未保存
+                if (draftHtml && draftHtml !== savedHtml) return true;
+                // 无草稿但当前内容与已保存内容不同（且不是占位符）→ 未保存
+                if (!draftHtml && currentHtml !== savedHtml && currentHtml !== '点击此处写下你的评论...') return true;
+                return false;
+            }
+
             function flipDiaryPage(direction) {
                 if (diaryFlipping) return;
+                // 翻页前检查未保存内容
+                if (hasUnsavedDiaryChanges()) {
+                    if (!confirm('你还有未保存的评论内容，确定要翻页吗？未保存的内容将保留在草稿中。')) return;
+                }
                 const spread = document.querySelector('.diary-spread');
                 const rightPage = document.querySelector('.diary-page-right');
                 const leftPage = document.querySelector('.diary-page-left');
@@ -15085,6 +15109,9 @@
                         if (diaryFlipping) return;
                         const target = parseInt(rb.dataset.page);
                         if (target === diaryCurrentPage) return;
+                        if (hasUnsavedDiaryChanges()) {
+                            if (!confirm('你还有未保存的评论内容，确定要跳转吗？未保存的内容将保留在草稿中。')) return;
+                        }
                         if (isMobileView()) {
                             playDiaryFlipSound();
                             diaryCurrentPage = target;
@@ -15183,6 +15210,9 @@
                         const target = parseInt(it.dataset.page);
                         document.getElementById('diaryMobileDropdown').style.display = 'none';
                         if (target === diaryCurrentPage) return;
+                        if (hasUnsavedDiaryChanges()) {
+                            if (!confirm('你还有未保存的评论内容，确定要跳转吗？未保存的内容将保留在草稿中。')) return;
+                        }
                         playDiaryFlipSound();
                         diaryCurrentPage = target;
                         renderDiaryPage();
@@ -15246,6 +15276,9 @@
 
                 document.getElementById('diaryPrevBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage > 0) {
+                        if (hasUnsavedDiaryChanges()) {
+                            if (!confirm('你还有未保存的评论内容，确定要翻页吗？未保存的内容将保留在草稿中。')) return;
+                        }
                         playDiaryFlipSound();
                         if (isMobileView()) {
                             diaryCurrentPage--;
@@ -15258,6 +15291,9 @@
                 });
                 document.getElementById('diaryNextBtnInline')?.addEventListener('click', () => {
                     if (diaryCurrentPage < diarySortedReviews.length - 1) {
+                        if (hasUnsavedDiaryChanges()) {
+                            if (!confirm('你还有未保存的评论内容，确定要翻页吗？未保存的内容将保留在草稿中。')) return;
+                        }
                         playDiaryFlipSound();
                         if (isMobileView()) {
                             diaryCurrentPage++;
@@ -15635,6 +15671,9 @@
 
                     // 水平滑动翻页（距离够、时间短、垂直距离小）
                     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 600) {
+                        if (hasUnsavedDiaryChanges()) {
+                            if (!confirm('你还有未保存的评论内容，确定要翻页吗？未保存的内容将保留在草稿中。')) return;
+                        }
                         if (dx < 0) {
                             // 向左滑：下一页
                             if (diaryCurrentPage < diarySortedReviews.length - 1) {
@@ -15673,6 +15712,12 @@
                             if (startY < 120) {
                                 // 顶部双击 → 回到第一页
                                 if (diaryCurrentPage !== 0) {
+                                    if (hasUnsavedDiaryChanges()) {
+                                        if (!confirm('你还有未保存的评论内容，确定要回到第一页吗？未保存的内容将保留在草稿中。')) {
+                                            _diaryLastTapTime = 0;
+                                            return;
+                                        }
+                                    }
                                     diaryCurrentPage = 0;
                                     renderDiaryPage();
                                     showToast('⏫ 回到第一页', 1000);
@@ -19069,6 +19114,9 @@
                             return;
                         }
                         if (document.getElementById('diaryPage').style.display === 'flex') {
+                            if (hasUnsavedDiaryChanges()) {
+                                if (!confirm('你还有未保存的评论内容，确定要关闭日记吗？未保存的内容将保留在草稿中。')) return;
+                            }
                             closeDiaryModal();
                             return;
                         }
@@ -19180,7 +19228,12 @@
                 });
 
                 document.getElementById('diaryOpenBtn').addEventListener('click', showDiaryContent);
-                document.getElementById('diaryBackBtn').addEventListener('click', showDiaryCover);
+                document.getElementById('diaryBackBtn').addEventListener('click', () => {
+                    if (hasUnsavedDiaryChanges()) {
+                        if (!confirm('你还有未保存的评论内容，确定要返回封面吗？未保存的内容将保留在草稿中。')) return;
+                    }
+                    showDiaryCover();
+                });
                 document.getElementById('diaryCloseCoverBtn').addEventListener('click', closeDiaryModal);
                 document.getElementById('diarySortSelect').addEventListener('change', function() {
                     diaryCurrentPage = 0;
@@ -19222,6 +19275,9 @@
                     const ratio = (e.clientX - rect.left) / rect.width;
                     const target = Math.floor(ratio * diarySortedReviews.length);
                     if (target >= 0 && target < diarySortedReviews.length && target !== diaryCurrentPage) {
+                        if (hasUnsavedDiaryChanges()) {
+                            if (!confirm('你还有未保存的评论内容，确定要跳转吗？未保存的内容将保留在草稿中。')) return;
+                        }
                         playDiaryFlipSound();
                         diaryCurrentPage = target;
                         renderDiaryPage();
@@ -19543,6 +19599,9 @@
                                 !diaryFlipping) {
                                 if (diaryCurrentPage < diarySortedReviews.length - 1) {
                                     e.preventDefault();
+                                    if (isMobileView() && hasUnsavedDiaryChanges()) {
+                                        if (!confirm('你还有未保存的评论内容，确定要翻页吗？未保存的内容将保留在草稿中。')) break;
+                                    }
                                     playDiaryFlipSound();
                                     if (isMobileView()) { diaryCurrentPage++; renderDiaryPage(); }
                                     else flipDiaryPage('next');
@@ -19556,6 +19615,9 @@
                                 !diaryFlipping) {
                                 if (diaryCurrentPage > 0) {
                                     e.preventDefault();
+                                    if (isMobileView() && hasUnsavedDiaryChanges()) {
+                                        if (!confirm('你还有未保存的评论内容，确定要翻页吗？未保存的内容将保留在草稿中。')) break;
+                                    }
                                     playDiaryFlipSound();
                                     if (isMobileView()) { diaryCurrentPage--; renderDiaryPage(); }
                                     else flipDiaryPage('prev');

@@ -2811,6 +2811,7 @@ function renderResult(resultTypes, mbti) {
         '<div class="share-actions">' +
         '<button class="btn-primary" onclick="shareResult(\''+resultTypes.primary+'\')">📤 分享我的职业</button>' +
         '<button class="btn-secondary" onclick="restart()">🔄 重新鉴定</button>' +
+        '<button class="btn-secondary" onclick="window.open(\'https://her-len.pages.dev/\', \'_blank\')">🏠 前往 Her Lens</button>' +
         '</div>' +
         '<div style="text-align:center;margin-top:1rem;font-size:0.75rem;color:var(--text3);opacity:0.7;">仅供娱乐</div>';
     setTimeout(function() { renderSpectrum(); renderTopTraits(); renderBranchPath(); renderCharacterMatch(resultTypes.primary); }, 200);
