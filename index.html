@@ -11517,6 +11517,9 @@
             let _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
             let _reviewPage = {};
             const REVIEW_PAGE_SIZE = 10;
+            let _batchRpcBroken = false;
+            let _ratingBatchTimer = null;
+            let _ratingBatchPending = [];
 
             // 分享相关
             let shareQRInstance = null;
@@ -12353,29 +12356,32 @@
 
                 let batchFetched = false;
 
-                try {
-                    const { data, error } = await supabaseClient
-                        .rpc('batch_rating_stats', { game_ids: needFetch });
-                    if (error) throw error;
+                if (!_batchRpcBroken) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .rpc('batch_rating_stats', { game_ids: needFetch });
+                        if (error) throw error;
 
-                    const fetchedMap = {};
-                    if (data) {
-                        for (const row of data) {
-                            fetchedMap[row.game_id] = {
-                                average: row.avg_rating,
-                                count: Number(row.rating_count)
-                            };
+                        const fetchedMap = {};
+                        if (data) {
+                            for (const row of data) {
+                                fetchedMap[row.game_id] = {
+                                    average: row.avg_rating,
+                                    count: Number(row.rating_count)
+                                };
+                            }
                         }
-                    }
 
-                    for (const id of needFetch) {
-                        const stats = fetchedMap[id] || { average: null, count: 0 };
-                        _ratingStatsCache[String(id)] = { ...stats, ts: now };
-                        result[id] = stats;
+                        for (const id of needFetch) {
+                            const stats = fetchedMap[id] || { average: null, count: 0 };
+                            _ratingStatsCache[String(id)] = { ...stats, ts: now };
+                            result[id] = stats;
+                        }
+                        batchFetched = true;
+                    } catch (e) {
+                        _batchRpcBroken = true;
+                        console.warn('[Batch] RPC 不可用，后续使用单查询批量拉取');
                     }
-                    batchFetched = true;
-                } catch (e) {
-                    console.warn('[Batch] RPC 不可用，使用单查询批量拉取:', e.message);
                 }
 
                 if (!batchFetched) {
@@ -12405,7 +12411,7 @@
                         }
                         batchFetched = true;
                     } catch (e2) {
-                        console.warn('[Batch] 单查询也失败，回退逐条:', e2.message);
+                        console.warn('[Batch] 单查询失败，回退逐条:', e2.message);
                     }
                 }
 
@@ -12418,12 +12424,10 @@
                 return result;
             }
 
-            async function loadCardRatingStats() {
+            function loadCardRatingStats() {
                 const els = document.querySelectorAll('.card-rating-count');
                 if (!els.length) return;
 
-                const uncachedEls = [];
-                const gameIds = [];
                 const now = Date.now();
 
                 els.forEach(el => {
@@ -12437,22 +12441,29 @@
                         }
                         el.dataset.loaded = '1';
                     } else {
-                        uncachedEls.push({ el, gameId });
-                        if (!gameIds.includes(gameId)) gameIds.push(gameId);
+                        _ratingBatchPending.push({ el, gameId });
                     }
                 });
 
-                if (gameIds.length === 0) return;
+                if (_ratingBatchPending.length === 0) return;
 
-                const batchResult = await fetchBatchRatingStats(gameIds);
+                if (_ratingBatchTimer) return;
 
-                uncachedEls.forEach(({ el, gameId }) => {
-                    const stats = batchResult[gameId] || { average: null, count: 0 };
-                    if (stats.count > 0) {
-                        el.textContent = '📝 ' + stats.count + '人评分';
-                    }
-                    el.dataset.loaded = '1';
-                });
+                _ratingBatchTimer = setTimeout(async () => {
+                    const pending = _ratingBatchPending.splice(0);
+                    _ratingBatchTimer = null;
+
+                    const uniqueIds = [...new Set(pending.map(p => p.gameId))];
+                    const batchResult = await fetchBatchRatingStats(uniqueIds);
+
+                    pending.forEach(({ el, gameId }) => {
+                        const stats = batchResult[gameId] || { average: null, count: 0 };
+                        if (stats.count > 0) {
+                            el.textContent = '📝 ' + stats.count + '人评分';
+                        }
+                        el.dataset.loaded = '1';
+                    });
+                }, 200);
             }
 
             // ================================================================
