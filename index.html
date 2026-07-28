@@ -12317,7 +12317,7 @@
                 if (!supabaseClient) return { average: null, count: 0 };
                 const cacheKey = String(gameId);
                 const cached = _ratingStatsCache[cacheKey];
-                if (cached && (Date.now() - cached.ts < 300000)) {
+                if (cached && (Date.now() - cached.ts < 1800000)) {
                     return { average: cached.average, count: cached.count };
                 }
                 try {
@@ -12333,19 +12333,126 @@
                 } catch (e) { console.error('❌ 获取评分统计失败:', e); return { average: null, count: 0 }; }
             }
 
+            async function fetchBatchRatingStats(gameIds) {
+                if (!supabaseClient || !gameIds.length) return {};
+                const result = {};
+                const needFetch = [];
+                const now = Date.now();
+
+                for (const id of gameIds) {
+                    const cacheKey = String(id);
+                    const cached = _ratingStatsCache[cacheKey];
+                    if (cached && (now - cached.ts < 1800000)) {
+                        result[id] = { average: cached.average, count: cached.count };
+                    } else {
+                        needFetch.push(id);
+                    }
+                }
+
+                if (needFetch.length === 0) return result;
+
+                let batchFetched = false;
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .rpc('batch_rating_stats', { game_ids: needFetch });
+                    if (error) throw error;
+
+                    const fetchedMap = {};
+                    if (data) {
+                        for (const row of data) {
+                            fetchedMap[row.game_id] = {
+                                average: row.avg_rating,
+                                count: Number(row.rating_count)
+                            };
+                        }
+                    }
+
+                    for (const id of needFetch) {
+                        const stats = fetchedMap[id] || { average: null, count: 0 };
+                        _ratingStatsCache[String(id)] = { ...stats, ts: now };
+                        result[id] = stats;
+                    }
+                    batchFetched = true;
+                } catch (e) {
+                    console.warn('[Batch] RPC 不可用，使用单查询批量拉取:', e.message);
+                }
+
+                if (!batchFetched) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('user_reviews')
+                            .select('game_id, rating')
+                            .in('game_id', needFetch)
+                            .not('rating', 'is', null);
+                        if (error) throw error;
+
+                        const grouped = {};
+                        for (const row of (data || [])) {
+                            const gid = row.game_id;
+                            if (!grouped[gid]) grouped[gid] = [];
+                            grouped[gid].push(row.rating);
+                        }
+
+                        for (const id of needFetch) {
+                            const ratings = grouped[id] || [];
+                            const count = ratings.length;
+                            const average = count > 0
+                                ? ratings.reduce((a, b) => a + b, 0) / count
+                                : null;
+                            _ratingStatsCache[String(id)] = { average, count, ts: now };
+                            result[id] = { average, count };
+                        }
+                        batchFetched = true;
+                    } catch (e2) {
+                        console.warn('[Batch] 单查询也失败，回退逐条:', e2.message);
+                    }
+                }
+
+                if (!batchFetched) {
+                    for (const id of needFetch) {
+                        result[id] = await fetchGameRatingStats(id);
+                    }
+                }
+
+                return result;
+            }
+
             async function loadCardRatingStats() {
                 const els = document.querySelectorAll('.card-rating-count');
                 if (!els.length) return;
-                const tasks = Array.from(els).map(async (el) => {
+
+                const uncachedEls = [];
+                const gameIds = [];
+                const now = Date.now();
+
+                els.forEach(el => {
                     const gameId = Number(el.dataset.gameId);
-                    if (!gameId || el.dataset.loaded) return;
-                    el.dataset.loaded = '1';
-                    const stats = await fetchGameRatingStats(gameId);
+                    if (!gameId) return;
+                    const cacheKey = String(gameId);
+                    const cached = _ratingStatsCache[cacheKey];
+                    if (cached && (now - cached.ts < 1800000)) {
+                        if (cached.count > 0) {
+                            el.textContent = '📝 ' + cached.count + '人评分';
+                        }
+                        el.dataset.loaded = '1';
+                    } else {
+                        uncachedEls.push({ el, gameId });
+                        if (!gameIds.includes(gameId)) gameIds.push(gameId);
+                    }
+                });
+
+                if (gameIds.length === 0) return;
+
+                const batchResult = await fetchBatchRatingStats(gameIds);
+
+                uncachedEls.forEach(({ el, gameId }) => {
+                    const stats = batchResult[gameId] || { average: null, count: 0 };
                     if (stats.count > 0) {
                         el.textContent = '📝 ' + stats.count + '人评分';
                     }
+                    el.dataset.loaded = '1';
                 });
-                await Promise.all(tasks);
             }
 
             // ================================================================
@@ -21279,17 +21386,27 @@
                 console.log(`⌨️ 快捷键: /搜索 · 1/2切换 · R随机 · ?帮助`);
 
                 if (currentUser) {
-                    // 初始同步已在 getSession() 处理器中调度（500ms延迟）
-                    // 此处仅设置定期同步（每5分钟）
+                    let _lastSyncTime = 0;
+                    const MIN_SYNC_INTERVAL = 15 * 60 * 1000;
+
                     setInterval(() => {
                         if (document.visibilityState === 'visible' && currentUser) {
+                            const now = Date.now();
+                            if (now - _lastSyncTime < MIN_SYNC_INTERVAL) return;
+                            _lastSyncTime = now;
                             syncUserDataWithCloud().then(() => _processPendingCloudOps());
                         }
                     }, 300000);
 
                     document.addEventListener('visibilitychange', function () {
-                        if (document.visibilityState === 'visible' && currentUser && _pendingCloudOps.length > 0) {
-                            _processPendingCloudOps();
+                        if (document.visibilityState === 'visible' && currentUser) {
+                            const now = Date.now();
+                            if (now - _lastSyncTime >= MIN_SYNC_INTERVAL) {
+                                _lastSyncTime = now;
+                                syncUserDataWithCloud().then(() => _processPendingCloudOps());
+                            } else if (_pendingCloudOps.length > 0) {
+                                _processPendingCloudOps();
+                            }
                         }
                     });
                 }
