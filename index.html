@@ -20328,6 +20328,7 @@
 
                 // 更新导航栏用户按钮
                 if (navUserText && navUserBtn) {
+                    navUserBtn.onclick = null;
                     const iconSpan = navUserBtn.querySelector('.nav-user-icon');
                     if (iconSpan && avatarUrl) {
                         iconSpan.outerHTML = `<span class="nav-user-icon">${avatarHTML}</span>`;
