@@ -1033,7 +1033,7 @@
             border: 1px solid var(--border);
             border-radius: 14px;
             box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
-            z-index: 99999;
+            z-index: 99990;
             overflow: hidden;
         }
 
@@ -4125,7 +4125,6 @@
             border-color: var(--danger);
             transform: rotate(90deg);
         }
-
         /* ===== 其他组件 ===== */
         .achievement-tabs {
             display: flex;
@@ -10867,6 +10866,7 @@
                 <button class="top-nav-item" data-nav="test" id="navPersonalityTest">人格测试</button>
                 <button class="top-nav-item" data-nav="announcements">网站公告</button>
                 <button class="top-nav-item" id="navGuestbook" title="留言板 - 和大家聊聊天">留言板</button>
+
                 <button class="top-nav-item" id="navTip" title="打赏网页，支持创作">打赏网页</button>
             </nav>
             <div class="header-right">
@@ -11294,6 +11294,8 @@
             </div>
         </div>
     </div>
+
+
 
     <!-- ================================================================
     ★ 游戏日记 - 独立子页面
@@ -15162,7 +15164,8 @@
             }
 
             function closeDiaryModal() {
-                document.getElementById('diaryPage').style.display = 'none';
+                const diaryPage = document.getElementById('diaryPage');
+                if (diaryPage) diaryPage.style.display = 'none';
                 document.body.style.overflow = '';
                 const mobileDropdown = document.getElementById('diaryMobileDropdown');
                 if (mobileDropdown) mobileDropdown.style.display = 'none';
@@ -17533,7 +17536,7 @@
                             <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
                                 <textarea id="replyInput-${msg.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
                                 <div class="reply-compose-actions">
-                                    <button class="btn btn-sm" onclick="document.getElementById('replyCompose-${msg.id}').style.display='none'">取消</button>
+                                    <button class="btn btn-sm cancel-reply-btn" data-msg-id="${msg.id}">取消</button>
                                     <button class="btn btn-sm btn-accent reply-submit-btn" data-msg-id="${msg.id}">发送</button>
                                 </div>
                             </div>
@@ -17617,6 +17620,15 @@
                         const msgId = this.dataset.msgId;
                         const replyId = this.dataset.replyId;
                         const composeEl = document.getElementById('nestedReplyCompose-' + msgId + '-' + replyId);
+                        if (composeEl) composeEl.style.display = 'none';
+                    });
+                });
+
+                // 回复输入框取消按钮
+                listEl.querySelectorAll('.cancel-reply-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const msgId = this.dataset.msgId;
+                        const composeEl = document.getElementById('replyCompose-' + msgId);
                         if (composeEl) composeEl.style.display = 'none';
                     });
                 });
@@ -17781,7 +17793,7 @@
                                     <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
                                         <textarea id="replyInput-${msg.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
                                         <div class="reply-compose-actions">
-                                            <button class="btn btn-sm" onclick="document.getElementById('replyCompose-${msg.id}').style.display='none'">取消</button>
+                                            <button class="btn btn-sm cancel-reply-btn" data-msg-id="${msg.id}">取消</button>
                                             <button class="btn btn-sm btn-accent reply-submit-btn" data-msg-id="${msg.id}">发送</button>
                                         </div>
                                     </div>
@@ -17950,15 +17962,16 @@
                 }
 
                 listEl.innerHTML = announcements.map(item => {
+                    const safeId = String(item.id).replace(/'/g, '');
                     const isPinned = item.pinned;
                     const pinnedClass = isPinned ? ' pinned' : '';
                     const pinnedBadge = isPinned ? '<span class="announcement-card-pin-badge">📌 置顶</span>' : '';
-                    const pinBtn = isAdmin ? `<button class="announcement-card-action-btn pin-btn" onclick="togglePinAnnouncement('${item.id}', ${!isPinned})">${isPinned ? '取消置顶' : '置顶'}</button>` : '';
+                    const pinBtn = isAdmin ? `<button class="announcement-card-action-btn pin-btn" onclick="togglePinAnnouncement('${safeId}', ${!isPinned})">${isPinned ? '取消置顶' : '置顶'}</button>` : '';
                     const adminActions = isAdmin ? `
                         <div class="announcement-card-actions">
                             ${pinBtn}
-                            <button class="announcement-card-action-btn" onclick="editAnnouncement('${item.id}')">编辑</button>
-                            <button class="announcement-card-action-btn danger" onclick="deleteAnnouncement('${item.id}')">删除</button>
+                            <button class="announcement-card-action-btn" onclick="editAnnouncement('${safeId}')">编辑</button>
+                            <button class="announcement-card-action-btn danger" onclick="deleteAnnouncement('${safeId}')">删除</button>
                         </div>
                     ` : '';
 
@@ -17971,8 +17984,8 @@
                             <div class="announcement-card-meta">
                                 <span class="announcement-card-date">📅 ${formatDate(displayDate)}</span>
                             </div>
-                            <div class="announcement-card-body" id="annBody-${item.id}">${escapeHTML(item.content || '')}</div>
-                            <button class="announcement-expand-btn" onclick="toggleAnnouncement('${item.id}')">
+                            <div class="announcement-card-body" id="annBody-${safeId}">${escapeHTML(item.content || '')}</div>
+                            <button class="announcement-expand-btn" onclick="toggleAnnouncement('${safeId}')">
                                 <span>展开详情</span>
                                 <span class="arrow">▼</span>
                             </button>
@@ -19459,7 +19472,7 @@
                                 <div class="mod-reply-compose" id="modReplyCompose-${c.id}" style="display:none;">
                                     <textarea id="modReplyInput-${c.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
                                     <div class="mod-reply-compose-actions">
-                                        <button class="btn btn-sm" onclick="document.getElementById('modReplyCompose-${c.id}').style.display='none'">取消</button>
+                                        <button class="btn btn-sm mod-reply-cancel-btn" data-comment-id="${c.id}">取消</button>
                                         <button class="btn btn-sm btn-accent mod-reply-submit-btn" data-comment-id="${c.id}">发送</button>
                                     </div>
                                 </div>
@@ -19687,6 +19700,15 @@
                         closeModDetail();
                         const updated = modPosts.find(p => p.id === post.id);
                         if (updated) openModDetail(updated);
+                    });
+                });
+
+                // 评论回复取消按钮事件
+                container.querySelectorAll('.mod-reply-cancel-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const commentId = this.dataset.commentId;
+                        const composeEl = document.getElementById('modReplyCompose-' + commentId);
+                        if (composeEl) composeEl.style.display = 'none';
                     });
                 });
 
@@ -21066,6 +21088,9 @@
             }
 
             // ================================================================
+
+
+            // ================================================================
             // ★★★ 滚动位置记忆 ★★★
             // ================================================================
             const SCROLL_POS_KEY = 'heroineScrollPos';
@@ -21359,7 +21384,7 @@
                         initNotifSystem();
                         // 初始同步延迟500ms，避免与其他初始化竞争
                         setTimeout(() => {
-                            syncUserDataWithCloud().then(() => _processPendingCloudOps());
+                            syncUserDataWithCloud().then(() => _processPendingCloudOps()).catch(e => console.warn('[Sync] 初始同步失败:', e.message));
                         }, 500);
                     } else {
                         updateUIForLoggedOut();
@@ -21399,14 +21424,14 @@
 
                 if (currentUser) {
                     let _lastSyncTime = 0;
-                    const MIN_SYNC_INTERVAL = 15 * 60 * 1000;
+                    const MIN_SYNC_INTERVAL = 30 * 60 * 1000;
 
                     setInterval(() => {
                         if (document.visibilityState === 'visible' && currentUser) {
                             const now = Date.now();
                             if (now - _lastSyncTime < MIN_SYNC_INTERVAL) return;
                             _lastSyncTime = now;
-                            syncUserDataWithCloud().then(() => _processPendingCloudOps());
+                            syncUserDataWithCloud().then(() => _processPendingCloudOps()).catch(e => console.warn('[Sync] 定时同步失败:', e.message));
                         }
                     }, 300000);
 
@@ -21415,7 +21440,7 @@
                             const now = Date.now();
                             if (now - _lastSyncTime >= MIN_SYNC_INTERVAL) {
                                 _lastSyncTime = now;
-                                syncUserDataWithCloud().then(() => _processPendingCloudOps());
+                                syncUserDataWithCloud().then(() => _processPendingCloudOps()).catch(e => console.warn('[Sync] 可见性同步失败:', e.message));
                             } else if (_pendingCloudOps.length > 0) {
                                 _processPendingCloudOps();
                             }
