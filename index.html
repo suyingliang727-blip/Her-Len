@@ -12312,6 +12312,31 @@
                 return pill ? parseInt(pill.dataset.verdict) : null;
             }
 
+            function getCurrentComment(gameId) {
+                const textarea = document.getElementById('commentInput');
+                if (textarea && textarea.value && textarea.value.trim()) {
+                    return textarea.value.trim();
+                }
+                const reviewText = document.querySelector(`.review-text[data-game-id="${gameId}"]`);
+                if (reviewText) {
+                    const text = reviewText.textContent || '';
+                    if (text && text !== '点击此处写下你的评论...') {
+                        return sanitizeCommentHTML(reviewText.innerHTML).trim();
+                    }
+                }
+                return null;
+            }
+
+            function getCurrentVerdictAndTags() {
+                const panel = document.getElementById('verdictPanelContainer');
+                if (panel) {
+                    const v = getSelectedVerdictFromPanel(panel);
+                    const tags = getSelectedTagsFromPanel(panel);
+                    if (v !== null) return { verdict: v, tags };
+                }
+                return null;
+            }
+
             function setupVerdictPanelHandlers(container, gameId, existingComment) {
                 const updateStatus = () => {
                     const v = getSelectedVerdictFromPanel(container);
@@ -12339,7 +12364,8 @@
                         const v = getSelectedVerdictFromPanel(container);
                         const tags = getSelectedTagsFromPanel(container);
                         if (v !== null) {
-                            saveReview(Number(gameId), v, tags, existingComment);
+                            const currentComment = getCurrentComment(gameId) || existingComment;
+                            saveReview(Number(gameId), v, tags, currentComment);
                         }
                     });
                 }
@@ -12480,7 +12506,8 @@
                                 newSubmitBtn.addEventListener('click', function () {
                                     const text = newCommentInput.value.trim();
                                     if (!text) { showToast('评论内容不能为空', 1500); return; }
-                                    saveReview(Number(gameId), savedVerdict, savedTags, text);
+                                    const vt = getCurrentVerdictAndTags();
+                                    saveReview(Number(gameId), vt?.verdict ?? savedVerdict, vt?.tags ?? savedTags, text);
                                 });
                                 newCommentInput.addEventListener('keydown', function (e) {
                                     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -14856,7 +14883,8 @@
                                 showToast('请填写评论内容', 1500);
                                 return;
                             }
-                            saveReview(game.id, userVerdict, userTags, text || null);
+                            const vt = getCurrentVerdictAndTags();
+                            saveReview(game.id, vt?.verdict ?? userVerdict, vt?.tags ?? userTags, text || null);
                         });
                         if (commentInput) {
                             commentInput.addEventListener('keydown', function (e) {
@@ -14891,7 +14919,8 @@
                             editArea.querySelector('#saveEditBtn').addEventListener('click', function () {
                                 const text = ta.value.trim();
                                 if (!text) { showToast('评论不能为空', 1500); return; }
-                                saveReview(game.id, userVerdict, userTags, text);
+                                const vt = getCurrentVerdictAndTags();
+                                saveReview(game.id, vt?.verdict ?? userVerdict, vt?.tags ?? userTags, text);
                             });
                             ta.addEventListener('keydown', function (e) {
                                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
