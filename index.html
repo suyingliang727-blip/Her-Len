@@ -6309,9 +6309,9 @@
 
         .review-rating {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
+            gap: 4px;
             margin-bottom: 12px;
             padding-bottom: 10px;
             border-bottom: 1px solid rgba(213, 207, 224, 0.35);
@@ -12811,7 +12811,7 @@
                 setSyncStatus('syncing', '正在展开地图');
                 try {
                     const { data, error } = await client.from('games')
-                        .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder')
+                        .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
                         .neq('id', '1')
                         .neq('id', '2')
                         .order('id', { ascending: true });
@@ -15556,9 +15556,8 @@
                     </div>
                     <div class="review-section">
                         <div class="review-rating">
-                            <span class="rating-label" style="font-weight:600;">我的表态</span>
-                            <div style="margin-top:2px;">${verdictHtml}</div>
-                            ${tagsHtml ? `<div style="margin-top:6px;"><span class="rating-label" style="font-weight:600;">我的标签</span>${tagsHtml}</div>` : ''}
+                            <div>${verdictHtml}</div>
+                            ${tagsHtml ? `<div>${tagsHtml}</div>` : ''}
                         </div>
                         <div class="review-meta">
                             <div class="meta-item">
