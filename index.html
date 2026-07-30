@@ -12424,11 +12424,12 @@
                 }
                 saveUserData();
 
-                const detailModal = document.getElementById('detailModal');
-                if (detailModal && detailModal.closest('.modal-overlay.show')) {
-                    const currentGameId = detailModal.dataset.gameId;
+                const detailOverlay = document.getElementById('detailModalOverlay');
+                if (detailOverlay && detailOverlay.classList.contains('show')) {
+                    const currentGameId = detailOverlay.dataset.gameId;
                     if (currentGameId && Number(currentGameId) === Number(gameId)) {
-                        const reviewUserArea = detailModal.querySelector('.review-user-area');
+                        const detailModal = document.getElementById('detailModal');
+                        const reviewUserArea = detailModal?.querySelector('.review-user-area');
                         if (reviewUserArea) {
                             const savedReview = userData.reviews.find(r => r.game_id === Number(gameId));
                             const savedVerdict = savedReview?.verdict ?? null;
@@ -12603,9 +12604,9 @@
                 if (!currentUser) { showToast('请先登录', 2000); return; }
                 userData.reviews = userData.reviews.filter(r => r.game_id !== gameId);
                 saveUserData();
-                const detailModal = document.getElementById('detailModal');
-                if (detailModal && detailModal.closest('.modal-overlay.show')) {
-                    const currentGameId = detailModal.dataset.gameId;
+                const detailOverlay = document.getElementById('detailModalOverlay');
+                if (detailOverlay && detailOverlay.classList.contains('show')) {
+                    const currentGameId = detailOverlay.dataset.gameId;
                     if (currentGameId && Number(currentGameId) === Number(gameId)) {
                         const game = games.find(g => g.id === Number(gameId));
                         if (game) showDetailModal(game);
