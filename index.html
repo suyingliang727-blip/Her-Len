@@ -4319,6 +4319,118 @@
             transform: scale(1.15);
         }
 
+        /* 表态档位样式 */
+        .verdict-strip {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .verdict-pill {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 6px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text2);
+            transition: all 0.2s;
+            user-select: none;
+            line-height: 1.3;
+        }
+        .verdict-pill:hover {
+            border-color: var(--accent);
+            background: var(--tag-bg);
+        }
+        .verdict-pill.on {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .verdict-pill .verdict-emoji {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        /* 标签池样式 */
+        .tag-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .tag-dimension-label {
+            width: 100%;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin-top: 6px;
+            margin-bottom: 2px;
+        }
+        .tag-chip {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+            line-height: 1.5;
+        }
+        .tag-chip.pos {
+            background: #e3f5e3;
+            color: #1a6b1a;
+            border-color: #b8e0b8;
+        }
+        .tag-chip.neg {
+            background: #fde8e8;
+            color: #a12b2b;
+            border-color: #f0c8c8;
+        }
+        .tag-chip.on {
+            border-width: 2px;
+        }
+        .tag-chip.pos.on {
+            background: #2e8b2e;
+            color: #fff;
+            border-color: #2e8b2e;
+        }
+        .tag-chip.neg.on {
+            background: #c0392b;
+            color: #fff;
+            border-color: #c0392b;
+        }
+        .tag-chip.muted {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* 标签平铺展示（只读） */
+        .tags-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .tags-display .tag-chip {
+            cursor: default;
+        }
+
+        /* 社区评论中的表态+标签 */
+        .comment-verdict {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
         .comment-item {
             padding: 10px 0;
             border-bottom: 1px solid var(--border);
@@ -4786,6 +4898,36 @@
 
         [data-theme="dark"] .scroll-progress {
             box-shadow: 0 0 12px rgba(184, 162, 214, 0.20);
+        }
+
+        [data-theme="dark"] .tag-chip.pos {
+            background: #1a3a1a;
+            color: #8fdb8f;
+            border-color: #2d5a2d;
+        }
+        [data-theme="dark"] .tag-chip.neg {
+            background: #3a1a1a;
+            color: #f08a8a;
+            border-color: #5a2d2d;
+        }
+        [data-theme="dark"] .tag-chip.pos.on {
+            background: #2e8b2e;
+            color: #fff;
+            border-color: #2e8b2e;
+        }
+        [data-theme="dark"] .tag-chip.neg.on {
+            background: #c0392b;
+            color: #fff;
+            border-color: #c0392b;
+        }
+        [data-theme="dark"] .verdict-pill {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text2);
+        }
+        [data-theme="dark"] .verdict-pill.on {
+            background: var(--accent);
+            color: #fff;
         }
 
         .form-group {
@@ -11772,9 +11914,14 @@
                 } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
             }
 
+            let _saveUserDataTimer = null;
             function saveUserData() {
-                localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
-                updateAchievementDot();
+                if (_saveUserDataTimer) clearTimeout(_saveUserDataTimer);
+                _saveUserDataTimer = setTimeout(function () {
+                    _saveUserDataTimer = null;
+                    localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+                    updateAchievementDot();
+                }, 30);
             }
 
             // ================================================================
@@ -12041,12 +12188,172 @@
             }
 
             // ================================================================
+            // 标签词库常量
+            // ================================================================
+            const REVIEW_TAG_LIBRARY = [{"id":"gameplay","label":"游戏性","pairs":[{"pos":"运行流畅","neg":"Bug频发"},{"pos":"优化出色","neg":"优化稀烂"},{"pos":"操作丝滑","neg":"操作别扭"},{"pos":"战斗过瘾","neg":"战斗枯燥"}]},{"id":"story","label":"故事性","pairs":[{"pos":"文笔扎实","neg":"文笔稀烂"},{"pos":"叙事流畅","neg":"节奏拖沓"},{"pos":"角色出彩","neg":"人设崩塌"}]},{"id":"audiovisual","label":"视听","pairs":[{"pos":"沉浸感强","neg":"氛围空洞"},{"pos":"美术惊艳","neg":"画质拉胯"},{"pos":"音乐动听","neg":"音乐违和"}]},{"id":"female_friendly","label":"女性友好","pairs":[{"pos":"含女量足","neg":"含女量低"},{"pos":"女性视角真实","neg":"女性视角失真"},{"pos":"女性塑造好","neg":"女性塑造差"},{"pos":"情节合理","neg":"含恶俗情节（性暴力/色情内容）"}]},{"id":"general","label":"综合","pairs":[{"pos":"后劲十足","neg":"玩得疲惫"},{"pos":"体验超值","neg":"定价过高"},{"pos":"值得二刷","neg":"货不对板"}]}];
+
+            // 表态档位信息表
+            const VERDICT_MAP = {
+                1: { emoji: '⚠️', label: '强烈避雷', color: '#e74c3c' },
+                2: { emoji: '⚡', label: '谨慎选择', color: '#e67e22' },
+                3: { emoji: '⭐', label: '中规中矩', color: '#f1c40f' },
+                4: { emoji: '✨', label: '颇具亮点', color: '#2ecc71' },
+                5: { emoji: '🔥', label: '大力推荐', color: '#e74c3c' }
+            };
+
+            function getVerdictInfo(val) {
+                return VERDICT_MAP[val] || null;
+            }
+
+            function renderVerdictDisplay(verdict) {
+                const info = getVerdictInfo(verdict);
+                if (!info) return '<span style="color:var(--text3);font-size:0.85rem;">未评分</span>';
+                return `<span class="comment-verdict" style="color:${info.color}">${info.emoji} ${info.label}</span>`;
+            }
+
+            function renderVerdictPanelHTML(currentVerdict, currentTags) {
+                let html = '<div class="verdict-strip">';
+                for (let v = 1; v <= 5; v++) {
+                    const info = VERDICT_MAP[v];
+                    const on = currentVerdict === v ? ' on' : '';
+                    html += `<div class="verdict-pill${on}" data-verdict="${v}"><span class="verdict-emoji">${info.emoji}</span>${info.label}</div>`;
+                }
+                html += '</div>';
+
+                const tagSet = new Set(currentTags || []);
+                for (const cat of REVIEW_TAG_LIBRARY) {
+                    html += `<div class="tag-dimension-label">${cat.label}</div><div class="tag-pool" data-category="${cat.id}">`;
+                    for (const pair of cat.pairs) {
+                        const on = tagSet.has(pair.pos) ? ' on' : '';
+                        const negOn = tagSet.has(pair.neg) ? ' on' : '';
+                        const muted = negOn ? ' muted' : '';
+                        html += `<span class="tag-chip pos${on}${muted}" data-tag="${pair.pos}" data-opposite="${pair.neg}">${pair.pos}</span>`;
+                    }
+                    for (const pair of cat.pairs) {
+                        const on = tagSet.has(pair.neg) ? ' on' : '';
+                        const posOn = tagSet.has(pair.pos) ? ' on' : '';
+                        const muted = posOn ? ' muted' : '';
+                        html += `<span class="tag-chip neg${on}${muted}" data-tag="${pair.neg}" data-opposite="${pair.pos}">${pair.neg}</span>`;
+                    }
+                    html += '</div>';
+                }
+
+                html += '<div style="font-size:0.75rem;color:var(--text3);margin:4px 0 2px;">💡 标签可选，仅选择评价亦可保存</div>';
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px;">';
+                html += '<span id="ratingStatus" style="font-size:0.85rem;color:var(--text3);">请先选择评价</span>';
+                html += '<button class="btn btn-sm btn-accent" id="saveRatingBtn" disabled>保存评价</button>';
+                html += '</div>';
+
+                return html;
+            }
+
+            function renderTagsDisplay(tags) {
+                if (!tags || tags.length === 0) return '';
+                const allPairs = REVIEW_TAG_LIBRARY.flatMap(c => c.pairs);
+                const tagInfo = {};
+                for (const p of allPairs) { tagInfo[p.pos] = 'pos'; tagInfo[p.neg] = 'neg'; }
+                let html = '<div class="tags-display">';
+                for (const t of tags) {
+                    const polarity = tagInfo[t] || 'pos';
+                    html += `<span class="tag-chip ${polarity}">${t}</span>`;
+                }
+                return html + '</div>';
+            }
+
+            function bindTagSelection(container, onChange) {
+                container.querySelectorAll('.verdict-pill').forEach(pill => {
+                    pill.addEventListener('click', function () {
+                        container.querySelectorAll('.verdict-pill').forEach(p => p.classList.remove('on'));
+                        this.classList.add('on');
+                        if (onChange) onChange('verdict', parseInt(this.dataset.verdict));
+                    });
+                });
+
+                container.querySelectorAll('.tag-chip').forEach(chip => {
+                    chip.addEventListener('click', function () {
+                        if (this.classList.contains('muted')) return;
+
+                        const tag = this.dataset.tag;
+                        const opposite = this.dataset.opposite;
+                        const isOn = this.classList.contains('on');
+
+                        // 切换当前标签
+                        this.classList.toggle('on');
+
+                        // 处理对立面：如果当前被选中，对立面变灰
+                        const pool = this.closest('.tag-pool');
+                        if (pool) {
+                            const oppEl = pool.querySelector(`.tag-chip[data-tag="${opposite}"]`);
+                            if (oppEl) {
+                                if (this.classList.contains('on')) {
+                                    oppEl.classList.add('muted');
+                                    oppEl.classList.remove('on');
+                                } else {
+                                    oppEl.classList.remove('muted');
+                                }
+                            }
+                        }
+
+                        if (onChange) onChange('tag');
+                    });
+                });
+            }
+
+            function getSelectedTagsFromPanel(container) {
+                const tags = [];
+                container.querySelectorAll('.tag-chip.on').forEach(chip => {
+                    tags.push(chip.dataset.tag);
+                });
+                return tags;
+            }
+
+            function getSelectedVerdictFromPanel(container) {
+                const pill = container.querySelector('.verdict-pill.on');
+                return pill ? parseInt(pill.dataset.verdict) : null;
+            }
+
+            function setupVerdictPanelHandlers(container, gameId, existingComment) {
+                const updateStatus = () => {
+                    const v = getSelectedVerdictFromPanel(container);
+                    const tags = getSelectedTagsFromPanel(container);
+                    const status = container.querySelector('#ratingStatus');
+                    const saveBtn = container.querySelector('#saveRatingBtn');
+                    if (v !== null) {
+                        const info = VERDICT_MAP[v];
+                        const tagCount = tags.length;
+                        let text = `已选择：${info.emoji}${info.label}`;
+                        if (tagCount > 0) text += ` + ${tagCount}个标签`;
+                        if (status) status.textContent = text;
+                        if (saveBtn) saveBtn.disabled = false;
+                    } else {
+                        if (status) status.textContent = '请先选择评价';
+                        if (saveBtn) saveBtn.disabled = true;
+                    }
+                };
+
+                bindTagSelection(container, updateStatus);
+
+                const saveBtn = container.querySelector('#saveRatingBtn');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', function () {
+                        const v = getSelectedVerdictFromPanel(container);
+                        const tags = getSelectedTagsFromPanel(container);
+                        if (v !== null) {
+                            saveReview(Number(gameId), v, tags, existingComment);
+                        }
+                    });
+                }
+
+                updateStatus();
+            }
+
+            // ================================================================
             // 评分与评论
             // ================================================================
 
-            async function saveReview(gameId, rating, comment) {
+            async function saveReview(gameId, verdict, selectedTags, comment) {
                 if (!currentUser) { showToast('请先登录才能评分和评论', 2000); return; }
-                if (rating === null && !comment) {
+                if (verdict === null && !comment) {
                     await deleteReview(gameId);
                     return;
                 }
@@ -12055,26 +12362,33 @@
                 const reviewData = {
                     game_id: Math.round(Number(gameId)),
                     user_id: currentUser.id,
-                    rating: rating,
+                    verdict: verdict,
+                    selected_tags: selectedTags || [],
                     comment: comment || null,
                     play_date: existingReview?.play_date || new Date().toISOString().split('T')[0],
                     play_hours: playHours,
                     display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
                     avatar_url: currentUser.user_metadata?.avatar_url || null
                 };
+                // 保留旧 rating 字段用于回退兼容：若 verdict 有值则折算
+                if (verdict !== null) {
+                    reviewData.rating = verdict * 2;
+                }
                 const existingIdx = userData.reviews.findIndex(r => r.game_id === gameId);
                 const isNewReview = existingIdx < 0;
                 if (existingIdx >= 0) {
                     userData.reviews[existingIdx] = {
                         ...userData.reviews[existingIdx],
-                        rating: rating,
+                        verdict: verdict,
+                        selected_tags: selectedTags || [],
                         comment: comment || null,
                         updated_at: new Date().toISOString()
                     };
                 } else {
                     userData.reviews.push({
                         game_id: Number(gameId),
-                        rating: rating,
+                        verdict: verdict,
+                        selected_tags: selectedTags || [],
                         comment: comment || null,
                         play_date: new Date().toISOString().split('T')[0],
                         play_hours: 0,
@@ -12091,26 +12405,26 @@
                         const reviewUserArea = detailModal.querySelector('.review-user-area');
                         if (reviewUserArea) {
                             const savedReview = userData.reviews.find(r => r.game_id === Number(gameId));
-                            const savedRating = savedReview?.rating ?? null;
+                            const savedVerdict = savedReview?.verdict ?? null;
+                            const savedTags = savedReview?.selected_tags ?? [];
                             const savedComment = savedReview?.comment ?? null;
 
                             let newRatingHtml = '';
-                            if (savedRating !== null) {
+                            if (savedVerdict !== null) {
                                 newRatingHtml = `
-                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-                                        <span style="font-weight:600;">我的评分：</span>
-                                        <span class="star-rating" style="font-size:1.4rem;">${renderStars(savedRating)}</span>
-                                        <span style="font-size:0.9rem;color:var(--text2);">${savedRating}/10</span>
-                                        <button class="btn btn-sm" id="editRatingBtn" style="padding:2px 10px;">修改</button>
+                                    <div style="margin-bottom:6px;">
+                                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                            <span style="font-weight:600;">我的评价：</span>
+                                            ${renderVerdictDisplay(savedVerdict)}
+                                            <button class="btn btn-sm" id="editRatingBtn" style="padding:2px 10px;">修改</button>
+                                        </div>
+                                        ${renderTagsDisplay(savedTags)}
                                     </div>`;
                             } else {
                                 newRatingHtml = `
-                                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-                                        <span style="font-weight:600;">我的评分：</span>
-                                        <span class="star-rating" id="ratingStarsContainer" data-game="${gameId}" style="font-size:1.4rem;cursor:pointer;">
-                                            ${renderStars(null, true, gameId)}
-                                        </span>
-                                        <span style="font-size:0.8rem;color:var(--text3);">（点击星星评分）</span>
+                                    <div id="verdictPanelContainer" data-game="${gameId}" style="margin-bottom:6px;">
+                                        <div style="font-weight:600;margin-bottom:4px;">我的评价：</div>
+                                        ${renderVerdictPanelHTML(null, [])}
                                     </div>`;
                             }
 
@@ -12140,40 +12454,19 @@
                             const editRatingBtn = reviewUserArea.querySelector('#editRatingBtn');
                             if (editRatingBtn) {
                                 editRatingBtn.addEventListener('click', function () {
-                                    saveReview(Number(gameId), null, savedComment);
+                                    const body = this.closest('.review-user-area');
+                                    if (!body) return;
+                                    const container = document.createElement('div');
+                                    container.id = 'verdictPanelContainer';
+                                    container.dataset.game = gameId;
+                                    container.innerHTML = '<div style="font-weight:600;margin-bottom:4px;">修改评价：</div>' + renderVerdictPanelHTML(savedVerdict, savedTags);
+                                    this.closest('div').replaceWith(container);
+                                    setupVerdictPanelHandlers(container, gameId, savedComment);
                                 });
                             }
-                            const newStarsContainer = reviewUserArea.querySelector('#ratingStarsContainer');
-                            if (newStarsContainer) {
-                                const newStars = newStarsContainer.querySelectorAll('.star');
-                                let selR = null;
-                                newStars.forEach(function (star) {
-                                    star.addEventListener('click', function () {
-                                        const val = parseInt(this.dataset.value);
-                                        if (selR === val) {
-                                            selR = null;
-                                            newStars.forEach(function (s) { s.classList.remove('active'); });
-                                            saveReview(Number(gameId), null, savedComment);
-                                        } else {
-                                            selR = val;
-                                            newStars.forEach(function (s) {
-                                                s.classList.toggle('active', parseInt(s.dataset.value) <= val);
-                                            });
-                                            saveReview(Number(gameId), val, savedComment);
-                                        }
-                                    });
-                                    if (!isTouchDevice) {
-                                        star.addEventListener('mouseenter', function () {
-                                            const val = parseInt(this.dataset.value);
-                                            newStars.forEach(function (s) {
-                                                s.classList.toggle('hover', parseInt(s.dataset.value) <= val);
-                                            });
-                                        });
-                                        star.addEventListener('mouseleave', function () {
-                                            newStars.forEach(function (s) { s.classList.remove('hover'); });
-                                        });
-                                    }
-                                });
+                            const verdictContainer = reviewUserArea.querySelector('#verdictPanelContainer');
+                            if (verdictContainer) {
+                                setupVerdictPanelHandlers(verdictContainer, gameId, savedComment);
                             }
                             const newCommentInput = reviewUserArea.querySelector('#commentInput');
                             const newCharCount = reviewUserArea.querySelector('#commentCharCount');
@@ -12187,7 +12480,7 @@
                                 newSubmitBtn.addEventListener('click', function () {
                                     const text = newCommentInput.value.trim();
                                     if (!text) { showToast('评论内容不能为空', 1500); return; }
-                                    saveReview(Number(gameId), savedRating, text);
+                                    saveReview(Number(gameId), savedVerdict, savedTags, text);
                                 });
                                 newCommentInput.addEventListener('keydown', function (e) {
                                     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -12214,7 +12507,7 @@
                                     ea.querySelector('#saveEditBtn').addEventListener('click', function () {
                                         const text = ta.value.trim();
                                         if (!text) { showToast('评论不能为空', 1500); return; }
-                                        saveReview(Number(gameId), savedRating, text);
+                                        saveReview(Number(gameId), savedVerdict, savedTags, text);
                                     });
                                     ta.addEventListener('keydown', function (e) {
                                         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -12239,7 +12532,8 @@
                             const tempReview = {
                                 avatar_url: currentUser.user_metadata?.avatar_url || null,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
-                                rating: rating,
+                                verdict: verdict,
+                                selected_tags: selectedTags || [],
                                 comment: comment,
                                 created_at: new Date().toISOString()
                             };
@@ -12310,7 +12604,7 @@
                     const from = page * REVIEW_PAGE_SIZE;
                     const to = from + REVIEW_PAGE_SIZE - 1;
                     const { data, error } = await supabaseClient.from('user_reviews')
-                        .select('id, game_id, user_id, rating, comment, play_date, play_hours, display_name, avatar_url, created_at, updated_at')
+                        .select('id, game_id, user_id, verdict, selected_tags, rating, comment, play_date, play_hours, display_name, avatar_url, created_at, updated_at')
                         .eq('game_id', Number(gameId))
                         .order('created_at', { ascending: false }).range(from, to);
                     if (error) throw error;
@@ -12326,15 +12620,26 @@
                     return { average: cached.average, count: cached.count };
                 }
                 try {
-                    const { data, error } = await supabaseClient.from('user_reviews').select('rating').eq('game_id', Number(
-                        gameId))
-                        .not('rating', 'is', null);
+                    // 优先基于 verdict 计算，回退到 rating
+                    const { data, error } = await supabaseClient.from('user_reviews').select('verdict, rating').eq('game_id', Number(
+                        gameId));
                     if (error) throw error;
-                    const ratings = data.map(r => r.rating).filter(r => r !== null);
-                    const count = ratings.length;
-                    const average = count > 0 ? (ratings.reduce((a, b) => a + b, 0) / count) : null;
-                    _ratingStatsCache[cacheKey] = { average, count, ts: Date.now() };
-                    return { average, count };
+                    const verdicts = data.map(r => r.verdict).filter(v => v !== null && v !== undefined);
+                    const count = verdicts.length;
+                    let average = null;
+                    if (count > 0) {
+                        average = verdicts.reduce((a, b) => a + b, 0) / count;
+                    } else {
+                        // 回退：使用旧 rating 折算
+                        const ratings = data.map(r => r.rating).filter(r => r !== null);
+                        if (ratings.length > 0) {
+                            const sum = ratings.reduce((a, b) => a + b, 0);
+                            const rawAvg = sum / ratings.length;
+                            average = Math.round(rawAvg / 2 * 10) / 10; // 折算到 1-5 保留1位小数
+                        }
+                    }
+                    _ratingStatsCache[cacheKey] = { average, count: count || (data.length > 0 ? data.filter(r => r.rating !== null).length : 0), ts: Date.now() };
+                    return { average, count: count || (data.length > 0 ? data.filter(r => r.rating !== null).length : 0) };
                 } catch (e) { console.error('❌ 获取评分统计失败:', e); return { average: null, count: 0 }; }
             }
 
@@ -12390,24 +12695,29 @@
                     try {
                         const { data, error } = await supabaseClient
                             .from('user_reviews')
-                            .select('game_id, rating')
-                            .in('game_id', needFetch)
-                            .not('rating', 'is', null);
+                            .select('game_id, verdict, rating')
+                            .in('game_id', needFetch);
                         if (error) throw error;
 
                         const grouped = {};
                         for (const row of (data || [])) {
                             const gid = row.game_id;
-                            if (!grouped[gid]) grouped[gid] = [];
-                            grouped[gid].push(row.rating);
+                            if (!grouped[gid]) grouped[gid] = { verdicts: [], ratings: [] };
+                            if (row.verdict != null) grouped[gid].verdicts.push(row.verdict);
+                            if (row.rating != null) grouped[gid].ratings.push(row.rating);
                         }
 
                         for (const id of needFetch) {
-                            const ratings = grouped[id] || [];
-                            const count = ratings.length;
-                            const average = count > 0
-                                ? ratings.reduce((a, b) => a + b, 0) / count
-                                : null;
+                            const g = grouped[id] || { verdicts: [], ratings: [] };
+                            let count = 0;
+                            let average = null;
+                            if (g.verdicts.length > 0) {
+                                count = g.verdicts.length;
+                                average = g.verdicts.reduce((a, b) => a + b, 0) / count;
+                            } else if (g.ratings.length > 0) {
+                                count = g.ratings.length;
+                                average = Math.round(g.ratings.reduce((a, b) => a + b, 0) / count / 2 * 10) / 10;
+                            }
                             _ratingStatsCache[String(id)] = { average, count, ts: now };
                             result[id] = { average, count };
                         }
@@ -12439,7 +12749,7 @@
                     const cached = _ratingStatsCache[cacheKey];
                     if (cached && (now - cached.ts < 1800000)) {
                         if (cached.count > 0) {
-                            el.textContent = '📝 ' + cached.count + '人评分';
+                            el.textContent = '📝 ' + cached.count + '人评价';
                         }
                         el.dataset.loaded = '1';
                     } else {
@@ -12461,7 +12771,7 @@
                     pending.forEach(({ el, gameId }) => {
                         const stats = batchResult[gameId] || { average: null, count: 0 };
                         if (stats.count > 0) {
-                            el.textContent = '📝 ' + stats.count + '人评分';
+                            el.textContent = '📝 ' + stats.count + '人评价';
                         }
                         el.dataset.loaded = '1';
                     });
@@ -13206,167 +13516,67 @@
             }
 
             function createCardElement(game) {
-                const card = document.createElement('div');
-                card.className = 'gallery-card';
-                card.dataset.gameId = game.id;
-
                 const inWish = isInWishlist(game.id);
                 const inPlay = isPlayed(game.id);
 
-                const parallax = document.createElement('div');
-                parallax.className = 'card-parallax-bg';
-                card.appendChild(parallax);
-
-                const wrap = document.createElement('div');
-                wrap.className = 'card-cover-wrap';
-                if (game.cover) {
-                    const img = document.createElement('img');
-                    img.className = 'card-cover';
-                    img.src = game.cover;
-                    img.alt = (game.title || '游戏') + ' 封面图';
-                    img.loading = 'lazy';
-                    img.decoding = 'async';
-                    wrap.appendChild(img);
-                    const ph = document.createElement('div');
-                    ph.className = 'card-cover-placeholder';
-                    ph.textContent = '🎮';
-                    wrap.appendChild(ph);
-                } else {
-                    const ph = document.createElement('div');
-                    ph.className = 'card-cover-placeholder';
-                    ph.style.position = 'relative';
-                    ph.style.zIndex = '2';
-                    ph.textContent = '🎮';
-                    wrap.appendChild(ph);
-                }
-
-                if (game.heroineType) {
-                    const tag = document.createElement('div');
-                    tag.className = 'card-heroine-tag';
-                    tag.textContent = game.heroineType;
-                    wrap.appendChild(tag);
-                }
-
-                card.appendChild(wrap);
-
-                const body = document.createElement('div');
-                body.className = 'card-body';
-
-                const title = document.createElement('div');
-                title.className = 'card-title';
-                title.textContent = game.title || '';
-                body.appendChild(title);
-
-                const desc = document.createElement('div');
-                desc.className = 'card-desc';
-                desc.textContent = game.description || '';
-                body.appendChild(desc);
-
-                const meta = document.createElement('div');
-                meta.className = 'card-meta';
-
-                if (game.hasChinese === '有中文') {
-                    const sp = document.createElement('span');
-                    sp.className = 'accent-tag';
-                    sp.textContent = '中文';
-                    meta.appendChild(sp);
-                } else if (game.hasChinese === '无中文') {
-                    const sp = document.createElement('span');
-                    sp.className = 'tag-muted';
-                    sp.textContent = '无中文';
-                    meta.appendChild(sp);
-                }
-
+                const metaParts = [];
+                if (game.hasChinese === '有中文') metaParts.push('<span class="accent-tag">中文</span>');
+                else if (game.hasChinese === '无中文') metaParts.push('<span class="tag-muted">无中文</span>');
+                const metaGenres = (game.genre || []).slice(0, 3);
+                const metaGameplays = (game.gameplay || []).slice(0, 2);
                 if (game.isReleased) {
-                    const genre = (game.genre || []).slice(0, 3);
-                    const gameplay = (game.gameplay || []).slice(0, 2);
-                    genre.forEach(t => {
-                        const sp = document.createElement('span');
-                        sp.textContent = t;
-                        meta.appendChild(sp);
-                    });
-                    gameplay.forEach(t => {
-                        const sp = document.createElement('span');
-                        sp.textContent = t;
-                        meta.appendChild(sp);
-                    });
+                    metaGenres.forEach(t => metaParts.push('<span>' + escapeHTML(t) + '</span>'));
+                    metaGameplays.forEach(t => metaParts.push('<span>' + escapeHTML(t) + '</span>'));
                 } else {
-                    if (game.hasDemo) {
-                        const sp = document.createElement('span');
-                        sp.className = 'accent-tag';
-                        sp.textContent = '有Demo';
-                        meta.appendChild(sp);
-                    }
-                    const genre = (game.genre || []).slice(0, 3);
-                    genre.forEach(t => {
-                        const sp = document.createElement('span');
-                        sp.textContent = t;
-                        meta.appendChild(sp);
-                    });
-                    const gameplay = (game.gameplay || []).slice(0, 2);
-                    gameplay.forEach(t => {
-                        const sp = document.createElement('span');
-                        sp.textContent = t;
-                        meta.appendChild(sp);
-                    });
+                    if (game.hasDemo) metaParts.push('<span class="accent-tag">有Demo</span>');
+                    metaGenres.forEach(t => metaParts.push('<span>' + escapeHTML(t) + '</span>'));
+                    metaGameplays.forEach(t => metaParts.push('<span>' + escapeHTML(t) + '</span>'));
                 }
-                if (game.releaseDate) {
-                    const sp = document.createElement('span');
-                    sp.textContent = game.releaseDate;
-                    meta.appendChild(sp);
-                }
-                const ratingCount = document.createElement('div');
-                ratingCount.className = 'card-rating-count';
-                ratingCount.dataset.gameId = game.id;
-                meta.appendChild(ratingCount);
-                body.appendChild(meta);
-                card.appendChild(body);
+                if (game.releaseDate) metaParts.push('<span>' + escapeHTML(game.releaseDate) + '</span>');
 
-                const ua = document.createElement('div');
-                ua.className = 'card-user-actions';
+                const coverImg = game.cover
+                    ? `<img class="card-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)} 封面图" loading="lazy" decoding="async" onload="this.classList.add('loaded');const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.add('hidden');" onerror="const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.remove('hidden');" /><div class="card-cover-placeholder">🎮</div>`
+                    : '<div class="card-cover-placeholder" style="position:relative;z-index:2;">🎮</div>';
 
-                const wishBtn = document.createElement('button');
-                wishBtn.className = `action-btn action-wish ${inWish ? 'active-wish' : ''}`;
-                wishBtn.dataset.gameId = game.id;
-                wishBtn.innerHTML = `<span class="icon">${inWish ? '❤️' : '🤍'}</span> ${inWish ? '已加入' : '加入愿望单'}`;
-                ua.appendChild(wishBtn);
+                const heroineTag = game.heroineType ? `<div class="card-heroine-tag">${escapeHTML(game.heroineType)}</div>` : '';
 
-                if (game.isReleased) {
-                    const playBtn = document.createElement('button');
-                    playBtn.className = `action-btn action-play ${inPlay ? 'active-played' : ''}`;
-                    playBtn.dataset.gameId = game.id;
-                    playBtn.innerHTML = `<span class="icon">${inPlay ? '✅' : '⬜'}</span> ${inPlay ? '已玩过' : '标记玩过'}`;
-                    ua.appendChild(playBtn);
-                }
+                const adminBtns = (isAdmin && isAdminMode)
+                    ? `<div class="card-admin-actions"><button class="btn-edit-card" data-game-id="${game.id}">✏️ 编辑</button><button class="btn-del-card" data-game-id="${game.id}">🗑 删除</button></div>`
+                    : '';
 
-                card.appendChild(ua);
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `
+                    <div class="gallery-card" data-game-id="${game.id}">
+                        <div class="card-parallax-bg"></div>
+                        <div class="card-cover-wrap">
+                            ${coverImg}
+                            ${heroineTag}
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">${escapeHTML(game.title || '')}</div>
+                            <div class="card-desc">${escapeHTML(game.description || '')}</div>
+                            <div class="card-meta">${metaParts.join('')}<div class="card-rating-count" data-game-id="${game.id}"></div></div>
+                        </div>
+                        <div class="card-user-actions">
+                            <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}"><span class="icon">${inWish ? '❤️' : '🤍'}</span> ${inWish ? '已加入' : '加入愿望单'}</button>
+                            ${game.isReleased ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}"><span class="icon">${inPlay ? '✅' : '⬜'}</span> ${inPlay ? '已玩过' : '标记玩过'}</button>` : ''}
+                        </div>
+                        ${adminBtns}
+                    </div>`;
+                const card = wrapper.firstElementChild;
 
-                // ===== 修复：编辑/删除按钮的显示条件 =====
                 if (isAdmin && isAdminMode) {
-                    const admin = document.createElement('div');
-                    admin.className = 'card-admin-actions';
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'btn-edit-card';
-                    editBtn.dataset.gameId = game.id;
-                    editBtn.textContent = '✏️ 编辑';
-                    editBtn.addEventListener('click', function (e) {
+                    card.querySelector('.btn-edit-card')?.addEventListener('click', function (e) {
                         e.stopPropagation();
                         const g = games.find(g => g.id === Number(this.dataset.gameId));
                         if (g) showEditModal(g);
                     });
-                    admin.appendChild(editBtn);
-                    const delBtn = document.createElement('button');
-                    delBtn.className = 'btn-del-card';
-                    delBtn.dataset.gameId = game.id;
-                    delBtn.textContent = '🗑 删除';
-                    delBtn.addEventListener('click', async function (e) {
+                    card.querySelector('.btn-del-card')?.addEventListener('click', async function (e) {
                         e.stopPropagation();
                         const id = Number(this.dataset.gameId);
                         if (!confirm('确定删除这款游戏吗？此操作不可恢复。')) return;
                         await deleteGame(id);
                     });
-                    admin.appendChild(delBtn);
-                    card.appendChild(admin);
                 }
 
                 return card;
@@ -13953,15 +14163,14 @@
 
                         const metaLine = document.createElement('div');
                         metaLine.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:2px;';
-                        if (reviewer.rating) {
-                            const starsSpan = document.createElement('span');
-                            starsSpan.style.cssText = 'font-size:0.75rem;color:#f5a623;letter-spacing:1px;';
-                            starsSpan.textContent = '★'.repeat(reviewer.rating) + '☆'.repeat(10 - reviewer.rating);
-                            metaLine.appendChild(starsSpan);
-                            const ratingNum = document.createElement('span');
-                            ratingNum.style.cssText = 'font-size:0.7rem;color:#665c72;';
-                            ratingNum.textContent = reviewer.rating + '/10';
-                            metaLine.appendChild(ratingNum);
+                        if (reviewer.verdict) {
+                            const vInfo = getVerdictInfo(reviewer.verdict);
+                            if (vInfo) {
+                                const verdictSpan = document.createElement('span');
+                                verdictSpan.style.cssText = 'font-size:0.8rem;font-weight:600;color:' + vInfo.color + ';';
+                                verdictSpan.textContent = vInfo.emoji + ' ' + vInfo.label;
+                                metaLine.appendChild(verdictSpan);
+                            }
                         }
                         if (reviewer.createdAt) {
                             const dateSpan = document.createElement('span');
@@ -14082,8 +14291,7 @@
                 if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
                     const ratingRow = document.createElement('div');
                     ratingRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;';
-                    const starsText = '★'.repeat(Math.round(ratingInfo.average / 2)) + '☆'.repeat(5 - Math.round(ratingInfo.average / 2));
-                    ratingRow.innerHTML = '<span style="font-size:0.9rem;color:#f5a623;">' + starsText + '</span><span style="font-size:0.75rem;color:#665c72;">' + ratingInfo.average.toFixed(1) + '/10（' + ratingInfo.count + '人评分）</span>';
+                    ratingRow.innerHTML = '<span style="font-size:0.9rem;color:#f5a623;">⭐</span><span style="font-size:0.75rem;color:#665c72;">' + ratingInfo.average.toFixed(1) + '/5（' + ratingInfo.count + '人评价）</span>';
                     body.appendChild(ratingRow);
                 }
 
@@ -14387,19 +14595,9 @@
                     '';
 
                 const userReview = userData.reviews.find(r => r.game_id === game.id);
-                const userRating = userReview?.rating ?? null;
+                const userVerdict = userReview?.verdict ?? null;
+                const userTags = userReview?.selected_tags ?? [];
                 const userComment = userReview?.comment ?? null;
-
-                function renderStars(rating, interactive = false, gameId = null) {
-                    let html = '';
-                    for (let i = 1; i <= 10; i++) {
-                        const isActive = rating !== null && rating >= i;
-                        const cls = isActive ? 'star active' : 'star';
-                        const dataAttr = interactive ? `data-value="${i}" data-game="${gameId}"` : '';
-                        html += `<span class="${cls}" ${dataAttr}>${isActive ? '★' : '☆'}</span>`;
-                    }
-                    return html;
-                }
 
                 let reviewHTML = '';
                 let userAreaHTML = '';
@@ -14407,23 +14605,22 @@
                     userAreaHTML = `<div class="review-login-prompt">🔑 登录后即可评分和评论</div>`;
                 } else {
                     let userRatingHtml = '';
-                    if (userRating !== null) {
+                    if (userVerdict !== null) {
                         userRatingHtml = `
-                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-                                    <span style="font-weight:600;">我的评分：</span>
-                                    <span class="star-rating" style="font-size:1.4rem;">${renderStars(userRating)}</span>
-                                    <span style="font-size:0.9rem;color:var(--text2);">${userRating}/10</span>
-                                    <button class="btn btn-sm" id="editRatingBtn" style="padding:2px 10px;">修改</button>
+                                <div style="margin-bottom:6px;">
+                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                        <span style="font-weight:600;">我的评价：</span>
+                                        ${renderVerdictDisplay(userVerdict)}
+                                        <button class="btn btn-sm" id="editRatingBtn" style="padding:2px 10px;">修改</button>
+                                    </div>
+                                    ${renderTagsDisplay(userTags)}
                                 </div>
                             `;
                     } else {
                         userRatingHtml = `
-                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-                                    <span style="font-weight:600;">我的评分：</span>
-                                    <span class="star-rating" id="ratingStarsContainer" data-game="${game.id}" style="font-size:1.4rem;cursor:pointer;">
-                                        ${renderStars(null, true, game.id)}
-                                    </span>
-                                    <span style="font-size:0.8rem;color:var(--text3);">（点击星星评分）</span>
+                                <div id="verdictPanelContainer" data-game="${game.id}" style="margin-bottom:6px;">
+                                    <div style="font-weight:600;margin-bottom:4px;">我的评价：</div>
+                                    ${renderVerdictPanelHTML(null, [])}
                                 </div>
                             `;
                     }
@@ -14624,37 +14821,9 @@
                 }
 
                 if (currentUser) {
-                    const starsContainer = modal.querySelector('#ratingStarsContainer');
-                    let selectedRating = null;
-                    if (starsContainer) {
-                        const stars = starsContainer.querySelectorAll('.star');
-                        stars.forEach(star => {
-                            star.addEventListener('click', function () {
-                                const val = parseInt(this.dataset.value);
-                                if (selectedRating === val) {
-                                    selectedRating = null;
-                                    stars.forEach(s => s.classList.remove('active'));
-                                } else {
-                                    selectedRating = val;
-                                    stars.forEach(s => {
-                                        const sv = parseInt(s.dataset.value);
-                                        s.classList.toggle('active', sv <= val);
-                                    });
-                                }
-                            });
-                            if (!isTouchDevice) {
-                                star.addEventListener('mouseenter', function () {
-                                    const val = parseInt(this.dataset.value);
-                                    stars.forEach(s => {
-                                        const sv = parseInt(s.dataset.value);
-                                        s.classList.toggle('hover', sv <= val);
-                                    });
-                                });
-                                star.addEventListener('mouseleave', function () {
-                                    stars.forEach(s => s.classList.remove('hover'));
-                                });
-                            }
-                        });
+                    const verdictContainer = modal.querySelector('#verdictPanelContainer');
+                    if (verdictContainer) {
+                        setupVerdictPanelHandlers(verdictContainer, game.id, userComment);
                     }
 
                     const editRatingBtn = modal.querySelector('#editRatingBtn');
@@ -14662,11 +14831,12 @@
                         editRatingBtn.addEventListener('click', function () {
                             const reviewArea = this.closest('.review-user-area');
                             if (!reviewArea) return;
-                            const starsContainer = reviewArea.querySelector('#ratingStarsContainer');
-                            const commentInput = reviewArea.querySelector('#commentInput');
-                            if (starsContainer) starsContainer.style.display = '';
-                            if (commentInput) { commentInput.focus(); }
-                            this.style.display = 'none';
+                            const container = document.createElement('div');
+                            container.id = 'verdictPanelContainer';
+                            container.dataset.game = game.id;
+                            container.innerHTML = '<div style="font-weight:600;margin-bottom:4px;">修改评价：</div>' + renderVerdictPanelHTML(userVerdict, userTags);
+                            this.closest('div').replaceWith(container);
+                            setupVerdictPanelHandlers(container, game.id, userComment);
                         });
                     }
 
@@ -14682,12 +14852,11 @@
                     if (submitBtn) {
                         submitBtn.addEventListener('click', function () {
                             const text = commentInput ? commentInput.value.trim() : '';
-                            const finalRating = selectedRating !== null ? selectedRating : userRating;
-                            if (finalRating === null && !text) {
-                                showToast('请至少选择评分或填写评论', 1500);
+                            if (!text) {
+                                showToast('请填写评论内容', 1500);
                                 return;
                             }
-                            saveReview(game.id, finalRating, text || null);
+                            saveReview(game.id, userVerdict, userTags, text || null);
                         });
                         if (commentInput) {
                             commentInput.addEventListener('keydown', function (e) {
@@ -14722,7 +14891,7 @@
                             editArea.querySelector('#saveEditBtn').addEventListener('click', function () {
                                 const text = ta.value.trim();
                                 if (!text) { showToast('评论不能为空', 1500); return; }
-                                saveReview(game.id, userRating, text);
+                                saveReview(game.id, userVerdict, userTags, text);
                             });
                             ta.addEventListener('keydown', function (e) {
                                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -14840,14 +15009,15 @@
                 const avatar = r.avatar_url ?
                     `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
                     `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
-                const stars = r.rating ? `<span class="comment-stars">${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}</span>` : '';
+                const verdictDisplay = r.verdict ? renderVerdictDisplay(r.verdict) : '';
+                const tagsDisplay = r.selected_tags && r.selected_tags.length > 0 ? renderTagsDisplay(r.selected_tags) : '';
                 const time = r.created_at ? new Date(r.created_at).toLocaleDateString('zh-CN', {
                     year: 'numeric', month: 'long', day: 'numeric'
                 }) : '';
                 const commentText = r.comment || '';
                 const reviewId = `${gameId}_${r.user_id}`;
                 const shareBtnHtml =
-                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-rating="${r.rating || ''}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
+                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-verdict="${r.verdict || ''}" data-tags="${escapeHTML(r.selected_tags ? r.selected_tags.join(',') : '')}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 const replyBtnHtml = `<button class="comment-reply-btn" data-review-id="${reviewId}">💬 回复</button>`;
 
                 // 获取回复树
@@ -14863,7 +15033,8 @@
                         <div class="comment-header">
                             ${avatar}
                             <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
-                            ${stars}
+                            ${verdictDisplay}
+                            ${tagsDisplay}
                             <span class="comment-time">${time}</span>
                         </div>
                         ${commentText ? `<div class="comment-text">${stripCommentHTML(commentText)}</div>` : ''}
@@ -14891,11 +15062,13 @@
                         if (!gameIdNum || !comment) return;
                         const game = games.find(g => g.id === gameIdNum);
                         if (!game) { showToast('未找到游戏信息', 1500); return; }
+                        const tagsStr = this.dataset.tags || '';
                         const reviewData = {
                             comment: comment,
                             displayName: this.dataset.username || '用户',
                             avatarUrl: this.dataset.avatar || '',
-                            rating: this.dataset.rating ? Number(this.dataset.rating) : 0,
+                            verdict: this.dataset.verdict ? Number(this.dataset.verdict) : 0,
+                            selected_tags: tagsStr ? tagsStr.split(',') : [],
                             createdAt: this.dataset.date || ''
                         };
                         buildShareFloat(game, reviewData);
@@ -15037,9 +15210,9 @@
                 ]);
 
                 if (stats.average !== null) {
-                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 10 （共 <strong>${stats.count}</strong> 人评分）`;
+                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 5 （共 <strong>${stats.count}</strong> 人评价）`;
                 } else {
-                    statsDisplay.textContent = '暂无评分';
+                    statsDisplay.textContent = '暂无评价';
                 }
 
                 if (reviews.length === 0) {
@@ -15223,43 +15396,32 @@
                     block.style.display = 'none';
                     return;
                 }
-                // 评分分布：10星(10) / 9星(9) / 8星(8) / 7星(7) / 6星(6) / 5星(5) / 4星(4) / 3星(3) / 2星(2) / 1星(1)
-                let s10 = 0, s9 = 0, s8 = 0, s7 = 0, s6 = 0, s5 = 0, s4 = 0, s3 = 0, s2 = 0, s1 = 0, totalHours = 0;
+                // 表态分布：5大力推荐 / 4颇具亮点 / 3中规中矩 / 2谨慎选择 / 1强烈避雷
+                let s5 = 0, s4 = 0, s3 = 0, s2 = 0, s1 = 0, totalHours = 0;
                 reviews.forEach(r => {
-                    const rating = Math.round(r.rating) || 0;
-                    if (rating === 10) s10++;
-                    else if (rating === 9) s9++;
-                    else if (rating === 8) s8++;
-                    else if (rating === 7) s7++;
-                    else if (rating === 6) s6++;
-                    else if (rating === 5) s5++;
-                    else if (rating === 4) s4++;
-                    else if (rating === 3) s3++;
-                    else if (rating === 2) s2++;
+                    const v = r.verdict || Math.round((r.rating || 0) / 2);
+                    if (v >= 5) s5++;
+                    else if (v >= 4) s4++;
+                    else if (v >= 3) s3++;
+                    else if (v >= 2) s2++;
                     else s1++;
                     totalHours += parseFloat(r.play_hours) || 0;
                 });
                 const total = reviews.length;
-                const p10 = s10 / total * 100;
-                const p9 = p10 + s9 / total * 100;
-                const p8 = p9 + s8 / total * 100;
-                const p7 = p8 + s7 / total * 100;
-                const p6 = p7 + s6 / total * 100;
-                const p5 = p6 + s5 / total * 100;
-                const p4 = p5 + s4 / total * 100;
-                const p3 = p4 + s3 / total * 100;
-                const p2 = p3 + s2 / total * 100;
+                const p5_ = s5 / total * 100;
+                const p4_ = p5_ + s4 / total * 100;
+                const p3_ = p4_ + s3 / total * 100;
+                const p2_ = p3_ + s2 / total * 100;
 
                 block.style.display = 'flex';
                 block.innerHTML = `
                     <div class="diary-stats-chart">
                         <div class="diary-pie" style="background: conic-gradient(
-                            #e74c3c 0% ${p10}%,
-                            #f5b342 ${p10}% ${p9}%,
-                            #f39c12 ${p9}% ${p8}%,
-                            #27ae60 ${p8}% ${p7}%,
-                            #2ecc71 ${p7}% ${p6}%,
-                            #3498db ${p6}% ${p5}%,
+                            #e74c3c 0% ${p5_}%,
+                            #e67e22 ${p5_}% ${p4_}%,
+                            #f1c40f ${p4_}% ${p3_}%,
+                            #2ecc71 ${p3_}% ${p2_}%,
+                            #1a8a1a ${p2_}% 100%
                             #9b59b6 ${p5}% ${p4}%,
                             #9b8abd ${p4}% ${p3}%,
                             #b5a9cf ${p3}% ${p2}%,
@@ -15271,16 +15433,11 @@
                             </div>
                         </div>
                         <div class="diary-pie-legend">
-                            <div class="lg-item"><span class="lg-dot" style="background:#e74c3c"></span>10星<span class="lg-count">${s10}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#f5b342"></span>9星<span class="lg-count">${s9}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#f39c12"></span>8星<span class="lg-count">${s8}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#27ae60"></span>7星<span class="lg-count">${s7}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#2ecc71"></span>6星<span class="lg-count">${s6}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#3498db"></span>5星<span class="lg-count">${s5}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#9b59b6"></span>4星<span class="lg-count">${s4}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#9b8abd"></span>3星<span class="lg-count">${s3}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#b5a9cf"></span>2星<span class="lg-count">${s2}</span></div>
-                            <div class="lg-item"><span class="lg-dot" style="background:#e2dae8"></span>1星<span class="lg-count">${s1}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#e74c3c"></span>🔥大力推荐<span class="lg-count">${s5}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#e67e22"></span>✨颇具亮点<span class="lg-count">${s4}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#f1c40f"></span>⭐中规中矩<span class="lg-count">${s3}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#2ecc71"></span>⚡谨慎选择<span class="lg-count">${s2}</span></div>
+                            <div class="lg-item"><span class="lg-dot" style="background:#1a8a1a"></span>⚠️强烈避雷<span class="lg-count">${s1}</span></div>
                         </div>
                     </div>
                     ${totalHours > 0 ? `
@@ -15379,9 +15536,11 @@
 
             // 构建右页内容 HTML
             function buildDiaryRightPageHTML(r, game) {
-                const starsHtml = r.rating ?
-                    `${'★'.repeat(r.rating)}${'☆'.repeat(10 - r.rating)}` :
-                    '未评分';
+                const verdictInfo = getVerdictInfo(r.verdict);
+                const verdictHtml = verdictInfo ?
+                    `<span style="font-weight:600;font-size:1.1rem;color:${verdictInfo.color}">${verdictInfo.emoji} ${verdictInfo.label}</span>` :
+                    '<span style="color:var(--text3);font-size:0.9rem;">未评分</span>';
+                const tagsHtml = renderTagsDisplay(r.selected_tags);
                 const timeStr = r.created_at ?
                     new Date(r.created_at).toLocaleDateString('zh-CN', {
                         year: 'numeric', month: 'short', day: 'numeric',
@@ -15401,9 +15560,9 @@
                     </div>
                     <div class="review-section">
                         <div class="review-rating">
-                            <span class="rating-label">⭐ 我的评分</span>
-                            <span class="rating-stars">${starsHtml}</span>
-                            <span class="rating-score">${r.rating ? r.rating + '/10' : '未评分'}</span>
+                            <span class="rating-label" style="font-weight:600;">我的表态</span>
+                            <div style="margin-top:2px;">${verdictHtml}</div>
+                            ${tagsHtml ? `<div style="margin-top:6px;"><span class="rating-label" style="font-weight:600;">我的标签</span>${tagsHtml}</div>` : ''}
                         </div>
                         <div class="review-meta">
                             <div class="meta-item">
@@ -15671,7 +15830,9 @@
                             const db = b.play_date || b.created_at || '';
                             return db.localeCompare(da);
                         } else if (sortBy === 'rating') {
-                            return (b.rating || 0) - (a.rating || 0);
+                            const aVal = (a.verdict != null ? a.verdict : (a.rating ? Math.round(a.rating / 2) : 0));
+                            const bVal = (b.verdict != null ? b.verdict : (b.rating ? Math.round(b.rating / 2) : 0));
+                            return bVal - aVal;
                         } else {
                             const da = a.created_at || '';
                             const db = b.created_at || '';
@@ -15790,7 +15951,9 @@
                 rail.innerHTML = diarySortedReviews.map((r, i) => {
                     const game = games.find(g => g.id === Number(r.game_id));
                     const title = game ? game.title : `游戏 #${r.game_id}`;
-                    const rating = r.rating || 0;
+                    const verdictVal = r.verdict || Math.round((r.rating || 0) / 2);
+                    const vInfo = getVerdictInfo(verdictVal);
+                    const verdictIcon = vInfo ? vInfo.emoji + vInfo.label : '未评分';
                     const date = (r.play_date || '').slice(5);
                     const gid = Number(r.game_id);
 
@@ -15799,9 +15962,9 @@
                             <span class="ribbon-drag-handle" title="拖拽排序">⋮⋮</span>
                             <div class="ribbon-label">
                                 <span class="ribbon-name">${escapeHTML(title)}</span>
-                                <span class="ribbon-sub">★${rating}　📅 ${date}</span>
+                                <span class="ribbon-sub">${verdictIcon}　📅 ${date}</span>
                             </div>
-                            <div class="ribbon-tip">${escapeHTML(title)} <strong>★${rating}/10</strong> · 📅 ${r.play_date || ''}</div>
+                            <div class="ribbon-tip">${escapeHTML(title)} <strong>${verdictIcon}</strong> · 📅 ${r.play_date || ''}</div>
                         </div>
                     `;
                 }).join('');
@@ -15891,7 +16054,9 @@
                 const items = diarySortedReviews.map((r, i) => {
                     const game = games.find(g => g.id === Number(r.game_id));
                     const title = game ? game.title : `游戏 #${r.game_id}`;
-                    return { r, i, title, rating: r.rating || 0, game };
+                    const verdictVal = r.verdict || Math.round((r.rating || 0) / 2);
+                    const vInfo = getVerdictInfo(verdictVal);
+                    return { r, i, title, rating: r.rating || 0, verdictIcon: vInfo ? vInfo.emoji : '', game };
                 }).filter(({ title }) => {
                     if (f && !title.toLowerCase().includes(f)) return false;
                     return true;
@@ -15901,11 +16066,11 @@
                     list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:0.8rem;">无匹配结果</div>';
                     return;
                 }
-                list.innerHTML = items.map(({ title, rating, i }) => `
+                list.innerHTML = items.map(({ title, verdictIcon, i }) => `
                     <div class="diary-mobile-item ${i === diaryCurrentPage ? 'active' : ''}" data-page="${i}">
                         <div class="diary-mobile-idx">${i + 1}</div>
                         <div class="diary-mobile-item-name">${escapeHTML(title)}</div>
-                        <div class="diary-mobile-item-score">★${rating}</div>
+                        <div class="diary-mobile-item-score">${verdictIcon}</div>
                     </div>
                 `).join('');
                 list.querySelectorAll('.diary-mobile-item').forEach(it => {
@@ -20793,7 +20958,7 @@
                     const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
                         supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
                         supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_reviews').select('game_id, rating, comment, play_date, play_hours, created_at, updated_at').eq(
+                        supabaseClient.from('user_reviews').select('game_id, verdict, selected_tags, rating, comment, play_date, play_hours, created_at, updated_at').eq(
                             'user_id', userId)
                     ]);
 
@@ -20805,6 +20970,8 @@
                     const cloudPlayed = playedRes.data.map(item => Math.round(Number(item.game_id)));
                     const cloudReviews = reviewsRes.data.map(item => ({
                         game_id: Math.round(Number(item.game_id)),
+                        verdict: item.verdict,
+                        selected_tags: item.selected_tags || [],
                         rating: item.rating,
                         comment: item.comment,
                         play_date: item.play_date,
@@ -20849,7 +21016,8 @@
                             toUploadReviews.push({
                                 user_id: userId,
                                 game_id: Math.round(Number(gameId)),
-                                rating: local.rating || null,
+                                verdict: local.verdict || null,
+                                selected_tags: local.selected_tags || [],
                                 comment: local.comment || null,
                                 play_date: local.play_date || null,
                                 play_hours: local.play_hours || 0,
@@ -20860,7 +21028,8 @@
                             toUploadReviews.push({
                                 user_id: userId,
                                 game_id: Math.round(Number(gameId)),
-                                rating: local.rating || null,
+                                verdict: local.verdict || null,
+                                selected_tags: local.selected_tags || [],
                                 comment: local.comment || null,
                                 play_date: local.play_date || null,
                                 play_hours: local.play_hours || 0,
