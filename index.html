@@ -12811,6 +12811,8 @@
             // ================================================================
             const STORAGE_KEY = 'heroineGamesDataV2';
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
+            const SYNC_META_KEY = 'heroineGamesSyncMetaV2';
+            const SYNC_TTL = 5 * 60 * 1000;
 
             function getSupabase() {
                 if (!supabaseClient || !SUPABASE_ENABLED) return null;
@@ -12892,8 +12894,14 @@
                     } catch (_) { games = []; }
                 }
 
-                // 2. 从云端刷新数据（后台静默更新）
+                // 2. 从云端刷新数据（后台静默更新），仅当缓存过期时执行
                 if (SUPABASE_ENABLED && supabaseClient) {
+                    let shouldSync = true;
+                    try {
+                        const lastSync = Number(localStorage.getItem(SYNC_META_KEY) || 0);
+                        if (lastSync > 0 && (Date.now() - lastSync) < SYNC_TTL) shouldSync = false;
+                    } catch (_) {}
+                    if (!shouldSync) return games;
                     try {
                         const freshData = await loadFromSupabase();
                         if (freshData && freshData.length > 0) {
@@ -12901,6 +12909,7 @@
                             // 更新本地缓存
                             try {
                                 localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+                                localStorage.setItem(SYNC_META_KEY, String(Date.now()));
                             } catch (_) {}
                             if (currentView === 'series') renderSeriesView(); else renderGallery(); // 用新数据重新渲染
                         }
@@ -14528,19 +14537,31 @@
             // ★ 详情页
             // ================================================================
 
+            function buildDetailScreenshotsHTML(game) {
+                const shots = game.screenshots || [];
+                if (shots.length === 0) return '<div style="color:var(--text3);font-size:0.85rem;padding:8px 0;">暂无截图</div>';
+                return shots.map((url, idx) => {
+                    const isVideo = /\.(mp4|webm|mov|avi)(\?|$)/i.test(url);
+                    const isGif = !isVideo && /\.gif(\?|$)/i.test(url);
+                    if (isVideo) {
+                        return `<div class="screenshot-wrap video-wrap"><video src="${escapeHTML(url)}" autoplay loop muted playsinline onclick="this.paused?this.play():this.pause()" /></div>`;
+                    }
+                    const wrapClass = 'screenshot-wrap' + (isGif ? ' gif-img' : '');
+                    const badge = isGif ? '<span class="gif-badge">GIF</span>' : '';
+                    const loadingAttr = isGif ? '' : 'loading="lazy"';
+                    return `<div class="${wrapClass}"><img ${loadingAttr} src="${escapeHTML(url)}" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />${badge}</div>`;
+                }).join('');
+            }
+
+            function buildDetailVideosHTML(videos) {
+                if (!videos || videos.length === 0) return '';
+                return `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${videos.map(url => `<a class="detail-video-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">▶️ ${extractVideoTitle(url)}</a>`).join('')}</div>`;
+            }
+
             async function showDetailModal(game, options) {
                 if (!game) return;
                 const from = options && options.from ? options.from : 'gallery';
                 window._detailFrom = from;
-
-                if (!game.fullDescription) {
-                    const detail = await loadGameDetailFromSupabase(game.id);
-                    if (detail) {
-                        if (detail.fullDescription) game.fullDescription = detail.fullDescription;
-                        if (!game.screenshots || game.screenshots.length === 0) game.screenshots = detail.screenshots || [];
-                        if (!game.videos || game.videos.length === 0) game.videos = detail.videos || [];
-                    }
-                }
 
                 const overlay = document.getElementById('detailModalOverlay');
                 const modal = document.getElementById('detailModal');
@@ -14582,32 +14603,13 @@
                 }
 
                 const screenshotCount = (game.screenshots || []).length;
-                let screenshotsHTML = '';
-                if (screenshotCount > 0) {
-                    screenshotsHTML = game.screenshots.map((url, idx) => {
-                        const isVideo = /\.(mp4|webm|mov|avi)(\?|$)/i.test(url);
-                        const isGif = !isVideo && /\.gif(\?|$)/i.test(url);
-                        if (isVideo) {
-                            return `<div class="screenshot-wrap video-wrap"><video src="${escapeHTML(url)}" autoplay loop muted playsinline onclick="this.paused?this.play():this.pause()" /></div>`;
-                        }
-                        const wrapClass = 'screenshot-wrap' + (isGif ? ' gif-img' : '');
-                        const badge = isGif ? '<span class="gif-badge">GIF</span>' : '';
-                        const loadingAttr = isGif ? '' : 'loading="lazy"'; // GIF不使用lazy加载，避免浏览器懒加载占位符干扰动画播放
-                        return `<div class="${wrapClass}"><img ${loadingAttr} src="${escapeHTML(url)}" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />${badge}</div>`;
-                    }).join('');
-                } else {
-                    screenshotsHTML = `<div style="color:var(--text3);font-size:0.85rem;padding:8px 0;">暂无截图</div>`;
-                }
+                let screenshotsHTML = buildDetailScreenshotsHTML(game);
                 let screenshotsGridClass = 'detail-screenshots-grid';
                 if (screenshotCount === 2) {
                     screenshotsGridClass += ' screenshots-2';
                 }
 
-                let videosHTML = '';
-                if (game.videos && game.videos.length > 0) {
-                    videosHTML =
-                        `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${game.videos.map(url => `<a class="detail-video-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">▶️ ${extractVideoTitle(url)}</a>`).join('')}</div>`;
-                }
+                let videosHTML = buildDetailVideosHTML(game.videos);
 
                 const links = [];
                 if (game.steamLink) links.push(
@@ -14944,6 +14946,39 @@
 
                 loadCommunityReviews(game.id);
                 loadDetailRelatedMods(game);
+
+                // 后台补齐详细简介/截图/视频，不阻塞弹窗打开
+                if (!game.fullDescription || !game.videos || game.videos.length === 0) {
+                    loadGameDetailFromSupabase(game.id).then(detail => {
+                        if (!detail) return;
+                        let changed = false;
+                        if (detail.fullDescription && !game.fullDescription) {
+                            game.fullDescription = detail.fullDescription;
+                            changed = true;
+                        }
+                        if (detail.screenshots && detail.screenshots.length > 0 && (!game.screenshots || game.screenshots.length === 0)) {
+                            game.screenshots = detail.screenshots;
+                            changed = true;
+                        }
+                        if (detail.videos && detail.videos.length > 0 && (!game.videos || game.videos.length === 0)) {
+                            game.videos = detail.videos;
+                            changed = true;
+                        }
+                        if (!changed) return;
+                        const descEl = modal.querySelector('.detail-description');
+                        if (descEl && game.fullDescription) descEl.innerHTML = escapeHTML(game.fullDescription);
+                        const gridEl = modal.querySelector('.detail-screenshots-grid');
+                        if (gridEl && game.screenshots && game.screenshots.length > 0) {
+                            gridEl.className = 'detail-screenshots-grid' + (game.screenshots.length === 2 ? ' screenshots-2' : '');
+                            gridEl.innerHTML = buildDetailScreenshotsHTML(game);
+                        }
+                        const otherInfoEl = modal.querySelector('.detail-other-info');
+                        if (otherInfoEl && game.videos && game.videos.length > 0 && !otherInfoEl.querySelector('.detail-video-link')) {
+                            otherInfoEl.insertAdjacentHTML('afterbegin', buildDetailVideosHTML(game.videos));
+                        }
+                        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); } catch (_) {}
+                    }).catch(() => {});
+                }
             }
 
             function closeDetailModal() {
