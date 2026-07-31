@@ -14974,7 +14974,12 @@
                         }
                         const otherInfoEl = modal.querySelector('.detail-other-info');
                         if (otherInfoEl && game.videos && game.videos.length > 0 && !otherInfoEl.querySelector('.detail-video-link')) {
-                            otherInfoEl.insertAdjacentHTML('afterbegin', buildDetailVideosHTML(game.videos));
+                            const tableEl = otherInfoEl.querySelector('.detail-info-table');
+                            if (tableEl) {
+                                tableEl.insertAdjacentHTML('afterend', buildDetailVideosHTML(game.videos));
+                            } else {
+                                otherInfoEl.insertAdjacentHTML('beforeend', buildDetailVideosHTML(game.videos));
+                            }
                         }
                         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); } catch (_) {}
                     }).catch(() => {});
