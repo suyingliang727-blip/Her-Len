@@ -14,9 +14,8 @@
     <meta name="robots" content="index, follow" />
 
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
@@ -11585,6 +11584,7 @@
         制作者 by Mega比格犬
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <script>
         (function () {
             'use strict';
@@ -11626,10 +11626,24 @@
             let customGenres = [];
             let customGameplays = [];
             let supabaseClient = null;
-            if (SUPABASE_ENABLED) {
-                try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) { supabaseClient = null; }
-                // 后台静默迁移本地回复数据到云端（仅执行一次）
-                migrateLocalRepliesToCloud().catch(e => console.warn('[Migration] 异常:', e));
+            if (SUPABASE_ENABLED && typeof supabase !== 'undefined') {
+                try {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+                        realtime: { params: { eventsPerSecond: 2 } },
+                        global: {
+                            // 为所有请求注入 10s 超时，避免 Supabase 不可达时请求无限挂起
+                            fetch: (url, opts = {}) => {
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                                const merged = opts && opts.signal ? opts : Object.assign({}, opts, { signal: controller.signal });
+                                return fetch(url, merged).finally(() => clearTimeout(timeoutId));
+                            }
+                        }
+                    });
+                } catch (e) { supabaseClient = null; }
+                // 后台静默迁移本地回复数据到云端（仅执行一次）；延迟执行，避免与首屏数据加载竞争网络
+                setTimeout(() => migrateLocalRepliesToCloud().catch(e => console.warn('[Migration] 异常:', e)), 3000);
             }
 
             let games = [];
@@ -11826,43 +11840,7 @@
                     }
                 } catch (_) { }
 
-                if (supabaseClient) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('games')
-                            .select('id, genre, gameplay')
-                            .in('id', [1, 2]);
-                        if (!error && data && Array.isArray(data)) {
-                            const genreRecord = data.find(r => r.id === 1);
-                            const gameplayRecord = data.find(r => r.id === 2);
-                            if (genreRecord && genreRecord.genre && Array.isArray(genreRecord.genre) && genreRecord.genre.length > 0) {
-                                customGenres = genreRecord.genre;
-                            } else {
-                                customGenres = fallbackGenres;
-                                console.warn('⚠️ 自定义题材标签记录(id=1)缺失或格式异常，使用缓存/默认值');
-                            }
-                            if (gameplayRecord && gameplayRecord.gameplay && Array.isArray(gameplayRecord.gameplay) && gameplayRecord.gameplay.length > 0) {
-                                customGameplays = gameplayRecord.gameplay;
-                            } else {
-                                customGameplays = fallbackGameplays;
-                                console.warn('⚠️ 自定义玩法标签记录(id=2)缺失或格式异常，使用缓存/默认值');
-                            }
-                            try {
-                                localStorage.setItem('heroineCustomTags', JSON.stringify({
-                                    genres: customGenres,
-                                    gameplays: customGameplays
-                                }));
-                            } catch (_) { }
-                            console.log('✅ 自定义标签已从数据库同步');
-                            return;
-                        } else {
-                            console.warn('⚠️ 从数据库读取自定义标签失败，使用缓存数据', error?.message || '');
-                        }
-                    } catch (e) {
-                        console.warn('⚠️ 数据库读取异常，使用缓存数据', e);
-                    }
-                }
-
+                // 立即使用本地缓存/默认值（不阻塞初始化）
                 customGenres = fallbackGenres.length > 0 ? fallbackGenres : defaultFallbackGenres;
                 customGameplays = fallbackGameplays.length > 0 ? fallbackGameplays : defaultFallbackGameplays;
                 try {
@@ -11873,6 +11851,49 @@
                         }));
                     }
                 } catch (_) { }
+
+                // 后台静默从云端刷新，完成后刷新筛选 UI
+                if (supabaseClient) {
+                    refreshCustomTagsFromCloud().catch(e => console.warn('⚠️ 自定义标签云端刷新失败', e.message || e));
+                }
+            }
+
+            async function refreshCustomTagsFromCloud() {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('games')
+                        .select('id, genre, gameplay')
+                        .in('id', [1, 2]);
+                    if (error || !data || !Array.isArray(data)) {
+                        console.warn('⚠️ 从数据库读取自定义标签失败，使用缓存数据', error?.message || '');
+                        return;
+                    }
+                    let changed = false;
+                    const genreRecord = data.find(r => r.id === 1);
+                    const gameplayRecord = data.find(r => r.id === 2);
+                    if (genreRecord && genreRecord.genre && Array.isArray(genreRecord.genre) && genreRecord.genre.length > 0) {
+                        customGenres = genreRecord.genre; changed = true;
+                    } else {
+                        console.warn('⚠️ 自定义题材标签记录(id=1)缺失或格式异常，使用缓存/默认值');
+                    }
+                    if (gameplayRecord && gameplayRecord.gameplay && Array.isArray(gameplayRecord.gameplay) && gameplayRecord.gameplay.length > 0) {
+                        customGameplays = gameplayRecord.gameplay; changed = true;
+                    } else {
+                        console.warn('⚠️ 自定义玩法标签记录(id=2)缺失或格式异常，使用缓存/默认值');
+                    }
+                    try {
+                        localStorage.setItem('heroineCustomTags', JSON.stringify({
+                            genres: customGenres,
+                            gameplays: customGameplays
+                        }));
+                    } catch (_) { }
+                    console.log('✅ 自定义标签已从数据库同步');
+                    if (changed && typeof updateFilterUI === 'function') {
+                        updateFilterUI();
+                    }
+                } catch (e) {
+                    console.warn('⚠️ 数据库读取异常，使用缓存数据', e);
+                }
             }
 
             function getAllGenres() { return [...new Set([...DEFAULT_GENRE_OPTIONS, ...customGenres])]; }
@@ -12870,13 +12891,25 @@
                 const client = getSupabase();
                 if (!client) return null;
                 setSyncStatus('syncing', '正在展开地图');
-                try {
+                const doFetch = async () => {
                     const { data, error } = await client.from('games')
                         .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
                         .neq('id', '1')
                         .neq('id', '2')
                         .order('id', { ascending: true });
-                    if (error) { setSyncStatus('error', error.message); return null; }
+                    if (error) throw error;
+                    return data;
+                };
+                try {
+                    let data;
+                    try {
+                        data = await doFetch();
+                    } catch (e1) {
+                        // 单次重试，规避瞬时网络抖动导致的失败（global.fetch 已保证 10s 超时）
+                        console.warn('[Sync] 首次加载失败，500ms 后重试一次：', e1.message || e1);
+                        await new Promise(r => setTimeout(r, 500));
+                        data = await doFetch();
+                    }
                     if (data && data.length > 0) {
                         const parsed = data.map(row => ({
                             ...row,
@@ -12914,7 +12947,7 @@
             }
 
             async function loadGames() {
-                // 1. 先从本地缓存加载（立即显示）
+                // 1. 先从本地缓存加载（立即显示），不等待云端
                 const local = localStorage.getItem(STORAGE_KEY);
                 if (local) {
                     try {
@@ -12926,29 +12959,32 @@
                 }
 
                 // 2. 从云端刷新数据（后台静默更新），仅当缓存过期时执行
+                //    不阻塞 init：立即返回缓存数据，云端到达后再重新渲染
                 if (SUPABASE_ENABLED && supabaseClient) {
                     let shouldSync = true;
                     try {
                         const lastSync = Number(localStorage.getItem(SYNC_META_KEY) || 0);
                         if (lastSync > 0 && (Date.now() - lastSync) < SYNC_TTL) shouldSync = false;
                     } catch (_) {}
-                    if (!shouldSync) return games;
-                    try {
-                        const freshData = await loadFromSupabase();
-                        if (freshData && freshData.length > 0) {
-                            games = freshData;
-                            // 更新本地缓存
-                            try {
-                                localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-                                localStorage.setItem(SYNC_META_KEY, String(Date.now()));
-                            } catch (_) {}
-                            if (currentView === 'series') renderSeriesView(); else renderGallery(); // 用新数据重新渲染
-                        }
-                    } catch (_) {}
+                    if (shouldSync) {
+                        refreshGamesFromCloud().catch(e => console.warn('[Sync] 游戏数据云端刷新失败：', e.message || e));
+                    }
                 }
 
                 games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
                 return games;
+            }
+
+            async function refreshGamesFromCloud() {
+                const freshData = await loadFromSupabase();
+                if (freshData && freshData.length > 0) {
+                    games = freshData;
+                    try {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+                        localStorage.setItem(SYNC_META_KEY, String(Date.now()));
+                    } catch (_) {}
+                    if (currentView === 'series') renderSeriesView(); else renderGallery(); // 用新数据重新渲染
+                }
             }
 
             // ================================================================
@@ -15213,7 +15249,7 @@
 
                 // 一级回复提交按钮
                 container.querySelectorAll('.game-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const reviewId = this.dataset.reviewId;
                         const replyToUserId = this.dataset.replyToUserId;
@@ -15221,19 +15257,21 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        await addGameCommentReply(String(reviewId), text, replyToUserId);
+                        guardSubmitBtn(this, async () => {
+                            await addGameCommentReply(String(reviewId), text, replyToUserId);
 
-                        // 发送通知
-                        if (supabaseClient) {
-                            try {
-                                await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
-                            } catch (_) {}
-                        }
+                            // 发送通知
+                            if (supabaseClient) {
+                                try {
+                                    await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
+                                } catch (_) {}
+                            }
 
-                        showToast('✅ 回复成功', 1500);
-                        // 重新渲染评论列表
-                        const gameId = reviewId.split('_')[0];
-                        loadCommunityReviews(Number(gameId));
+                            showToast('✅ 回复成功', 1500);
+                            // 重新渲染评论列表
+                            const gameId = reviewId.split('_')[0];
+                            loadCommunityReviews(Number(gameId));
+                        });
                     });
                 });
 
@@ -15249,7 +15287,7 @@
 
                 // 嵌套回复提交按钮
                 container.querySelectorAll('.game-nested-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const reviewId = this.dataset.reviewId;
                         const parentReplyId = Number(this.dataset.parentReplyId);
@@ -15258,18 +15296,20 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        await addGameCommentReply(String(reviewId), text, replyToUserId, parentReplyId);
+                        guardSubmitBtn(this, async () => {
+                            await addGameCommentReply(String(reviewId), text, replyToUserId, parentReplyId);
 
-                        // 发送通知
-                        if (supabaseClient) {
-                            try {
-                                await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
-                            } catch (_) {}
-                        }
+                            // 发送通知
+                            if (supabaseClient) {
+                                try {
+                                    await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
+                                } catch (_) {}
+                            }
 
-                        showToast('✅ 回复成功', 1500);
-                        const gameId = reviewId.split('_')[0];
-                        loadCommunityReviews(Number(gameId));
+                            showToast('✅ 回复成功', 1500);
+                            const gameId = reviewId.split('_')[0];
+                            loadCommunityReviews(Number(gameId));
+                        });
                     });
                 });
 
@@ -16929,6 +16969,24 @@
                 } catch (_) {}
             }
 
+            // 通用提交防重：点击后立即禁用按钮并给出"发送中"反馈，避免 await 期间重复点击导致重复上传。
+            // asyncFn 抛错时会恢复按钮并提示；成功时由后续列表重渲染重建按钮，无需手动恢复。
+            function guardSubmitBtn(btn, asyncFn, busyText) {
+                if (!btn || btn.dataset.submitting === '1') return;
+                btn.dataset.submitting = '1';
+                const oldText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = busyText || '发送中...';
+                Promise.resolve().then(asyncFn).catch(e => {
+                    console.warn('[Submit] 提交失败:', e.message || e);
+                    showToast('提交失败，请重试', 1500);
+                }).finally(() => {
+                    btn.dataset.submitting = '0';
+                    btn.disabled = false;
+                    btn.textContent = oldText;
+                });
+            }
+
             async function addGuestbookReply(parentId, content, replyTo = null, parentReplyId = null) {
                 if (!currentUser) return null;
                 // 输入验证
@@ -17886,7 +17944,7 @@
 
                 // 嵌套回复提交按钮
                 listEl.querySelectorAll('.nested-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const msgId = this.dataset.msgId;
                         const parentReplyId = Number(this.dataset.parentReplyId);
@@ -17896,46 +17954,50 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        await addGuestbookReply(String(msgId), text, replyToUserId, parentReplyId);
+                        guardSubmitBtn(this, async () => {
+                            await addGuestbookReply(String(msgId), text, replyToUserId, parentReplyId);
 
-                        // 发送通知
-                        if (supabaseClient) {
-                            try {
-                                await createReplyNotification(replyToUserId, 'guestbook', Number(msgId), '留言板', text);
-                            } catch (_) {}
-                        }
+                            // 发送通知
+                            if (supabaseClient) {
+                                try {
+                                    await createReplyNotification(replyToUserId, 'guestbook', Number(msgId), '留言板', text);
+                                } catch (_) {}
+                            }
 
-                        showToast('✅ 回复成功', 1500);
-                        await renderGuestbookList();
+                            showToast('✅ 回复成功', 1500);
+                            await renderGuestbookList();
+                        });
                     });
                 });
 
                 // 回复提交按钮事件（一级回复）
                 listEl.querySelectorAll('.reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const msgId = this.dataset.msgId;
                         const input = document.getElementById('replyInput-' + msgId);
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        await addGuestbookReply(String(msgId), text);
-                        
-                        // 发送通知给留言作者
-                        if (supabaseClient) {
-                            try {
-                                const { data: msg } = await supabaseClient.from('site_guestbook')
-                                    .select('user_id')
-                                    .eq('id', msgId)
-                                    .single();
-                                if (msg && msg.user_id) {
-                                    await createReplyNotification(msg.user_id, 'guestbook', msgId, '留言板', text);
-                                }
-                            } catch (_) {}
-                        }
-                        
-                        showToast('✅ 回复成功', 1500);
-                        await renderGuestbookList();
+                        guardSubmitBtn(this, async () => {
+                            await addGuestbookReply(String(msgId), text);
+
+                            // 发送通知给留言作者
+                            if (supabaseClient) {
+                                try {
+                                    const { data: msg } = await supabaseClient.from('site_guestbook')
+                                        .select('user_id')
+                                        .eq('id', msgId)
+                                        .single();
+                                    if (msg && msg.user_id) {
+                                        await createReplyNotification(msg.user_id, 'guestbook', msgId, '留言板', text);
+                                    }
+                                } catch (_) {}
+                            }
+
+                            showToast('✅ 回复成功', 1500);
+                            await renderGuestbookList();
+                        });
                     });
                 });
             }
@@ -18103,28 +18165,30 @@
                             // 回复提交按钮事件
                             const replySubmitBtn = item.querySelector('.reply-submit-btn');
                             if (replySubmitBtn) {
-                                replySubmitBtn.addEventListener('click', async function () {
+                                replySubmitBtn.addEventListener('click', function () {
                                     if (!currentUser) { showToast('请先登录', 1500); return; }
                                     const msgId = this.dataset.msgId;
                                     const input = document.getElementById('replyInput-' + msgId);
                                     if (!input) return;
                                     const text = input.value.trim();
                                     if (!text) { showToast('回复内容不能为空', 1500); return; }
-                                    await addGuestbookReply(String(msgId), text);
-                                    // 发送通知给留言作者
-                                    if (supabaseClient) {
-                                        try {
-                                            const { data: msgData } = await supabaseClient.from('site_guestbook')
-                                                .select('user_id')
-                                                .eq('id', msgId)
-                                                .single();
-                                            if (msgData && msgData.user_id) {
-                                                await createReplyNotification(msgData.user_id, 'guestbook', msgId, '留言板', text);
-                                            }
-                                        } catch (_) {}
-                                    }
-                                    showToast('✅ 回复成功', 1500);
-                                    await renderGuestbookList();
+                                    guardSubmitBtn(this, async () => {
+                                        await addGuestbookReply(String(msgId), text);
+                                        // 发送通知给留言作者
+                                        if (supabaseClient) {
+                                            try {
+                                                const { data: msgData } = await supabaseClient.from('site_guestbook')
+                                                    .select('user_id')
+                                                    .eq('id', msgId)
+                                                    .single();
+                                                if (msgData && msgData.user_id) {
+                                                    await createReplyNotification(msgData.user_id, 'guestbook', msgId, '留言板', text);
+                                                }
+                                            } catch (_) {}
+                                        }
+                                        showToast('✅ 回复成功', 1500);
+                                        await renderGuestbookList();
+                                    });
                                 });
                             }
                         });
@@ -18977,13 +19041,26 @@
 
                 markAll.addEventListener('click', async function () {
                     if (!supabaseClient || !currentUser) return;
-                    await supabaseClient.from('notifications')
-                        .update({ is_read: true })
-                        .eq('user_id', currentUser.id)
-                        .eq('is_read', false);
+                    if (this.dataset.submitting === '1') return;
+                    this.dataset.submitting = '1';
+                    // 乐观更新：立即清零角标并移除未读样式，无需等待 DB 响应
                     _unreadCount = 0;
                     updateNotifBadge();
-                    loadNotifications();
+                    const listEl = document.getElementById('notifList');
+                    if (listEl) listEl.querySelectorAll('.notif-item.unread').forEach(item => item.classList.remove('unread'));
+                    // 后台执行 DB 更新，失败时重新拉取未读数回滚
+                    try {
+                        const { error } = await supabaseClient.from('notifications')
+                            .update({ is_read: true })
+                            .eq('user_id', currentUser.id)
+                            .eq('is_read', false);
+                        if (error) throw error;
+                    } catch (e) {
+                        console.warn('[Notif] 全部已读失败，回滚未读数：', e.message || e);
+                        loadUnreadCount();
+                    } finally {
+                        this.dataset.submitting = '0';
+                    }
                 });
             }
 
@@ -19929,7 +20006,7 @@
 
                 // 嵌套回复提交按钮
                 container.querySelectorAll('.mod-nested-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const commentId = this.dataset.commentId;
                         const parentReplyId = Number(this.dataset.parentReplyId);
@@ -19938,19 +20015,21 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        await addModCommentReply(String(commentId), text, replyToUserId, parentReplyId);
+                        guardSubmitBtn(this, async () => {
+                            await addModCommentReply(String(commentId), text, replyToUserId, parentReplyId);
 
-                        // 发送通知
-                        if (supabaseClient) {
-                            try {
-                                await createReplyNotification(replyToUserId, 'mod_comment', Number(commentId), post.title, text);
-                            } catch (_) {}
-                        }
+                            // 发送通知
+                            if (supabaseClient) {
+                                try {
+                                    await createReplyNotification(replyToUserId, 'mod_comment', Number(commentId), post.title, text);
+                                } catch (_) {}
+                            }
 
-                        showToast('✅ 回复成功', 1500);
-                        closeModDetail();
-                        const updated = modPosts.find(p => p.id === post.id);
-                        if (updated) openModDetail(updated);
+                            showToast('✅ 回复成功', 1500);
+                            closeModDetail();
+                            const updated = modPosts.find(p => p.id === post.id);
+                            if (updated) openModDetail(updated);
+                        });
                     });
                 });
 
@@ -19965,32 +20044,34 @@
 
                 // 评论回复提交按钮事件（一级回复）
                 container.querySelectorAll('.mod-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const commentId = this.dataset.commentId;
                         const input = document.getElementById('modReplyInput-' + commentId);
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        await addModCommentReply(String(commentId), text);
-                        
-                        // 发送通知给评论作者
-                        if (supabaseClient) {
-                            try {
-                                const { data: comment } = await supabaseClient.from('mod_comments')
-                                    .select('user_id')
-                                    .eq('id', commentId)
-                                    .single();
-                                if (comment && comment.user_id) {
-                                    await createReplyNotification(comment.user_id, 'mod_comment', commentId, post.title, text);
-                                }
-                            } catch (_) {}
-                        }
-                        
-                        showToast('✅ 回复成功', 1500);
-                        closeModDetail();
-                        const updated = modPosts.find(p => p.id === post.id);
-                        if (updated) openModDetail(updated);
+                        guardSubmitBtn(this, async () => {
+                            await addModCommentReply(String(commentId), text);
+
+                            // 发送通知给评论作者
+                            if (supabaseClient) {
+                                try {
+                                    const { data: comment } = await supabaseClient.from('mod_comments')
+                                        .select('user_id')
+                                        .eq('id', commentId)
+                                        .single();
+                                    if (comment && comment.user_id) {
+                                        await createReplyNotification(comment.user_id, 'mod_comment', commentId, post.title, text);
+                                    }
+                                } catch (_) {}
+                            }
+
+                            showToast('✅ 回复成功', 1500);
+                            closeModDetail();
+                            const updated = modPosts.find(p => p.id === post.id);
+                            if (updated) openModDetail(updated);
+                        });
                     });
                 });
 
