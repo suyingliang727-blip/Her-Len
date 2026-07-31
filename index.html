@@ -12373,6 +12373,53 @@
                 updateStatus();
             }
 
+            // 构建折叠的评分/评论编辑区（默认隐藏，点击按钮展开）
+            function buildReviewEditorHTML(gameId, hasVerdict, hasComment) {
+                let editorParts = '';
+                if (!hasVerdict) {
+                    editorParts += `
+                                <div id="verdictPanelContainer" data-game="${gameId}" style="margin-bottom:6px;">
+                                    <div style="font-weight:600;margin-bottom:4px;">我的评价：</div>
+                                    ${renderVerdictPanelHTML(null, [])}
+                                </div>`;
+                }
+                if (!hasComment) {
+                    editorParts += `
+                                <div style="margin-top:6px;">
+                                    <textarea id="commentInput" placeholder="写下你的评价（最多500字）…" maxlength="500" class="comment-input"></textarea>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                                        <span class="comment-char-count"><span id="commentCharCount">0</span>/500</span>
+                                        <button class="btn btn-sm btn-accent" id="submitCommentBtn">提交评论</button>
+                                    </div>
+                                </div>`;
+                }
+                if (!editorParts) return '';
+                let label = '✏️ 我要评价';
+                if (hasVerdict && !hasComment) label = '✏️ 写评论';
+                else if (!hasVerdict && hasComment) label = '✏️ 我要评分';
+                return `
+                            <button class="btn btn-sm btn-accent" id="writeReviewBtn" style="padding:2px 10px;">${label}</button>
+                            <div id="reviewEditorArea" style="display:none;">${editorParts}</div>`;
+            }
+
+            // 绑定“我要评价”展开/收起按钮
+            function bindWriteReviewToggle(area) {
+                const writeBtn = area.querySelector('#writeReviewBtn');
+                const editorArea = area.querySelector('#reviewEditorArea');
+                if (writeBtn && editorArea) {
+                    writeBtn.dataset.closedLabel = writeBtn.textContent;
+                    writeBtn.addEventListener('click', function () {
+                        const visible = editorArea.style.display !== 'none';
+                        editorArea.style.display = visible ? 'none' : '';
+                        this.textContent = visible ? this.dataset.closedLabel : '✏️ 收起';
+                        if (!visible) {
+                            const ta = editorArea.querySelector('textarea');
+                            if (ta) ta.focus();
+                        }
+                    });
+                }
+            }
+
             // ================================================================
             // 评分与评论
             // ================================================================
@@ -12436,9 +12483,9 @@
                             const savedTags = savedReview?.selected_tags ?? [];
                             const savedComment = savedReview?.comment ?? null;
 
-                            let newRatingHtml = '';
+                            let summaryHTML = '';
                             if (savedVerdict !== null) {
-                                newRatingHtml = `
+                                summaryHTML += `
                                     <div style="margin-bottom:6px;">
                                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                             <span style="font-weight:600;">我的评价：</span>
@@ -12447,17 +12494,9 @@
                                         </div>
                                         ${renderTagsDisplay(savedTags)}
                                     </div>`;
-                            } else {
-                                newRatingHtml = `
-                                    <div id="verdictPanelContainer" data-game="${gameId}" style="margin-bottom:6px;">
-                                        <div style="font-weight:600;margin-bottom:4px;">我的评价：</div>
-                                        ${renderVerdictPanelHTML(null, [])}
-                                    </div>`;
                             }
-
-                            let newCommentHtml = '';
                             if (savedComment) {
-                                newCommentHtml = `
+                                summaryHTML += `
                                     <div style="margin-top:6px;">
                                         <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
                                             <span style="font-weight:600;">我的评论：</span>
@@ -12466,17 +12505,8 @@
                                             <button class="btn btn-sm" id="deleteCommentBtn" style="padding:2px 10px;color:var(--danger);border-color:var(--danger);">删除</button>
                                         </div>
                                     </div>`;
-                            } else {
-                                newCommentHtml = `
-                                    <div style="margin-top:6px;">
-                                        <textarea id="commentInput" placeholder="写下你的评价（最多500字）…" maxlength="500" class="comment-input"></textarea>
-                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-                                            <span class="comment-char-count"><span id="commentCharCount">0</span>/500</span>
-                                            <button class="btn btn-sm btn-accent" id="submitCommentBtn">提交评论</button>
-                                        </div>
-                                    </div>`;
                             }
-                            reviewUserArea.innerHTML = newRatingHtml + newCommentHtml;
+                            reviewUserArea.innerHTML = summaryHTML + buildReviewEditorHTML(gameId, savedVerdict !== null, !!savedComment);
 
                             const editRatingBtn = reviewUserArea.querySelector('#editRatingBtn');
                             if (editRatingBtn) {
@@ -12495,6 +12525,7 @@
                             if (verdictContainer) {
                                 setupVerdictPanelHandlers(verdictContainer, gameId, savedComment);
                             }
+                            bindWriteReviewToggle(reviewUserArea);
                             const newCommentInput = reviewUserArea.querySelector('#commentInput');
                             const newCharCount = reviewUserArea.querySelector('#commentCharCount');
                             if (newCommentInput && newCharCount) {
@@ -14646,13 +14677,6 @@
                                     ${renderTagsDisplay(userTags)}
                                 </div>
                             `;
-                    } else {
-                        userRatingHtml = `
-                                <div id="verdictPanelContainer" data-game="${game.id}" style="margin-bottom:6px;">
-                                    <div style="font-weight:600;margin-bottom:4px;">我的评价：</div>
-                                    ${renderVerdictPanelHTML(null, [])}
-                                </div>
-                            `;
                     }
 
                     let userCommentHtml = '';
@@ -14667,22 +14691,15 @@
                                     </div>
                                 </div>
                             `;
-                    } else {
-                        userCommentHtml = `
-                                <div style="margin-top:6px;">
-                                    <textarea id="commentInput" placeholder="写下你的评价（最多500字）…" maxlength="500" class="comment-input"></textarea>
-                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-                                        <span class="comment-char-count"><span id="commentCharCount">0</span>/500</span>
-                                        <button class="btn btn-sm btn-accent" id="submitCommentBtn">提交评论</button>
-                                    </div>
-                                </div>
-                            `;
                     }
+
+                    const editorHTML = buildReviewEditorHTML(game.id, userVerdict !== null, !!userComment);
 
                     userAreaHTML = `
                             <div class="review-user-area">
                                 ${userRatingHtml}
                                 ${userCommentHtml}
+                                ${editorHTML}
                             </div>
                         `;
                 }
@@ -14855,6 +14872,8 @@
                     if (verdictContainer) {
                         setupVerdictPanelHandlers(verdictContainer, game.id, userComment);
                     }
+
+                    bindWriteReviewToggle(modal);
 
                     const editRatingBtn = modal.querySelector('#editRatingBtn');
                     if (editRatingBtn) {
