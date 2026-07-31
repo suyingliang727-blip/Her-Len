@@ -14615,6 +14615,7 @@
                           <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
                           <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                          <tr><td>🍎 Mac</td><td>${game.hasMacSupport === '支持Mac' ? '✅ 支持' : '❌ 不支持'}</td></tr>
                           <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                           <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
                           <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
@@ -14627,6 +14628,7 @@
                           <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
                           <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
+                          <tr><td>🍎 Mac</td><td>${game.hasMacSupport === '支持Mac' ? '✅ 支持' : '❌ 不支持'}</td></tr>
                           <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
                           <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
                           ${game.mainStoryDuration ? `<tr><td>⏱ 游戏时长</td><td>${escapeHTML(game.mainStoryDuration)}</td></tr>` : ''}
