@@ -14533,12 +14533,12 @@
                 const from = options && options.from ? options.from : 'gallery';
                 window._detailFrom = from;
 
-                if (!game.fullDescription && !game.screenshots && !game.videos) {
+                if (!game.fullDescription) {
                     const detail = await loadGameDetailFromSupabase(game.id);
                     if (detail) {
-                        game.fullDescription = detail.fullDescription;
-                        game.screenshots = detail.screenshots || [];
-                        game.videos = detail.videos || [];
+                        if (detail.fullDescription) game.fullDescription = detail.fullDescription;
+                        if (!game.screenshots || game.screenshots.length === 0) game.screenshots = detail.screenshots || [];
+                        if (!game.videos || game.videos.length === 0) game.videos = detail.videos || [];
                     }
                 }
 
