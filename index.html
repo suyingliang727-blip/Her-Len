@@ -8593,6 +8593,27 @@
             background: rgba(192, 57, 43, 0.08);
         }
 
+        .guestbook-ban-btn {
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .guestbook-ban-btn:hover {
+            color: #fff;
+            background: rgba(192, 57, 43, 0.85);
+        }
+
+        .guestbook-ban-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .guestbook-login-hint {
             text-align: center;
             color: var(--text3);
@@ -13747,8 +13768,31 @@
                 return currentUser && currentUser.id === ADMIN_USER_ID;
             }
 
-            function updateAdminUI() {
-                isAdmin = checkIsAdmin();
+            // 异步从 admins 表校正管理员状态（部署 supabase_security.sql 后生效，否则回退硬编码）
+            let _adminStatusRefreshing = false;
+            async function refreshAdminStatus() {
+                if (_adminStatusRefreshing) return;
+                if (!currentUser || !supabaseClient) return;
+                _adminStatusRefreshing = true;
+                try {
+                    const { data, error } = await supabaseClient.rpc('is_admin', { check_user_id: currentUser.id });
+                    if (error) throw error;
+                    const rpcAdmin = !!data;
+                    const hardcodeAdmin = currentUser && currentUser.id === ADMIN_USER_ID;
+                    const newIsAdmin = rpcAdmin || hardcodeAdmin;
+                    if (newIsAdmin !== isAdmin) {
+                        isAdmin = newIsAdmin;
+                        applyAdminUI();
+                    }
+                } catch (e) {
+                    // RPC 未部署或查询失败，保持硬编码结果
+                    console.warn('查询管理员状态失败，使用硬编码:', e.message);
+                } finally {
+                    _adminStatusRefreshing = false;
+                }
+            }
+
+            function applyAdminUI() {
                 const addBtn = document.getElementById('btnAddGame');
                 const impBtn = document.getElementById('btnImportCSV');
                 const adminBtn = document.getElementById('btnToggleAdmin');
@@ -13772,6 +13816,82 @@
                     isAdminMode = false;
                 }
                 renderGallery();
+            }
+
+            function updateAdminUI() {
+                isAdmin = checkIsAdmin();
+                applyAdminUI();
+                refreshAdminStatus();
+            }
+
+            // ============================================================
+            // 用户拉黑功能（需先在 Supabase 执行 supabase_security.sql）
+            // ============================================================
+
+            // 检查当前登录用户是否被拉黑（发布前预检；数据库触发器是最终防线）
+            async function isCurrentUserBanned() {
+                if (!currentUser || !supabaseClient) return false;
+                try {
+                    const { data, error } = await supabaseClient.rpc('is_user_banned', { check_user_id: currentUser.id });
+                    if (error) throw error;
+                    return !!data;
+                } catch (e) {
+                    // RPC 未部署则视为未拉黑，由触发器/RLS 兜底
+                    return false;
+                }
+            }
+
+            // 管理员拉黑用户（传 user_id，RPC 内部自动从 auth.users 取邮箱写入 banned_users）
+            async function banUser(targetUserId, reason) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可拉黑', 1500); return false; }
+                if (!supabaseClient) { showToast('数据库未连接', 1500); return false; }
+                if (!targetUserId) { showToast('目标用户无效', 1500); return false; }
+                if (targetUserId === currentUser.id) { showToast('⚠️ 不能拉黑自己', 1500); return false; }
+                try {
+                    const { data, error } = await supabaseClient.rpc('ban_user', {
+                        target_user_id: targetUserId,
+                        reason: reason || null
+                    });
+                    if (error) throw error;
+                    showToast('✅ 已拉黑该用户，其将无法再发布内容', 2000);
+                    return true;
+                } catch (e) {
+                    console.error('❌ 拉黑失败:', e);
+                    showToast('⚠️ 拉黑失败：' + (e.message || '请重试'), 2500);
+                    return false;
+                }
+            }
+
+            // 管理员解除拉黑
+            async function unbanUser(targetUserId) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return false; }
+                if (!supabaseClient) { showToast('数据库未连接', 1500); return false; }
+                if (!targetUserId) { showToast('目标用户无效', 1500); return false; }
+                try {
+                    const { data, error } = await supabaseClient.rpc('unban_user', {
+                        target_user_id: targetUserId
+                    });
+                    if (error) throw error;
+                    showToast('✅ 已解除拉黑', 1800);
+                    return true;
+                } catch (e) {
+                    console.error('❌ 解除拉黑失败:', e);
+                    showToast('⚠️ 解除失败：' + (e.message || '请重试'), 2500);
+                    return false;
+                }
+            }
+
+            // 管理员查看拉黑名单
+            async function getBannedList() {
+                if (!isAdmin || !supabaseClient) return [];
+                try {
+                    const { data, error } = await supabaseClient.rpc('get_banned_list');
+                    if (error) throw error;
+                    return data || [];
+                } catch (e) {
+                    console.error('❌ 获取拉黑名单失败:', e);
+                    return [];
+                }
             }
 
             function toggleAdminMode() {
@@ -17819,6 +17939,11 @@
                             if (!text) { showToast('留言内容不能为空', 1500); return; }
                             if (text.length > 500) { showToast('留言内容过长', 1500); return; }
                             if (/javascript\s*:/i.test(text) || /data\s*:/i.test(text) || /vbscript\s*:/i.test(text)) { showToast('留言包含不允许的内容', 1500); return; }
+                            // 拉黑预检（数据库触发器是最终防线）
+                            if (await isCurrentUserBanned()) {
+                                showToast('⚠️ 您的账号已被限制发布，请联系管理员', 2500);
+                                return;
+                            }
                             lastSubmitTime = now;
                             submitBtn.disabled = true;
                             submitBtn.textContent = '发布中...';
@@ -17910,6 +18035,9 @@
                     });
                     const deleteHtml = (isOwn || isAdmin) ?
                         `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
+                    // 管理员拉黑按钮（不对自己显示）
+                    const banHtml = (isAdmin && !isOwn && msg.user_id) ?
+                        `<button class="guestbook-ban-btn" data-user-id="${msg.user_id}" data-msg-id="${msg.id}" title="拉黑该用户，禁止其发布内容">🚫 拉黑</button>` : '';
 
                     // 获取回复列表并构建树
                     const flatReplies = await getGuestbookRepliesForMessage(msg.id);
@@ -17931,6 +18059,7 @@
                                 ${reactionsHtml}
                                 <button class="guestbook-reply-btn" data-msg-id="${msg.id}">💬 回复</button>
                                 ${deleteHtml}
+                                ${banHtml}
                             </div>
                             ${repliesHtml}
                             <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
@@ -17983,6 +18112,34 @@
                                 showToast('✅ 留言已删除', 1500);
                                 await renderGuestbookList();
                             } catch (_) {}
+                        }
+                    });
+                });
+
+                // 管理员拉黑按钮事件
+                listEl.querySelectorAll('.guestbook-ban-btn').forEach(btn => {
+                    btn.addEventListener('click', async function (ev) {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                        if (!isAdmin) { showToast('⚠️ 仅管理员可拉黑', 1500); return; }
+                        const targetUserId = this.dataset.userId;
+                        if (!targetUserId) { showToast('无法获取用户信息', 1500); return; }
+                        if (targetUserId === currentUser.id) { showToast('⚠️ 不能拉黑自己', 1500); return; }
+                        const reason = prompt('拉黑该用户？\n（可选填原因，留空则默认）', '');
+                        if (reason === null) return; // 用户取消
+                        // 防重
+                        if (this.dataset.submitting === 'true') return;
+                        this.dataset.submitting = 'true';
+                        this.disabled = true;
+                        const originalText = this.textContent;
+                        this.textContent = '拉黑中...';
+                        try {
+                            const ok = await banUser(targetUserId, reason);
+                            if (ok) await renderGuestbookList();
+                        } finally {
+                            this.dataset.submitting = 'false';
+                            this.disabled = false;
+                            this.textContent = originalText;
                         }
                     });
                 });
@@ -18041,7 +18198,7 @@
 
                 // 嵌套回复提交按钮
                 listEl.querySelectorAll('.nested-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
+                    btn.addEventListener('click', async function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const msgId = this.dataset.msgId;
                         const parentReplyId = Number(this.dataset.parentReplyId);
@@ -18051,6 +18208,11 @@
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        // 拉黑预检（数据库触发器是最终防线）
+                        if (await isCurrentUserBanned()) {
+                            showToast('⚠️ 您的账号已被限制发布，请联系管理员', 2500);
+                            return;
+                        }
                         guardSubmitBtn(this, async () => {
                             await addGuestbookReply(String(msgId), text, replyToUserId, parentReplyId);
 
@@ -18069,13 +18231,18 @@
 
                 // 回复提交按钮事件（一级回复）
                 listEl.querySelectorAll('.reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
+                    btn.addEventListener('click', async function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const msgId = this.dataset.msgId;
                         const input = document.getElementById('replyInput-' + msgId);
                         if (!input) return;
                         const text = input.value.trim();
                         if (!text) { showToast('回复内容不能为空', 1500); return; }
+                        // 拉黑预检（数据库触发器是最终防线）
+                        if (await isCurrentUserBanned()) {
+                            showToast('⚠️ 您的账号已被限制发布，请联系管理员', 2500);
+                            return;
+                        }
                         guardSubmitBtn(this, async () => {
                             await addGuestbookReply(String(msgId), text);
 
