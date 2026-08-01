@@ -11700,6 +11700,7 @@
             // 缓存相关
             let _ratingStatsCache = {};
             let _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
+            let _guestbookReplyCache = { key: '', data: {}, ts: 0 };
             let _reviewPage = {};
             const REVIEW_PAGE_SIZE = 10;
             let _batchRpcBroken = false;
@@ -15406,7 +15407,7 @@
                 return !wasLiked;
             }
 
-            async function renderReviewItem(r, gameId) {
+            async function renderReviewItem(r, gameId, preloadedReplies) {
                 const avatar = r.avatar_url ?
                     `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
                     `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
@@ -15428,8 +15429,13 @@
                     `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-verdict="${r.verdict || ''}" data-tags="${escapeHTML(r.selected_tags ? r.selected_tags.join(',') : '')}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 const replyBtnHtml = `<button class="comment-reply-btn" data-review-id="${reviewId}">💬 回复</button>`;
 
-                // 获取回复树
-                const flatReplies = await getGameCommentRepliesForReview(reviewId);
+                // 获取回复树（优先使用预加载数据）
+                let flatReplies;
+                if (preloadedReplies && preloadedReplies[reviewDbId]) {
+                    flatReplies = preloadedReplies[reviewDbId];
+                } else {
+                    flatReplies = await getGameCommentRepliesForReview(reviewId);
+                }
                 const replyTree = buildGameReplyTree([...flatReplies]);
                 let repliesHtml = '';
                 if (replyTree.length > 0) {
@@ -15669,7 +15675,29 @@
                 // 预加载当前页评论的点赞数据
                 const reviewDbIds = reviews.map(r => r.id).filter(Boolean);
                 await fetchReviewLikesBatch(reviewDbIds);
-                for (const r of reviews) { html += await renderReviewItem(r, gameId); }
+                // 批量拉取所有评论的回复
+                let gameRepliesMap = {};
+                try {
+                    if (supabaseClient && reviewDbIds.length > 0) {
+                        const { data, error } = await supabaseClient
+                            .from('game_comment_replies')
+                            .select('*')
+                            .in('review_id', reviewDbIds)
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            data.forEach(r => {
+                                if (!gameRepliesMap[r.review_id]) gameRepliesMap[r.review_id] = [];
+                                gameRepliesMap[r.review_id].push({
+                                    id: r.id, review_id: r.review_id, user_id: r.user_id,
+                                    content: r.content, display_name: r.display_name || '用户',
+                                    avatar_url: r.avatar_url || null, reply_to: r.reply_to,
+                                    parent_reply_id: r.parent_reply_id, created_at: r.created_at
+                                });
+                            });
+                        }
+                    }
+                } catch (_) {}
+                for (const r of reviews) { html += await renderReviewItem(r, gameId, gameRepliesMap); }
 
                 const hasMore = reviews.length >= REVIEW_PAGE_SIZE;
                 if (hasMore) {
@@ -15695,7 +15723,30 @@
                             const moreWrap = document.createElement('div');
                             // 预加载新加载评论的点赞数据
                             await fetchReviewLikesBatch(moreReviews.map(r => r.id).filter(Boolean));
-                            for (const r of moreReviews) { moreWrap.innerHTML += await renderReviewItem(r, gid); }
+                            // 批量拉取新评论的回复
+                            let moreRepliesMap = {};
+                            try {
+                                if (supabaseClient && moreReviews.length > 0) {
+                                    const ids = moreReviews.map(r => r.id).filter(Boolean);
+                                    const { data, error } = await supabaseClient
+                                        .from('game_comment_replies')
+                                        .select('*')
+                                        .in('review_id', ids)
+                                        .order('created_at', { ascending: true });
+                                    if (!error && data) {
+                                        data.forEach(r => {
+                                            if (!moreRepliesMap[r.review_id]) moreRepliesMap[r.review_id] = [];
+                                            moreRepliesMap[r.review_id].push({
+                                                id: r.id, review_id: r.review_id, user_id: r.user_id,
+                                                content: r.content, display_name: r.display_name || '用户',
+                                                avatar_url: r.avatar_url || null, reply_to: r.reply_to,
+                                                parent_reply_id: r.parent_reply_id, created_at: r.created_at
+                                            });
+                                        });
+                                    }
+                                }
+                            } catch (_) {}
+                            for (const r of moreReviews) { moreWrap.innerHTML += await renderReviewItem(r, gid, moreRepliesMap); }
                             const existingLoadMore = commentsList.querySelector('.review-load-more');
                             while (moreWrap.firstChild) {
                                 commentsList.insertBefore(moreWrap.firstChild, existingLoadMore);
@@ -18156,11 +18207,45 @@
                     statsEl.innerHTML = `共 <strong>${guestbookTotalCount}</strong> 条留言`;
                 }
 
+                // 【优化1】一次性批量拉取所有留言的回复，避免 N+1 查询
+                const msgIds = messages.map(m => m.id);
+                // 回复数据内存缓存（5 秒有效期，避免弹窗快速开关时重复拉取）
+                const replyCacheKey = msgIds.join(',');
+                let allRepliesMap = _guestbookReplyCache.key === replyCacheKey && (Date.now() - _guestbookReplyCache.ts < 5000)
+                    ? _guestbookReplyCache.data : {};
+                if (Object.keys(allRepliesMap).length === 0 && supabaseClient && msgIds.length > 0) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('site_guestbook_replies')
+                            .select('*')
+                            .in('message_id', msgIds)
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            data.forEach(r => {
+                                const mid = r.message_id;
+                                if (!allRepliesMap[mid]) allRepliesMap[mid] = [];
+                                allRepliesMap[mid].push({
+                                    id: r.id,
+                                    message_id: r.message_id,
+                                    user_id: r.user_id,
+                                    content: r.content,
+                                    display_name: r.display_name || '用户',
+                                    avatar_url: r.avatar_url || null,
+                                    reply_to: r.reply_to,
+                                    parent_reply_id: r.parent_reply_id,
+                                    created_at: r.created_at
+                                });
+                            });
+                            _guestbookReplyCache = { key: replyCacheKey, data: allRepliesMap, ts: Date.now() };
+                        }
+                    } catch (_) {}
+                }
+
                 let html = '';
                 for (const msg of messages) {
                     const isOwn = currentUser && msg.user_id === currentUser.id;
                     const avatarHtml = msg.avatar_url ?
-                        `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" loading="lazy" />` :
                         `<div class="guestbook-item-avatar-placeholder">👤</div>`;
                     const time = formatGuestbookTime(msg.created_at);
                     const reactions = msg.reactions || {};
@@ -18181,8 +18266,8 @@
                     const banHtml = (isAdmin && !isOwn && msg.user_id) ?
                         `<button class="guestbook-ban-btn" data-user-id="${msg.user_id}" data-msg-id="${msg.id}" title="拉黑该用户，禁止其发布内容">🚫 拉黑</button>` : '';
 
-                    // 获取回复列表并构建树
-                    const flatReplies = await getGuestbookRepliesForMessage(msg.id);
+                    // 从预加载的批量数据中取回复
+                    const flatReplies = allRepliesMap[msg.id] || [];
                     const replyTree = buildReplyTree([...flatReplies]);
                     let repliesHtml = '';
                     if (replyTree.length > 0) {
@@ -18413,7 +18498,13 @@
                 const overlay = document.getElementById('guestbookModalOverlay');
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
-                renderGuestbook();
+                // 先显示骨架/空态，再异步加载数据，避免白屏等待
+                const listEl = document.getElementById('guestbookList');
+                if (listEl && listEl.children.length === 0) {
+                    listEl.innerHTML = '<div class="guestbook-empty"><span class="empty-icon">⏳</span>加载中...</div>';
+                }
+                // 异步渲染，不阻塞弹窗打开
+                requestAnimationFrame(() => { renderGuestbook(); });
             }
 
             function closeGuestbookModal() {
@@ -18439,11 +18530,35 @@
                     const messages = await fetchGuestbookMessages();
                     if (messages.length > prevCount) {
                         const newMsgs = messages.slice(prevCount);
+                        // 批量拉取新留言的回复
+                        const newMsgIds = newMsgs.map(m => m.id);
+                        let newRepliesMap = {};
+                        try {
+                            if (supabaseClient && newMsgIds.length > 0) {
+                                const { data, error } = await supabaseClient
+                                    .from('site_guestbook_replies')
+                                    .select('*')
+                                    .in('message_id', newMsgIds)
+                                    .order('created_at', { ascending: true });
+                                if (!error && data) {
+                                    data.forEach(r => {
+                                        if (!newRepliesMap[r.message_id]) newRepliesMap[r.message_id] = [];
+                                        newRepliesMap[r.message_id].push({
+                                            id: r.id, message_id: r.message_id, user_id: r.user_id,
+                                            content: r.content, display_name: r.display_name || '用户',
+                                            avatar_url: r.avatar_url || null, reply_to: r.reply_to,
+                                            parent_reply_id: r.parent_reply_id, created_at: r.created_at
+                                        });
+                                    });
+                                }
+                            }
+                        } catch (_) {}
+
                         let newHtml = '';
                         for (const msg of newMsgs) {
                             const isOwn = currentUser && msg.user_id === currentUser.id;
                             const avatarHtml = msg.avatar_url ?
-                                `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" />` :
+                                `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" loading="lazy" />` :
                                 `<div class="guestbook-item-avatar-placeholder">👤</div>`;
                             const time = formatGuestbookTime(msg.created_at);
                             const reactions = msg.reactions || {};
@@ -18461,8 +18576,8 @@
                             const deleteHtml = (isOwn || isAdmin) ?
                                 `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
 
-                            // 获取回复列表
-                            const replies = await getGuestbookRepliesForMessage(msg.id);
+                            // 从批量数据取回复
+                            const replies = newRepliesMap[msg.id] || [];
                             let repliesHtml = '';
                             if (replies.length > 0) {
                                 repliesHtml = '<div class="reply-list">';
@@ -20172,16 +20287,40 @@
                 }
 
                 let commentsHtml = '';
+                // 批量拉取所有 MOD 评论的回复
+                const modCommentIds = comments.map(c => c.id);
+                let modRepliesMap = {};
+                try {
+                    if (supabaseClient && modCommentIds.length > 0) {
+                        const { data, error } = await supabaseClient
+                            .from('mod_comment_replies')
+                            .select('*')
+                            .in('comment_id', modCommentIds)
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            data.forEach(r => {
+                                if (!modRepliesMap[r.comment_id]) modRepliesMap[r.comment_id] = [];
+                                modRepliesMap[r.comment_id].push({
+                                    id: r.id, comment_id: r.comment_id, user_id: r.user_id,
+                                    content: r.content, display_name: r.display_name || '用户',
+                                    avatar_url: r.avatar_url || null, reply_to: r.reply_to,
+                                    parent_reply_id: r.parent_reply_id, created_at: r.created_at
+                                });
+                            });
+                        }
+                    }
+                } catch (_) {}
+
                 for (const c of comments) {
                     const isCommentOwn = currentUser && c.user_id === currentUser.id;
                     const cAvatar = c.avatar_url ?
-                        `<img src="${escapeHTML(c.avatar_url)}" class="mod-comment-avatar" referrerpolicy="no-referrer" />` :
+                        `<img src="${escapeHTML(c.avatar_url)}" class="mod-comment-avatar" referrerpolicy="no-referrer" loading="lazy" />` :
                         `<div class="mod-comment-avatar-placeholder">👤</div>`;
                     const deleteBtn = (isCommentOwn || isAdmin) ?
                         `<button class="mod-comment-delete" data-comment-id="${c.id}">删除</button>` : '';
 
-                    // 获取回复列表并构建树
-                    const flatModReplies = await getModCommentRepliesForComment(c.id);
+                    // 从批量数据取回复
+                    const flatModReplies = modRepliesMap[c.id] || [];
                     const modReplyTree = buildModReplyTree([...flatModReplies]);
                     let repliesHtml = '';
                     if (modReplyTree.length > 0) {
