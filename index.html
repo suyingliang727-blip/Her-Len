@@ -17110,8 +17110,18 @@
                 // 云端删除（CASCADE 会自动清理子回复）
                 if (supabaseClient) {
                     try {
-                        await supabaseClient.from('site_guestbook_replies').delete().eq('id', Number(replyId));
-                    } catch (_) {}
+                        let q = supabaseClient.from('site_guestbook_replies').delete().eq('id', Number(replyId));
+                        if (!isAdmin && currentUser) q = q.eq('user_id', currentUser.id);
+                        const { error } = await q;
+                        if (error) throw error;
+                    } catch (e) {
+                        console.error('❌ 删除留言回复失败:', e);
+                        showToast('⚠️ 删除回复失败，请检查权限或网络', 2000);
+                        throw e;
+                    }
+                } else if (!currentUser) {
+                    showToast('请先登录后再删除', 1500);
+                    return;
                 }
 
                 // localStorage 回退：递归收集要删除的所有ID
@@ -17680,16 +17690,41 @@
             }
 
             async function deleteGuestbookMessage(id) {
-                if (!currentUser || !supabaseClient) return;
+                if (!currentUser) { showToast('请先登录后再删除', 1500); return; }
+                if (!supabaseClient) { showToast('数据库未连接', 1500); return; }
                 try {
-                    let query = supabaseClient.from('site_guestbook').delete().eq('id', id);
+                    // 1. 先删主留言；RLS 拒绝时通常返回 count=0 而非 error，需显式校验
+                    let query = supabaseClient.from('site_guestbook').delete({ count: 'exact' }).eq('id', id);
                     if (!isAdmin) { query = query.eq('user_id', currentUser.id); }
-                    const { error } = await query;
+                    const { error, count } = await query;
                     if (error) throw error;
+                    if (count === 0) {
+                        // 没有行被删除：RLS 策略阻止或留言不存在
+                        throw new Error('无权删除该留言或留言不存在');
+                    }
+
+                    // 2. 主留言删除成功后，再删该留言关联的回复（CASCADE 已配置则幂等）
+                    try {
+                        let rq = supabaseClient.from('site_guestbook_replies').delete().eq('message_id', Number(id));
+                        // 非 admin 仅清理自己的回复，避免越权删除他人回复
+                        if (!isAdmin) { rq = rq.eq('user_id', currentUser.id); }
+                        await rq;
+                    } catch (_) {}
+
+                    // 3. 清 localStorage 中该留言的回复缓存
+                    try {
+                        const all = getGuestbookReplies();
+                        if (all[String(id)]) {
+                            delete all[String(id)];
+                            saveGuestbookReplies(all);
+                        }
+                    } catch (_) {}
+
                     _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
                 } catch (e) {
                     console.error('❌ 删除留言失败:', e);
-                    showToast('⚠️ 删除失败', 2000);
+                    showToast('⚠️ 删除失败：' + (e.message || '请检查权限或网络'), 2500);
+                    throw e;
                 }
             }
 
@@ -17927,21 +17962,27 @@
                 });
 
                 listEl.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
+                    btn.addEventListener('click', async function (ev) {
+                        ev.stopPropagation();
+                        ev.preventDefault();
                         const msgId = Number(this.dataset.msgId);
                         const replyId = this.dataset.replyId;
                         if (replyId) {
                             // 删除回复
                             if (!confirm('确定删除这条回复吗？')) return;
-                            await deleteGuestbookReply(String(msgId), Number(replyId));
-                            showToast('✅ 回复已删除', 1500);
-                            await renderGuestbookList();
+                            try {
+                                await deleteGuestbookReply(String(msgId), Number(replyId));
+                                showToast('✅ 回复已删除', 1500);
+                                await renderGuestbookList();
+                            } catch (_) {}
                         } else {
                             // 删除母留言
                             if (!confirm('确定删除这条留言吗？')) return;
-                            await deleteGuestbookMessage(msgId);
-                            showToast('✅ 留言已删除', 1500);
-                            await renderGuestbookList();
+                            try {
+                                await deleteGuestbookMessage(msgId);
+                                showToast('✅ 留言已删除', 1500);
+                                await renderGuestbookList();
+                            } catch (_) {}
                         }
                     });
                 });
@@ -18184,21 +18225,27 @@
                             });
                             // 删除按钮事件（支持留言和回复删除）
                             item.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
-                                btn.addEventListener('click', async function () {
+                                btn.addEventListener('click', async function (ev) {
+                                    ev.stopPropagation();
+                                    ev.preventDefault();
                                     const msgId = Number(this.dataset.msgId);
                                     const replyId = this.dataset.replyId;
                                     if (replyId) {
                                         // 删除回复
                                         if (!confirm('确定删除这条回复吗？')) return;
-                                        await deleteGuestbookReply(String(msgId), Number(replyId));
-                                        showToast('✅ 回复已删除', 1500);
-                                        await renderGuestbookList();
+                                        try {
+                                            await deleteGuestbookReply(String(msgId), Number(replyId));
+                                            showToast('✅ 回复已删除', 1500);
+                                            await renderGuestbookList();
+                                        } catch (_) {}
                                     } else {
                                         // 删除母留言
                                         if (!confirm('确定删除这条留言吗？')) return;
-                                        await deleteGuestbookMessage(msgId);
-                                        showToast('✅ 留言已删除', 1500);
-                                        await renderGuestbookList();
+                                        try {
+                                            await deleteGuestbookMessage(msgId);
+                                            showToast('✅ 留言已删除', 1500);
+                                            await renderGuestbookList();
+                                        } catch (_) {}
                                     }
                                 });
                             });
