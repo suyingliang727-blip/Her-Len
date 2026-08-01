@@ -15615,7 +15615,7 @@
                     btn.dataset.bound = '1';
                     btn.addEventListener('click', async function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
-                        const reviewDbId = Number(this.dataset.reviewDbId);
+                        const reviewDbId = this.dataset.reviewDbId; // UUID 字符串，直接使用
                         if (!reviewDbId) return;
                         // 拉黑用户预检（数据库 RLS 也会拦截）
                         if (await isCurrentUserBanned()) {
