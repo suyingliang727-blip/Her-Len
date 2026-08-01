@@ -15308,6 +15308,104 @@
             // ================================================================
             // 社区评论 (带分享按钮 + 分页)
             // ================================================================
+            // ===== 游戏评论点赞（云端 review_likes 表 + localStorage 回退） =====
+            const REVIEW_LIKES_KEY = 'heroine_review_likes_v1';
+            // 缓存：{ [reviewDbId]: { count: number, liked: boolean, ts: number } }
+            let _reviewLikesCache = {};
+
+            function getReviewLikesLocal() {
+                try { return JSON.parse(localStorage.getItem(REVIEW_LIKES_KEY) || '{}'); }
+                catch (_) { return {}; }
+            }
+            function saveReviewLikesLocal(likes) {
+                try { localStorage.setItem(REVIEW_LIKES_KEY, JSON.stringify(likes)); } catch (_) {}
+            }
+            function isReviewLikedLocal(reviewDbId) {
+                if (!currentUser) return false;
+                const likes = getReviewLikesLocal();
+                return (likes[reviewDbId] || []).includes(currentUser.id);
+            }
+
+            // 批量获取评论点赞数 + 当前用户点赞状态，填充缓存
+            async function fetchReviewLikesBatch(reviewDbIds) {
+                if (!supabaseClient || !reviewDbIds.length) return;
+                try {
+                    const { data, error } = await supabaseClient.from('review_likes')
+                        .select('review_id, user_id')
+                        .in('review_id', reviewDbIds);
+                    if (error) throw error;
+                    const now = Date.now();
+                    const map = {};
+                    (data || []).forEach(function (row) {
+                        if (!map[row.review_id]) map[row.review_id] = { count: 0, liked: false };
+                        map[row.review_id].count++;
+                        if (currentUser && row.user_id === currentUser.id) map[row.review_id].liked = true;
+                    });
+                    reviewDbIds.forEach(function (id) {
+                        const info = map[id] || { count: 0, liked: false };
+                        // 本地点赞状态作为兜底（云端未同步时）
+                        if (!info.liked && isReviewLikedLocal(id)) info.liked = true;
+                        _reviewLikesCache[id] = { count: info.count, liked: info.liked, ts: now };
+                    });
+                } catch (e) {
+                    console.warn('获取评论点赞失败，使用本地缓存:', e.message);
+                    const now = Date.now();
+                    reviewDbIds.forEach(function (id) {
+                        const liked = isReviewLikedLocal(id);
+                        _reviewLikesCache[id] = { count: liked ? 1 : 0, liked: liked, ts: now };
+                    });
+                }
+            }
+
+            // 切换点赞：乐观更新本地，云端 insert/delete，失败回滚
+            async function toggleReviewLike(reviewDbId) {
+                if (!currentUser) return null;
+                if (!reviewDbId) return null;
+                const wasLiked = (_reviewLikesCache[reviewDbId] && _reviewLikesCache[reviewDbId].liked) || isReviewLikedLocal(reviewDbId);
+                // 1. 本地缓存立即更新
+                const likes = getReviewLikesLocal();
+                if (!likes[reviewDbId]) likes[reviewDbId] = [];
+                const idx = likes[reviewDbId].indexOf(currentUser.id);
+                if (idx === -1) likes[reviewDbId].push(currentUser.id);
+                else likes[reviewDbId].splice(idx, 1);
+                saveReviewLikesLocal(likes);
+                if (!_reviewLikesCache[reviewDbId]) _reviewLikesCache[reviewDbId] = { count: 0, liked: false, ts: Date.now() };
+                _reviewLikesCache[reviewDbId].liked = !wasLiked;
+                _reviewLikesCache[reviewDbId].count += (!wasLiked ? 1 : -1);
+                if (_reviewLikesCache[reviewDbId].count < 0) _reviewLikesCache[reviewDbId].count = 0;
+                // 2. 云端同步
+                if (supabaseClient) {
+                    try {
+                        if (!wasLiked) {
+                            const { error } = await supabaseClient.from('review_likes')
+                                .insert({ review_id: reviewDbId, user_id: currentUser.id });
+                            // 23505 = 唯一约束冲突（已点过），忽略
+                            if (error && error.code !== '23505') throw error;
+                        } else {
+                            const { error } = await supabaseClient.from('review_likes')
+                                .delete().eq('review_id', reviewDbId).eq('user_id', currentUser.id);
+                            if (error) throw error;
+                        }
+                    } catch (e) {
+                        console.error('评论点赞云端同步失败:', e);
+                        // 回滚本地
+                        const likes2 = getReviewLikesLocal();
+                        if (likes2[reviewDbId]) {
+                            const i = likes2[reviewDbId].indexOf(currentUser.id);
+                            if (!wasLiked && i >= 0) likes2[reviewDbId].splice(i, 1);
+                            else if (wasLiked && i === -1) likes2[reviewDbId].push(currentUser.id);
+                            saveReviewLikesLocal(likes2);
+                        }
+                        _reviewLikesCache[reviewDbId].liked = wasLiked;
+                        _reviewLikesCache[reviewDbId].count += (wasLiked ? 1 : -1);
+                        if (_reviewLikesCache[reviewDbId].count < 0) _reviewLikesCache[reviewDbId].count = 0;
+                        showToast('⚠️ 操作失败，请重试', 1500);
+                        return wasLiked;
+                    }
+                }
+                return !wasLiked;
+            }
+
             async function renderReviewItem(r, gameId) {
                 const avatar = r.avatar_url ?
                     `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
@@ -15319,6 +15417,13 @@
                 }) : '';
                 const commentText = r.comment || '';
                 const reviewId = `${gameId}_${r.user_id}`;
+                const reviewDbId = r.id; // 数据库主键，用于点赞关联
+                // 点赞信息（从预加载缓存读取）
+                const likeInfo = (reviewDbId && _reviewLikesCache[reviewDbId]) || { count: 0, liked: false };
+                const isLiked = likeInfo.liked || isReviewLikedLocal(reviewDbId);
+                const likeCount = likeInfo.count || 0;
+                const likeBtnHtml = (reviewDbId && currentUser) ?
+                    `<button class="comment-like-btn${isLiked ? ' liked' : ''}" data-review-db-id="${reviewDbId}" data-review-id="${reviewId}">${isLiked ? '❤️' : '🤍'} <span class="like-count">${likeCount > 0 ? likeCount : ''}</span></button>` : '';
                 const shareBtnHtml =
                     `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-verdict="${r.verdict || ''}" data-tags="${escapeHTML(r.selected_tags ? r.selected_tags.join(',') : '')}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 const replyBtnHtml = `<button class="comment-reply-btn" data-review-id="${reviewId}">💬 回复</button>`;
@@ -15342,6 +15447,7 @@
                         </div>
                         ${commentText ? `<div class="comment-text">${stripCommentHTML(commentText)}</div>` : ''}
                         <div class="comment-actions">
+                            ${likeBtnHtml}
                             ${shareBtnHtml}
                             ${replyBtnHtml}
                         </div>
@@ -15501,6 +15607,37 @@
                         loadCommunityReviews(Number(gameId));
                     });
                 });
+
+                // 主评论点赞按钮事件
+                container.querySelectorAll('.comment-like-btn').forEach(btn => {
+                    // 防止 loadMore 追加时重复绑定
+                    if (btn.dataset.bound === '1') return;
+                    btn.dataset.bound = '1';
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        const reviewDbId = Number(this.dataset.reviewDbId);
+                        if (!reviewDbId) return;
+                        // 拉黑用户预检（数据库 RLS 也会拦截）
+                        if (await isCurrentUserBanned()) {
+                            showToast('⚠️ 您的账号已被限制操作', 2500);
+                            return;
+                        }
+                        // 防重
+                        if (this.dataset.submitting === 'true') return;
+                        this.dataset.submitting = 'true';
+                        const wasLiked = this.classList.contains('liked');
+                        const oldCount = Number(this.querySelector('.like-count')?.textContent || 0);
+                        // 乐观更新 UI
+                        this.classList.toggle('liked');
+                        const newCount = wasLiked ? (oldCount > 1 ? oldCount - 1 : 0) : oldCount + 1;
+                        this.innerHTML = (wasLiked ? '🤍' : '❤️') + ` <span class="like-count">${newCount > 0 ? newCount : ''}</span>`;
+                        try {
+                            await toggleReviewLike(reviewDbId);
+                        } finally {
+                            this.dataset.submitting = 'false';
+                        }
+                    });
+                });
             }
 
             async function loadCommunityReviews(gameId) {
@@ -15529,6 +15666,9 @@
                 }
 
                 let html = '';
+                // 预加载当前页评论的点赞数据
+                const reviewDbIds = reviews.map(r => r.id).filter(Boolean);
+                await fetchReviewLikesBatch(reviewDbIds);
                 for (const r of reviews) { html += await renderReviewItem(r, gameId); }
 
                 const hasMore = reviews.length >= REVIEW_PAGE_SIZE;
@@ -15553,6 +15693,8 @@
                         _reviewPage[gid] = nextPage;
                         if (moreReviews.length > 0) {
                             const moreWrap = document.createElement('div');
+                            // 预加载新加载评论的点赞数据
+                            await fetchReviewLikesBatch(moreReviews.map(r => r.id).filter(Boolean));
                             for (const r of moreReviews) { moreWrap.innerHTML += await renderReviewItem(r, gid); }
                             const existingLoadMore = commentsList.querySelector('.review-load-more');
                             while (moreWrap.firstChild) {
