@@ -11694,11 +11694,33 @@
                         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
                         realtime: { params: { eventsPerSecond: 2 } },
                         global: {
-                            // 为所有请求注入 10s 超时，避免 Supabase 不可达时请求无限挂起
+                            // 为所有请求注入超时，避免 Supabase 不可达时请求无限挂起
+                            // 分页每页 1000 条 20+ 字段 payload 较大，30s 兼顾慢网络与容错
                             fetch: (url, opts = {}) => {
-                                const controller = new AbortController();
-                                const timeoutId = setTimeout(() => controller.abort(), 10000);
-                                const merged = opts && opts.signal ? opts : Object.assign({}, opts, { signal: controller.signal });
+                                const timeoutMs = 30000;
+                                const timeoutErr = new DOMException(`请求超时 (>${timeoutMs / 1000}s)`, 'AbortError');
+                                const timeoutController = new AbortController();
+                                const timeoutId = setTimeout(() => timeoutController.abort(timeoutErr), timeoutMs);
+                                let finalSignal = timeoutController.signal;
+                                // 如果上游已经传了 signal，合并两个 signal（任意一个触发都会取消）
+                                if (opts && opts.signal) {
+                                    const upstream = opts.signal;
+                                    if (upstream.aborted) {
+                                        clearTimeout(timeoutId);
+                                        return fetch(url, opts);
+                                    }
+                                    if (typeof AbortSignal.any === 'function') {
+                                        finalSignal = AbortSignal.any([upstream, timeoutController.signal]);
+                                    } else {
+                                        const combo = new AbortController();
+                                        const onUpstream = () => combo.abort(upstream.reason);
+                                        const onTimeout = () => combo.abort(timeoutErr);
+                                        upstream.addEventListener('abort', onUpstream, { once: true });
+                                        timeoutController.signal.addEventListener('abort', onTimeout, { once: true });
+                                        finalSignal = combo.signal;
+                                    }
+                                }
+                                const merged = Object.assign({}, opts, { signal: finalSignal });
                                 return fetch(url, merged).finally(() => clearTimeout(timeoutId));
                             }
                         }
@@ -11953,14 +11975,40 @@
             }
 
             async function refreshCustomTagsFromCloud() {
-                try {
+                const isRetryable = (e) => {
+                    if (!e) return false;
+                    if (e.name === 'AbortError') return true;
+                    const msg = String(e.message || e).toLowerCase();
+                    return msg.includes('network') || msg.includes('connection') || msg.includes('closed')
+                        || msg.includes('timeout') || msg.includes('econn') || msg.includes('fetch')
+                        || msg.includes('abort');
+                };
+                const doFetch = async () => {
                     const { data, error } = await supabaseClient
                         .from('games')
                         .select('id, genre, gameplay')
                         .in('id', [1, 2]);
-                    if (error || !data || !Array.isArray(data)) {
-                        console.warn('⚠️ 从数据库读取自定义标签失败，使用缓存数据', error?.message || '');
-                        return;
+                    if (error) throw error;
+                    if (!data || !Array.isArray(data)) throw new Error('返回数据格式异常');
+                    return data;
+                };
+                try {
+                    let data;
+                    try {
+                        data = await doFetch();
+                    } catch (e1) {
+                        if (!isRetryable(e1)) {
+                            console.warn('⚠️ 从数据库读取自定义标签失败（不可重试），使用缓存数据', e1?.message || e1);
+                            return;
+                        }
+                        console.warn('⚠️ 首次读取自定义标签失败，800ms 后重试：', e1?.message || e1);
+                        await new Promise(r => setTimeout(r, 800));
+                        try {
+                            data = await doFetch();
+                        } catch (e2) {
+                            console.warn('⚠️ 从数据库读取自定义标签失败（已重试），使用缓存数据', e2?.message || e2);
+                            return;
+                        }
                     }
                     let changed = false;
                     const genreRecord = data.find(r => r.id === 1);
@@ -13081,23 +13129,64 @@
                 const client = getSupabase();
                 if (!client) return null;
                 setSyncStatus('syncing', '正在展开地图');
-                const doFetch = async () => {
-                    const { data, error } = await client.from('games')
-                        .select('id, title, description, fullDescription, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots, videos')
-                        .not('id', 'in', '(1,2)')
-                        .order('id', { ascending: true });
-                    if (error) throw error;
-                    return data;
+                const PAGE_SIZE = 1000;
+                const isRetryable = (e) => {
+                    if (!e) return false;
+                    if (e.name === 'AbortError') return true;
+                    const msg = String(e.message || e).toLowerCase();
+                    return msg.includes('network') || msg.includes('connection') || msg.includes('closed')
+                        || msg.includes('timeout') || msg.includes('econn') || msg.includes('fetch')
+                        || msg.includes('abort') || msg.includes('reset');
+                };
+                // 单页查询 + 最多 3 次渐进重试（500ms / 1200ms / 2500ms），单页失败不影响已拉取到的页
+                const fetchPageWithRetry = async (offset, attempt = 0) => {
+                    try {
+                        // ★ 轻量列表查询：fullDescription / videos 字段不在列表展示，从列表中排除以降低 payload，
+                        //   详情页打开时通过 loadGameDetailFromSupabase 按需懒加载补齐（只查这两个字段）。
+                        //   screenshots 保留在列表中：详情弹窗一打开就要立即显示截图，避免等待。
+                        //   搜索函数 gameMatchesSearch() 不再匹配 fullDescription（已不在列表数据中）。
+                        const { data, error } = await client.from('games')
+                            .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
+                            .not('id', 'in', '(1,2)')
+                            .order('id', { ascending: true })
+                            .range(offset, offset + PAGE_SIZE - 1);
+                        if (error) throw error;
+                        return data || [];
+                    } catch (e) {
+                        const delays = [500, 1200, 2500];
+                        if (attempt >= delays.length || !isRetryable(e)) throw e;
+                        const wait = delays[attempt];
+                        console.warn(`[Sync] 第${attempt + 1}页(offset=${offset})加载失败，${wait}ms 后第${attempt + 1}次重试：`, e?.message || e);
+                        await new Promise(r => setTimeout(r, wait));
+                        return fetchPageWithRetry(offset, attempt + 1);
+                    }
+                };
+                const doFetchAll = async () => {
+                    let allData = [];
+                    let offset = 0;
+                    while (true) {
+                        const page = await fetchPageWithRetry(offset);
+                        console.log(`[Sync] 从云端获取到 ${page.length} 条数据 (offset=${offset})`);
+                        allData = allData.concat(page);
+                        if (page.length < PAGE_SIZE) break;
+                        offset += PAGE_SIZE;
+                    }
+                    console.log(`[Sync] 分页完成，共计 ${allData.length} 条原始数据`);
+                    return allData;
                 };
                 try {
                     let data;
                     try {
-                        data = await doFetch();
+                        data = await doFetchAll();
                     } catch (e1) {
-                        // 单次重试，规避瞬时网络抖动导致的失败（global.fetch 已保证 10s 超时）
-                        console.warn('[Sync] 首次加载失败，500ms 后重试一次：', e1.message || e1);
-                        await new Promise(r => setTimeout(r, 500));
-                        data = await doFetch();
+                        // 整体兜底重试：用于「所有分页的单页重试都失败」或非分页阶段异常；非可重试错误直接抛出
+                        if (!isRetryable(e1)) {
+                            setSyncStatus('error', e1.message || '同步失败');
+                            return null;
+                        }
+                        console.warn('[Sync] 首次加载失败，1s 后整体重试一次：', e1.message || e1);
+                        await new Promise(r => setTimeout(r, 1000));
+                        data = await doFetchAll();
                     }
                     if (data && data.length > 0) {
                         // 兜底过滤掉 id<=2 的特殊行（存储自定义分类用），防止漏网
@@ -13330,7 +13419,7 @@
                 if (q === '免费' || q === 'free') {
                     return game.lowestPrice && game.lowestPrice.includes('免费');
                 }
-                const fields = [game.title, game.description, game.fullDescription,
+                const fields = [game.title, game.description,
                 game.heroineType, game.perspective, game.costumeType, game.lowestPrice,
                 ...(game.genre || []), ...(game.gameplay || []), ...(game.platforms || [])
                 ];
@@ -14071,152 +14160,186 @@
                 if (!overlay || !modal) return;
 
                 const isNew = !game;
-                const data = game || getDefaultGameData();
+                let data = game || getDefaultGameData();
                 editingGameId = game ? game.id : null;
 
-                const genreTags = getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')).map(g =>
-                    `<span class="tag-option${(data.genre || []).includes(g) ? ' selected' : ''}" data-field="genre" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
-                ).join('');
-                const gameplayTags = getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')).map(g =>
-                    `<span class="tag-option${(data.gameplay || []).includes(g) ? ' selected' : ''}" data-field="gameplay" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
-                ).join('');
-                const platformTags = EDIT_PLATFORM_OPTIONS.map(p =>
-                    `<span class="tag-option${(data.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`
-                ).join('');
+                const renderEditForm = (formData) => {
+                    const genreTags = getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')).map(g =>
+                        `<span class="tag-option${(formData.genre || []).includes(g) ? ' selected' : ''}" data-field="genre" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
+                    ).join('');
+                    const gameplayTags = getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')).map(g =>
+                        `<span class="tag-option${(formData.gameplay || []).includes(g) ? ' selected' : ''}" data-field="gameplay" data-value="${escapeHTML(g)}">${escapeHTML(g)}</span>`
+                    ).join('');
+                    const platformTags = EDIT_PLATFORM_OPTIONS.map(p =>
+                        `<span class="tag-option${(formData.platforms || []).includes(p) ? ' selected' : ''}" data-field="platforms" data-value="${escapeHTML(p)}">${escapeHTML(p)}</span>`
+                    ).join('');
 
-                modal.innerHTML = `
-                    <button class="modal-close" onclick="closeEditModal()">✕</button>
-                    <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
-                    <div class="form-row">
-                        <div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(data.title || '')}" required></div>
-                        <div class="form-group"><label>${data.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(data.releaseDate || '')}"></div>
-                    </div>
-                    <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${data.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
-                    <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(data.steamAppId || '')}">
-                    <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
-                    <div class="form-group"><label>封面URL</label><input type="text" id="efCover" value="${escapeHTML(data.cover || '')}"></div>
-                    <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(data.description || '')}</textarea></div>
-                    <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(data.fullDescription || '')}</textarea></div>
-                    <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel">${genreTags}</div>
-                    <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="自定义题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋</button></div></div>
-                    <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel">${gameplayTags}</div>
-                    <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="自定义玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋</button></div></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>👁 视角</label><select id="efPerspective">${['第一人称', '第三人称', '可切换人称', '横版'].map(p => `<option value="${p}" ${data.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-                        <div class="form-group"><label>👤 主角分类</label><select id="efHeroineType">${['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主', '无性别默认女'].map(h => `<option value="${h}" ${data.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
-                        <div class="form-group"><label>👕 服设分类</label><select id="efCostumeType">${['服设合理', '服设不合理', '含恶俗设计', '服设可自选'].map(c => `<option value="${c}" ${data.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>📚 所属系列</label><input type="text" id="efSeries" value="${escapeHTML(data.series || '')}" placeholder="如：地平线、猎天使魔女（留空=无系列）"></div>
-                        <div class="form-group" style="max-width:120px;"><label>系列排序</label><input type="number" id="efSeriesOrder" value="${data.seriesOrder || 0}" min="0" placeholder="0"></div>
-                    </div>
-                    <div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${['有中文', '无中文'].map(c => `<option value="${c}" ${data.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-                    <div class="form-group" id="efMacRow"><label>🍎 Mac适配</label><select id="efHasMacSupport"><option value="支持Mac" ${data.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${data.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!data.hasDemo ? 'selected' : ''}>暂无</option><option value="1" ${data.hasDemo ? 'selected' : ''}>有Demo</option></select></div>
-                        <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(data.mainStoryDuration || '')}"></div>
-                        <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(data.lowestPrice || '')}"></div>
-                    </div>
-                    <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${platformTags}</div></div>
-                    <div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(data.steamLink || '')}"></div>
-                    <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(data.otherLinks || '')}</textarea></div>
-                    <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${data.isPSExclusive ? 'checked' : ''}> PS独占</label>
-                    <label><input type="checkbox" id="efNSExclusive" ${data.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
-                    <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(data.videos || []).join('\n')}</textarea></div>
-                    <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(data.screenshots || []).join('\n')}</textarea></div>
-                    <div style="display:flex;gap:10px;margin-top:16px;">
-                        <button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
-                        <button type="button" class="btn" onclick="closeEditModal()">取消</button>
+                    modal.innerHTML = `
+                        <button class="modal-close" onclick="closeEditModal()">✕</button>
+                        <h2 style="margin-bottom:14px;color:var(--accent);">${isNew ? '➕ 添加新游戏' : '✏️ 编辑游戏'}</h2>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(formData.title || '')}" required></div>
+                            <div class="form-group"><label>${formData.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(formData.releaseDate || '')}"></div>
+                        </div>
+                        <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${formData.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
+                        <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(formData.steamAppId || '')}">
+                        <button type="button" class="btn btn-sm" id="btnFetchCover" style="margin-top:4px;">🖼 从Steam获取封面</button></div>
+                        <div class="form-group"><label>封面URL</label><input type="text" id="efCover" value="${escapeHTML(formData.cover || '')}"></div>
+                        <div class="form-group"><label>简介</label><textarea id="efDescription" rows="2">${escapeHTML(formData.description || '')}</textarea></div>
+                        <div class="form-group"><label>详细简介</label><textarea id="efFullDescription" rows="3">${escapeHTML(formData.fullDescription || '')}</textarea></div>
+                        <div class="form-group"><label>📖 题材</label><div class="tag-select-panel" id="efGenrePanel">${genreTags}</div>
+                        <div class="add-tag-row"><input type="text" id="efNewGenre" placeholder="自定义题材"><button type="button" class="btn btn-sm" id="btnAddGenre">＋</button></div></div>
+                        <div class="form-group"><label>🎮 玩法</label><div class="tag-select-panel" id="efGameplayPanel">${gameplayTags}</div>
+                        <div class="add-tag-row"><input type="text" id="efNewGameplay" placeholder="自定义玩法"><button type="button" class="btn btn-sm" id="btnAddGameplay">＋</button></div></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>👁 视角</label><select id="efPerspective">${['第一人称', '第三人称', '可切换人称', '横版'].map(p => `<option value="${p}" ${formData.perspective === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
+                            <div class="form-group"><label>👤 主角分类</label><select id="efHeroineType">${['固定女主', '可选女主', '动物女主', '双女主', '多主角含女主', '无性别默认女'].map(h => `<option value="${h}" ${formData.heroineType === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
+                            <div class="form-group"><label>👕 服设分类</label><select id="efCostumeType">${['服设合理', '服设不合理', '含恶俗设计', '服设可自选'].map(c => `<option value="${c}" ${formData.costumeType === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>📚 所属系列</label><input type="text" id="efSeries" value="${escapeHTML(formData.series || '')}" placeholder="如：地平线、猎天使魔女（留空=无系列）"></div>
+                            <div class="form-group" style="max-width:120px;"><label>系列排序</label><input type="number" id="efSeriesOrder" value="${formData.seriesOrder || 0}" min="0" placeholder="0"></div>
+                        </div>
+                        <div class="form-group"><label>🌐 中文</label><select id="efHasChinese">${['有中文', '无中文'].map(c => `<option value="${c}" ${formData.hasChinese === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                        <div class="form-group" id="efMacRow"><label>🍎 Mac适配</label><select id="efHasMacSupport"><option value="支持Mac" ${formData.hasMacSupport === '支持Mac' ? 'selected' : ''}>支持Mac</option><option value="不支持Mac" ${formData.hasMacSupport === '不支持Mac' ? 'selected' : ''}>不支持Mac</option></select></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>🎮 Demo</label><select id="efHasDemo"><option value="0" ${!formData.hasDemo ? 'selected' : ''}>暂无</option><option value="1" ${formData.hasDemo ? 'selected' : ''}>有Demo</option></select></div>
+                            <div class="form-group" id="efDurationPriceGroup"><label>⏱ 时长</label><input type="text" id="efMainStoryDuration" value="${escapeHTML(formData.mainStoryDuration || '')}"></div>
+                            <div class="form-group" id="efPriceGroup"><label>💰 最低价</label><input type="text" id="efLowestPrice" value="${escapeHTML(formData.lowestPrice || '')}"></div>
+                        </div>
+                        <div class="form-group"><label>🖥 平台</label><div class="tag-select-panel" id="efPlatformsPanel">${platformTags}</div></div>
+                        <div class="form-group"><label>Steam链接</label><input type="text" id="efSteamLink" value="${escapeHTML(formData.steamLink || '')}"></div>
+                        <div class="form-group"><label>其他链接</label><textarea id="efOtherLinks" rows="2">${escapeHTML(formData.otherLinks || '')}</textarea></div>
+                        <div class="checkbox-group"><label><input type="checkbox" id="efPSExclusive" ${formData.isPSExclusive ? 'checked' : ''}> PS独占</label>
+                        <label><input type="checkbox" id="efNSExclusive" ${formData.isNSExclusive ? 'checked' : ''}> NS独占</label></div>
+                        <div class="form-group"><label>视频链接</label><textarea id="efVideos" rows="2">${(formData.videos || []).join('\n')}</textarea></div>
+                        <div class="form-group"><label>截图URL</label><textarea id="efScreenshots" rows="2">${(formData.screenshots || []).join('\n')}</textarea></div>
+                        <div style="display:flex;gap:10px;margin-top:16px;">
+                            <button type="button" class="btn btn-accent" id="btnSaveGame">💾 保存</button>
+                            <button type="button" class="btn" onclick="closeEditModal()">取消</button>
+                        </div>`;
+
+                    overlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                const bindEditFormEvents = () => {
+                    modal.querySelectorAll('.tag-select-panel').forEach(p => {
+                        p.addEventListener('click', function (e) {
+                            const t = e.target.closest('.tag-option');
+                            if (t) t.classList.toggle('selected');
+                        });
+                    });
+
+                    const btnAddGenre = modal.querySelector('#btnAddGenre');
+                    if (btnAddGenre) {
+                        btnAddGenre.addEventListener('click', function () {
+                            const inp = modal.querySelector('#efNewGenre');
+                            const tag = (inp.value || '').trim();
+                            if (!tag) return;
+                            if (getAllGenres().includes(tag)) { showToast('该题材已存在', 1200); return; }
+                            customGenres.push(tag);
+                            saveCustomTagsToStorage();
+                            const panel = modal.querySelector('#efGenrePanel');
+                            const sp = document.createElement('span');
+                            sp.className = 'tag-option selected';
+                            sp.dataset.field = 'genre';
+                            sp.dataset.value = tag;
+                            sp.textContent = tag;
+                            panel.appendChild(sp);
+                            inp.value = '';
+                            showToast('✅ 已添加自定义题材', 1200);
+                        });
+                    }
+
+                    const btnAddGameplay = modal.querySelector('#btnAddGameplay');
+                    if (btnAddGameplay) {
+                        btnAddGameplay.addEventListener('click', function () {
+                            const inp = modal.querySelector('#efNewGameplay');
+                            const tag = (inp.value || '').trim();
+                            if (!tag) return;
+                            if (getAllGameplays().includes(tag)) { showToast('该玩法已存在', 1200); return; }
+                            customGameplays.push(tag);
+                            saveCustomTagsToStorage();
+                            const panel = modal.querySelector('#efGameplayPanel');
+                            const sp = document.createElement('span');
+                            sp.className = 'tag-option selected';
+                            sp.dataset.field = 'gameplay';
+                            sp.dataset.value = tag;
+                            sp.textContent = tag;
+                            panel.appendChild(sp);
+                            inp.value = '';
+                            showToast('✅ 已添加自定义玩法', 1200);
+                        });
+                    }
+
+                    const btnFetch = modal.querySelector('#btnFetchCover');
+                    if (btnFetch) {
+                        btnFetch.addEventListener('click', function () {
+                            const id = (modal.querySelector('#efSteamAppId') || {}).value || '';
+                            if (!id.trim()) { showToast('请输入App ID', 1200); return; }
+                            modal.querySelector('#efCover').value = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${id.trim()}/header.jpg`;
+                        });
+                    }
+
+                    const isReleasedCheck = modal.querySelector('#efIsReleased');
+                    if (isReleasedCheck) {
+                        isReleasedCheck.addEventListener('change', function () {
+                            toggleReleasedFields(modal, this.checked);
+                        });
+                        toggleReleasedFields(modal, isReleasedCheck.checked);
+                    }
+
+                    const dateInput = modal.querySelector('#efReleaseDate');
+                    if (dateInput) {
+                        dateInput.addEventListener('paste', function (e) {
+                            e.preventDefault();
+                            const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+                            const parsed = parseDateInput(text.trim());
+                            this.value = parsed || text.trim();
+                        });
+                        dateInput.addEventListener('blur', function () {
+                            const v = this.value.trim();
+                            if (!v || /^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+                            const parsed = parseDateInput(v);
+                            if (parsed) this.value = parsed;
+                        });
+                    }
+
+                    const btnSave = modal.querySelector('#btnSaveGame');
+                    if (btnSave) {
+                        btnSave.addEventListener('click', function () { saveGameFromForm(modal); });
+                    }
+                };
+
+                // 编辑且列表查询缺失详细字段时，先从云端补齐（防止保存时把旧数据覆盖成空）
+                // ★ 列表查询已包含 screenshots，但旧缓存可能缺失，补拉时一起查
+                const hasFullFields = !!data.fullDescription
+                    && Array.isArray(data.screenshots) && Array.isArray(data.videos);
+                if (isNew || hasFullFields) {
+                    renderEditForm(data);
+                    bindEditFormEvents();
+                } else {
+                    overlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                    modal.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--text2);">
+                        <div style="font-size:2rem;margin-bottom:10px;">⏳</div>
+                        <div>正在加载完整编辑数据…</div>
+                        <div style="font-size:0.8rem;margin-top:8px;color:var(--text3);">（从云端获取详细简介、截图和视频链接）</div>
                     </div>`;
-
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-
-                modal.querySelectorAll('.tag-select-panel').forEach(p => {
-                    p.addEventListener('click', function (e) {
-                        const t = e.target.closest('.tag-option');
-                        if (t) t.classList.toggle('selected');
+                    loadGameDetailFromSupabase(editingGameId).then(detail => {
+                        if (detail) {
+                            if (detail.fullDescription) data.fullDescription = detail.fullDescription;
+                            if (Array.isArray(detail.screenshots)) data.screenshots = detail.screenshots;
+                            if (Array.isArray(detail.videos)) data.videos = detail.videos;
+                        }
+                        renderEditForm(data);
+                        bindEditFormEvents();
+                    }).catch(() => {
+                        renderEditForm(data);
+                        bindEditFormEvents();
+                        showToast('⚠️ 补充加载失败，编辑缺少的字段可能为空', 2000);
                     });
-                });
-
-                const btnAddGenre = modal.querySelector('#btnAddGenre');
-                if (btnAddGenre) {
-                    btnAddGenre.addEventListener('click', function () {
-                        const inp = modal.querySelector('#efNewGenre');
-                        const tag = (inp.value || '').trim();
-                        if (!tag) return;
-                        if (getAllGenres().includes(tag)) { showToast('该题材已存在', 1200); return; }
-                        customGenres.push(tag);
-                        saveCustomTagsToStorage();
-                        const panel = modal.querySelector('#efGenrePanel');
-                        const sp = document.createElement('span');
-                        sp.className = 'tag-option selected';
-                        sp.dataset.field = 'genre';
-                        sp.dataset.value = tag;
-                        sp.textContent = tag;
-                        panel.appendChild(sp);
-                        inp.value = '';
-                        showToast('✅ 已添加自定义题材', 1200);
-                    });
-                }
-
-                const btnAddGameplay = modal.querySelector('#btnAddGameplay');
-                if (btnAddGameplay) {
-                    btnAddGameplay.addEventListener('click', function () {
-                        const inp = modal.querySelector('#efNewGameplay');
-                        const tag = (inp.value || '').trim();
-                        if (!tag) return;
-                        if (getAllGameplays().includes(tag)) { showToast('该玩法已存在', 1200); return; }
-                        customGameplays.push(tag);
-                        saveCustomTagsToStorage();
-                        const panel = modal.querySelector('#efGameplayPanel');
-                        const sp = document.createElement('span');
-                        sp.className = 'tag-option selected';
-                        sp.dataset.field = 'gameplay';
-                        sp.dataset.value = tag;
-                        sp.textContent = tag;
-                        panel.appendChild(sp);
-                        inp.value = '';
-                        showToast('✅ 已添加自定义玩法', 1200);
-                    });
-                }
-
-                const btnFetch = modal.querySelector('#btnFetchCover');
-                if (btnFetch) {
-                    btnFetch.addEventListener('click', function () {
-                        const id = (modal.querySelector('#efSteamAppId') || {}).value || '';
-                        if (!id.trim()) { showToast('请输入App ID', 1200); return; }
-                        modal.querySelector('#efCover').value = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${id.trim()}/header.jpg`;
-                    });
-                }
-
-                const isReleasedCheck = modal.querySelector('#efIsReleased');
-                if (isReleasedCheck) {
-                    isReleasedCheck.addEventListener('change', function () {
-                        toggleReleasedFields(modal, this.checked);
-                    });
-                    toggleReleasedFields(modal, isReleasedCheck.checked);
-                }
-
-                const dateInput = modal.querySelector('#efReleaseDate');
-                if (dateInput) {
-                    dateInput.addEventListener('paste', function (e) {
-                        e.preventDefault();
-                        const text = (e.clipboardData || window.clipboardData).getData('text') || '';
-                        const parsed = parseDateInput(text.trim());
-                        this.value = parsed || text.trim();
-                    });
-                    dateInput.addEventListener('blur', function () {
-                        const v = this.value.trim();
-                        if (!v || /^\d{4}-\d{2}-\d{2}$/.test(v)) return;
-                        const parsed = parseDateInput(v);
-                        if (parsed) this.value = parsed;
-                    });
-                }
-
-                const btnSave = modal.querySelector('#btnSaveGame');
-                if (btnSave) {
-                    btnSave.addEventListener('click', function () { saveGameFromForm(modal); });
                 }
             }
 
@@ -15312,8 +15435,13 @@
                 loadCommunityReviews(game.id);
                 loadDetailRelatedMods(game);
 
-                // 后台补齐详细简介/截图/视频，不阻塞弹窗打开
-                if (!game.fullDescription || !game.videos || game.videos.length === 0) {
+                // 后台补齐详细简介/视频，不阻塞弹窗打开
+                // ★ 列表查询已包含 screenshots，正常情况下不触发补拉；
+                //   仅旧缓存数据（screenshots 为空）会补拉一次，拿到后更新 localStorage
+                const hasFullDesc = !!game.fullDescription;
+                const hasShots = Array.isArray(game.screenshots) && game.screenshots.length > 0;
+                const hasVideos = Array.isArray(game.videos) && game.videos.length > 0;
+                if (!hasFullDesc || !hasShots || !hasVideos) {
                     loadGameDetailFromSupabase(game.id).then(detail => {
                         if (!detail) return;
                         let changed = false;
@@ -15321,11 +15449,11 @@
                             game.fullDescription = detail.fullDescription;
                             changed = true;
                         }
-                        if (detail.screenshots && detail.screenshots.length > 0 && (!game.screenshots || game.screenshots.length === 0)) {
+                        if (detail.screenshots && detail.screenshots.length > 0 && (!Array.isArray(game.screenshots) || game.screenshots.length === 0)) {
                             game.screenshots = detail.screenshots;
                             changed = true;
                         }
-                        if (detail.videos && detail.videos.length > 0 && (!game.videos || game.videos.length === 0)) {
+                        if (detail.videos && detail.videos.length > 0 && (!Array.isArray(game.videos) || game.videos.length === 0)) {
                             game.videos = detail.videos;
                             changed = true;
                         }
