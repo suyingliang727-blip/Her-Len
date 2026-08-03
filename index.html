@@ -4495,6 +4495,41 @@
             white-space: pre-wrap;
         }
 
+        /* 剧透遮挡（Steam风格） */
+        .comment-spoiler {
+            background: var(--text2);
+            color: var(--text2);
+            border-radius: 3px;
+            padding: 0 3px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            user-select: none;
+        }
+        .comment-spoiler:hover {
+            background: var(--text3);
+            color: var(--text3);
+        }
+        .comment-spoiler.revealed {
+            background: rgba(255, 200, 0, 0.12);
+            color: var(--text);
+            border-bottom: 1px dashed var(--accent);
+        }
+        .comment-spoiler-btn {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .comment-spoiler-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
         /* ===== 游戏评论嵌套回复样式 ===== */
         .comment-reply-btn {
             font-size: 0.7rem;
@@ -11809,6 +11844,37 @@
                 return div.textContent || '';
             }
 
+            // 解析 [spoiler]...[/spoiler] 标记，生成可点击展开的剧透遮挡（Steam风格）
+            function renderCommentWithSpoilers(text) {
+                if (!text) return '';
+                // 先 escapeHTML 防止 XSS
+                const escaped = escapeHTML(text);
+                // 解析 [spoiler]...[/spoiler] 标记（大小写不敏感）
+                return escaped.replace(/\[spoiler\]([\s\S]*?)\[\/spoiler\]/gi, function (match, content) {
+                    return `<span class="comment-spoiler" tabindex="0" role="button" aria-label="剧透内容，点击查看">${content}</span>`;
+                });
+            }
+
+            // 在 textarea 中包裹选中文字为 [spoiler]...[/spoiler]
+            function wrapSelectionWithSpoiler(textarea) {
+                if (!textarea) return;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const selected = textarea.value.substring(start, end);
+                const before = textarea.value.substring(0, start);
+                const after = textarea.value.substring(end);
+                const spoilerText = selected || '剧透内容';
+                const wrapped = `[spoiler]${spoilerText}[/spoiler]`;
+                textarea.value = before + wrapped + after;
+                // 选中包裹后的内容（方便用户直接替换）
+                const newStart = start + 9; // [spoiler] 的长度
+                const newEnd = newStart + spoilerText.length;
+                textarea.setSelectionRange(newStart, newEnd);
+                textarea.focus();
+                // 触发 input 事件更新字数统计
+                textarea.dispatchEvent(new Event('input'));
+            }
+
             // URL转义 - 只转义HTML实体，不转义URL特殊字符
             function escapeURL(s) {
                 if (!s) return '';
@@ -12243,11 +12309,11 @@
 
             // 表态档位信息表
             const VERDICT_MAP = {
-                1: { emoji: '⚠️', label: '强烈避雷', color: '#e74c3c' },
-                2: { emoji: '⚡', label: '谨慎选择', color: '#e67e22' },
-                3: { emoji: '⭐', label: '中规中矩', color: '#f1c40f' },
-                4: { emoji: '✨', label: '颇具亮点', color: '#2ecc71' },
-                5: { emoji: '🔥', label: '大力推荐', color: '#e74c3c' }
+                1: { emoji: '⚠️', label: '强烈避雷', color: '#d63031' },
+                2: { emoji: '⚡', label: '谨慎选择', color: '#e17055' },
+                3: { emoji: '⭐', label: '中规中矩', color: '#fdcb6e' },
+                4: { emoji: '✨', label: '颇具亮点', color: '#00897b' },
+                5: { emoji: '💎', label: '大力推荐', color: '#00cec9' }
             };
 
             function getVerdictInfo(val) {
@@ -12442,7 +12508,10 @@
                     const btnId = both ? 'unifiedSaveBtn' : 'submitCommentBtn';
                     editorParts += `
                                 <div style="margin-top:6px;">
-                                    <textarea id="commentInput" placeholder="写下你的评价（最多500字）…" maxlength="500" class="comment-input"></textarea>
+                                    <div style="display:flex;gap:4px;margin-bottom:3px;">
+                                        <button type="button" class="comment-spoiler-btn" id="spoilerBtn" title="选中文字后点击，用剧透遮挡包裹（也可手动输入 [spoiler]...[/spoiler]）">⚠️ 剧透</button>
+                                    </div>
+                                    <textarea id="commentInput" placeholder="写下你的评价（最多500字）… 选中文字后点「剧透」可标记剧透内容" maxlength="500" class="comment-input"></textarea>
                                     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
                                         <span class="comment-char-count"><span id="commentCharCount">0</span>/500</span>
                                         <button class="btn btn-sm btn-accent" id="${btnId}">${btnLabel}</button>
@@ -12540,11 +12609,44 @@
                 // 先保存到云端，成功后再更新本地状态与 UI，避免云端失败时 UI 误显示"已保存"
                 if (supabaseClient) {
                     try {
-                        const { error } = await supabaseClient.from('user_reviews').upsert(reviewData, { onConflict: 'user_id, game_id' });
-                        if (error) throw error;
+                        // 优先尝试 upsert（onConflict 去掉空格，避免 PostgREST 解析问题）
+                        let upsertOk = false;
+                        try {
+                            const { error: upErr } = await supabaseClient
+                                .from('user_reviews')
+                                .upsert(reviewData, { onConflict: 'user_id,game_id' });
+                            if (!upErr) { upsertOk = true; }
+                            else { throw upErr; }
+                        } catch (upE) {
+                            // upsert 失败时降级：先查再 insert/update
+                            console.warn('upsert 失败，尝试降级 insert/update:', upE?.message || upE);
+                            const { data: existRow, error: selErr } = await supabaseClient
+                                .from('user_reviews')
+                                .select('id')
+                                .eq('user_id', currentUser.id)
+                                .eq('game_id', reviewData.game_id)
+                                .maybeSingle();
+                            if (selErr) throw selErr;
+                            if (existRow) {
+                                const { error: updErr } = await supabaseClient
+                                    .from('user_reviews')
+                                    .update(reviewData)
+                                    .eq('user_id', currentUser.id)
+                                    .eq('game_id', reviewData.game_id);
+                                if (updErr) throw updErr;
+                            } else {
+                                const { error: insErr } = await supabaseClient
+                                    .from('user_reviews')
+                                    .insert(reviewData);
+                                if (insErr) throw insErr;
+                            }
+                            upsertOk = true;
+                        }
+                        if (!upsertOk) throw new Error('保存失败');
                     } catch (e) {
                         console.error('❌ 保存评论失败:', e);
-                        showToast('⚠️ 保存失败，请检查网络后重试', 2000);
+                        const errMsg = (e && (e.message || e.details || e.hint)) ? (e.message || e.details || e.hint) : '未知错误';
+                        showToast('⚠️ 保存失败：' + errMsg, 3000);
                         return false;
                     }
                 }
@@ -12633,6 +12735,13 @@
                                     newCharCount.textContent = this.value.length;
                                 });
                             }
+                            // 绑定剧透按钮
+                            const newSpoilerBtn = reviewUserArea.querySelector('#spoilerBtn');
+                            if (newSpoilerBtn && newCommentInput) {
+                                newSpoilerBtn.addEventListener('click', function () {
+                                    wrapSelectionWithSpoiler(newCommentInput);
+                                });
+                            }
                             // 绑定统一保存按钮（评价+评论共用时存在），不存在则绑定独立提交评论按钮
                             bindUnifiedSaveBtn(reviewUserArea, gameId, savedVerdict, savedTags);
                             const newSubmitBtn = reviewUserArea.querySelector('#submitCommentBtn');
@@ -12659,12 +12768,13 @@
                                     if (exist) { exist.remove(); return; }
                                     const ea = document.createElement('div');
                                     ea.className = 'comment-edit-area';
-                                    ea.innerHTML = '<textarea maxlength="500">' + stripCommentHTML(savedComment) + '</textarea><div class="comment-edit-actions"><button class="btn btn-sm" id="cancelEditBtn">取消</button><button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button></div>';
+                                    ea.innerHTML = '<div style="margin-bottom:3px;"><button type="button" class="comment-spoiler-btn" title="选中文字后点击，用剧透遮挡包裹">⚠️ 剧透</button></div><textarea maxlength="500">' + stripCommentHTML(savedComment) + '</textarea><div class="comment-edit-actions"><button class="btn btn-sm" id="cancelEditBtn">取消</button><button class="btn btn-sm btn-accent" id="saveEditBtn">保存</button></div>';
                                     body.appendChild(ea);
                                     const ta = ea.querySelector('textarea');
                                     ta.focus();
                                     ta.setSelectionRange(ta.value.length, ta.value.length);
                                     ea.querySelector('#cancelEditBtn').addEventListener('click', function () { ea.remove(); });
+                                    ea.querySelector('.comment-spoiler-btn')?.addEventListener('click', function () { wrapSelectionWithSpoiler(ta); });
                                     ea.querySelector('#saveEditBtn').addEventListener('click', function () {
                                         const text = ta.value.trim();
                                         if (!text) { showToast('评论不能为空', 1500); return; }
@@ -12703,7 +12813,7 @@
                                 commentsList.innerHTML = '';
                             }
                             const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = renderReviewItem(tempReview, gameId);
+                            tempDiv.innerHTML = await renderReviewItem(tempReview, gameId);
                             const newEl = tempDiv.firstElementChild;
                             newEl.style.opacity = '0.6';
                             newEl.style.transition = 'opacity 0.5s ease';
@@ -15110,6 +15220,14 @@
                         });
                     }
 
+                    // 绑定剧透按钮
+                    const spoilerBtn = modal.querySelector('#spoilerBtn');
+                    if (spoilerBtn && commentInput) {
+                        spoilerBtn.addEventListener('click', function () {
+                            wrapSelectionWithSpoiler(commentInput);
+                        });
+                    }
+
                     // 绑定统一保存按钮（评价+评论共用时存在），不存在则绑定独立提交评论按钮
                     bindUnifiedSaveBtn(modal, game.id, userVerdict, userTags);
                     const submitBtn = modal.querySelector('#submitCommentBtn');
@@ -15143,6 +15261,7 @@
                             const editArea = document.createElement('div');
                             editArea.className = 'comment-edit-area';
                             editArea.innerHTML = `
+                                <div style="margin-bottom:3px;"><button type="button" class="comment-spoiler-btn" title="选中文字后点击，用剧透遮挡包裹">⚠️ 剧透</button></div>
                                 <textarea maxlength="500">${stripCommentHTML(userComment)}</textarea>
                                 <div class="comment-edit-actions">
                                     <button class="btn btn-sm" id="cancelEditBtn">取消</button>
@@ -15153,6 +15272,7 @@
                             ta.focus();
                             ta.setSelectionRange(ta.value.length, ta.value.length);
                             editArea.querySelector('#cancelEditBtn').addEventListener('click', function () { editArea.remove(); });
+                            editArea.querySelector('.comment-spoiler-btn')?.addEventListener('click', function () { wrapSelectionWithSpoiler(ta); });
                             editArea.querySelector('#saveEditBtn').addEventListener('click', function () {
                                 const text = ta.value.trim();
                                 if (!text) { showToast('评论不能为空', 1500); return; }
@@ -15451,7 +15571,7 @@
                             ${tagsDisplay}
                             <span class="comment-time">${time}</span>
                         </div>
-                        ${commentText ? `<div class="comment-text">${stripCommentHTML(commentText)}</div>` : ''}
+                        ${commentText ? `<div class="comment-text">${renderCommentWithSpoilers(stripCommentHTML(commentText))}</div>` : ''}
                         <div class="comment-actions">
                             ${likeBtnHtml}
                             ${shareBtnHtml}
@@ -15641,6 +15761,23 @@
                             await toggleReviewLike(reviewDbId);
                         } finally {
                             this.dataset.submitting = 'false';
+                        }
+                    });
+                });
+
+                // 剧透遮挡点击展开/收起（事件委托）
+                container.querySelectorAll('.comment-spoiler').forEach(spoiler => {
+                    if (spoiler.dataset.bound === '1') return;
+                    spoiler.dataset.bound = '1';
+                    spoiler.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        this.classList.toggle('revealed');
+                    });
+                    // 支持键盘展开
+                    spoiler.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.classList.toggle('revealed');
                         }
                     });
                 });
