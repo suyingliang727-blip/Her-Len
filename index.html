@@ -13079,9 +13079,8 @@
                 setSyncStatus('syncing', '正在展开地图');
                 const doFetch = async () => {
                     const { data, error } = await client.from('games')
-                        .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
-                        .neq('id', '1')
-                        .neq('id', '2')
+                        .select('id, title, description, fullDescription, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots, videos')
+                        .not('id', 'in', '(1,2)')
                         .order('id', { ascending: true });
                     if (error) throw error;
                     return data;
@@ -13097,7 +13096,9 @@
                         data = await doFetch();
                     }
                     if (data && data.length > 0) {
-                        const parsed = data.map(row => ({
+                        // 兜底过滤掉 id<=2 的特殊行（存储自定义分类用），防止漏网
+                        const filtered = data.filter(row => Number(row.id) > 2);
+                        const parsed = filtered.map(row => ({
                             ...row,
                             id: Number(row.id),
                             genre: row.genre || [],
@@ -13110,6 +13111,8 @@
                             isNSExclusive: row.isNSExclusive || false,
                             series: row.series || '',
                             seriesOrder: row.seriesOrder || 0,
+                            videos: row.videos || [],
+                            screenshots: row.screenshots || [],
                         }));
                         setSyncStatus('synced');
                         return parsed;
