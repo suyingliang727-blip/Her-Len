@@ -13052,6 +13052,10 @@
             const SYNC_META_KEY = 'heroineGamesSyncMetaV2';
             const SYNC_TTL = 5 * 60 * 1000;
 
+            function invalidateSyncCache() {
+                try { localStorage.removeItem(SYNC_META_KEY); } catch (_) {}
+            }
+
             function getSupabase() {
                 if (!supabaseClient || !SUPABASE_ENABLED) return null;
                 return supabaseClient;
@@ -14324,6 +14328,8 @@
                 }
                 closeEditModal();
                 renderGallery();
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); } catch (_) {}
+                invalidateSyncCache();
                 showToast(`✅ "${title}" 已保存`, 2000);
                 setSyncStatus('synced');
             }
@@ -14342,6 +14348,7 @@
                 }
                 games = games.filter(g => g.id !== gameId);
                 renderGallery();
+                invalidateSyncCache();
                 showToast('✅ 已删除', 1500);
                 setSyncStatus('synced');
             }
@@ -14400,6 +14407,7 @@
                                     setSyncStatus('synced');
                                 }
                                 renderGallery();
+                                invalidateSyncCache();
                                 showToast(`✅ 成功导入 ${added} 款游戏`, 2500);
                             } else {
                                 showToast('⚠️ 没有导入任何游戏', 2000);
