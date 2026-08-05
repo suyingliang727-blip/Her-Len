@@ -149,6 +149,7 @@
             .filter-option-tag,
             .sort-btn,
             .theme-toggle,
+            .theme-toggle-floating,
             .coin-tip-btn,
             .btn,
             .sync-status,
@@ -200,6 +201,7 @@
             .filter-option-tag,
             .sort-btn,
             .theme-toggle,
+            .theme-toggle-floating,
             .coin-tip-btn,
             .btn,
             .sync-status,
@@ -384,6 +386,131 @@
 
         [data-theme="dark"] .header-dropdown-menu {
             background: #2a2330;
+        }
+
+        [data-theme="dark"] .texture-card {
+            background-color: rgba(48, 42, 54, 0.72);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.025) 3px,
+                    rgba(155, 138, 189, 0.025) 4px
+                );
+            border: 1px solid rgba(90, 80, 105, 0.5);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+                inset 2px 0 8px rgba(120, 100, 150, 0.06),
+                inset -2px 0 8px rgba(120, 100, 150, 0.06),
+                0 1px 3px rgba(0, 0, 0, 0.2),
+                0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        [data-theme="dark"] .texture-card::before {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 35%),
+                radial-gradient(ellipse at 10% 5%, rgba(255, 255, 255, 0.04) 0%, transparent 35%),
+                radial-gradient(ellipse at 15% 10%, rgba(155, 138, 189, 0.05) 0%, transparent 50%);
+        }
+
+        [data-theme="dark"] .texture-card::after {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        [data-theme="dark"] .diary-mobile-bm-btn,
+        [data-theme="dark"] .diary-back-btn,
+        [data-theme="dark"] .diary-sort-select {
+            background: rgba(48, 42, 54, 0.82);
+            border-color: rgba(90, 80, 105, 0.5);
+            color: #e2dae8;
+        }
+
+        [data-theme="dark"] .diary-back-btn:hover {
+            background: rgba(54, 47, 62, 0.70);
+            border-color: #b8a2d6;
+        }
+
+        [data-theme="dark"] .diary-mobile-dropdown {
+            background: #2a2330;
+            border-bottom-color: rgba(90, 80, 105, 0.5);
+        }
+
+        [data-theme="dark"] .diary-mobile-search input {
+            background: rgba(48, 42, 54, 0.6);
+            border-color: rgba(90, 80, 105, 0.5);
+            color: var(--text);
+        }
+
+        [data-theme="dark"] .diary-mobile-item {
+            border-bottom-color: rgba(90, 80, 105, 0.3);
+        }
+
+        [data-theme="dark"] .diary-mobile-item:hover {
+            background: rgba(54, 47, 62, 0.5);
+        }
+
+        [data-theme="dark"] .diary-mobile-item.active {
+            background: rgba(155, 138, 189, 0.18);
+        }
+
+        [data-theme="dark"] .diary-mobile-idx {
+            background: rgba(90, 80, 105, 0.5);
+            color: #b8a9c4;
+        }
+
+        [data-theme="dark"] .diary-ribbon .ribbon-tip {
+            background: #b8a2d6;
+            color: #1e1822;
+        }
+
+        [data-theme="dark"] .diary-ribbon .ribbon-tip::after {
+            border-right-color: #b8a2d6;
+        }
+
+        [data-theme="dark"] .page-header {
+            border-bottom-color: rgba(90, 80, 105, 0.5);
+        }
+
+        [data-theme="dark"] .diary-page-left::before {
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.15) 0%, transparent 100%);
+        }
+
+        [data-theme="dark"] .empty-diary-hint {
+            color: var(--text3);
+        }
+
+        [data-theme="dark"] .review-label {
+            color: #e2dae8;
+        }
+
+        [data-theme="dark"] .toolbar-toggle-btn {
+            background: rgba(48, 42, 54, 0.6);
+            border-color: rgba(90, 80, 105, 0.5);
+            color: #e2dae8;
+        }
+
+        [data-theme="dark"] .toolbar-toggle-btn:hover {
+            background: rgba(54, 47, 62, 0.70);
+        }
+
+        [data-theme="dark"] .text-format-toolbar {
+            background: rgba(48, 42, 54, 0.70);
+            border-color: rgba(90, 80, 105, 0.5);
+        }
+
+        [data-theme="dark"] .format-btn {
+            background: rgba(48, 42, 54, 0.82);
+            border-color: rgba(90, 80, 105, 0.5);
+            color: #e2dae8;
+        }
+
+        [data-theme="dark"] .format-btn:hover {
+            background: rgba(54, 47, 62, 0.70);
+        }
+
+        [data-theme="dark"] .toolbar-divider {
+            background: rgba(90, 80, 105, 0.6);
         }
 
         /* ===== 基础样式 ===== */
@@ -1769,6 +1896,47 @@
             border-color: var(--accent);
             background: var(--card-hover);
             transform: rotate(30deg);
+        }
+
+        .theme-toggle-floating {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all .25s ease;
+            z-index: 999;
+            padding: 0;
+            font-family: inherit;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-toggle-floating:hover {
+            border-color: var(--accent);
+            background: var(--card-hover);
+            transform: rotate(30deg) scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle-floating:active {
+            transform: scale(0.95);
+        }
+
+        .theme-toggle-icon {
+            font-size: 1.3rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .watermark {
@@ -5117,6 +5285,35 @@
 
         .toast-notification > * { position: relative; z-index: 1; }
 
+        [data-theme="dark"] .toast-notification {
+            background-color: rgba(48, 42, 54, 0.92);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.025) 3px,
+                    rgba(155, 138, 189, 0.025) 4px
+                );
+            border: 1px solid rgba(90, 80, 105, 0.6);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+                inset 2px 0 10px rgba(120, 100, 150, 0.06),
+                inset -2px 0 10px rgba(120, 100, 150, 0.06),
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        [data-theme="dark"] .toast-notification::before {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+                radial-gradient(ellipse at 15% 10%, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+        }
+
+        [data-theme="dark"] .toast-notification::after {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
         .toast-notification.show {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
@@ -6387,6 +6584,24 @@
             display: none;
         }
 
+        [data-theme="dark"] .diary-page-left.texture-card::before {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 35%),
+                radial-gradient(ellipse at 10% 5%, rgba(255,255,255,0.04) 0%, transparent 35%),
+                radial-gradient(ellipse at 15% 10%, rgba(155,138,189,0.05) 0%, transparent 50%);
+        }
+
+        [data-theme="dark"] .diary-page-right.texture-card::before {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 35%),
+                radial-gradient(ellipse at 90% 5%, rgba(255,255,255,0.04) 0%, transparent 35%),
+                radial-gradient(ellipse at 85% 10%, rgba(155,138,189,0.05) 0%, transparent 50%);
+        }
+
+        [data-theme="dark"] .diary-page-left.texture-card::after {
+            box-shadow: inset -4px 0 8px -2px rgba(0, 0, 0, 0.3);
+        }
+
         /* 页面头部 */
         .page-header {
             text-align: center;
@@ -7020,21 +7235,23 @@
             /* 平板端：系列作品卡片按钮同行排列 */
             .series-group-cards .gallery-card .card-user-actions {
                 flex-wrap: nowrap;
-                padding: 4px 8px 6px;
-                gap: 4px;
+                padding: 4px 6px 6px;
+                gap: 3px;
             }
             .series-group-cards .gallery-card .card-user-actions .action-btn {
                 flex: 1 1 0;
                 min-width: 0;
                 justify-content: center;
-                padding: 4px 4px;
-                font-size: .62rem;
+                padding: 3px 4px;
+                font-size: .56rem;
+                gap: 1px;
             }
             .series-group-cards .gallery-card .card-user-actions .action-btn .action-label {
                 white-space: nowrap;
+                margin-left: 0;
             }
             .series-group-cards .gallery-card .card-user-actions .action-btn .icon {
-                font-size: .75rem;
+                font-size: .7rem;
             }
             .series-group-cards .gallery-card .card-heroine-tag {
                 font-size: 0.55rem;
@@ -7179,6 +7396,17 @@
                 padding: 4px 8px;
             }
 
+            .theme-toggle-floating {
+                bottom: 76px;
+                right: 16px;
+                width: 42px;
+                height: 42px;
+            }
+
+            .theme-toggle-icon {
+                font-size: 1.1rem;
+            }
+
             .result-count {
                 font-size: .7rem;
             }
@@ -7274,8 +7502,8 @@
             }
 
             .gallery-card .card-user-actions {
-                padding: 4px 10px 6px;
-                gap: 6px;
+                padding: 4px 8px 6px;
+                gap: 4px;
                 border-top: 1px solid var(--border);
                 /* 手机端：保持吸底，按钮与 meta 之间无视觉空隙，跨卡片按钮严格对齐 */
                 margin-top: auto;
@@ -7287,24 +7515,26 @@
 
             .gallery-card .card-user-actions .action-btn {
                 /* 手机端：按钮平均占空间，内容可缩小也不换行 */
-                padding: 4px 6px;
+                padding: 3px 5px;
                 line-height: 1;
                 flex: 1 1 0;
                 min-width: 0;
                 justify-content: center;
+                gap: 1px;
             }
 
             .gallery-card .card-user-actions .action-btn .icon {
-                font-size: .8rem;
+                font-size: .72rem;
                 display: inline-flex;
             }
 
             /* 手机端：恢复文字显示，但使用更小字号以明确语义 */
             .gallery-card .card-user-actions .action-btn .action-label {
                 display: inline;
-                font-size: .52rem;
+                font-size: .5rem;
                 font-weight: 500;
                 white-space: nowrap;
+                margin-left: 0;
             }
 
             .gallery-card .card-heroine-tag {
@@ -7870,17 +8100,23 @@
             /* 移动端：系列作品卡片按钮同行排列，按钮文字更小 */
             .series-group-cards .gallery-card .card-user-actions {
                 flex-wrap: nowrap;
-                padding: 4px 6px 6px;
-                gap: 4px;
+                padding: 3px 4px 5px;
+                gap: 3px;
             }
             .series-group-cards .gallery-card .card-user-actions .action-btn {
                 flex: 1 1 0;
                 min-width: 0;
                 justify-content: center;
-                padding: 3px 3px;
+                padding: 3px 2px;
+                gap: 1px;
+                font-size: .52rem;
             }
             .series-group-cards .gallery-card .card-user-actions .action-btn .action-label {
                 white-space: nowrap;
+                margin-left: 0;
+            }
+            .series-group-cards .gallery-card .card-user-actions .action-btn .icon {
+                font-size: .66rem;
             }
             /* 移动端：未发售游戏卡片，单个愿望单按钮靠右对齐 */
             .gallery-card .card-user-actions.only-wish {
@@ -7933,6 +8169,17 @@
 
             .gallery-card {
                 border-radius: 14px;
+            }
+
+            .theme-toggle-floating {
+                bottom: 68px;
+                right: 12px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .theme-toggle-icon {
+                font-size: 1rem;
             }
 
             #authModalOverlay .modal {
@@ -8487,7 +8734,19 @@
             font-size: 0.9rem;
             color: var(--text2);
             line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .guide-card .guide-step-location {
+            font-size: 0.8rem;
+            color: var(--accent);
+            background: var(--accent-light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
             margin-bottom: 20px;
+            line-height: 1.4;
+            text-align: left;
         }
 
         .guide-card .guide-dots {
@@ -8664,6 +8923,11 @@
 
             .guide-card .guide-step-desc {
                 font-size: 0.82rem;
+            }
+
+            .guide-card .guide-step-location {
+                font-size: 0.72rem;
+                padding: 6px 10px;
             }
 
             .shortcut-hint {
@@ -11505,11 +11769,12 @@
 
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
         </div>
-
-        <div style="display:flex;align-items:center;gap:6px; flex-wrap:wrap;">
-            <button class="theme-toggle" id="btnThemeToggle" title="切换深色/浅色模式">🌓</button>
-        </div>
     </div>
+
+    <!-- 悬浮主题切换按钮 -->
+    <button class="theme-toggle-floating" id="btnThemeToggle" title="切换深色/浅色模式">
+        <span class="theme-toggle-icon">🌓</span>
+    </button>
 
     <!-- ===== 游戏网格 ===== -->
     <div class="gallery-container" id="galleryContainer">
@@ -11938,36 +12203,43 @@
                 <span class="guide-step-icon">🎮</span>
                 <div class="guide-step-title">欢迎来到 Her Lens</div>
                 <div class="guide-step-desc">专注于女性主角游戏的推荐网站，帮你找到下一场冒险。<br>这里有精选的游戏库、个人游戏日记和社区分享功能。</div>
+                <div class="guide-step-location">📍 你现在就在游戏总览首页</div>
             </div>
             <div class="guide-step" data-step="2">
                 <span class="guide-step-icon">🔍</span>
                 <div class="guide-step-title">搜索与筛选</div>
-                <div class="guide-step-desc">使用顶部搜索栏快速查找游戏，或通过题材、玩法、平台等标签精确筛选。<br>快捷键 <kbd>/</kbd> 聚焦搜索框</div>
+                <div class="guide-step-desc">使用搜索栏快速查找游戏，或通过题材、玩法、平台等标签精确筛选。<br>快捷键 <kbd>/</kbd> 聚焦搜索框</div>
+                <div class="guide-step-location">📍 搜索栏位于页面顶部，筛选标签在游戏列表上方</div>
             </div>
             <div class="guide-step" data-step="3">
                 <span class="guide-step-icon">🎲</span>
                 <div class="guide-step-title">随机推荐</div>
                 <div class="guide-step-desc">不知道玩什么？点击「🎲 随机」按钮，系统会推荐游戏。<br>快捷键 <kbd>R</kbd> 随机推荐</div>
+                <div class="guide-step-location">📍 随机按钮位于顶部工具栏中</div>
             </div>
             <div class="guide-step" data-step="4">
                 <span class="guide-step-icon">❤️</span>
                 <div class="guide-step-title">愿望单与标记</div>
                 <div class="guide-step-desc">点击卡片上的「❤️ 愿望单」收藏想玩的游戏，「✅ 标记玩过」记录通关进度。<br>这些数据会保存在你的账户中。</div>
+                <div class="guide-step-location">📍 每个游戏卡片底部都有愿望单和标记按钮</div>
             </div>
             <div class="guide-step" data-step="5">
                 <span class="guide-step-icon">📖</span>
                 <div class="guide-step-title">游戏日记</div>
-                <div class="guide-step-desc">点击顶部「📖 游戏日记」查看你的专属游戏成长史。<br>支持评分、评论、书签翻页、导出分享图片功能。</div>
+                <div class="guide-step-desc">查看你的专属游戏成长史，支持评分、评论、书签翻页、导出分享图片。</div>
+                <div class="guide-step-location">📍 点击右上角用户头像 → 下拉菜单中选择「游戏日记」</div>
             </div>
             <div class="guide-step" data-step="6">
                 <span class="guide-step-icon">🔧</span>
                 <div class="guide-step-title">MOD 分享区</div>
                 <div class="guide-step-desc">在 MOD 分享区发现游戏增强模组，或分享你制作的 MOD。<br>支持翻译补丁、美化MOD、功能MOD等分类筛选。</div>
+                <div class="guide-step-location">📍 顶部导航栏第二个标签「MOD总览」，或向下滚动游戏列表即可看到</div>
             </div>
             <div class="guide-step" data-step="7">
                 <span class="guide-step-icon">🔑</span>
                 <div class="guide-step-title">登录同步数据</div>
                 <div class="guide-step-desc">登录后可跨设备同步愿望单、玩过记录、评论和游戏日记。<br>数据永不丢失，随时随地访问你的游戏库。</div>
+                <div class="guide-step-location">📍 点击右上角「登录」按钮即可开始同步体验</div>
             </div>
             <div class="guide-dots">
                 <span class="guide-dot active" data-dot="1"></span>
