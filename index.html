@@ -12213,6 +12213,10 @@
             let _reviewPage = {};
             const REVIEW_PAGE_SIZE = 10;
             let _batchRpcBroken = false;
+            // ★ 评论列表短期缓存：避免短时间内重复打开同一游戏详情页时重复拉取
+            //   结构：{ [gameId]: { ts, reviews, repliesMap, stats } }，TTL 2分钟
+            let _reviewsListCache = {};
+            const REVIEWS_LIST_CACHE_TTL = 120000; // 2分钟
             let _ratingBatchTimer = null;
             let _ratingBatchPending = [];
 
@@ -13347,6 +13351,7 @@
                 // 刷新社区评分与评论列表
                 if (supabaseClient) {
                     _ratingStatsCache[String(gameId)] = null;
+                    invalidateReviewsListCache(gameId); // ★ 清除评论列表缓存，强制下次拉取最新数据
                     setTimeout(() => { loadCommunityReviews(Number(gameId)); }, 300);
                 }
                 invalidateReviewCountCache();
@@ -13359,6 +13364,7 @@
                 userData.reviews = userData.reviews.filter(r => r.game_id !== gameId);
                 saveUserData();
                 invalidateReviewCountCache();
+                invalidateReviewsListCache(gameId); // ★ 清除评论列表缓存
                 const detailOverlay = document.getElementById('detailModalOverlay');
                 if (detailOverlay && detailOverlay.classList.contains('show')) {
                     const currentGameId = detailOverlay.dataset.gameId;
@@ -13412,7 +13418,20 @@
                     return { average: cached.average, count: cached.count };
                 }
                 try {
-                    // 优先基于 verdict 计算，回退到 rating
+                    // ★ 优化：优先使用 batch_rating_stats RPC（聚合查询，只返回1行结果）
+                    //   避免拉取所有 verdict/rating 行到客户端再聚合
+                    try {
+                        const { data: rpcData, error: rpcError } = await supabaseClient
+                            .rpc('batch_rating_stats', { game_ids: [Number(gameId)] });
+                        if (!rpcError && rpcData && rpcData.length > 0) {
+                            const row = rpcData[0];
+                            const average = row.rating_count > 0 ? row.rating_sum / row.rating_count : null;
+                            _ratingStatsCache[cacheKey] = { average, count: row.rating_count, ts: Date.now() };
+                            return { average, count: row.rating_count };
+                        }
+                    } catch (_) {}
+
+                    // 回退：基于 verdict 计算（保留原逻辑作为兜底）
                     const { data, error } = await supabaseClient.from('user_reviews').select('verdict, rating').eq('game_id', Number(
                         gameId));
                     if (error) throw error;
@@ -13938,6 +13957,15 @@
             function invalidateReviewCountCache() {
                 _reviewCountCache = null;
                 _reviewCountCacheTs = 0;
+            }
+
+            // ★ 清除指定游戏的评论列表缓存（评论保存/删除/回复变更后调用）
+            function invalidateReviewsListCache(gameId) {
+                if (gameId != null) {
+                    delete _reviewsListCache[String(gameId)];
+                } else {
+                    _reviewsListCache = {};
+                }
             }
 
             function sortGames(gameList) {
@@ -16019,7 +16047,11 @@
                 const hasFullDesc = !!game.fullDescription;
                 const hasShots = Array.isArray(game.screenshots) && game.screenshots.length > 0;
                 const hasVideos = Array.isArray(game.videos) && game.videos.length > 0;
-                if (!hasFullDesc || !hasShots || !hasVideos) {
+                // ★ 优化：screenshots 已经在列表数据中，绝大多数情况下 hasShots=true，
+                //   只有 fullDescription 或 videos 缺失时才补拉，且不阻塞截图显示
+                if (!hasFullDesc || !hasVideos) {
+                    // 截图缺失时也补拉（但不阻塞当前显示）
+                    const needShots = !hasShots;
                     loadGameDetailFromSupabase(game.id).then(detail => {
                         if (!detail) return;
                         let changed = false;
@@ -16027,11 +16059,11 @@
                             game.fullDescription = detail.fullDescription;
                             changed = true;
                         }
-                        if (detail.screenshots && detail.screenshots.length > 0 && (!Array.isArray(game.screenshots) || game.screenshots.length === 0)) {
+                        if (detail.screenshots && detail.screenshots.length > 0 && needShots) {
                             game.screenshots = detail.screenshots;
                             changed = true;
                         }
-                        if (detail.videos && detail.videos.length > 0 && (!Array.isArray(game.videos) || game.videos.length === 0)) {
+                        if (detail.videos && detail.videos.length > 0 && !hasVideos) {
                             game.videos = detail.videos;
                             changed = true;
                         }
@@ -16266,11 +16298,16 @@
                     `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-verdict="${r.verdict || ''}" data-tags="${escapeHTML(r.selected_tags ? r.selected_tags.join(',') : '')}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 const replyBtnHtml = `<button class="comment-reply-btn" data-review-id="${reviewId}">💬 回复</button>`;
 
-                // 获取回复树（优先使用预加载数据）
+                // 获取回复树（优先使用预加载数据，避免每条评论都发一次网络请求）
                 let flatReplies;
                 if (preloadedReplies && preloadedReplies[reviewDbId]) {
+                    // ★ 优化：预加载数据命中时，纯同步路径，不触发 await
                     flatReplies = preloadedReplies[reviewDbId];
+                } else if (preloadedReplies) {
+                    // 预加载Map存在但本条评论无回复：直接空数组，避免无谓的 await
+                    flatReplies = [];
                 } else {
+                    // 仅在没有预加载数据时才走单独查询（兜底路径）
                     flatReplies = await getGameCommentRepliesForReview(reviewId);
                 }
                 const replyTree = buildGameReplyTree([...flatReplies]);
@@ -16511,53 +16548,93 @@
                 if (!statsDisplay || !commentsList) return;
 
                 _reviewPage[gameId] = 0;
-                
-                // 并行获取评分统计和评论列表
-                const [stats, reviews] = await Promise.all([
+
+                // ★ 优化：优先使用短期缓存（2分钟内重复打开同一详情页直接复用数据）
+                const cacheKey = String(gameId);
+                const cached = _reviewsListCache[cacheKey];
+                if (cached && (Date.now() - cached.ts < REVIEWS_LIST_CACHE_TTL)) {
+                    // 立即渲染缓存数据
+                    renderReviewsIntoDOM(cached.reviews, cached.stats, cached.repliesMap, gameId, statsDisplay, commentsList);
+                    return;
+                }
+
+                // ★ 优化：先并行发起所有网络请求（4个请求同时进行，总耗时≈最慢的那个）
+                const [
+                    statsResult,
+                    reviewsResult
+                ] = await Promise.all([
                     fetchGameRatingStats(gameId),
                     fetchGameReviews(gameId, 0)
                 ]);
 
+                const reviews = reviewsResult;
+                const reviewDbIds = reviews.map(r => r.id).filter(Boolean);
+
+                // ★ 优化：并行拉取点赞和回复（依赖reviewDbIds，但两者互不依赖可并行）
+                const [likesResult, repliesResult] = await Promise.all([
+                    fetchReviewLikesBatch(reviewDbIds).then(() => true).catch(() => false),
+                    (async () => {
+                        let gameRepliesMap = {};
+                        try {
+                            if (supabaseClient && reviewDbIds.length > 0) {
+                                const { data, error } = await supabaseClient
+                                    .from('game_comment_replies')
+                                    .select('*')
+                                    .in('review_id', reviewDbIds)
+                                    .order('created_at', { ascending: true });
+                                if (!error && data) {
+                                    data.forEach(r => {
+                                        if (!gameRepliesMap[r.review_id]) gameRepliesMap[r.review_id] = [];
+                                        gameRepliesMap[r.review_id].push({
+                                            id: r.id, review_id: r.review_id, user_id: r.user_id,
+                                            content: r.content, display_name: r.display_name || '用户',
+                                            avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
+                                            reply_to: r.reply_to,
+                                            parent_reply_id: r.parent_reply_id, created_at: r.created_at
+                                        });
+                                    });
+                                }
+                            }
+                        } catch (_) {}
+                        return gameRepliesMap;
+                    })()
+                ]);
+
+                const gameRepliesMap = repliesResult;
+
+                // 写入短期缓存
+                _reviewsListCache[cacheKey] = {
+                    ts: Date.now(),
+                    reviews: reviews,
+                    stats: statsResult,
+                    repliesMap: gameRepliesMap
+                };
+
+                renderReviewsIntoDOM(reviews, statsResult, gameRepliesMap, gameId, statsDisplay, commentsList);
+            }
+
+            // 抽取渲染逻辑（缓存命中和首次加载共用）
+            async function renderReviewsIntoDOM(reviews, stats, gameRepliesMap, gameId, statsDisplay, commentsList) {
+                // 渲染评分统计
                 if (stats.average !== null) {
                     statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 5 （共 <strong>${stats.count}</strong> 人评价）`;
                 } else {
                     statsDisplay.textContent = '暂无评价';
                 }
 
+                // 渲染评论列表
                 if (reviews.length === 0) {
                     commentsList.innerHTML =
                         `<div style="text-align:center;color:var(--text3);padding:12px;">暂无评论，快来写下你的第一条吧！</div>`;
                     return;
                 }
 
-                let html = '';
-                // 预加载当前页评论的点赞数据
-                const reviewDbIds = reviews.map(r => r.id).filter(Boolean);
-                await fetchReviewLikesBatch(reviewDbIds);
-                // 批量拉取所有评论的回复
-                let gameRepliesMap = {};
-                try {
-                    if (supabaseClient && reviewDbIds.length > 0) {
-                        const { data, error } = await supabaseClient
-                            .from('game_comment_replies')
-                            .select('*')
-                            .in('review_id', reviewDbIds)
-                            .order('created_at', { ascending: true });
-                        if (!error && data) {
-                            data.forEach(r => {
-                                if (!gameRepliesMap[r.review_id]) gameRepliesMap[r.review_id] = [];
-                                gameRepliesMap[r.review_id].push({
-                                    id: r.id, review_id: r.review_id, user_id: r.user_id,
-                                    content: r.content, display_name: r.display_name || '用户',
-                                    avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
-                                    reply_to: r.reply_to,
-                                    parent_reply_id: r.parent_reply_id, created_at: r.created_at
-                                });
-                            });
-                        }
-                    }
-                } catch (_) {}
-                for (const r of reviews) { html += await renderReviewItem(r, gameId, gameRepliesMap); }
+                // ★ 优化：renderReviewItem 在有 preloadedReplies 时是纯同步操作，
+                //   用 Promise.all 并行执行避免串行 await 开销
+                const htmlParts = await Promise.all(
+                    reviews.map(r => renderReviewItem(r, gameId, gameRepliesMap))
+                );
+                let html = htmlParts.join('');
 
                 const hasMore = reviews.length >= REVIEW_PAGE_SIZE;
                 if (hasMore) {
@@ -16580,34 +16657,42 @@
                         const moreReviews = await fetchGameReviews(gid, nextPage);
                         _reviewPage[gid] = nextPage;
                         if (moreReviews.length > 0) {
+                            const ids = moreReviews.map(r => r.id).filter(Boolean);
+                            // ★ 优化：并行拉取点赞和回复
+                            const [moreLikesResult, moreRepliesResult] = await Promise.all([
+                                fetchReviewLikesBatch(ids).then(() => true).catch(() => false),
+                                (async () => {
+                                    let moreRepliesMap = {};
+                                    try {
+                                        if (supabaseClient && ids.length > 0) {
+                                            const { data, error } = await supabaseClient
+                                                .from('game_comment_replies')
+                                                .select('*')
+                                                .in('review_id', ids)
+                                                .order('created_at', { ascending: true });
+                                            if (!error && data) {
+                                                data.forEach(r => {
+                                                    if (!moreRepliesMap[r.review_id]) moreRepliesMap[r.review_id] = [];
+                                                    moreRepliesMap[r.review_id].push({
+                                                        id: r.id, review_id: r.review_id, user_id: r.user_id,
+                                                        content: r.content, display_name: r.display_name || '用户',
+                                                        avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
+                                                        reply_to: r.reply_to,
+                                                        parent_reply_id: r.parent_reply_id, created_at: r.created_at
+                                                    });
+                                                });
+                                            }
+                                        }
+                                    } catch (_) {}
+                                    return moreRepliesMap;
+                                })()
+                            ]);
+
                             const moreWrap = document.createElement('div');
-                            // 预加载新加载评论的点赞数据
-                            await fetchReviewLikesBatch(moreReviews.map(r => r.id).filter(Boolean));
-                            // 批量拉取新评论的回复
-                            let moreRepliesMap = {};
-                            try {
-                                if (supabaseClient && moreReviews.length > 0) {
-                                    const ids = moreReviews.map(r => r.id).filter(Boolean);
-                                    const { data, error } = await supabaseClient
-                                        .from('game_comment_replies')
-                                        .select('*')
-                                        .in('review_id', ids)
-                                        .order('created_at', { ascending: true });
-                                    if (!error && data) {
-                                        data.forEach(r => {
-                                            if (!moreRepliesMap[r.review_id]) moreRepliesMap[r.review_id] = [];
-                                            moreRepliesMap[r.review_id].push({
-                                                id: r.id, review_id: r.review_id, user_id: r.user_id,
-                                                content: r.content, display_name: r.display_name || '用户',
-                                                avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
-                                                reply_to: r.reply_to,
-                                                parent_reply_id: r.parent_reply_id, created_at: r.created_at
-                                            });
-                                        });
-                                    }
-                                }
-                            } catch (_) {}
-                            for (const r of moreReviews) { moreWrap.innerHTML += await renderReviewItem(r, gid, moreRepliesMap); }
+                            const moreHtmlParts = await Promise.all(
+                                moreReviews.map(r => renderReviewItem(r, gid, moreRepliesResult))
+                            );
+                            moreWrap.innerHTML = moreHtmlParts.join('');
                             const existingLoadMore = commentsList.querySelector('.review-load-more');
                             while (moreWrap.firstChild) {
                                 commentsList.insertBefore(moreWrap.firstChild, existingLoadMore);
@@ -18032,6 +18117,9 @@
                 };
                 replies[reviewId].push(newReply);
                 saveGameCommentReplies(replies);
+                // ★ 清除该游戏评论列表缓存（回复数变化）
+                const gameIdFromReview = Number(String(reviewId).split('_')[0]);
+                if (!isNaN(gameIdFromReview)) invalidateReviewsListCache(gameIdFromReview);
                 return newReply;
             }
 
@@ -18064,6 +18152,9 @@
                     replies[reviewId] = replies[reviewId].filter(r => !idsToDelete.includes(r.id));
                     saveGameCommentReplies(replies);
                 }
+                // ★ 清除该游戏评论列表缓存
+                const gameIdFromReview = Number(String(reviewId).split('_')[0]);
+                if (!isNaN(gameIdFromReview)) invalidateReviewsListCache(gameIdFromReview);
             }
 
             async function getGameCommentRepliesForReview(reviewId) {
