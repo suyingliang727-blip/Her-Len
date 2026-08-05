@@ -513,6 +513,218 @@
             background: rgba(90, 80, 105, 0.6);
         }
 
+        /* 日记页面强制使用浅色主题 */
+        [data-theme="dark"] #diaryPage {
+            --diary-bg: #f3eff7;
+            --diary-surface: rgba(250, 247, 253, 0.55);
+            --diary-text: #3d3546;
+            --diary-text2: #665c72;
+            --diary-text3: #8c8099;
+            --diary-border: rgba(213, 207, 224, 0.35);
+            --diary-accent: #9b8abd;
+            --diary-accent-light: rgba(155, 138, 189, 0.12);
+            --diary-card-hover: rgba(245, 240, 249, 0.50);
+            --diary-shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page-left,
+        [data-theme="dark"] #diaryPage .diary-page-right {
+            background: rgba(250, 247, 253, 0.82);
+            border-color: rgba(213, 207, 224, 0.35);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page-left::before {
+            background: linear-gradient(90deg, rgba(60, 30, 80, 0.08) 0%, transparent 100%);
+        }
+
+        [data-theme="dark"] #diaryPage .texture-card {
+            background-color: rgba(250, 247, 253, 0.72);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.03) 3px,
+                    rgba(155, 138, 189, 0.03) 4px
+                );
+            border-color: rgba(213, 207, 224, 0.5);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .texture-card::before {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 35%),
+                radial-gradient(ellipse at 10% 5%, rgba(255, 255, 255, 0.6) 0%, transparent 35%),
+                radial-gradient(ellipse at 15% 10%, rgba(155, 138, 189, 0.15) 0%, transparent 50%);
+        }
+
+        [data-theme="dark"] #diaryPage .texture-card::after {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .game-title,
+        [data-theme="dark"] #diaryPage .diary-page .review-title,
+        [data-theme="dark"] #diaryPage .diary-page h1,
+        [data-theme="dark"] #diaryPage .diary-page h2,
+        [data-theme="dark"] #diaryPage .diary-page h3,
+        [data-theme="dark"] #diaryPage .diary-page .detail-title,
+        [data-theme="dark"] #diaryPage .diary-page .detail-value,
+        [data-theme="dark"] #diaryPage .diary-page .detail-label,
+        [data-theme="dark"] #diaryPage .diary-page .review-text,
+        [data-theme="dark"] #diaryPage .diary-page .game-desc,
+        [data-theme="dark"] #diaryPage .diary-page .tag-label,
+        [data-theme="dark"] #diaryPage .diary-page .play-date,
+        [data-theme="dark"] #diaryPage .diary-page .review-time,
+        [data-theme="dark"] #diaryPage .diary-page .play-duration,
+        [data-theme="dark"] #diaryPage .diary-page .detail-info-label,
+        [data-theme="dark"] #diaryPage .diary-page .detail-info-value {
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .detail-info-row {
+            border-bottom-color: rgba(213, 207, 224, 0.35);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .ribbon-tip {
+            background: #9b8abd;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] #diaryPage .diary-ribbon .ribbon-tip {
+            background: #9b8abd;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] #diaryPage .diary-ribbon .ribbon-tip::after {
+            border-right-color: #9b8abd;
+        }
+
+        [data-theme="dark"] #diaryPage .page-header,
+        [data-theme="dark"] #diaryPage .diary-page-header,
+        [data-theme="dark"] #diaryPage .diary-nav-bar {
+            border-bottom-color: rgba(213, 207, 224, 0.35);
+            background: rgba(250, 247, 253, 0.82);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-bm-btn,
+        [data-theme="dark"] #diaryPage .diary-back-btn,
+        [data-theme="dark"] #diaryPage .diary-sort-select {
+            background: rgba(250, 247, 253, 0.82);
+            border-color: rgba(213, 207, 224, 0.5);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-back-btn:hover {
+            background: rgba(245, 240, 249, 0.82);
+            border-color: var(--diary-accent);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-dropdown {
+            background: #faf7fd;
+            border-bottom-color: rgba(213, 207, 224, 0.5);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-search input {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: rgba(213, 207, 224, 0.5);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-item {
+            border-bottom-color: rgba(213, 207, 224, 0.3);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-item:hover {
+            background: var(--diary-card-hover);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-item.active {
+            background: var(--diary-accent-light);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-mobile-idx {
+            background: rgba(213, 207, 224, 0.5);
+            color: var(--diary-text2);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .review-label,
+        [data-theme="dark"] #diaryPage .diary-page .toolbar-toggle-btn,
+        [data-theme="dark"] #diaryPage .diary-page .text-format-toolbar,
+        [data-theme="dark"] #diaryPage .diary-page .format-btn {
+            background: rgba(250, 247, 253, 0.82);
+            border-color: rgba(213, 207, 224, 0.5);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .toolbar-divider {
+            background: rgba(213, 207, 224, 0.5);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .format-btn:hover {
+            background: rgba(245, 240, 249, 0.82);
+        }
+
+        [data-theme="dark"] #diaryPage .empty-diary-hint {
+            color: var(--diary-text3);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .diary-page-nav-btn {
+            background: rgba(250, 247, 253, 0.82);
+            border-color: rgba(213, 207, 224, 0.5);
+            color: var(--diary-text);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .diary-page-nav-btn:hover:not(:disabled) {
+            background: var(--diary-accent-light);
+            border-color: var(--diary-accent);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .diary-page-nav-btn:disabled {
+            background: rgba(250, 247, 253, 0.5);
+            color: var(--diary-text3);
+            border-color: rgba(213, 207, 224, 0.3);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .diary-page-info {
+            color: var(--diary-text2);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .star-rating .star,
+        [data-theme="dark"] #diaryPage .diary-page .star-rating .star.filled {
+            color: #f5b342;
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .tag-item {
+            background: var(--diary-accent-light);
+            border-color: var(--diary-accent);
+            color: var(--diary-text2);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-page .screenshot-item {
+            border-color: rgba(213, 207, 224, 0.5);
+        }
+
+        [data-theme="dark"] #diaryPage .diary-cover {
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(213, 207, 224, 0.03) 2px,
+                    rgba(213, 207, 224, 0.03) 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(213, 207, 224, 0.03) 2px,
+                    rgba(213, 207, 224, 0.03) 4px
+                ),
+                linear-gradient(135deg, #f3eff7 0%, #e8e0ef 100%);
+        }
+
         /* ===== 基础样式 ===== */
         * {
             margin: 0;
@@ -1107,6 +1319,13 @@
             font-size: 0.95rem;
             font-weight: 600;
             color: var(--text);
+        }
+
+        .nav-user-dropdown-customid {
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-top: 2px;
+            font-weight: 500;
         }
 
         .nav-user-dropdown-email {
@@ -4859,6 +5078,20 @@
             font-weight: 600;
             font-size: 0.85rem;
             color: var(--text);
+        }
+
+        .comment-custom-id {
+            font-size: 0.72rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-left: 4px;
+            opacity: 0.9;
+        }
+
+        .comment-reply-item-name + .comment-custom-id,
+        .comment-reply-item .comment-custom-id {
+            font-size: 0.7rem;
+            margin-left: 2px;
         }
 
         .comment-item .comment-stars {
@@ -8966,381 +9199,8 @@
             justify-content: flex-end;
         }
 
-        /* ===== 留言板 ===== */
-        .guestbook-modal .modal {
-            max-width: 580px;
-            margin: 0 auto;
-            border-radius: 24px;
-            padding: 28px 24px;
-            min-height: auto;
-            max-height: 85vh;
-            overflow-y: auto;
-            background: var(--modal-bg);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-lg);
-            transform: scale(0.96) translateY(10px);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .guestbook-modal .modal-overlay.show .modal {
-            transform: scale(1) translateY(0);
-        }
-
-        .guestbook-modal .modal-close {
-            display: flex !important;
-            position: sticky;
-            top: 0;
-            float: right;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: var(--text2);
-            z-index: 10;
-            background: var(--modal-bg);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            transition: all .2s;
-            margin-left: 8px;
-            margin-bottom: 4px;
-        }
-
-        .guestbook-modal .modal-close:hover {
-            color: var(--danger);
-            border-color: var(--danger);
-            transform: rotate(90deg);
-        }
-
-        .guestbook-header {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .guestbook-sub {
-            color: var(--text3);
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-        }
-
-        /* 发布区 */
-        .guestbook-compose {
-            background: var(--surface2);
-            border-radius: 14px;
-            padding: 14px;
-            border: 1px solid var(--border);
-            margin-bottom: 16px;
-        }
-
-        .guestbook-compose-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .guestbook-compose-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: var(--tag-bg);
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        .guestbook-compose-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text);
-        }
-
-        .guestbook-compose textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1.5px solid var(--border);
-            background: var(--input-bg);
-            color: var(--text);
-            font-family: inherit;
-            resize: none;
-            min-height: 60px;
-            font-size: 0.88rem;
-            transition: border-color 0.2s;
-            box-sizing: border-box;
-        }
-
-        .guestbook-compose textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .guestbook-compose textarea::placeholder {
-            color: var(--text3);
-            opacity: 0.7;
-        }
-
-        .guestbook-compose-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-        }
-
-        .guestbook-compose-footer .char-count {
-            font-size: 0.75rem;
-            color: var(--text3);
-        }
-
-        .guestbook-compose-footer .char-count.warn {
-            color: var(--danger);
-        }
-
-        .guestbook-compose-footer .btn {
-            font-size: 0.8rem;
-        }
-
-        /* 留言列表 */
-        .guestbook-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .guestbook-item {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px 14px;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s;
-        }
-
-        .guestbook-item:hover {
-            border-color: rgba(155, 138, 189, 0.3);
-        }
-
-        .guestbook-item-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .guestbook-item-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: var(--tag-bg);
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        .guestbook-item-avatar-placeholder {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--tag-bg);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        .guestbook-item-name {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        .guestbook-item-time {
-            font-size: 0.7rem;
-            color: var(--text3);
-            margin-left: auto;
-            white-space: nowrap;
-        }
-
-        .guestbook-item-content {
-            font-size: 0.88rem;
-            color: var(--text2);
-            line-height: 1.6;
-            word-break: break-word;
-            white-space: pre-wrap;
-            margin-bottom: 6px;
-        }
-
-        .guestbook-item-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .guestbook-react-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            padding: 3px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text3);
-            cursor: pointer;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .guestbook-react-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: rgba(155, 138, 189, 0.08);
-        }
-
-        .guestbook-react-btn.active {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: rgba(155, 138, 189, 0.12);
-        }
-
-        .guestbook-react-btn .react-count {
-            font-weight: 600;
-            min-width: 1em;
-            text-align: center;
-        }
-
-        .guestbook-delete-btn {
-            margin-left: auto;
-            background: none;
-            border: none;
-            color: var(--text3);
-            font-size: 0.7rem;
-            cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .guestbook-delete-btn:hover {
-            color: var(--danger);
-            background: rgba(192, 57, 43, 0.08);
-        }
-
-        .guestbook-ban-btn {
-            background: none;
-            border: none;
-            color: var(--text3);
-            font-size: 0.7rem;
-            cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .guestbook-ban-btn:hover {
-            color: #fff;
-            background: rgba(192, 57, 43, 0.85);
-        }
-
-        .guestbook-ban-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .guestbook-login-hint {
-            text-align: center;
-            color: var(--text3);
-            padding: 20px 0;
-            font-size: 0.9rem;
-        }
-
-        .guestbook-login-hint a {
-            color: var(--accent);
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .guestbook-empty {
-            text-align: center;
-            padding: 30px 0;
-            color: var(--text3);
-        }
-
-        .guestbook-empty .empty-icon {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .guestbook-load-more {
-            text-align: center;
-            padding: 12px 0;
-        }
-
-        .guestbook-load-more button {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text2);
-            padding: 6px 20px;
-            border-radius: 16px;
-            cursor: pointer;
-            font-size: 0.82rem;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-
-        .guestbook-load-more button:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .guestbook-sort-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-            justify-content: flex-end;
-        }
-
-        .guestbook-sort-btn {
-            padding: 4px 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text3);
-            cursor: pointer;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-
-        .guestbook-sort-btn.active {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        .guestbook-stats {
-            font-size: 0.8rem;
-            color: var(--text3);
-            margin-bottom: 10px;
-        }
-
-        .guestbook-stats strong {
-            color: var(--text);
-        }
-
         /* ===== 回复按钮样式 ===== */
-        .guestbook-reply-btn, .comment-reply-btn {
+        .comment-reply-btn {
             display: inline-flex;
             align-items: center;
             gap: 3px;
@@ -9355,7 +9215,7 @@
             user-select: none;
         }
 
-        .guestbook-reply-btn:hover, .comment-reply-btn:hover {
+        .comment-reply-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: rgba(155, 138, 189, 0.08);
@@ -9492,19 +9352,6 @@
             margin-top: 4px;
         }
 
-        .reply-item-actions .guestbook-reply-btn,
-        .reply-item-actions .guestbook-delete-btn {
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-
-        .reply-item-actions .guestbook-reply-btn:hover,
-        .reply-item-actions .guestbook-delete-btn:hover {
-            opacity: 1;
-        }
-
         .nested-reply-list {
             margin-top: 8px;
             padding-left: 16px;
@@ -9533,36 +9380,6 @@
             font-size: 0.78rem;
             min-height: 36px;
             padding: 6px 8px;
-        }
-
-        @media (max-width: 768px) {
-            .guestbook-modal .modal {
-                max-width: 95%;
-                padding: 20px 16px;
-            }
-
-            .guestbook-header {
-                font-size: 1.1rem;
-            }
-
-            .guestbook-compose {
-                padding: 10px;
-            }
-
-            .guestbook-item {
-                padding: 10px 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .guestbook-modal .modal {
-                padding: 16px 12px;
-                max-width: 98%;
-            }
-
-            .guestbook-header {
-                font-size: 1rem;
-            }
         }
 
         #confettiCanvas {
@@ -11255,6 +11072,28 @@
             font-size: 0.88rem;
         }
 
+        .mod-load-more {
+            text-align: center;
+            padding: 12px 0;
+        }
+
+        .mod-load-more button {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: 6px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .mod-load-more button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
         @media (max-width: 768px) {
             .mod-section {
                 padding: 12px 12px 32px;
@@ -11676,7 +11515,6 @@
                 <button class="top-nav-item" data-nav="mods">MOD总览</button>
                 <button class="top-nav-item" data-nav="test" id="navPersonalityTest">人格测试</button>
                 <button class="top-nav-item" data-nav="announcements">网站公告</button>
-                <button class="top-nav-item" id="navGuestbook" title="留言板 - 和大家聊聊天">留言板</button>
 
                 <button class="top-nav-item" id="navTip" title="打赏网页，支持创作">打赏网页</button>
             </nav>
@@ -11829,7 +11667,7 @@
             <div class="empty-title">还没有MOD分享</div>
             <div class="empty-desc">快来发布第一个MOD分享吧！</div>
         </div>
-        <div class="guestbook-load-more" id="modLoadMore" style="display:none;">
+        <div class="mod-load-more" id="modLoadMore" style="display:none;">
             <button id="modLoadMoreBtn">加载更多...</button>
         </div>
     </div>
@@ -12101,8 +11939,23 @@
                 <p style="font-size:0.75rem; color:var(--text3); margin-top:-4px;">支持 JPG / PNG / WebP，大小不超过 2MB</p>
 
                 <div class="form-group" style="width:100%;">
-                    <label>显示名称</label>
-                    <input type="text" id="profileDisplayName" placeholder="请输入你的昵称" maxlength="30" />
+                    <label>显示名称 <span style="font-size:0.75rem; color:var(--text3); font-weight:normal;">（防重名，唯一标识）</span></label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" id="profileDisplayName" placeholder="请输入你的昵称（不可与他人重复）" maxlength="30" style="flex:1;" />
+                        <button class="btn btn-sm" id="profileCheckNameBtn" style="white-space:nowrap; padding:6px 12px; font-size:0.8rem;">检查可用</button>
+                    </div>
+                    <div id="profileDisplayNameMsg" style="font-size:0.78rem; margin-top:4px; min-height:16px;"></div>
+                </div>
+
+                <div class="form-group" style="width:100%;">
+                    <label>专属ID <span style="font-size:0.75rem; color:var(--text3); font-weight:normal;">（选填，稳定标识，防冒充）</span></label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span style="color:var(--text3); font-size:0.9rem;">@</span>
+                        <input type="text" id="profileCustomId" placeholder="3-16位字母数字下划线" maxlength="16"
+                            style="flex:1; text-transform:lowercase;" />
+                        <button class="btn btn-sm" id="profileCheckIdBtn" style="white-space:nowrap; padding:6px 12px; font-size:0.8rem;">检查可用</button>
+                    </div>
+                    <div id="profileCustomIdMsg" style="font-size:0.78rem; margin-top:4px; min-height:16px;"></div>
                 </div>
 
                 <button class="btn btn-accent" id="profileSaveBtn" style="width:100%; padding:10px;">💾 保存资料</button>
@@ -12171,26 +12024,6 @@
                 <div id="diaryBookmarkRailWrap">
                     <div id="diaryBookmarkRail"></div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay guestbook-modal" id="guestbookModalOverlay">
-        <div class="modal" id="guestbookModal">
-            <button class="modal-close" id="guestbookModalClose">✕</button>
-            <div class="guestbook-header">💬 留言板</div>
-            <div class="guestbook-sub">和大家分享你对网站的建议、感想，或聊聊你喜欢的游戏</div>
-
-            <div id="guestbookComposeArea"></div>
-
-            <div class="guestbook-stats" id="guestbookStats"></div>
-            <div class="guestbook-sort-row">
-                <button class="guestbook-sort-btn active" data-sort="newest">🕐 最新</button>
-                <button class="guestbook-sort-btn" data-sort="hottest">🔥 最热</button>
-            </div>
-            <div class="guestbook-list" id="guestbookList"></div>
-            <div class="guestbook-load-more" id="guestbookLoadMore" style="display:none;">
-                <button id="guestbookLoadMoreBtn">加载更多...</button>
             </div>
         </div>
     </div>
@@ -12377,8 +12210,6 @@
 
             // 缓存相关
             let _ratingStatsCache = {};
-            let _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
-            let _guestbookReplyCache = { key: '', data: {}, ts: 0 };
             let _reviewPage = {};
             const REVIEW_PAGE_SIZE = 10;
             let _batchRpcBroken = false;
@@ -13280,7 +13111,8 @@
                     play_date: existingReview?.play_date || new Date().toISOString().split('T')[0],
                     play_hours: playHours,
                     display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
-                    avatar_url: currentUser.user_metadata?.avatar_url || null
+                    avatar_url: currentUser.user_metadata?.avatar_url || null,
+                    custom_id: currentUser.user_metadata?.custom_id || null
                 };
                 // 保留旧 rating 字段用于回退兼容：若 verdict 有值则折算
                 if (verdict !== null) {
@@ -13554,10 +13386,19 @@
                 try {
                     const from = page * REVIEW_PAGE_SIZE;
                     const to = from + REVIEW_PAGE_SIZE - 1;
-                    const { data, error } = await supabaseClient.from('user_reviews')
-                        .select('id, game_id, user_id, verdict, selected_tags, rating, comment, play_date, play_hours, display_name, avatar_url, created_at, updated_at')
+                    let { data, error } = await supabaseClient.from('user_reviews')
+                        .select('id, game_id, user_id, verdict, selected_tags, rating, comment, play_date, play_hours, display_name, avatar_url, custom_id, created_at, updated_at')
                         .eq('game_id', Number(gameId))
                         .order('created_at', { ascending: false }).range(from, to);
+                    // custom_id 列不存在时回退（兼容未迁移的数据库）
+                    if (error && /custom_id/i.test(error.message || '')) {
+                        const fallback = await supabaseClient.from('user_reviews')
+                            .select('id, game_id, user_id, verdict, selected_tags, rating, comment, play_date, play_hours, display_name, avatar_url, created_at, updated_at')
+                            .eq('game_id', Number(gameId))
+                            .order('created_at', { ascending: false }).range(from, to);
+                        data = fallback.data;
+                        error = fallback.error;
+                    }
                     if (error) throw error;
                     return data || [];
                 } catch (e) { console.error('❌ 获取评论失败:', e); return []; }
@@ -16438,11 +16279,16 @@
                     repliesHtml = '<div class="comment-reply-list">' + renderGameReplyTree(replyTree, reviewId, 0, flatReplies) + '</div>';
                 }
 
+                const customIdHtml = r.custom_id
+                    ? `<span class="comment-custom-id">@${escapeHTML(r.custom_id)}</span>`
+                    : '';
+
                 return `
                     <div class="comment-item" data-review-id="${reviewId}">
                         <div class="comment-header">
                             ${avatar}
                             <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
+                            ${customIdHtml}
                             ${verdictDisplay}
                             ${tagsDisplay}
                             <span class="comment-time">${time}</span>
@@ -16703,7 +16549,8 @@
                                 gameRepliesMap[r.review_id].push({
                                     id: r.id, review_id: r.review_id, user_id: r.user_id,
                                     content: r.content, display_name: r.display_name || '用户',
-                                    avatar_url: r.avatar_url || null, reply_to: r.reply_to,
+                                    avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
+                                    reply_to: r.reply_to,
                                     parent_reply_id: r.parent_reply_id, created_at: r.created_at
                                 });
                             });
@@ -16752,7 +16599,8 @@
                                             moreRepliesMap[r.review_id].push({
                                                 id: r.id, review_id: r.review_id, user_id: r.user_id,
                                                 content: r.content, display_name: r.display_name || '用户',
-                                                avatar_url: r.avatar_url || null, reply_to: r.reply_to,
+                                                avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
+                                                reply_to: r.reply_to,
                                                 parent_reply_id: r.parent_reply_id, created_at: r.created_at
                                             });
                                         });
@@ -18111,17 +17959,6 @@
                 }, { passive: true });
             }
 
-            // ================================================================
-            // ★★★ 留言板 ★★★
-            // ================================================================
-            const GUESTBOOK_PAGE_SIZE = 20;
-            let guestbookPage = 0;
-            let guestbookSort = 'newest';
-            let guestbookTotalCount = 0;
-            const GUESTBOOK_REACTIONS = ['❤️', '👍', '🎮', '💬', '✨'];
-            let guestbookListener = null;
-            let _guestbookDebounce = null;
-
             // ===== 游戏评论回复功能（本地存储） =====
             const GAME_COMMENT_REPLIES_KEY = 'heroine_game_comment_replies_v1';
 
@@ -18150,7 +17987,8 @@
                     reply_to: replyTo || null,
                     parent_reply_id: parentReplyId || null,
                     display_name: metadata.display_name || currentUser.email || '用户',
-                    avatar_url: metadata.avatar_url || null
+                    avatar_url: metadata.avatar_url || null,
+                    custom_id: metadata.custom_id || null
                 };
 
                 // 云端写入
@@ -18169,6 +18007,7 @@
                                 content: replyData.content,
                                 display_name: metadata.display_name || currentUser.email || '用户',
                                 avatar_url: metadata.avatar_url || null,
+                                custom_id: metadata.custom_id || null,
                                 reply_to: replyTo,
                                 parent_reply_id: parentReplyId || null,
                                 created_at: data.created_at
@@ -18186,6 +18025,7 @@
                     content: content,
                     display_name: metadata.display_name || currentUser.email || '用户',
                     avatar_url: metadata.avatar_url || null,
+                    custom_id: metadata.custom_id || null,
                     reply_to: replyTo,
                     parent_reply_id: parentReplyId || null,
                     created_at: new Date().toISOString()
@@ -18243,6 +18083,7 @@
                                 content: r.content,
                                 display_name: r.display_name || '用户',
                                 avatar_url: r.avatar_url || null,
+                                custom_id: r.custom_id || null,
                                 reply_to: r.reply_to,
                                 parent_reply_id: r.parent_reply_id,
                                 created_at: r.created_at
@@ -18307,12 +18148,16 @@
                         `<button class="comment-reply-delete-btn" data-review-id="${reviewId}" data-reply-id="${reply.id}">删除</button>` : '';
                     const showReplyBtn = !isTooDeep ?
                         `<button class="comment-reply-btn" data-review-id="${reviewId}" data-reply-id="${reply.id}">💬 回复</button>` : '';
+                    const replyCustomIdHtml = reply.custom_id
+                        ? `<span class="comment-custom-id">@${escapeHTML(reply.custom_id)}</span>`
+                        : '';
 
                     html += `
                         <div class="comment-reply-item" data-reply-id="${reply.id}">
                             <div class="comment-reply-item-header">
                                 ${replyAvatar}
                                 <span class="comment-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                ${replyCustomIdHtml}
                                 <span class="comment-reply-item-time">${replyTime}</span>
                             </div>
                             <div class="comment-reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
@@ -18334,23 +18179,6 @@
                 return html;
             }
 
-            // ===== 留言板回复功能（本地存储） =====
-            const GUESTBOOK_REPLIES_KEY = 'heroine_guestbook_replies_v1';
-
-            function getGuestbookReplies() {
-                try {
-                    return JSON.parse(localStorage.getItem(GUESTBOOK_REPLIES_KEY) || '{}');
-                } catch (_) {
-                    return {};
-                }
-            }
-
-            function saveGuestbookReplies(replies) {
-                try {
-                    localStorage.setItem(GUESTBOOK_REPLIES_KEY, JSON.stringify(replies));
-                } catch (_) {}
-            }
-
             // 通用提交防重：点击后立即禁用按钮并给出"发送中"反馈，避免 await 期间重复点击导致重复上传。
             // asyncFn 抛错时会恢复按钮并提示；成功时由后续列表重渲染重建按钮，无需手动恢复。
             function guardSubmitBtn(btn, asyncFn, busyText) {
@@ -18369,153 +18197,6 @@
                 });
             }
 
-            async function addGuestbookReply(parentId, content, replyTo = null, parentReplyId = null) {
-                if (!currentUser) return null;
-                // 输入验证
-                if (!content || typeof content !== 'string') return null;
-                const cleanContent = content.trim().slice(0, 300);
-                if (cleanContent.length === 0) return null;
-                if (/<script/i.test(cleanContent) || /javascript\s*:/i.test(cleanContent) || /data\s*:/i.test(cleanContent)) {
-                    showToast('⚠️ 包含不允许的内容', 1500);
-                    return null;
-                }
-                const metadata = currentUser.user_metadata || {};
-                const replyData = {
-                    message_id: Number(parentId),
-                    user_id: currentUser.id,
-                    content: cleanContent,
-                    reply_to: replyTo || null,
-                    parent_reply_id: parentReplyId || null,
-                    display_name: (metadata.display_name || currentUser.email || '用户').slice(0, 50),
-                    avatar_url: metadata.avatar_url || null
-                };
-
-                // 云端写入
-                if (supabaseClient) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('site_guestbook_replies')
-                            .insert(replyData)
-                            .select('id, created_at')
-                            .single();
-                        if (!error && data) {
-                            return {
-                                id: data.id,
-                                message_id: replyData.message_id,
-                                user_id: replyData.user_id,
-                                content: replyData.content,
-                                display_name: metadata.display_name || currentUser.email || '用户',
-                                avatar_url: metadata.avatar_url || null,
-                                reply_to: replyTo,
-                                parent_reply_id: parentReplyId || null,
-                                created_at: data.created_at
-                            };
-                        }
-                    } catch (_) {}
-                }
-
-                // localStorage 回退
-                const replies = getGuestbookReplies();
-                if (!replies[parentId]) replies[parentId] = [];
-                const newReply = {
-                    id: Date.now(),
-                    user_id: currentUser.id,
-                    content: content,
-                    display_name: metadata.display_name || currentUser.email || '用户',
-                    avatar_url: metadata.avatar_url || null,
-                    reply_to: replyTo,
-                    parent_reply_id: parentReplyId || null,
-                    created_at: new Date().toISOString()
-                };
-                replies[parentId].push(newReply);
-                saveGuestbookReplies(replies);
-                return newReply;
-            }
-
-            async function deleteGuestbookReply(parentId, replyId) {
-                // 云端删除（CASCADE 会自动清理子回复）
-                if (supabaseClient) {
-                    try {
-                        let q = supabaseClient.from('site_guestbook_replies').delete().eq('id', Number(replyId));
-                        if (!isAdmin && currentUser) q = q.eq('user_id', currentUser.id);
-                        const { error } = await q;
-                        if (error) throw error;
-                    } catch (e) {
-                        console.error('❌ 删除留言回复失败:', e);
-                        showToast('⚠️ 删除回复失败，请检查权限或网络', 2000);
-                        throw e;
-                    }
-                } else if (!currentUser) {
-                    showToast('请先登录后再删除', 1500);
-                    return;
-                }
-
-                // localStorage 回退：递归收集要删除的所有ID
-                const replies = getGuestbookReplies();
-                if (replies[parentId]) {
-                    function collectChildIds(targetId, items) {
-                        const ids = [targetId];
-                        let found = true;
-                        while (found) {
-                            found = false;
-                            items.forEach(r => {
-                                if (ids.includes(r.parent_reply_id) && !ids.includes(r.id)) {
-                                    ids.push(r.id);
-                                    found = true;
-                                }
-                            });
-                        }
-                        return ids;
-                    }
-                    const idsToDelete = collectChildIds(replyId, replies[parentId]);
-                    replies[parentId] = replies[parentId].filter(r => !idsToDelete.includes(r.id));
-                    saveGuestbookReplies(replies);
-                }
-            }
-
-            async function getGuestbookRepliesForMessage(msgId) {
-                // 优先云端
-                if (supabaseClient) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('site_guestbook_replies')
-                            .select('*')
-                            .eq('message_id', Number(msgId))
-                            .order('created_at', { ascending: true });
-                        if (!error && data) {
-                            return data.map(r => ({
-                                id: r.id,
-                                message_id: r.message_id,
-                                user_id: r.user_id,
-                                content: r.content,
-                                display_name: r.display_name || '用户',
-                                avatar_url: r.avatar_url || null,
-                                reply_to: r.reply_to,
-                                parent_reply_id: r.parent_reply_id,
-                                created_at: r.created_at
-                            }));
-                        }
-                    } catch (_) {}
-                }
-                // localStorage 回退
-                const replies = getGuestbookReplies();
-                return replies[String(msgId)] || [];
-            }
-
-            function formatGuestbookReplyTime(isoStr) {
-                const d = new Date(isoStr);
-                const now = new Date();
-                const diffMs = now - d;
-                const diffMin = Math.floor(diffMs / 60000);
-                if (diffMin < 1) return '刚刚';
-                if (diffMin < 60) return diffMin + '分钟前';
-                const diffH = Math.floor(diffMin / 60);
-                if (diffH < 24) return diffH + '小时前';
-                const diffD = Math.floor(diffH / 24);
-                if (diffD < 30) return diffD + '天前';
-                return d.toLocaleDateString('zh-CN');
-            }
-
             // ===== localStorage → Supabase 一次性迁移 =====
             async function migrateLocalRepliesToCloud() {
                 if (!supabaseClient) return;
@@ -18524,37 +18205,7 @@
 
                 console.log('[Migration] 开始将本地回复数据迁移到云端...');
 
-                // 1. 留言板回复迁移
-                try {
-                    const guestbookReplies = getGuestbookReplies();
-                    const gbRows = [];
-                    for (const [parentId, items] of Object.entries(guestbookReplies)) {
-                        for (const r of items) {
-                            gbRows.push({
-                                message_id: Number(parentId),
-                                user_id: r.user_id,
-                                content: r.content,
-                                reply_to: r.reply_to || null,
-                                parent_reply_id: r.parent_reply_id || null,
-                                display_name: r.display_name || '用户',
-                                avatar_url: r.avatar_url || null,
-                                created_at: r.created_at
-                            });
-                        }
-                    }
-                    if (gbRows.length > 0) {
-                        const { error } = await supabaseClient.from('site_guestbook_replies').insert(gbRows);
-                        if (!error) {
-                            console.log(`[Migration] 留言板回复：成功迁移 ${gbRows.length} 条`);
-                        } else {
-                            console.warn('[Migration] 留言板回复迁移失败:', error.message);
-                        }
-                    }
-                } catch (e) {
-                    console.warn('[Migration] 留言板回复迁移异常:', e);
-                }
-
-                // 2. MOD评论回复迁移
+                // 1. MOD评论回复迁移
                 try {
                     const modReplies = getModCommentReplies();
                     const modRows = [];
@@ -18584,7 +18235,7 @@
                     console.warn('[Migration] MOD评论回复迁移异常:', e);
                 }
 
-                // 3. 游戏评论回复迁移
+                // 2. 游戏评论回复迁移
                 try {
                     const gameReplies = getGameCommentReplies();
                     const gameRows = [];
@@ -18619,73 +18270,6 @@
                 // 标记迁移完成（即使部分失败也标记，避免重复尝试导致冲突）
                 localStorage.setItem(MIGRATION_FLAG_KEY, 'done');
                 console.log('[Migration] 迁移流程结束');
-            }
-
-            // 构建回复树：将扁平列表转为嵌套树结构
-            function buildReplyTree(flatReplies) {
-                const map = {};
-                const roots = [];
-                flatReplies.forEach(r => {
-                    r._children = [];
-                    map[r.id] = r;
-                });
-                flatReplies.forEach(r => {
-                    if (r.parent_reply_id && map[r.parent_reply_id]) {
-                        map[r.parent_reply_id]._children.push(r);
-                    } else {
-                        roots.push(r);
-                    }
-                });
-                return roots;
-            }
-
-            // 递归渲染回复树
-            function renderReplyTree(nodes, msgId, depth, flatReplies) {
-                const maxDepth = 4;
-                const isTooDeep = depth >= maxDepth;
-                let html = '';
-                nodes.forEach(reply => {
-                    const isReplyOwn = currentUser && reply.user_id === currentUser.id;
-                    const replyAvatar = reply.avatar_url ?
-                        `<img src="${escapeHTML(reply.avatar_url)}" class="reply-item-avatar" referrerpolicy="no-referrer" />` :
-                        `<div class="reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;">👤</div>`;
-                    const replyTime = formatGuestbookReplyTime(reply.created_at);
-                    let replyToLabel = '';
-                    if (reply.reply_to && flatReplies) {
-                        const target = flatReplies.find(r => r.user_id === reply.reply_to);
-                        if (target) {
-                            replyToLabel = `<span class="reply-to-label">@${escapeHTML(target.display_name)}</span>`;
-                        }
-                    }
-                    const deleteHtml = (isReplyOwn || isAdmin) ?
-                        `<button class="guestbook-delete-btn" data-msg-id="${msgId}" data-reply-id="${reply.id}">删除</button>` : '';
-                    const showReplyBtn = !isTooDeep ?
-                        `<button class="guestbook-reply-btn" data-msg-id="${msgId}" data-reply-id="${reply.id}">💬 回复</button>` : '';
-
-                    html += `
-                        <div class="reply-item" data-reply-id="${reply.id}">
-                            <div class="reply-item-header">
-                                ${replyAvatar}
-                                <span class="reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
-                                <span class="reply-item-time">${replyTime}</span>
-                            </div>
-                            <div class="reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
-                            ${showReplyBtn || deleteHtml ? `<div class="reply-item-actions">${showReplyBtn}${deleteHtml}</div>` : ''}
-                            ${!isTooDeep ? `
-                                <div class="nested-reply-compose reply-compose" id="nestedReplyCompose-${msgId}-${reply.id}" style="display:none;">
-                                    <textarea id="nestedReplyInput-${msgId}-${reply.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
-                                    <div class="reply-compose-actions">
-                                        <button class="btn btn-sm nested-reply-cancel-btn" data-msg-id="${msgId}" data-reply-id="${reply.id}">取消</button>
-                                        <button class="btn btn-sm btn-accent nested-reply-submit-btn" data-msg-id="${msgId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}" data-reply-to-name="${escapeHTML(reply.display_name || '用户')}">发送</button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            ${reply._children && reply._children.length > 0 ? `
-                                <div class="nested-reply-list">${renderReplyTree(reply._children, msgId, depth + 1, flatReplies)}</div>
-                            ` : ''}
-                        </div>`;
-                });
-                return html;
             }
 
             // ===== MOD评论回复和点赞功能（本地存储） =====
@@ -18926,829 +18510,6 @@
             function getModCommentLikeCount(commentId) {
                 const likes = getModCommentLikes();
                 return (likes[commentId] || []).length;
-            }
-
-            function getGuestbookTable() {
-                if (!supabaseClient) return null;
-                return supabaseClient.from('site_guestbook');
-            }
-
-            async function fetchGuestbookMessages() {
-                const table = getGuestbookTable();
-                if (!table) return [];
-                const cacheKey = guestbookSort + '_' + guestbookPage;
-                const now = Date.now();
-                if (_guestbookCache.data && _guestbookCache.key === cacheKey && (now - _guestbookCache.ts < 15000)) {
-                    guestbookTotalCount = _guestbookCache.totalCount || 0;
-                    return _guestbookCache.data;
-                }
-                try {
-                    let query = table.select('*', { count: 'exact' });
-                    query = query.order('created_at', { ascending: false });
-                    
-                    if (guestbookSort === 'hottest') {
-                        // 最热排序：限制最多加载100条，避免全表扫描
-                        const { data: rawData, error, count } = await query.limit(100);
-                        if (error) throw error;
-                        guestbookTotalCount = count || 0;
-                        let result = rawData || [];
-                        // 按反应总数排序
-                        result = [...result].sort((a, b) => {
-                            const aTotal = Object.values(a.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
-                            const bTotal = Object.values(b.reactions || {}).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0);
-                            return bTotal - aTotal;
-                        });
-                        // 客户端分页
-                        const from = guestbookPage * GUESTBOOK_PAGE_SIZE;
-                        const to = from + GUESTBOOK_PAGE_SIZE;
-                        result = result.slice(from, to);
-                        _guestbookCache = { data: result, key: cacheKey, ts: Date.now(), totalCount: guestbookTotalCount };
-                        return result;
-                    } else {
-                        // 最新排序：使用服务端分页
-                        const from = guestbookPage * GUESTBOOK_PAGE_SIZE;
-                        const to = from + GUESTBOOK_PAGE_SIZE - 1;
-                        query = query.range(from, to);
-                        const { data, error, count } = await query;
-                        if (error) throw error;
-                        guestbookTotalCount = count || 0;
-                        let result = data || [];
-                        _guestbookCache = { data: result, key: cacheKey, ts: Date.now(), totalCount: guestbookTotalCount };
-                        return result;
-                    }
-                } catch (e) {
-                    console.error('❌ 获取留言失败:', e);
-                    return [];
-                }
-            }
-
-            async function postGuestbookMessage(content) {
-                if (!currentUser || !supabaseClient) return null;
-                // 输入验证
-                if (!content || typeof content !== 'string') return null;
-                const cleanContent = content.trim().slice(0, 500);
-                if (cleanContent.length === 0) return null;
-                if (/<script/i.test(cleanContent) || /javascript\s*:/i.test(cleanContent) || /data\s*:/i.test(cleanContent)) {
-                    showToast('⚠️ 包含不允许的内容', 1500);
-                    return null;
-                }
-                const metadata = currentUser.user_metadata || {};
-                const record = {
-                    user_id: currentUser.id,
-                    content: cleanContent,
-                    display_name: (metadata.display_name || currentUser.email || '用户').slice(0, 50),
-                    avatar_url: metadata.avatar_url || null,
-                    reactions: {}
-                };
-                try {
-                    const { data, error } = await supabaseClient.from('site_guestbook')
-                        .insert(record)
-                        .select()
-                        .single();
-                    if (error) throw error;
-                    _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
-                    return data;
-                } catch (e) {
-                    console.error('❌ 发布留言失败:', e);
-                    showToast('⚠️ 发布失败，请重试', 2000);
-                    return null;
-                }
-            }
-
-            async function deleteGuestbookMessage(id) {
-                if (!currentUser) { showToast('请先登录后再删除', 1500); return; }
-                if (!supabaseClient) { showToast('数据库未连接', 1500); return; }
-                try {
-                    // 1. 先删主留言；RLS 拒绝时通常返回 count=0 而非 error，需显式校验
-                    let query = supabaseClient.from('site_guestbook').delete({ count: 'exact' }).eq('id', id);
-                    if (!isAdmin) { query = query.eq('user_id', currentUser.id); }
-                    const { error, count } = await query;
-                    if (error) throw error;
-                    if (count === 0) {
-                        // 没有行被删除：RLS 策略阻止或留言不存在
-                        throw new Error('无权删除该留言或留言不存在');
-                    }
-
-                    // 2. 主留言删除成功后，再删该留言关联的回复（CASCADE 已配置则幂等）
-                    try {
-                        let rq = supabaseClient.from('site_guestbook_replies').delete().eq('message_id', Number(id));
-                        // 非 admin 仅清理自己的回复，避免越权删除他人回复
-                        if (!isAdmin) { rq = rq.eq('user_id', currentUser.id); }
-                        await rq;
-                    } catch (_) {}
-
-                    // 3. 清 localStorage 中该留言的回复缓存
-                    try {
-                        const all = getGuestbookReplies();
-                        if (all[String(id)]) {
-                            delete all[String(id)];
-                            saveGuestbookReplies(all);
-                        }
-                    } catch (_) {}
-
-                    _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
-                } catch (e) {
-                    console.error('❌ 删除留言失败:', e);
-                    showToast('⚠️ 删除失败：' + (e.message || '请检查权限或网络'), 2500);
-                    throw e;
-                }
-            }
-
-            async function toggleGuestbookReaction(messageId, emoji) {
-                if (!currentUser || !supabaseClient) return;
-                try {
-                    const { data: msg, error: fetchErr } = await supabaseClient.from('site_guestbook')
-                        .select('reactions')
-                        .eq('id', messageId)
-                        .single();
-                    if (fetchErr) throw fetchErr;
-
-                    const reactions = msg.reactions || {};
-                    const userKey = currentUser.id;
-                    if (!reactions[emoji]) reactions[emoji] = [];
-                    const arr = reactions[emoji];
-                    const idx = arr.indexOf(userKey);
-                    if (idx >= 0) {
-                        arr.splice(idx, 1);
-                        if (arr.length === 0) delete reactions[emoji];
-                    } else {
-                        arr.push(userKey);
-                    }
-
-                    const { error } = await supabaseClient.from('site_guestbook')
-                        .update({ reactions })
-                        .eq('id', messageId);
-                    if (error) throw error;
-                    _guestbookCache = { data: null, page: -1, sort: '', ts: 0 };
-                } catch (e) {
-                    console.error('❌ 反应操作失败:', e);
-                }
-            }
-
-            function formatGuestbookTime(iso) {
-                if (!iso) return '';
-                const d = new Date(iso);
-                const now = new Date();
-                const diffMs = now - d;
-                const diffMin = Math.floor(diffMs / 60000);
-                if (diffMin < 1) return '刚刚';
-                if (diffMin < 60) return diffMin + '分钟前';
-                const diffHour = Math.floor(diffMin / 60);
-                if (diffHour < 24) return diffHour + '小时前';
-                const diffDay = Math.floor(diffHour / 24);
-                if (diffDay < 7) return diffDay + '天前';
-                return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-            }
-
-            async function renderGuestbook() {
-                const listEl = document.getElementById('guestbookList');
-                const composeArea = document.getElementById('guestbookComposeArea');
-                const statsEl = document.getElementById('guestbookStats');
-                const loadMoreEl = document.getElementById('guestbookLoadMore');
-                if (!listEl) return;
-
-                // 渲染发布区
-                if (currentUser) {
-                    const metadata = currentUser.user_metadata || {};
-                    const avatarUrl = metadata.avatar_url || '';
-                    const displayName = metadata.display_name || currentUser.email || '用户';
-                    const avatarHtml = avatarUrl ?
-                        `<img src="${escapeHTML(avatarUrl)}" class="guestbook-compose-avatar" referrerpolicy="no-referrer" />` :
-                        `<div class="guestbook-compose-avatar" style="display:flex;align-items:center;justify-content:center;font-size:1.1rem;">👤</div>`;
-                    composeArea.innerHTML = `
-                        <div class="guestbook-compose">
-                            <div class="guestbook-compose-header">
-                                ${avatarHtml}
-                                <span class="guestbook-compose-name">${escapeHTML(displayName)}</span>
-                            </div>
-                            <textarea id="guestbookInput" placeholder="写下你想说的..." maxlength="500"></textarea>
-                            <div class="guestbook-compose-footer">
-                                <span class="char-count"><span id="guestbookCharCount">0</span>/500</span>
-                                <button class="btn btn-sm btn-accent" id="guestbookSubmitBtn">发布留言</button>
-                            </div>
-                        </div>`;
-                    const input = document.getElementById('guestbookInput');
-                    const charCount = document.getElementById('guestbookCharCount');
-                    const submitBtn = document.getElementById('guestbookSubmitBtn');
-                    if (input && charCount) {
-                        input.addEventListener('input', function () {
-                            charCount.textContent = this.value.length;
-                            charCount.classList.toggle('warn', this.value.length >= 480);
-                        });
-                    }
-                    if (submitBtn && input) {
-                        let lastSubmitTime = 0;
-                        submitBtn.addEventListener('click', async function () {
-                            const now = Date.now();
-                            if (now - lastSubmitTime < 3000) { showToast('操作太频繁，请稍后再试', 1500); return; }
-                            const text = input.value.trim();
-                            if (!text) { showToast('留言内容不能为空', 1500); return; }
-                            if (text.length > 500) { showToast('留言内容过长', 1500); return; }
-                            if (/javascript\s*:/i.test(text) || /data\s*:/i.test(text) || /vbscript\s*:/i.test(text)) { showToast('留言包含不允许的内容', 1500); return; }
-                            // 拉黑预检（数据库触发器是最终防线）
-                            if (await isCurrentUserBanned()) {
-                                showToast('⚠️ 您的账号已被限制发布，请联系管理员', 2500);
-                                return;
-                            }
-                            lastSubmitTime = now;
-                            submitBtn.disabled = true;
-                            submitBtn.textContent = '发布中...';
-                            const result = await postGuestbookMessage(text);
-                            if (result) {
-                                input.value = '';
-                                charCount.textContent = '0';
-                                showToast('✅ 留言发布成功！', 2000);
-                                guestbookPage = 0;
-                                await renderGuestbookList();
-                            }
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = '发布留言';
-                        });
-                        input.addEventListener('keydown', function (e) {
-                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                                e.preventDefault();
-                                submitBtn.click();
-                            }
-                        });
-                    }
-                } else {
-                    composeArea.innerHTML = `
-                        <div class="guestbook-login-hint">
-                            🔑 <a id="guestbookLoginLink">登录</a> 后即可发布留言
-                        </div>`;
-                    document.getElementById('guestbookLoginLink')?.addEventListener('click', function () {
-                        closeGuestbookModal();
-                        openAuthModal();
-                    });
-                }
-
-                await renderGuestbookList();
-
-                // 订阅实时更新（添加防抖避免频繁刷新）
-                if (supabaseClient && !guestbookListener) {
-                    try {
-                        guestbookListener = supabaseClient
-                            .channel('guestbook-changes')
-                            .on('postgres_changes', { event: '*', schema: 'public', table: 'site_guestbook' }, () => {
-                                clearTimeout(_guestbookDebounce);
-                                _guestbookDebounce = setTimeout(() => renderGuestbookList(), 1000);
-                            })
-                            .subscribe();
-                    } catch (_) { }
-                }
-            }
-
-            async function renderGuestbookList() {
-                const listEl = document.getElementById('guestbookList');
-                const statsEl = document.getElementById('guestbookStats');
-                const loadMoreEl = document.getElementById('guestbookLoadMore');
-                if (!listEl) return;
-
-                const messages = await fetchGuestbookMessages();
-                if (messages.length === 0 && guestbookPage === 0) {
-                    listEl.innerHTML = `
-                        <div class="guestbook-empty">
-                            <span class="empty-icon">📝</span>
-                            还没有留言，来做第一个留言的人吧！
-                        </div>`;
-                    if (statsEl) statsEl.textContent = '';
-                    if (loadMoreEl) loadMoreEl.style.display = 'none';
-                    return;
-                }
-
-                if (statsEl) {
-                    statsEl.innerHTML = `共 <strong>${guestbookTotalCount}</strong> 条留言`;
-                }
-
-                // 【优化1】一次性批量拉取所有留言的回复，避免 N+1 查询
-                const msgIds = messages.map(m => m.id);
-                // 回复数据内存缓存（5 秒有效期，避免弹窗快速开关时重复拉取）
-                const replyCacheKey = msgIds.join(',');
-                let allRepliesMap = _guestbookReplyCache.key === replyCacheKey && (Date.now() - _guestbookReplyCache.ts < 5000)
-                    ? _guestbookReplyCache.data : {};
-                if (Object.keys(allRepliesMap).length === 0 && supabaseClient && msgIds.length > 0) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('site_guestbook_replies')
-                            .select('*')
-                            .in('message_id', msgIds)
-                            .order('created_at', { ascending: true });
-                        if (!error && data) {
-                            data.forEach(r => {
-                                const mid = r.message_id;
-                                if (!allRepliesMap[mid]) allRepliesMap[mid] = [];
-                                allRepliesMap[mid].push({
-                                    id: r.id,
-                                    message_id: r.message_id,
-                                    user_id: r.user_id,
-                                    content: r.content,
-                                    display_name: r.display_name || '用户',
-                                    avatar_url: r.avatar_url || null,
-                                    reply_to: r.reply_to,
-                                    parent_reply_id: r.parent_reply_id,
-                                    created_at: r.created_at
-                                });
-                            });
-                            _guestbookReplyCache = { key: replyCacheKey, data: allRepliesMap, ts: Date.now() };
-                        }
-                    } catch (_) {}
-                }
-
-                let html = '';
-                for (const msg of messages) {
-                    const isOwn = currentUser && msg.user_id === currentUser.id;
-                    const avatarHtml = msg.avatar_url ?
-                        `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" loading="lazy" />` :
-                        `<div class="guestbook-item-avatar-placeholder">👤</div>`;
-                    const time = formatGuestbookTime(msg.created_at);
-                    const reactions = msg.reactions || {};
-                    let reactionsHtml = '';
-                    GUESTBOOK_REACTIONS.forEach(emoji => {
-                        const users = reactions[emoji] || [];
-                        const count = users.length;
-                        const isActive = currentUser && users.includes(currentUser.id);
-                        reactionsHtml += `
-                            <button class="guestbook-react-btn${isActive ? ' active' : ''}"
-                                data-msg-id="${msg.id}" data-emoji="${emoji}">
-                                ${emoji} <span class="react-count">${count > 0 ? count : ''}</span>
-                            </button>`;
-                    });
-                    const deleteHtml = (isOwn || isAdmin) ?
-                        `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
-                    // 管理员拉黑按钮（不对自己显示）
-                    const banHtml = (isAdmin && !isOwn && msg.user_id) ?
-                        `<button class="guestbook-ban-btn" data-user-id="${msg.user_id}" data-msg-id="${msg.id}" title="拉黑该用户，禁止其发布内容">🚫 拉黑</button>` : '';
-
-                    // 从预加载的批量数据中取回复
-                    const flatReplies = allRepliesMap[msg.id] || [];
-                    const replyTree = buildReplyTree([...flatReplies]);
-                    let repliesHtml = '';
-                    if (replyTree.length > 0) {
-                        repliesHtml = '<div class="reply-list">' + renderReplyTree(replyTree, msg.id, 0, flatReplies) + '</div>';
-                    }
-
-                    html += `
-                        <div class="guestbook-item" data-msg-id="${msg.id}">
-                            <div class="guestbook-item-header">
-                                ${avatarHtml}
-                                <span class="guestbook-item-name">${escapeHTML(msg.display_name || '用户')}</span>
-                                <span class="guestbook-item-time">${time}</span>
-                            </div>
-                            <div class="guestbook-item-content">${escapeHTML(msg.content)}</div>
-                            <div class="guestbook-item-actions">
-                                ${reactionsHtml}
-                                <button class="guestbook-reply-btn" data-msg-id="${msg.id}">💬 回复</button>
-                                ${deleteHtml}
-                                ${banHtml}
-                            </div>
-                            ${repliesHtml}
-                            <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
-                                <textarea id="replyInput-${msg.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
-                                <div class="reply-compose-actions">
-                                    <button class="btn btn-sm cancel-reply-btn" data-msg-id="${msg.id}">取消</button>
-                                    <button class="btn btn-sm btn-accent reply-submit-btn" data-msg-id="${msg.id}">发送</button>
-                                </div>
-                            </div>
-                        </div>`;
-                }
-                listEl.innerHTML = html;
-
-                // 加载更多按钮
-                const hasMore = messages.length < guestbookTotalCount;
-                if (loadMoreEl) {
-                    loadMoreEl.style.display = hasMore ? 'block' : 'none';
-                }
-
-                // 绑定事件
-                listEl.querySelectorAll('.guestbook-react-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
-                        if (!currentUser) { showToast('请先登录', 1500); return; }
-                        const msgId = Number(this.dataset.msgId);
-                        const emoji = this.dataset.emoji;
-                        await toggleGuestbookReaction(msgId, emoji);
-                        await renderGuestbookList();
-                    });
-                });
-
-                listEl.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
-                    btn.addEventListener('click', async function (ev) {
-                        ev.stopPropagation();
-                        ev.preventDefault();
-                        const msgId = Number(this.dataset.msgId);
-                        const replyId = this.dataset.replyId;
-                        if (replyId) {
-                            // 删除回复
-                            if (!confirm('确定删除这条回复吗？')) return;
-                            try {
-                                await deleteGuestbookReply(String(msgId), Number(replyId));
-                                showToast('✅ 回复已删除', 1500);
-                                await renderGuestbookList();
-                            } catch (_) {}
-                        } else {
-                            // 删除母留言
-                            if (!confirm('确定删除这条留言吗？')) return;
-                            try {
-                                await deleteGuestbookMessage(msgId);
-                                showToast('✅ 留言已删除', 1500);
-                                await renderGuestbookList();
-                            } catch (_) {}
-                        }
-                    });
-                });
-
-                // 管理员拉黑按钮事件
-                listEl.querySelectorAll('.guestbook-ban-btn').forEach(btn => {
-                    btn.addEventListener('click', async function (ev) {
-                        ev.stopPropagation();
-                        ev.preventDefault();
-                        if (!isAdmin) { showToast('⚠️ 仅管理员可拉黑', 1500); return; }
-                        const targetUserId = this.dataset.userId;
-                        if (!targetUserId) { showToast('无法获取用户信息', 1500); return; }
-                        if (targetUserId === currentUser.id) { showToast('⚠️ 不能拉黑自己', 1500); return; }
-                        const reason = prompt('拉黑该用户？\n（可选填原因，留空则默认）', '');
-                        if (reason === null) return; // 用户取消
-                        // 防重
-                        if (this.dataset.submitting === 'true') return;
-                        this.dataset.submitting = 'true';
-                        this.disabled = true;
-                        const originalText = this.textContent;
-                        this.textContent = '拉黑中...';
-                        try {
-                            const ok = await banUser(targetUserId, reason);
-                            if (ok) await renderGuestbookList();
-                        } finally {
-                            this.dataset.submitting = 'false';
-                            this.disabled = false;
-                            this.textContent = originalText;
-                        }
-                    });
-                });
-
-                // 回复按钮事件（含嵌套回复）
-                listEl.querySelectorAll('.guestbook-reply-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        if (!currentUser) { showToast('请先登录', 1500); return; }
-                        const msgId = this.dataset.msgId;
-                        const replyId = this.dataset.replyId; // 嵌套回复时有值
-
-                        // 先隐藏同级其他输入框
-                        const parent = this.closest('.reply-item') || this.closest('.guestbook-item');
-                        if (parent) {
-                            parent.querySelectorAll('.nested-reply-compose, .reply-compose').forEach(c => {
-                                c.style.display = 'none';
-                            });
-                        }
-
-                        if (replyId) {
-                            // 嵌套回复：打开子回复输入框
-                            const composeEl = document.getElementById('nestedReplyCompose-' + msgId + '-' + replyId);
-                            if (composeEl) {
-                                composeEl.style.display = 'block';
-                                document.getElementById('nestedReplyInput-' + msgId + '-' + replyId)?.focus();
-                            }
-                        } else {
-                            // 一级回复：打开留言级输入框
-                            const composeEl = document.getElementById('replyCompose-' + msgId);
-                            if (composeEl) {
-                                composeEl.style.display = 'block';
-                                document.getElementById('replyInput-' + msgId)?.focus();
-                            }
-                        }
-                    });
-                });
-
-                // 嵌套回复取消按钮
-                listEl.querySelectorAll('.nested-reply-cancel-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const msgId = this.dataset.msgId;
-                        const replyId = this.dataset.replyId;
-                        const composeEl = document.getElementById('nestedReplyCompose-' + msgId + '-' + replyId);
-                        if (composeEl) composeEl.style.display = 'none';
-                    });
-                });
-
-                // 回复输入框取消按钮
-                listEl.querySelectorAll('.cancel-reply-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const msgId = this.dataset.msgId;
-                        const composeEl = document.getElementById('replyCompose-' + msgId);
-                        if (composeEl) composeEl.style.display = 'none';
-                    });
-                });
-
-                // 嵌套回复提交按钮
-                listEl.querySelectorAll('.nested-reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
-                        if (!currentUser) { showToast('请先登录', 1500); return; }
-                        const msgId = this.dataset.msgId;
-                        const parentReplyId = Number(this.dataset.parentReplyId);
-                        const replyToUserId = this.dataset.replyToUserId;
-                        const replyToName = this.dataset.replyToName;
-                        const input = document.getElementById('nestedReplyInput-' + msgId + '-' + parentReplyId);
-                        if (!input) return;
-                        const text = input.value.trim();
-                        if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        // 拉黑预检（数据库触发器是最终防线）
-                        if (await isCurrentUserBanned()) {
-                            showToast('⚠️ 您的账号已被限制发布，请联系管理员', 2500);
-                            return;
-                        }
-                        guardSubmitBtn(this, async () => {
-                            await addGuestbookReply(String(msgId), text, replyToUserId, parentReplyId);
-
-                            // 发送通知
-                            if (supabaseClient) {
-                                try {
-                                    await createReplyNotification(replyToUserId, 'guestbook', Number(msgId), '留言板', text);
-                                } catch (_) {}
-                            }
-
-                            showToast('✅ 回复成功', 1500);
-                            await renderGuestbookList();
-                        });
-                    });
-                });
-
-                // 回复提交按钮事件（一级回复）
-                listEl.querySelectorAll('.reply-submit-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
-                        if (!currentUser) { showToast('请先登录', 1500); return; }
-                        const msgId = this.dataset.msgId;
-                        const input = document.getElementById('replyInput-' + msgId);
-                        if (!input) return;
-                        const text = input.value.trim();
-                        if (!text) { showToast('回复内容不能为空', 1500); return; }
-                        // 拉黑预检（数据库触发器是最终防线）
-                        if (await isCurrentUserBanned()) {
-                            showToast('⚠️ 您的账号已被限制发布，请联系管理员', 2500);
-                            return;
-                        }
-                        guardSubmitBtn(this, async () => {
-                            await addGuestbookReply(String(msgId), text);
-
-                            // 发送通知给留言作者
-                            if (supabaseClient) {
-                                try {
-                                    const { data: msg } = await supabaseClient.from('site_guestbook')
-                                        .select('user_id')
-                                        .eq('id', msgId)
-                                        .single();
-                                    if (msg && msg.user_id) {
-                                        await createReplyNotification(msg.user_id, 'guestbook', msgId, '留言板', text);
-                                    }
-                                } catch (_) {}
-                            }
-
-                            showToast('✅ 回复成功', 1500);
-                            await renderGuestbookList();
-                        });
-                    });
-                });
-            }
-
-            function openGuestbookModal() {
-                guestbookPage = 0;
-                const overlay = document.getElementById('guestbookModalOverlay');
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-                // 先显示骨架/空态，再异步加载数据，避免白屏等待
-                const listEl = document.getElementById('guestbookList');
-                if (listEl && listEl.children.length === 0) {
-                    listEl.innerHTML = '<div class="guestbook-empty"><span class="empty-icon">⏳</span>加载中...</div>';
-                }
-                // 异步渲染，不阻塞弹窗打开
-                requestAnimationFrame(() => { renderGuestbook(); });
-            }
-
-            function closeGuestbookModal() {
-                document.getElementById('guestbookModalOverlay').classList.remove('show');
-                document.body.style.overflow = '';
-                if (guestbookListener) {
-                    try { supabaseClient.removeChannel(guestbookListener); } catch (_) { }
-                    guestbookListener = null;
-                }
-            }
-
-            function initGuestbookEvents() {
-                document.getElementById('navGuestbook')?.addEventListener('click', openGuestbookModal);
-                document.getElementById('guestbookModalClose')?.addEventListener('click', closeGuestbookModal);
-                document.getElementById('guestbookModalOverlay')?.addEventListener('click', function (e) {
-                    if (e.target === this) closeGuestbookModal();
-                });
-                document.getElementById('guestbookLoadMoreBtn')?.addEventListener('click', async function () {
-                    const listEl = document.getElementById('guestbookList');
-                    if (!listEl) return;
-                    const prevCount = listEl.querySelectorAll('.guestbook-item').length;
-                    guestbookPage++;
-                    const messages = await fetchGuestbookMessages();
-                    if (messages.length > prevCount) {
-                        const newMsgs = messages.slice(prevCount);
-                        // 批量拉取新留言的回复
-                        const newMsgIds = newMsgs.map(m => m.id);
-                        let newRepliesMap = {};
-                        try {
-                            if (supabaseClient && newMsgIds.length > 0) {
-                                const { data, error } = await supabaseClient
-                                    .from('site_guestbook_replies')
-                                    .select('*')
-                                    .in('message_id', newMsgIds)
-                                    .order('created_at', { ascending: true });
-                                if (!error && data) {
-                                    data.forEach(r => {
-                                        if (!newRepliesMap[r.message_id]) newRepliesMap[r.message_id] = [];
-                                        newRepliesMap[r.message_id].push({
-                                            id: r.id, message_id: r.message_id, user_id: r.user_id,
-                                            content: r.content, display_name: r.display_name || '用户',
-                                            avatar_url: r.avatar_url || null, reply_to: r.reply_to,
-                                            parent_reply_id: r.parent_reply_id, created_at: r.created_at
-                                        });
-                                    });
-                                }
-                            }
-                        } catch (_) {}
-
-                        let newHtml = '';
-                        for (const msg of newMsgs) {
-                            const isOwn = currentUser && msg.user_id === currentUser.id;
-                            const avatarHtml = msg.avatar_url ?
-                                `<img src="${escapeHTML(msg.avatar_url)}" class="guestbook-item-avatar" referrerpolicy="no-referrer" loading="lazy" />` :
-                                `<div class="guestbook-item-avatar-placeholder">👤</div>`;
-                            const time = formatGuestbookTime(msg.created_at);
-                            const reactions = msg.reactions || {};
-                            let reactionsHtml = '';
-                            GUESTBOOK_REACTIONS.forEach(emoji => {
-                                const users = reactions[emoji] || [];
-                                const count = users.length;
-                                const isActive = currentUser && users.includes(currentUser.id);
-                                reactionsHtml += `
-                                    <button class="guestbook-react-btn${isActive ? ' active' : ''}"
-                                        data-msg-id="${msg.id}" data-emoji="${emoji}">
-                                        ${emoji} <span class="react-count">${count > 0 ? count : ''}</span>
-                                    </button>`;
-                            });
-                            const deleteHtml = (isOwn || isAdmin) ?
-                                `<button class="guestbook-delete-btn" data-msg-id="${msg.id}">🗑 删除</button>` : '';
-
-                            // 从批量数据取回复
-                            const replies = newRepliesMap[msg.id] || [];
-                            let repliesHtml = '';
-                            if (replies.length > 0) {
-                                repliesHtml = '<div class="reply-list">';
-                                replies.forEach(reply => {
-                                    const isReplyOwn = currentUser && reply.user_id === currentUser.id;
-                                    const replyAvatar = reply.avatar_url ?
-                                        `<img src="${escapeHTML(reply.avatar_url)}" class="reply-item-avatar" referrerpolicy="no-referrer" />` :
-                                        `<div class="reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;">👤</div>`;
-                                    const replyTime = formatGuestbookReplyTime(reply.created_at);
-                                    let replyToLabel = '';
-                                    if (reply.reply_to) {
-                                        const replyToUser = replies.find(r => r.user_id === reply.reply_to);
-                                        if (replyToUser) {
-                                            replyToLabel = `<span class="reply-to-label">@${escapeHTML(replyToUser.display_name)}</span>`;
-                                        }
-                                    }
-                                    const deleteReplyHtml = (isReplyOwn || isAdmin) ?
-                                        `<button class="guestbook-delete-btn" data-msg-id="${msg.id}" data-reply-id="${reply.id}" style="font-size:0.65rem;">删除</button>` : '';
-                                    repliesHtml += `
-                                        <div class="reply-item" data-reply-id="${reply.id}">
-                                            <div class="reply-item-header">
-                                                ${replyAvatar}
-                                                <span class="reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
-                                                <span class="reply-item-time">${replyTime}</span>
-                                                ${deleteReplyHtml}
-                                            </div>
-                                            <div class="reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
-                                        </div>`;
-                                });
-                                repliesHtml += '</div>';
-                            }
-
-                            newHtml += `
-                                <div class="guestbook-item" data-msg-id="${msg.id}">
-                                    <div class="guestbook-item-header">
-                                        ${avatarHtml}
-                                        <span class="guestbook-item-name">${escapeHTML(msg.display_name || '用户')}</span>
-                                        <span class="guestbook-item-time">${time}</span>
-                                    </div>
-                                    <div class="guestbook-item-content">${escapeHTML(msg.content)}</div>
-                                    <div class="guestbook-item-actions">
-                                        ${reactionsHtml}
-                                        <button class="guestbook-reply-btn" data-msg-id="${msg.id}">💬 回复</button>
-                                        ${deleteHtml}
-                                    </div>
-                                    ${repliesHtml}
-                                    <div class="reply-compose" id="replyCompose-${msg.id}" style="display:none;">
-                                        <textarea id="replyInput-${msg.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
-                                        <div class="reply-compose-actions">
-                                            <button class="btn btn-sm cancel-reply-btn" data-msg-id="${msg.id}">取消</button>
-                                            <button class="btn btn-sm btn-accent reply-submit-btn" data-msg-id="${msg.id}">发送</button>
-                                        </div>
-                                    </div>
-                                </div>`;
-                        }
-                        const frag = document.createRange().createContextualFragment(newHtml);
-                        listEl.appendChild(frag);
-                        newMsgs.forEach(msg => {
-                            const item = listEl.querySelector(`.guestbook-item[data-msg-id="${msg.id}"]`);
-                            if (!item) return;
-                            item.querySelectorAll('.guestbook-react-btn').forEach(btn => {
-                                btn.addEventListener('click', async function () {
-                                    if (!currentUser) { showToast('请先登录', 1500); return; }
-                                    const msgId = Number(this.dataset.msgId);
-                                    const emoji = this.dataset.emoji;
-                                    await toggleGuestbookReaction(msgId, emoji);
-                                    await renderGuestbookList();
-                                });
-                            });
-                            // 删除按钮事件（支持留言和回复删除）
-                            item.querySelectorAll('.guestbook-delete-btn').forEach(btn => {
-                                btn.addEventListener('click', async function (ev) {
-                                    ev.stopPropagation();
-                                    ev.preventDefault();
-                                    const msgId = Number(this.dataset.msgId);
-                                    const replyId = this.dataset.replyId;
-                                    if (replyId) {
-                                        // 删除回复
-                                        if (!confirm('确定删除这条回复吗？')) return;
-                                        try {
-                                            await deleteGuestbookReply(String(msgId), Number(replyId));
-                                            showToast('✅ 回复已删除', 1500);
-                                            await renderGuestbookList();
-                                        } catch (_) {}
-                                    } else {
-                                        // 删除母留言
-                                        if (!confirm('确定删除这条留言吗？')) return;
-                                        try {
-                                            await deleteGuestbookMessage(msgId);
-                                            showToast('✅ 留言已删除', 1500);
-                                            await renderGuestbookList();
-                                        } catch (_) {}
-                                    }
-                                });
-                            });
-                            // 回复按钮事件
-                            const replyBtn = item.querySelector('.guestbook-reply-btn');
-                            if (replyBtn) {
-                                replyBtn.addEventListener('click', function () {
-                                    if (!currentUser) { showToast('请先登录', 1500); return; }
-                                    const msgId = this.dataset.msgId;
-                                    const composeEl = document.getElementById('replyCompose-' + msgId);
-                                    if (composeEl) {
-                                        const isHidden = composeEl.style.display === 'none';
-                                        composeEl.style.display = isHidden ? 'block' : 'none';
-                                        if (isHidden) {
-                                            document.getElementById('replyInput-' + msgId)?.focus();
-                                        }
-                                    }
-                                });
-                            }
-                            // 回复提交按钮事件
-                            const replySubmitBtn = item.querySelector('.reply-submit-btn');
-                            if (replySubmitBtn) {
-                                replySubmitBtn.addEventListener('click', function () {
-                                    if (!currentUser) { showToast('请先登录', 1500); return; }
-                                    const msgId = this.dataset.msgId;
-                                    const input = document.getElementById('replyInput-' + msgId);
-                                    if (!input) return;
-                                    const text = input.value.trim();
-                                    if (!text) { showToast('回复内容不能为空', 1500); return; }
-                                    guardSubmitBtn(this, async () => {
-                                        await addGuestbookReply(String(msgId), text);
-                                        // 发送通知给留言作者
-                                        if (supabaseClient) {
-                                            try {
-                                                const { data: msgData } = await supabaseClient.from('site_guestbook')
-                                                    .select('user_id')
-                                                    .eq('id', msgId)
-                                                    .single();
-                                                if (msgData && msgData.user_id) {
-                                                    await createReplyNotification(msgData.user_id, 'guestbook', msgId, '留言板', text);
-                                                }
-                                            } catch (_) {}
-                                        }
-                                        showToast('✅ 回复成功', 1500);
-                                        await renderGuestbookList();
-                                    });
-                                });
-                            }
-                        });
-                    }
-                    const loadMoreEl = document.getElementById('guestbookLoadMore');
-                    if (messages.length < (guestbookPage + 1) * GUESTBOOK_PAGE_SIZE) {
-                        if (loadMoreEl) loadMoreEl.style.display = 'none';
-                    }
-                });
-                document.querySelectorAll('.guestbook-sort-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
-                        const sort = this.dataset.sort;
-                        if (guestbookSort === sort) return;
-                        guestbookSort = sort;
-                        document.querySelectorAll('.guestbook-sort-btn').forEach(b =>
-                            b.classList.toggle('active', b.dataset.sort === sort));
-                        guestbookPage = 0;
-                        await renderGuestbookList();
-                    });
-                });
             }
 
             // ================================================================
@@ -20665,19 +19426,11 @@
                             preview = n.content ? `<div class="notif-item-preview">"${escapeHTML(n.content.substring(0, 60))}"</div>` : '';
                             break;
                         case 'reply':
-                            if (n.target_type === 'guestbook') {
-                                typeText = '回复了你的留言';
-                            } else {
-                                typeText = '回复了你的评论';
-                            }
+                            typeText = '回复了你的评论';
                             preview = n.content ? `<div class="notif-item-preview">"${escapeHTML(n.content.substring(0, 60))}"</div>` : '';
                             break;
                         case 'comment_like':
-                            if (n.target_type === 'guestbook') {
-                                typeText = '赞了你的留言';
-                            } else {
-                                typeText = '赞了你的评论';
-                            }
+                            typeText = '赞了你的评论';
                             break;
                         default:
                             typeText = '与你互动';
@@ -20715,8 +19468,6 @@
                             if (currentMainView !== 'mods') switchMainView('mods');
                             const post = modPosts.find(p => p.id === targetId);
                             if (post) setTimeout(() => openModDetail(post), 200);
-                        } else if (targetType === 'guestbook') {
-                            openGuestbookModal();
                         }
                     });
                 });
@@ -22108,9 +20859,29 @@
                 const overlay = document.getElementById('profileModalOverlay');
                 const nameInput = document.getElementById('profileDisplayName');
                 const avatarImg = document.getElementById('profileAvatarPreview');
+                const customIdInput = document.getElementById('profileCustomId');
+                const customIdMsg = document.getElementById('profileCustomIdMsg');
+                const displayNameMsg = document.getElementById('profileDisplayNameMsg');
 
                 const metadata = currentUser.user_metadata || {};
                 nameInput.value = metadata.display_name || '';
+                customIdInput.value = metadata.custom_id || '';
+
+                // 初始化显示名称状态
+                displayNameMsg.textContent = '';
+                displayNameMsg.style.color = 'var(--text3)';
+                if (metadata.display_name) {
+                    displayNameMsg.textContent = '✓ 当前显示名称';
+                    displayNameMsg.style.color = 'var(--success, #4caf50)';
+                }
+
+                // 初始化专属ID状态
+                customIdMsg.textContent = '';
+                customIdMsg.style.color = 'var(--text3)';
+                if (metadata.custom_id) {
+                    customIdMsg.textContent = '✓ 当前专属ID';
+                    customIdMsg.style.color = 'var(--success, #4caf50)';
+                }
                 if (metadata.avatar_url) {
                     avatarImg.src = metadata.avatar_url;
                 } else {
@@ -22138,6 +20909,149 @@
                 currentAvatarFile = null;
             }
 
+            // 检查显示名称是否可用（防重名）
+            async function checkDisplayNameAvailable(displayName) {
+                const msgEl = document.getElementById('profileDisplayNameMsg');
+                const checkBtn = document.getElementById('profileCheckNameBtn');
+
+                if (!displayName || displayName.trim().length < 2) {
+                    msgEl.textContent = '❌ 至少2个字符';
+                    msgEl.style.color = 'var(--danger, #e53935)';
+                    return false;
+                }
+                const trimmedName = displayName.trim();
+
+                // 未修改则跳过检查
+                if (trimmedName === (currentUser.user_metadata?.display_name || '')) {
+                    msgEl.textContent = '✓ 当前显示名称';
+                    msgEl.style.color = 'var(--success, #4caf50)';
+                    return true;
+                }
+
+                if (!supabaseClient) {
+                    msgEl.textContent = '❌ 系统未连接';
+                    msgEl.style.color = 'var(--danger, #e53935)';
+                    return false;
+                }
+
+                checkBtn.disabled = true;
+                checkBtn.textContent = '检查中...';
+                try {
+                    const { data, error } = await supabaseClient.rpc('check_display_name_available', {
+                        name_to_check: trimmedName
+                    });
+                    if (error) throw error;
+                    if (data === true) {
+                        msgEl.textContent = '✓ 该名称可用';
+                        msgEl.style.color = 'var(--success, #4caf50)';
+                        return true;
+                    } else {
+                        msgEl.textContent = '❌ 该名称已被占用';
+                        msgEl.style.color = 'var(--danger, #e53935)';
+                        return false;
+                    }
+                } catch (e) {
+                    // RPC 未部署时，回退到查询 user_profiles 表
+                    try {
+                        const { data: existing, error: qErr } = await supabaseClient
+                            .from('user_profiles')
+                            .select('display_name')
+                            .eq('display_name', trimmedName)
+                            .neq('user_id', currentUser.id)
+                            .maybeSingle();
+                        if (qErr) throw qErr;
+                        if (existing) {
+                            msgEl.textContent = '❌ 该名称已被占用';
+                            msgEl.style.color = 'var(--danger, #e53935)';
+                            return false;
+                        }
+                        msgEl.textContent = '✓ 该名称可用';
+                        msgEl.style.color = 'var(--success, #4caf50)';
+                        return true;
+                    } catch (e2) {
+                        msgEl.textContent = '⚠️ 无法验证，稍后重试';
+                        msgEl.style.color = 'var(--text3)';
+                        return false;
+                    }
+                } finally {
+                    checkBtn.disabled = false;
+                    checkBtn.textContent = '检查可用';
+                }
+            }
+
+            // 检查专属ID是否可用
+            async function checkCustomIdAvailable(customId) {
+                const msgEl = document.getElementById('profileCustomIdMsg');
+                const checkBtn = document.getElementById('profileCheckIdBtn');
+
+                if (!customId || customId.length < 3) {
+                    msgEl.textContent = '❌ 至少3个字符';
+                    msgEl.style.color = 'var(--danger, #e53935)';
+                    return false;
+                }
+                if (!/^[a-z0-9_]+$/.test(customId)) {
+                    msgEl.textContent = '❌ 仅限小写字母、数字、下划线';
+                    msgEl.style.color = 'var(--danger, #e53935)';
+                    return false;
+                }
+
+                // 未修改则跳过检查
+                if (customId === (currentUser.user_metadata?.custom_id || '')) {
+                    msgEl.textContent = '✓ 当前专属ID';
+                    msgEl.style.color = 'var(--success, #4caf50)';
+                    return true;
+                }
+
+                if (!supabaseClient) {
+                    msgEl.textContent = '❌ 系统未连接';
+                    msgEl.style.color = 'var(--danger, #e53935)';
+                    return false;
+                }
+
+                checkBtn.disabled = true;
+                checkBtn.textContent = '检查中...';
+                try {
+                    const { data, error } = await supabaseClient.rpc('check_custom_id_available', {
+                        id_to_check: customId
+                    });
+                    if (error) throw error;
+                    if (data === true) {
+                        msgEl.textContent = '✓ 该ID可用';
+                        msgEl.style.color = 'var(--success, #4caf50)';
+                        return true;
+                    } else {
+                        msgEl.textContent = '❌ 该ID已被占用';
+                        msgEl.style.color = 'var(--danger, #e53935)';
+                        return false;
+                    }
+                } catch (e) {
+                    // RPC 未部署时，回退到查询 user_profiles 表
+                    try {
+                        const { data: existing, error: qErr } = await supabaseClient
+                            .from('user_profiles')
+                            .select('custom_id')
+                            .eq('custom_id', customId)
+                            .maybeSingle();
+                        if (qErr) throw qErr;
+                        if (existing) {
+                            msgEl.textContent = '❌ 该ID已被占用';
+                            msgEl.style.color = 'var(--danger, #e53935)';
+                            return false;
+                        }
+                        msgEl.textContent = '✓ 该ID可用';
+                        msgEl.style.color = 'var(--success, #4caf50)';
+                        return true;
+                    } catch (e2) {
+                        msgEl.textContent = '⚠️ 无法验证，稍后重试';
+                        msgEl.style.color = 'var(--text3)';
+                        return false;
+                    }
+                } finally {
+                    checkBtn.disabled = false;
+                    checkBtn.textContent = '检查可用';
+                }
+            }
+
             function handleAvatarFileSelect(file) {
                 const errorEl = document.getElementById('profileErrorMsg');
                 if (file.size > 2 * 1024 * 1024) {
@@ -22163,6 +21077,9 @@
                 const errorEl = document.getElementById('profileErrorMsg');
                 const saveBtn = document.getElementById('profileSaveBtn');
                 const displayName = document.getElementById('profileDisplayName').value.trim();
+                const customIdInput = document.getElementById('profileCustomId');
+                const customId = customIdInput.value.trim().toLowerCase();
+                const customIdMsg = document.getElementById('profileCustomIdMsg');
 
                 if (!displayName) {
                     errorEl.textContent = '❌ 请输入显示名称';
@@ -22171,6 +21088,35 @@
                 if (!supabaseClient) {
                     errorEl.textContent = '❌ 系统未连接';
                     return;
+                }
+
+                // 校验显示名称唯一性
+                if (displayName !== (currentUser.user_metadata?.display_name || '')) {
+                    const nameAvailable = await checkDisplayNameAvailable(displayName);
+                    if (!nameAvailable) {
+                        errorEl.textContent = '❌ 该显示名称已被占用，请更换';
+                        return;
+                    }
+                }
+
+                // 校验专属ID格式
+                if (customId) {
+                    if (customId.length < 3 || customId.length > 16) {
+                        errorEl.textContent = '❌ 专属ID需3-16个字符';
+                        return;
+                    }
+                    if (!/^[a-z0-9_]+$/.test(customId)) {
+                        errorEl.textContent = '❌ 专属ID仅限小写字母、数字、下划线';
+                        return;
+                    }
+                    // 如果修改了ID，需先检查可用性
+                    if (customId !== (currentUser.user_metadata?.custom_id || '')) {
+                        const available = await checkCustomIdAvailable(customId);
+                        if (!available) {
+                            errorEl.textContent = '❌ 专属ID已被占用，请更换';
+                            return;
+                        }
+                    }
                 }
 
                 saveBtn.disabled = true;
@@ -22204,10 +21150,46 @@
                         avatarUrl = urlData.publicUrl;
                     }
 
+                    // 保存资料到 user_profiles 表（同步 display_name 和 custom_id）
+                    const profileData = {
+                        user_id: currentUser.id,
+                        display_name: displayName,
+                        avatar_url: avatarUrl,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    if (customId && customId !== (currentUser.user_metadata?.custom_id || '')) {
+                        // 设置新专属ID
+                        profileData.custom_id = customId;
+                    } else if (!customId && currentUser.user_metadata?.custom_id) {
+                        // 清除专属ID
+                        profileData.custom_id = null;
+                    }
+
+                    const { error: profileError } = await supabaseClient
+                        .from('user_profiles')
+                        .upsert(profileData, { onConflict: 'user_id' });
+
+                    if (profileError) {
+                        if (profileError.code === '23505') {
+                            if (profileError.message && /custom_id/i.test(profileError.message)) {
+                                errorEl.textContent = '❌ 该专属ID已被占用，请更换';
+                            } else {
+                                errorEl.textContent = '❌ 该显示名称已被占用，请更换';
+                            }
+                        } else {
+                            errorEl.textContent = '❌ 资料保存失败：' + profileError.message;
+                        }
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '💾 保存资料';
+                        return;
+                    }
+
                     const { data, error } = await supabaseClient.auth.updateUser({
                         data: {
                             display_name: displayName,
                             avatar_url: avatarUrl,
+                            custom_id: customId || null,
                         }
                     });
 
@@ -22247,6 +21229,7 @@
 
                 const metadata = user.user_metadata || {};
                 const displayName = metadata.display_name || user.email || '用户';
+                const customId = metadata.custom_id || '';
                 const avatarUrl = metadata.avatar_url || null;
 
                 let avatarHTML = '';
@@ -22269,9 +21252,13 @@
 
                 // 更新导航栏下拉菜单
                 if (navUserDropdownInner) {
+                    const customIdHTML = customId
+                        ? `<div class="nav-user-dropdown-customid">@${escapeHTML(customId)}</div>`
+                        : '';
                     navUserDropdownInner.innerHTML = `
                         <div class="nav-user-dropdown-header">
                             <div class="nav-user-dropdown-username">${escapeHTML(displayName)}</div>
+                            ${customIdHTML}
                             <div class="nav-user-dropdown-email">${escapeHTML(user.email || '')}</div>
                         </div>
                         <div class="nav-user-dropdown-item" id="navProfileEditBtn">
@@ -22490,10 +21477,6 @@
                             closeDiaryModal();
                             return;
                         }
-                        if (document.getElementById('guestbookModalOverlay').classList.contains('show')) {
-                            closeGuestbookModal();
-                            return;
-                        }
                         closeTipModal();
                         closeAchievementModal();
                         closeAuthModal();
@@ -22577,6 +21560,43 @@
                     }
                 });
 
+                // 显示名称检查
+                document.getElementById('profileCheckNameBtn').addEventListener('click', function () {
+                    const val = document.getElementById('profileDisplayName').value.trim();
+                    checkDisplayNameAvailable(val);
+                });
+                document.getElementById('profileDisplayName').addEventListener('input', function () {
+                    const msgEl = document.getElementById('profileDisplayNameMsg');
+                    msgEl.textContent = '';
+                    msgEl.style.color = 'var(--text3)';
+                });
+                document.getElementById('profileDisplayName').addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = this.value.trim();
+                        checkDisplayNameAvailable(val);
+                    }
+                });
+
+                // 专属ID检查
+                document.getElementById('profileCheckIdBtn').addEventListener('click', function () {
+                    const val = document.getElementById('profileCustomId').value.trim().toLowerCase();
+                    checkCustomIdAvailable(val);
+                });
+                document.getElementById('profileCustomId').addEventListener('input', function () {
+                    this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    const msgEl = document.getElementById('profileCustomIdMsg');
+                    msgEl.textContent = '';
+                    msgEl.style.color = 'var(--text3)';
+                });
+                document.getElementById('profileCustomId').addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = this.value.trim().toLowerCase();
+                        checkCustomIdAvailable(val);
+                    }
+                });
+
                 document.getElementById('btnToggleAdmin').addEventListener('click', toggleAdminMode);
                 document.getElementById('btnAddGame').addEventListener('click', function () {
                     if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
@@ -22654,8 +21674,6 @@
 
                 // 初始化移动端手势
                 initDiaryMobileGestures();
-
-                initGuestbookEvents();
 
                 document.getElementById('imageViewerClose').addEventListener('click', closeImageViewer);
                 document.getElementById('imageViewerOverlay').addEventListener('click', function (e) {
@@ -22775,7 +21793,8 @@
                                 play_date: local.play_date || null,
                                 play_hours: local.play_hours || 0,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
-                                avatar_url: currentUser.user_metadata?.avatar_url || null
+                                avatar_url: currentUser.user_metadata?.avatar_url || null,
+                                custom_id: currentUser.user_metadata?.custom_id || null
                             });
                         } else if ((local.updated_at || '') > (cloud.updated_at || '')) {
                             toUploadReviews.push({
@@ -22787,7 +21806,8 @@
                                 play_date: local.play_date || null,
                                 play_hours: local.play_hours || 0,
                                 display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
-                                avatar_url: currentUser.user_metadata?.avatar_url || null
+                                avatar_url: currentUser.user_metadata?.avatar_url || null,
+                                custom_id: currentUser.user_metadata?.custom_id || null
                             });
                         }
                     }
