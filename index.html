@@ -14595,7 +14595,10 @@
             // ================================================================
             // 管理员功能
             // ================================================================
+            let _dbAdminConfirmed = null; // null=未查, true=DB确认管理员, false=DB非管理员
+
             function checkIsAdmin() {
+                if (_dbAdminConfirmed === true) return true;
                 return currentUser && currentUser.id === ADMIN_USER_ID;
             }
 
@@ -14611,12 +14614,12 @@
                     const rpcAdmin = !!data;
                     const hardcodeAdmin = currentUser && currentUser.id === ADMIN_USER_ID;
                     const newIsAdmin = rpcAdmin || hardcodeAdmin;
+                    _dbAdminConfirmed = rpcAdmin;
                     if (newIsAdmin !== isAdmin) {
                         isAdmin = newIsAdmin;
                         applyAdminUI();
                     }
                 } catch (e) {
-                    // RPC 未部署或查询失败，保持硬编码结果
                     console.warn('查询管理员状态失败，使用硬编码:', e.message);
                 } finally {
                     _adminStatusRefreshing = false;
@@ -20917,6 +20920,8 @@
 
             function handleLogout() {
                 if (!supabaseClient) return;
+                _dbAdminConfirmed = null;
+                isAdmin = false;
                 supabaseClient.auth.signOut().then(() => {
                     showToast('已登出', 1500);
                 }).catch(() => {
@@ -22420,6 +22425,9 @@
                             // 初始同步由 init() 中的 getSession() 处理，此处不再重复
                         } else {
                             currentUser = null;
+                            _dbAdminConfirmed = null;
+                            isAdmin = false;
+                            isAdminMode = false;
                             updateUIForLoggedOut();
                             document.getElementById('notifBellWrap').style.display = 'none';
                             _unreadCount = 0;
