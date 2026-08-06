@@ -3121,6 +3121,14 @@
             margin-bottom: 2px;
         }
 
+        .detail-title-en {
+            font-size: 0.95rem;
+            color: var(--text3);
+            font-weight: 400;
+            margin-top: -2px;
+            margin-bottom: 8px;
+        }
+
         .detail-tags-row {
             display: flex;
             flex-wrap: wrap;
@@ -8593,6 +8601,11 @@
                 font-size: 1.4rem;
             }
 
+            .detail-title-en {
+                font-size: 0.85rem;
+                margin-bottom: 6px;
+            }
+
             .detail-info-wrapper {
                 gap: 4px;
             }
@@ -8773,6 +8786,11 @@
 
             .detail-title {
                 font-size: 1.2rem;
+            }
+
+            .detail-title-en {
+                font-size: 0.8rem;
+                margin-bottom: 4px;
             }
 
             .detail-cover-wrapper {
@@ -13643,7 +13661,7 @@
                         //   screenshots 保留在列表中：详情弹窗一打开就要立即显示截图，避免等待。
                         //   搜索函数 gameMatchesSearch() 不再匹配 fullDescription（已不在列表数据中）。
                         const { data, error } = await client.from('games')
-                            .select('id, title, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
+                            .select('id, title, englishName, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
                             .not('id', 'in', '(1,2)')
                             .order('id', { ascending: true })
                             .range(offset, offset + PAGE_SIZE - 1);
@@ -13691,6 +13709,7 @@
                         const parsed = filtered.map(row => ({
                             ...row,
                             id: Number(row.id),
+                            englishName: row.englishName || '',
                             genre: row.genre || [],
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
@@ -14018,7 +14037,7 @@
                 if (q === '免费' || q === 'free') {
                     return game.lowestPrice && game.lowestPrice.includes('免费');
                 }
-                const fields = [game.title, game.description,
+                const fields = [game.title, game.englishName, game.description,
                 game.heroineType, game.perspective, game.costumeType, game.lowestPrice,
                 ...(game.genre || []), ...(game.gameplay || []), ...(game.platforms || [])
                 ];
@@ -14740,7 +14759,7 @@
 
             function getDefaultGameData() {
                 return {
-                    id: null, title: '', cover: '', description: '', fullDescription: '',
+                    id: null, title: '', englishName: '', cover: '', description: '', fullDescription: '',
                     genre: [], gameplay: [], perspective: '第三人称', releaseDate: '',
                     hasChinese: '有中文', platforms: ['PC'], heroineType: '固定女主',
                     costumeType: '服设合理', hasMacSupport: '不支持Mac', steamLink: '',
@@ -14785,6 +14804,9 @@
                         <div class="form-row">
                             <div class="form-group" style="flex:2;"><label>游戏名称 *</label><input type="text" id="efTitle" value="${escapeHTML(formData.title || '')}" required></div>
                             <div class="form-group"><label>${formData.isReleased ? '发售日期' : '预计发售日'}</label><input type="date" id="efReleaseDate" value="${escapeHTML(formData.releaseDate || '')}"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2;"><label>英文名</label><input type="text" id="efEnglishName" value="${escapeHTML(formData.englishName || '')}" placeholder="Mages of Mystralia"></div>
                         </div>
                         <div class="checkbox-group" style="margin:8px 0;"><label><input type="checkbox" id="efIsReleased" ${formData.isReleased ? 'checked' : ''}> 已发售游戏</label></div>
                         <div class="form-group"><label>Steam App ID</label><input type="text" id="efSteamAppId" value="${escapeHTML(formData.steamAppId || '')}">
@@ -14991,6 +15013,7 @@
                 const gameData = {
                     id: editingGameId || getNextId(),
                     title,
+                    englishName: getVal('efEnglishName').trim(),
                     cover: getVal('efCover').trim(),
                     description: getVal('efDescription').trim(),
                     fullDescription: getVal('efFullDescription').trim(),
@@ -15672,6 +15695,7 @@
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
                           <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
                           <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                          ${game.englishName ? `<tr><td>🌍 英文名</td><td>${escapeHTML(game.englishName)}</td></tr>` : ''}
                           <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
                           <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
@@ -15686,6 +15710,7 @@
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
                           <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
                           <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
+                          ${game.englishName ? `<tr><td>🌍 英文名</td><td>${escapeHTML(game.englishName)}</td></tr>` : ''}
                           <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
                           <tr><td>🍎 Mac</td><td>${game.hasMacSupport === '支持Mac' ? '✅ 支持' : '❌ 不支持'}</td></tr>
@@ -15830,6 +15855,7 @@
                                 </div>
                                 <div class="detail-info-wrapper">
                                     <h1 class="detail-title">${escapeHTML(game.title)}</h1>
+                                    ${game.englishName ? `<div class="detail-title-en">${escapeHTML(game.englishName)}</div>` : ''}
                                     <div class="detail-tags-row">
                                         ${genres}
                                         ${gameplays}
