@@ -1729,6 +1729,136 @@
             justify-content: center;
         }
 
+        /* ===== 主界面屏蔽提示条（极简浅色风格） ===== */
+        .adult-content-banner {
+            display: none;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 8px auto 0;
+            max-width: 960px;
+            position: relative;
+        }
+        .adult-content-banner.show { display: flex; }
+
+        .adult-content-chip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 12px;
+            border-radius: 14px;
+            background: var(--glass-bg-light);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            font-size: 0.7rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .adult-content-chip:hover,
+        .adult-content-chip.pressing {
+            background: var(--accent-light);
+            border-color: rgba(155, 138, 189, 0.35);
+            color: var(--accent2);
+        }
+        .adult-content-chip .chip-icon {
+            font-size: 0.78rem;
+            line-height: 1;
+        }
+
+        /* 用户排除的其他标签 chip（多个时放在右侧） */
+        .excluded-tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: var(--glass-bg-light);
+            border: 1px dashed var(--border);
+            color: var(--text3);
+            font-size: 0.68rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .excluded-tag-chip:hover {
+            background: var(--danger-light);
+            border-color: rgba(192, 57, 43, 0.25);
+            color: var(--danger);
+            border-style: solid;
+        }
+        .excluded-tag-chip .x-remove {
+            opacity: 0.55;
+            font-weight: 700;
+            line-height: 1;
+            transition: opacity 0.2s;
+        }
+        .excluded-tag-chip:hover .x-remove { opacity: 1; }
+
+        .excluded-tag-more {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 9px;
+            border-radius: 12px;
+            background: var(--glass-bg-light);
+            border: 1px solid var(--border);
+            color: var(--text3);
+            font-size: 0.68rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .excluded-tag-more:hover {
+            background: var(--accent-light);
+            color: var(--accent2);
+            border-color: rgba(155, 138, 189, 0.35);
+        }
+
+        /* 悬停/长按弹出的气泡提示 */
+        .adult-content-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: var(--card-bg-glass, var(--surface));
+            backdrop-filter: blur(10px) saturate(1.3);
+            -webkit-backdrop-filter: blur(10px) saturate(1.3);
+            border: 1px solid var(--border);
+            box-shadow: var(--glass-shadow);
+            color: var(--text);
+            font-size: 0.72rem;
+            line-height: 1.55;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            max-width: 92vw;
+            text-align: center;
+            z-index: 500;
+        }
+        .adult-content-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border);
+        }
+        .adult-content-chip:hover + .adult-content-tooltip,
+        .adult-content-tooltip.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        .adult-content-tooltip b { font-weight: 600; color: var(--accent2); }
+
         .active-filter-chip {
             display: inline-flex;
             align-items: center;
@@ -4744,6 +4874,157 @@
             border-color: var(--danger);
             transform: rotate(90deg);
         }
+
+        /* ===== 屏蔽内容管理弹窗 ===== */
+        #blockModalOverlay {
+            background: var(--overlay);
+            padding: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+            z-index: 99999;
+        }
+        #blockModalOverlay.show {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #blockModalOverlay .modal {
+            max-width: 480px;
+            margin: 0 auto;
+            border-radius: 24px;
+            padding: 28px 24px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: var(--modal-bg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.96) translateY(10px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #blockModalOverlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+        #blockModalOverlay .modal-close {
+            display: flex !important;
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--text2);
+            z-index: 10;
+            background: var(--modal-bg);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        #blockModalOverlay .modal-close:hover {
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+        #blockAdultToggle::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #blockAdultToggle.on { background: var(--accent); }
+        #blockAdultToggle.on::after { transform: translateX(22px); }
+
+        .block-dim-group {
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .block-dim-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--glass-bg-light);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .block-dim-header:hover { background: var(--accent-light); }
+        .block-dim-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .block-dim-badge {
+            font-size: 0.68rem;
+            padding: 1px 8px;
+            border-radius: 8px;
+            background: rgba(192, 57, 43, 0.12);
+            color: var(--danger);
+            font-weight: 600;
+        }
+        .block-dim-arrow {
+            font-size: 0.7rem;
+            color: var(--text3);
+            transition: transform 0.3s ease;
+        }
+        .block-dim-group.open .block-dim-arrow { transform: rotate(180deg); }
+        .block-dim-body {
+            display: none;
+            padding: 10px 12px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .block-dim-group.open .block-dim-body { display: flex; }
+        .block-tag-toggle {
+            padding: 5px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--glass-bg-light);
+            color: var(--tag-text);
+            cursor: pointer;
+            font-size: 0.76rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: inherit;
+        }
+        .block-tag-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .block-tag-toggle.excluded {
+            background: rgba(192, 57, 43, 0.10);
+            color: var(--danger);
+            border-color: rgba(192, 57, 43, 0.25);
+            text-decoration: line-through;
+        }
+        .block-tag-toggle .check-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .block-tag-toggle.excluded .check-dot { background: var(--danger); }
+        #blockTagSearch:focus { border-color: var(--accent); }
+        #blockTagSearch::placeholder { color: var(--text3); }
+
         /* ===== 其他组件 ===== */
         .achievement-tabs {
             display: flex;
@@ -11587,6 +11868,19 @@
 
         <div class="filter-row" id="filterCategoryRow"></div>
         <div class="filter-options-panel" id="filterOptionsPanel"></div>
+        <div class="adult-content-banner" id="adultContentBanner">
+            <!-- 恶俗内容屏蔽 chip -->
+            <span class="adult-content-chip" id="adultContentChip">
+                <span class="chip-icon">🔞</span>
+                <span>恶俗服设已被屏蔽</span>
+            </span>
+            <div class="adult-content-tooltip" id="adultContentTooltip">
+                服设分类为「含恶俗设计」的游戏默认隐藏<br/>
+                前往 <b>用户设置 › 屏蔽内容管理</b> 解锁
+            </div>
+            <!-- 用户排除的其他标签 chips（动态渲染） -->
+            <div id="excludedTagsChipsWrap" style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;"></div>
+        </div>
         <div class="active-filters-bar" id="activeFiltersBar"></div>
     </div>
 
@@ -11983,6 +12277,40 @@
         </div>
     </div>
 
+    <!-- ================================================================
+    ★ 屏蔽内容管理弹窗
+    ================================================================ -->
+    <div class="modal-overlay" id="blockModalOverlay">
+        <div class="modal" id="blockModal" style="max-width:480px;">
+            <button class="modal-close" id="blockModalClose">✕</button>
+            <h2 style="text-align:center; margin-bottom:6px;">🚫 屏蔽内容管理</h2>
+            <p style="text-align:center; font-size:0.78rem; color:var(--text3); margin-bottom:20px;">设置后自动生效于列表、搜索和推荐</p>
+
+            <!-- 恶俗内容开关 -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; background:var(--input-bg); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:20px;">
+                <div style="flex:1;">
+                    <div style="font-size:0.88rem; font-weight:600; color:var(--text); margin-bottom:2px;">🔞 显示含恶俗设计的游戏</div>
+                    <div style="font-size:0.72rem; color:var(--text3);">关闭后自动隐藏服设分类为「含恶俗设计」的游戏</div>
+                </div>
+                <div id="blockAdultToggle" style="position:relative; width:48px; height:26px; border-radius:13px; background:#d0c4d8; cursor:pointer; transition:background 0.3s ease; flex-shrink:0;"></div>
+            </div>
+
+            <!-- 排除标签管理 -->
+            <div style="margin-bottom:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <div>
+                        <span style="font-size:0.88rem; font-weight:700; color:var(--text);">🚫 排除标签</span>
+                        <span id="blockExcludeCount" style="font-size:0.74rem; color:var(--text3);"></span>
+                    </div>
+                    <button type="button" class="btn btn-sm" id="blockClearAll" style="font-size:0.72rem; padding:4px 12px; border-radius:10px; color:var(--danger); opacity:0.4; cursor:not-allowed;" disabled>清空全部</button>
+                </div>
+                <input type="text" id="blockTagSearch" class="form-control" placeholder="搜索标签…" style="width:100%; padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.82rem; margin-bottom:10px; outline:none; transition:border-color 0.2s; font-family:inherit;" />
+                <div id="blockDimContainer"></div>
+            </div>
+
+            <button class="btn btn-accent" id="blockSaveBtn" style="width:100%; padding:10px; margin-top:8px;">💾 保存设置</button>
+        </div>
+    </div>
 
 
     <!-- ================================================================
@@ -12211,6 +12539,10 @@
             let searchQuery = '';
             let wishlistMode = false;
             let excludePlayedMode = false;
+            let showAdultContent = false;
+            let excludedTags = { genre: [], gameplay: [], platforms: [], heroineType: [], costumeType: [], perspective: [] };
+            let blockOpenDims = new Set(['genre']);
+            let blockSearchQuery = '';
             let userData = { wishlist: [], played: [], achievements: [], reviews: [] };
             let searchTimeout = null;
             let cardObserver = null;
@@ -13800,6 +14132,17 @@
                         currentSort = d.currentSort || 'default';
                         if (!['default', 'newest', 'oldest', 'reviewCount'].includes(currentSort)) currentSort = 'default';
                         isAdminMode = d.isAdminMode || false;
+                        // 屏蔽内容设置
+                        showAdultContent = d.contentSettings?.showAdultContent === true;
+                        const savedExcluded = d.contentSettings?.excludedTags || {};
+                        excludedTags = {
+                            genre: Array.isArray(savedExcluded.genre) ? savedExcluded.genre : [],
+                            gameplay: Array.isArray(savedExcluded.gameplay) ? savedExcluded.gameplay : [],
+                            platforms: Array.isArray(savedExcluded.platforms) ? savedExcluded.platforms : [],
+                            heroineType: Array.isArray(savedExcluded.heroineType) ? savedExcluded.heroineType : [],
+                            costumeType: Array.isArray(savedExcluded.costumeType) ? savedExcluded.costumeType : [],
+                            perspective: Array.isArray(savedExcluded.perspective) ? savedExcluded.perspective : []
+                        };
                     } catch (_) { }
                 }
                 applyTheme();
@@ -13809,7 +14152,10 @@
             }
 
             function saveSettings() {
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: currentTheme, currentView, currentSort, isAdminMode }));
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+                    theme: currentTheme, currentView, currentSort, isAdminMode,
+                    contentSettings: { showAdultContent, excludedTags }
+                }));
             }
 
             function resetActiveFilters() {
@@ -14053,6 +14399,16 @@
                     if (searchQuery && !gameMatchesSearch(game, searchQuery)) return false;
                     if (wishlistMode && !isInWishlist(game.id)) return false;
                     if (excludePlayedMode && isPlayed(game.id)) return false;
+                    // 屏蔽内容：恶俗设计
+                    if (!showAdultContent && game.costumeType === '含恶俗设计') return false;
+                    // 屏蔽内容：排除标签（单值字段）
+                    if (excludedTags.heroineType.includes(game.heroineType)) return false;
+                    if (excludedTags.costumeType.includes(game.costumeType)) return false;
+                    if (excludedTags.perspective.includes(game.perspective)) return false;
+                    // 屏蔽内容：排除标签（数组字段）
+                    for (const t of (game.genre || [])) { if (excludedTags.genre.includes(t)) return false; }
+                    for (const t of (game.gameplay || [])) { if (excludedTags.gameplay.includes(t)) return false; }
+                    for (const t of (game.platforms || [])) { if (excludedTags.platforms.includes(t)) return false; }
                     for (const [cat, sel] of Object.entries(activeFilters)) {
                         if (sel.size === 0) continue;
                         const field = map[cat]?.field;
@@ -14164,10 +14520,18 @@
                 const no = document.getElementById('noResults');
                 const countNum = document.getElementById('countNumber');
 
-                // 收集所有有系列的游戏
+                // 收集所有有系列的游戏（应用屏蔽内容过滤）
                 const seriesMap = {};
                 games.forEach(g => {
                     if (g.series && g.series.trim()) {
+                        // 屏蔽内容过滤
+                        if (!showAdultContent && g.costumeType === '含恶俗设计') return;
+                        if (excludedTags.heroineType.includes(g.heroineType)) return;
+                        if (excludedTags.costumeType.includes(g.costumeType)) return;
+                        if (excludedTags.perspective.includes(g.perspective)) return;
+                        if ((g.genre || []).some(t => excludedTags.genre.includes(t))) return;
+                        if ((g.gameplay || []).some(t => excludedTags.gameplay.includes(t))) return;
+                        if ((g.platforms || []).some(t => excludedTags.platforms.includes(t))) return;
                         if (!seriesMap[g.series]) seriesMap[g.series] = [];
                         seriesMap[g.series].push(g);
                     }
@@ -21031,6 +21395,195 @@
                 currentAvatarFile = null;
             }
 
+            // ================================================================
+            // ★ 屏蔽内容管理
+            // ================================================================
+            function openBlockModal() {
+                if (!currentUser) {
+                    showToast('请先登录', 1500);
+                    return;
+                }
+                const overlay = document.getElementById('blockModalOverlay');
+                overlay.classList.add('show');
+                document.body.style.overflow = '';
+
+                // 回填恶俗开关
+                const toggle = document.getElementById('blockAdultToggle');
+                toggle.classList.toggle('on', showAdultContent);
+
+                // 重置搜索
+                blockSearchQuery = '';
+                document.getElementById('blockTagSearch').value = '';
+                blockOpenDims = new Set(['genre']);
+
+                renderBlockSettings();
+            }
+
+            function closeBlockModal() {
+                document.getElementById('blockModalOverlay').classList.remove('show');
+            }
+
+            // 主界面屏蔽提示条显示控制（恶俗屏蔽 + 用户排除标签 chips）
+            function updateAdultContentBanner() {
+                const banner = document.getElementById('adultContentBanner');
+                if (!banner) return;
+
+                // 1. 恶俗内容 chip（独立逻辑：showAdultContent 控制显隐）
+                const adultChip = document.getElementById('adultContentChip');
+                const adultTooltip = document.getElementById('adultContentTooltip');
+                if (adultChip) adultChip.style.display = !showAdultContent ? '' : 'none';
+                if (adultTooltip) adultTooltip.style.display = !showAdultContent ? '' : 'none';
+
+                // 2. 用户排除的其他标签（排除 costumeType.含恶俗设计 避免与上面重复）
+                const wrap = document.getElementById('excludedTagsChipsWrap');
+                let html = '';
+                let chipCount = 0;
+                const catLabelMap = { genre: '题材', gameplay: '玩法', platforms: '平台', heroineType: '主角', costumeType: '服设', perspective: '视角' };
+                const MAX_VISIBLE_CHIPS = 3;
+                let restList = [];
+
+                for (const [cat, tags] of Object.entries(excludedTags)) {
+                    for (const tag of tags) {
+                        // 恶俗设计已由上方 chip 承担，不在此处重复
+                        if (cat === 'costumeType' && tag === '含恶俗设计') continue;
+                        if (chipCount < MAX_VISIBLE_CHIPS) {
+                            html += `<span class="excluded-tag-chip" data-cat="${cat}" data-val="${escapeHTML(tag)}" title="点击取消排除 · ${catLabelMap[cat]}标签">
+                                🚫 ${escapeHTML(tag)}
+                                <span class="x-remove">✕</span>
+                            </span>`;
+                        } else {
+                            restList.push(`[${catLabelMap[cat]}] ${escapeHTML(tag)}`);
+                        }
+                        chipCount++;
+                    }
+                }
+
+                if (chipCount > MAX_VISIBLE_CHIPS) {
+                    html += `<span class="excluded-tag-more" id="excludedTagMore" title="点击查看全部 / 管理">+${chipCount - MAX_VISIBLE_CHIPS}</span>`;
+                }
+
+                if (wrap) wrap.innerHTML = html;
+
+                // 点击 chip → 直接取消该排除
+                if (wrap) {
+                    wrap.querySelectorAll('.excluded-tag-chip').forEach(c => {
+                        c.addEventListener('click', function () {
+                            const cat = this.dataset.cat;
+                            const val = this.dataset.val;
+                            const list = excludedTags[cat];
+                            const idx = list.indexOf(val);
+                            if (idx >= 0) {
+                                list.splice(idx, 1);
+                                saveSettings();
+                                renderGallery();
+                                updateAdultContentBanner();
+                                showToast(`已取消排除「${val}」`, 1200);
+                            }
+                        });
+                    });
+                    const moreBtn = document.getElementById('excludedTagMore');
+                    if (moreBtn) {
+                        moreBtn.addEventListener('click', function () {
+                            if (!currentUser) { showToast('请先登录', 1500); openAuthModal(); return; }
+                            openBlockModal();
+                        });
+                        moreBtn.title = `共排除 ${chipCount} 个标签：\n` + restList.join('\n') + `\n\n点击打开屏蔽内容管理`;
+                    }
+                }
+
+                // 3. 整体 banner 是否展示
+                const hasAny = !showAdultContent || chipCount > 0;
+                if (hasAny) banner.classList.add('show');
+                else banner.classList.remove('show');
+            }
+
+            function renderBlockSettings() {
+                // 统计
+                const count = Object.values(excludedTags).reduce((s, arr) => s + arr.length, 0);
+                document.getElementById('blockExcludeCount').textContent = count > 0 ? `（已排除 ${count} 个）` : '';
+                const clearBtn = document.getElementById('blockClearAll');
+                clearBtn.disabled = count === 0;
+                clearBtn.style.opacity = count === 0 ? '0.4' : '1';
+                clearBtn.style.cursor = count === 0 ? 'not-allowed' : 'pointer';
+
+                // 维度配置（复用已有常量）
+                const dims = {
+                    genre: { label: '题材', icon: '📖', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')) },
+                    gameplay: { label: '玩法', icon: '🎮', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')) },
+                    platforms: { label: '平台', icon: '💻', options: [...PLATFORM_OPTIONS].sort((a, b) => a.localeCompare(b, 'zh')) },
+                    heroineType: { label: '主角分类', icon: '👩', options: [...HEROINE_TYPE_OPTIONS] },
+                    costumeType: { label: '服设分类', icon: '👗', options: [...COSTUME_TYPE_OPTIONS] },
+                    perspective: { label: '视角', icon: '👁️', options: [...PERSPECTIVE_OPTIONS] }
+                };
+
+                const container = document.getElementById('blockDimContainer');
+                let html = '';
+
+                for (const [cat, info] of Object.entries(dims)) {
+                    const excludedInCat = excludedTags[cat].length;
+                    const isOpen = blockOpenDims.has(cat);
+                    const filteredOpts = blockSearchQuery
+                        ? info.options.filter(o => o.toLowerCase().includes(blockSearchQuery.toLowerCase()))
+                        : info.options;
+                    if (blockSearchQuery && filteredOpts.length === 0) continue;
+
+                    html += `<div class="block-dim-group ${isOpen ? 'open' : ''}" data-cat="${cat}">
+                        <div class="block-dim-header">
+                            <div class="block-dim-name">
+                                <span>${info.icon}</span>
+                                <span>${info.label}</span>
+                                ${excludedInCat > 0 ? `<span class="block-dim-badge">${excludedInCat}</span>` : ''}
+                            </div>
+                            <span class="block-dim-arrow">▼</span>
+                        </div>
+                        <div class="block-dim-body">
+                            ${filteredOpts.map(opt => {
+                                const excluded = excludedTags[cat].includes(opt);
+                                return `<span class="block-tag-toggle ${excluded ? 'excluded' : ''}" data-cat="${cat}" data-val="${escapeHTML(opt)}">
+                                    <span class="check-dot"></span>
+                                    ${escapeHTML(opt)}
+                                </span>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                if (blockSearchQuery && html === '') {
+                    html = '<p style="text-align:center; color:var(--text3); font-size:0.82rem; padding:16px 0;">未找到匹配的标签</p>';
+                }
+                container.innerHTML = html;
+
+                // 绑定折叠
+                container.querySelectorAll('.block-dim-header').forEach(h => {
+                    h.addEventListener('click', function () {
+                        const cat = this.closest('.block-dim-group').dataset.cat;
+                        if (blockOpenDims.has(cat)) blockOpenDims.delete(cat);
+                        else blockOpenDims.add(cat);
+                        renderBlockSettings();
+                    });
+                });
+                // 绑定标签切换
+                container.querySelectorAll('.block-tag-toggle').forEach(t => {
+                    t.addEventListener('click', function () {
+                        const cat = this.dataset.cat;
+                        const val = this.dataset.val;
+                        const list = excludedTags[cat];
+                        const idx = list.indexOf(val);
+                        if (idx >= 0) {
+                            list.splice(idx, 1);
+                            showToast(`已取消排除「${val}」`, 1200);
+                        } else {
+                            list.push(val);
+                            showToast(`已排除「${val}」`, 1200);
+                        }
+                        saveSettings();
+                        renderBlockSettings();
+                        renderGallery();
+                        updateAdultContentBanner();
+                    });
+                });
+            }
+
             // 检查显示名称是否可用（防重名）
             async function checkDisplayNameAvailable(displayName) {
                 const msgEl = document.getElementById('profileDisplayNameMsg');
@@ -21392,6 +21945,9 @@
                         <div class="nav-user-dropdown-item" id="navAchievementBtn">
                             <span class="item-icon">🏆</span> 成就
                         </div>
+                        <div class="nav-user-dropdown-item" id="navBlockManageBtn">
+                            <span class="item-icon">🚫</span> 屏蔽内容管理
+                        </div>
                         <div class="nav-user-dropdown-divider"></div>
                         <div class="nav-user-dropdown-item danger" id="navLogoutBtn">
                             <span class="item-icon">🚪</span> 登出
@@ -21416,6 +21972,12 @@
                         openAchievementModal();
                     });
 
+                    document.getElementById('navBlockManageBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('navUserDropdown').classList.remove('show');
+                        openBlockModal();
+                    });
+
                     document.getElementById('navLogoutBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('navUserDropdown').classList.remove('show');
@@ -21433,6 +21995,7 @@
                             <div id="userDropdownMenu">
                                 <button class="dropdown-item" id="profileEditBtn">✏️ 编辑资料</button>
                                 <button class="dropdown-item" id="diaryBtn">📖 游戏日记</button>
+                                <button class="dropdown-item" id="blockManageBtn">🚫 屏蔽内容管理</button>
                                 <hr class="divider" />
                                 <button class="dropdown-item danger" id="logoutBtn">🚪 登出</button>
                             </div>
@@ -21474,6 +22037,13 @@
                         document.getElementById('userDropdownMenu').classList.remove('show');
                         if (arrow) arrow.classList.remove('open');
                         openDiaryModal();
+                    });
+
+                    document.getElementById('blockManageBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        document.getElementById('userDropdownMenu').classList.remove('show');
+                        if (arrow) arrow.classList.remove('open');
+                        openBlockModal();
                     });
 
                     document.getElementById('logoutBtn').addEventListener('click', function (e) {
@@ -21669,6 +22239,79 @@
                 document.getElementById('profileModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeProfileModal();
                 });
+
+                // 屏蔽内容管理弹窗事件（仅X和保存可退出，不响应外部点击）
+                document.getElementById('blockModalClose').addEventListener('click', closeBlockModal);
+                document.getElementById('blockAdultToggle').addEventListener('click', function () {
+                    showAdultContent = !showAdultContent;
+                    this.classList.toggle('on', showAdultContent);
+                    saveSettings();
+                    renderGallery();
+                    updateAdultContentBanner();
+                    showToast(showAdultContent ? '已开启恶俗内容显示' : '已屏蔽恶俗内容', 1200);
+                });
+                document.getElementById('blockTagSearch').addEventListener('input', function () {
+                    blockSearchQuery = this.value.trim();
+                    if (blockSearchQuery) {
+                        const dims = ['genre', 'gameplay', 'platforms', 'heroineType', 'costumeType', 'perspective'];
+                        dims.forEach(c => blockOpenDims.add(c));
+                    }
+                    renderBlockSettings();
+                });
+                document.getElementById('blockClearAll').addEventListener('click', function () {
+                    if (this.disabled) return;
+                    excludedTags = { genre: [], gameplay: [], platforms: [], heroineType: [], costumeType: [], perspective: [] };
+                    saveSettings();
+                    renderBlockSettings();
+                    renderGallery();
+                    updateAdultContentBanner();
+                    showToast('已清空全部排除标签', 1200);
+                });
+                document.getElementById('blockSaveBtn').addEventListener('click', function () {
+                    saveSettings();
+                    closeBlockModal();
+                    renderGallery();
+                    updateAdultContentBanner();
+                    showToast('屏蔽设置已保存', 1200);
+                });
+
+                // 主界面恶俗内容屏蔽提示条（极简chip）
+                const chipEl = document.getElementById('adultContentChip');
+                const tooltipEl = document.getElementById('adultContentTooltip');
+                if (chipEl) {
+                    // 点击打开屏蔽内容管理弹窗
+                    chipEl.addEventListener('click', function () {
+                        if (!currentUser) {
+                            showToast('请先登录 · 登录后可前往 下拉菜单 › 屏蔽内容管理 解锁', 2200);
+                            openAuthModal();
+                            return;
+                        }
+                        openBlockModal();
+                    });
+
+                    // 移动端长按显示 tooltip
+                    let pressTimer = null;
+                    const startPress = function (e) {
+                        if (pressTimer) clearTimeout(pressTimer);
+                        pressTimer = setTimeout(function () {
+                            chipEl.classList.add('pressing');
+                            if (tooltipEl) tooltipEl.classList.add('show');
+                        }, 400);
+                    };
+                    const endPress = function (e) {
+                        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+                        chipEl.classList.remove('pressing');
+                        // 延迟隐藏 tooltip，提升感知
+                        setTimeout(function () { if (tooltipEl) tooltipEl.classList.remove('show'); }, 1200);
+                    };
+                    chipEl.addEventListener('touchstart', startPress, { passive: true });
+                    chipEl.addEventListener('touchend', endPress);
+                    chipEl.addEventListener('touchcancel', endPress);
+                    chipEl.addEventListener('touchmove', endPress);
+                }
+                // 初始显示状态
+                updateAdultContentBanner();
+
                 document.getElementById('avatarInput').addEventListener('change', function (e) {
                     if (this.files && this.files.length > 0) {
                         handleAvatarFileSelect(this.files[0]);
