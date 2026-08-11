@@ -9353,6 +9353,151 @@
             color: var(--text);
         }
 
+        /* ===== 公告弹窗浮层 ===== */
+        .announcement-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeInOverlay 0.3s ease;
+        }
+
+        .announcement-modal-overlay.show {
+            display: flex;
+        }
+
+        .announcement-modal-card {
+            background: var(--bg);
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            animation: slideUpCard 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 28px 28px 24px;
+            position: relative;
+        }
+
+        .announcement-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .announcement-modal-icon {
+            font-size: 1.8rem;
+        }
+
+        .announcement-modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .announcement-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+
+        .announcement-modal-close:hover {
+            color: var(--text);
+            transform: rotate(90deg);
+        }
+
+        .announcement-modal-body {
+            font-size: 0.9rem;
+            color: var(--text2);
+            line-height: 1.75;
+            margin-bottom: 20px;
+        }
+
+        .announcement-modal-body p {
+            margin-bottom: 10px;
+        }
+
+        .announcement-modal-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .announcement-modal-body strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .announcement-modal-body ul {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .announcement-modal-body li {
+            margin-bottom: 4px;
+        }
+
+        .announcement-modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .announcement-modal-btn {
+            padding: 9px 24px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .announcement-modal-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .announcement-modal-btn.primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .announcement-modal-btn.primary:hover {
+            background: var(--accent2);
+            border-color: var(--accent2);
+        }
+
+        @media (max-width: 480px) {
+            .announcement-modal-card {
+                padding: 24px 20px 20px;
+            }
+            .announcement-modal-title {
+                font-size: 1.05rem;
+            }
+            .announcement-modal-body {
+                font-size: 0.85rem;
+            }
+        }
+
         /* ===== 快捷键提示 ===== */
         .shortcut-hint {
             position: fixed;
@@ -12432,6 +12577,21 @@
             <div class="guide-btn-row">
                 <button class="guide-btn" id="guidePrev" style="display:none;">上一步</button>
                 <button class="guide-btn primary" id="guideNext">下一步</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 公告弹窗浮层（仅展示标题，点击前往公告页查看详情） ===== -->
+    <div class="announcement-modal-overlay" id="announcementModalOverlay">
+        <div class="announcement-modal-card">
+            <button class="announcement-modal-close" id="announcementModalClose">✕</button>
+            <div class="announcement-modal-header">
+                <span class="announcement-modal-icon" id="announcementModalIcon">📢</span>
+                <div class="announcement-modal-title" id="announcementModalTitle">更新公告</div>
+            </div>
+            <div class="announcement-modal-footer">
+                <button class="announcement-modal-btn" id="announcementModalConfirm">我知道了</button>
+                <button class="announcement-modal-btn primary" id="announcementModalGo">前往查看</button>
             </div>
         </div>
     </div>
@@ -16062,7 +16222,6 @@
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
                           <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
                           <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                          ${game.englishName ? `<tr><td>🌍 英文名</td><td>${escapeHTML(game.englishName)}</td></tr>` : ''}
                           <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
                           <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
@@ -16077,7 +16236,6 @@
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
                           <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
                           <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                          ${game.englishName ? `<tr><td>🌍 英文名</td><td>${escapeHTML(game.englishName)}</td></tr>` : ''}
                           <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
                           <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
                           <tr><td>🍎 Mac</td><td>${game.hasMacSupport === '支持Mac' ? '✅ 支持' : '❌ 不支持'}</td></tr>
@@ -22656,6 +22814,101 @@
             let guideStep = 1;
             const guideTotalSteps = 7;
 
+            // ================================================================
+            // ★★★ 公告弹窗（对接现有 site_announcements 表，仅展示标题） ★★★
+            // ================================================================
+            const ANNOUNCEMENT_SEEN_KEY = 'heroineAnnouncementSeenId';
+            let currentAnnouncement = null;
+
+            // 拉取最近公告，找出用户未读的最新一条（按发布时间排序，非置顶优先）
+            async function fetchLatestUnreadAnnouncement() {
+                if (!supabaseClient) return null;
+                try {
+                    const seenId = localStorage.getItem(ANNOUNCEMENT_SEEN_KEY);
+                    const { data, error } = await supabaseClient
+                        .from('site_announcements')
+                        .select('id, title, pinned, created_at')
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+                    if (error) throw error;
+                    if (!data || data.length === 0) return null;
+                    // 从最新往回找第一条未读的
+                    const unread = data.filter(a => String(a.id) !== seenId);
+                    return unread.length > 0 ? unread[0] : null;
+                } catch (e) {
+                    console.warn('⚠️ 公告拉取失败', e.message || e);
+                    return null;
+                }
+            }
+
+            // 从标题中提取第一个 emoji 作为图标
+            function extractIcon(title) {
+                if (!title) return '📢';
+                const emojiMatch = title.match(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}]/u);
+                return emojiMatch ? emojiMatch[0] : '📢';
+            }
+
+            function populateAnnouncementModal(announcement) {
+                const iconEl = document.getElementById('announcementModalIcon');
+                const titleEl = document.getElementById('announcementModalTitle');
+                if (!announcement) return;
+                const icon = extractIcon(announcement.title);
+                const cleanTitle = (announcement.title || '更新公告').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}]/u, '').trim();
+                if (iconEl) iconEl.textContent = icon;
+                if (titleEl) titleEl.textContent = cleanTitle || '更新公告';
+            }
+
+            function showAnnouncementModal() {
+                const overlay = document.getElementById('announcementModalOverlay');
+                if (!overlay) return;
+                overlay.classList.add('show');
+            }
+
+            function closeAnnouncementModal() {
+                const overlay = document.getElementById('announcementModalOverlay');
+                if (!overlay) return;
+                overlay.classList.remove('show');
+                if (currentAnnouncement && currentAnnouncement.id) {
+                    localStorage.setItem(ANNOUNCEMENT_SEEN_KEY, String(currentAnnouncement.id));
+                }
+            }
+
+            function goToAnnouncementsPage() {
+                closeAnnouncementModal();
+                if (typeof switchMainView === 'function') {
+                    switchMainView('announcements');
+                }
+            }
+
+            async function loadAndShowAnnouncement() {
+                currentAnnouncement = await fetchLatestUnreadAnnouncement();
+                if (!currentAnnouncement) return false;
+                populateAnnouncementModal(currentAnnouncement);
+                return true;
+            }
+
+            function tryShowAnnouncementAfterGuide() {
+                loadAndShowAnnouncement().then(shouldShow => {
+                    if (shouldShow) {
+                        setTimeout(showAnnouncementModal, 400);
+                    }
+                });
+            }
+
+            function initAnnouncementModalEvents() {
+                const closeBtn = document.getElementById('announcementModalClose');
+                const confirmBtn = document.getElementById('announcementModalConfirm');
+                const goBtn = document.getElementById('announcementModalGo');
+                const overlay = document.getElementById('announcementModalOverlay');
+
+                if (closeBtn) closeBtn.addEventListener('click', closeAnnouncementModal);
+                if (confirmBtn) confirmBtn.addEventListener('click', closeAnnouncementModal);
+                if (goBtn) goBtn.addEventListener('click', goToAnnouncementsPage);
+                if (overlay) overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) closeAnnouncementModal();
+                });
+            }
+
             function showGuide() {
                 const overlay = document.getElementById('guideOverlay');
                 if (!overlay) return;
@@ -22668,6 +22921,8 @@
                 const overlay = document.getElementById('guideOverlay');
                 if (overlay) overlay.classList.remove('show');
                 localStorage.setItem(GUIDE_KEY, 'true');
+                // 引导关闭后，尝试显示公告弹窗
+                tryShowAnnouncementAfterGuide();
             }
 
             function updateGuideStep() {
@@ -23034,6 +23289,7 @@
                 initBackToTop();
                 initAnnouncementBar();
                 initGuideEvents();
+                initAnnouncementModalEvents();
                 initKeyboardShortcuts();
                 initSystemThemeListener();
                 initConfetti();
@@ -23117,9 +23373,17 @@
                     }
                 }
 
-                // 首次访问引导
-                if (localStorage.getItem(GUIDE_KEY) !== 'true') {
+                // 首次访问引导 + 公告弹窗
+                const isFirstVisit = localStorage.getItem(GUIDE_KEY) !== 'true';
+                if (isFirstVisit) {
                     setTimeout(showGuide, 800);
+                } else {
+                    // 非首次访问：异步拉取公告并判断是否显示
+                    loadAndShowAnnouncement().then(shouldShow => {
+                        if (shouldShow) {
+                            setTimeout(showAnnouncementModal, 800);
+                        }
+                    });
                 }
 
                 console.log('✅ Her Lens 已启动（性能优化 + 引导 + 快捷键）');
