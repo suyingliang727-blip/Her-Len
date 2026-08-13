@@ -130,6 +130,20 @@
             --accent-light: rgba(155, 138, 189, 0.12);
             --radius: 16px;
             --radius-sm: 10px;
+
+            /* === 头衔稀有度色系（低饱和度，不抢眼） === */
+            --tier-bronze: #a8896b;
+            --tier-bronze-light: #c4a988;
+            --tier-bronze-bg: linear-gradient(135deg, #a08068, #c0a488);
+            --tier-silver: #9098a2;
+            --tier-silver-light: #b8bfc8;
+            --tier-silver-bg: linear-gradient(135deg, #828a96, #aab2bc);
+            --tier-gold: #c4a05a;
+            --tier-gold-light: #dcc088;
+            --tier-gold-bg: linear-gradient(135deg, #b89648, #d4b870);
+            --tier-diamond: #8a82a8;
+            --tier-diamond-light: #7eb0ac;
+            --tier-diamond-bg: linear-gradient(135deg, #8a82a8, #7ea8a4);
         }
 
         @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -5323,11 +5337,21 @@
             cursor: default;
         }
 
-        /* 社区评论中的表态+标签 */
+        /* 社区评论中的表态+标签 行 */
+        .comment-verdict-tags-row {
+            margin: 2px 0 6px 0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .comment-verdict-tags-row .tags-display {
+            margin-top: 0; /* 取消标签自身的 margin-top，避免与表态标签上下错位 */
+        }
         .comment-verdict {
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 8px;
+            font-weight: 700;
+            font-size: 0.98rem;
+            margin-right: 4px;
             white-space: nowrap;
         }
 
@@ -5364,8 +5388,8 @@
         }
 
         .comment-item .comment-name {
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-weight: 700;
+            font-size: 1rem;
             color: var(--text);
         }
 
@@ -5391,8 +5415,8 @@
         .comment-item .comment-time {
             font-size: 0.7rem;
             color: var(--text3);
-            margin-left: auto;
             white-space: nowrap;
+            margin-right: 6px;
         }
 
         .comment-item .comment-text {
@@ -5772,7 +5796,7 @@
                 inset -2px 0 10px rgba(155, 138, 189, 0.06),
                 0 8px 32px rgba(60, 30, 80, 0.15),
                 0 0 0 1px rgba(255, 255, 255, 0.3);
-            z-index: 1100;
+            z-index: 999999;
             font-size: 1.1rem;
             font-weight: 600;
             max-width: 90vw;
@@ -5860,6 +5884,205 @@
                 0 0 30px var(--gold-glow);
             font-size: 1.15rem;
         }
+
+        /* ========== 头衔徽章样式 ========== */
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
+            position: relative;
+            line-height: 1.4;
+            font-family: inherit;
+        }
+        .title-badge .badge-icon {
+            font-size: 0.76rem;
+            line-height: 1;
+        }
+        .title-badge.bronze {
+            background: var(--tier-bronze-bg);
+            color: #fff;
+            box-shadow: 0 1px 2px rgba(160, 128, 104, 0.15);
+        }
+        .title-badge.silver {
+            background: var(--tier-silver-bg);
+            color: #fff;
+            box-shadow: 0 1px 2px rgba(130, 138, 150, 0.15);
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+        .title-badge.gold {
+            background: var(--tier-gold-bg);
+            color: #4a3818;
+            box-shadow: 0 1px 3px rgba(184, 150, 72, 0.12);
+            border: 1px solid rgba(220, 192, 136, 0.25);
+        }
+        .title-badge.diamond {
+            background: var(--tier-diamond-bg);
+            color: #fff;
+            box-shadow: 0 1px 4px rgba(138, 130, 168, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: diamondShimmer 3s ease-in-out infinite;
+        }
+        @keyframes diamondShimmer {
+            0%, 100% { box-shadow: 0 1px 4px rgba(138, 130, 168, 0.15); }
+            50% { box-shadow: 0 1px 6px rgba(138, 130, 168, 0.22); }
+        }
+
+        /* 评论区头衔徽章容器：紧跟在 custom_id 后面，支持多个徽章并排 */
+        .comment-header-titles {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .comment-header-titles .title-badge {
+            margin-left: 0;
+            font-size: 0.86rem;
+            padding: 3px 10px;
+        }
+
+        /* 头衔展示柜 */
+        .title-cabinet-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            width: 100%;
+        }
+        .title-cabinet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .title-cabinet-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .title-cabinet-progress {
+            font-size: 0.72rem;
+            color: var(--accent2);
+            font-weight: 600;
+        }
+        .title-category-label {
+            font-size: 0.74rem;
+            color: var(--accent2);
+            font-weight: 600;
+            margin: 12px 0 6px;
+        }
+        .title-cabinet {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 8px;
+        }
+        .cabinet-slot {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 8px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .cabinet-slot.unlocked { border-color: var(--accent); }
+        .cabinet-slot.locked { opacity: 0.45; filter: grayscale(0.6); cursor: not-allowed; }
+        .cabinet-slot.equipped {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+        .cabinet-slot:not(.locked):hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .cabinet-slot .equip-tag {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--gold);
+            color: #fff;
+            font-size: 0.58rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .cabinet-slot .slot-icon { font-size: 1.2rem; margin-bottom: 3px; line-height: 1; }
+        .cabinet-slot .slot-name {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+        .cabinet-slot .slot-cond { font-size: 0.6rem; color: var(--text3); line-height: 1.2; }
+
+        /* 个人资料顶部的头衔显示 */
+        .profile-header-titles {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .profile-equipped-label {
+            font-size: 0.7rem;
+            color: var(--text3);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        /* 用户下拉菜单中的头衔 */
+        .nav-user-menu-header-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .nav-user-menu-header-row .title-badge {
+            font-size: 0.62rem;
+            padding: 1px 6px;
+        }
+        .nav-user-menu-header-row .title-badge .badge-icon {
+            font-size: 0.66rem;
+        }
+
+        /* 游戏日记封面的头衔显示 */
+        .diary-cover-titles {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        /* 成就解锁 Toast（头衔版） */
+        .toast-notification.title-toast {
+            border-color: rgba(155, 138, 189, 0.5);
+            background-color: rgba(250, 247, 253, 0.92);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.04) 3px,
+                    rgba(155, 138, 189, 0.04) 4px
+                );
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(100, 80, 130, 0.05),
+                inset 2px 0 10px rgba(155, 138, 189, 0.08),
+                inset -2px 0 10px rgba(155, 138, 189, 0.08),
+                0 8px 32px rgba(80, 50, 100, 0.2),
+                0 0 30px var(--glow-color);
+        }
+        .toast-title-icon { font-size: 1.6rem; margin-bottom: 6px; display: block; }
+        .toast-title-badge { margin: 6px 0; }
+        .toast-title-subtitle { font-size: 0.78rem; color: var(--text3); margin-top: 4px; font-weight: 500; }
 
         .scroll-progress {
             position: fixed;
@@ -12291,10 +12514,14 @@
             <button class="modal-close" id="achievementModalClose">✕</button>
             <div class="achievement-tabs" id="achievementTabs">
                 <button class="achievement-tab-btn active" data-tab="achievements">🏆 我的成就</button>
+                <button class="achievement-tab-btn" data-tab="titles">🎖️ 头衔系统</button>
                 <button class="achievement-tab-btn" data-tab="played">📖 玩过记录</button>
             </div>
             <div class="achievement-tab-content active" id="tabAchievements">
                 <div id="achievementContent"></div>
+            </div>
+            <div class="achievement-tab-content" id="tabTitles">
+                <div id="titlesContent"></div>
             </div>
             <div class="achievement-tab-content" id="tabPlayed">
                 <div id="playedContent"></div>
@@ -12645,6 +12872,91 @@
                 { id: 'twenty_played', name: '💎 电子游戏活化石', desc: '标记 100 款游戏为玩过', threshold: 100, icon: '💎' },
             ];
 
+            // ========== 头衔系统定义（60+） ==========
+            // 分类：1-评论量型(12)  2-表态行为型(12)  3-社交互动型(12)  4-偏好型(12)
+            const TITLES = [
+                // ========== 一、评论数量头衔（6）1 / 10 / 50 / 100 / 500 / 1000 ==========
+                { id: 'comment_1',    category: '评论数量', name: '初啼',     tier: 'bronze',  icon: '🌱', cond: { type: 'totalReviews', value: 1 },    desc: '发表第 1 条评论' },
+                { id: 'comment_10',   category: '评论数量', name: '碎语',     tier: 'bronze',  icon: '💬', cond: { type: 'totalReviews', value: 10 },   desc: '累计 10 条评论' },
+                { id: 'comment_50',   category: '评论数量', name: '笔底生花', tier: 'silver',  icon: '📝', cond: { type: 'totalReviews', value: 50 },   desc: '累计 50 条评论' },
+                { id: 'comment_100',  category: '评论数量', name: '评席常驻', tier: 'silver',  icon: '📜', cond: { type: 'totalReviews', value: 100 },  desc: '累计 100 条评论' },
+                { id: 'comment_500',  category: '评论数量', name: '评述等身', tier: 'gold',    icon: '📚', cond: { type: 'totalReviews', value: 500 },  desc: '累计 500 条评论' },
+                { id: 'comment_1000', category: '评论数量', name: '千言共鸣', tier: 'diamond', icon: '👑', cond: { type: 'totalReviews', value: 1000 }, desc: '累计 1000 条评论' },
+
+                // ========== 二、表态专属头衔（5 路线 × 5 = 25）==========
+                // 避雷路线 verdict=1：3/10/30/100/300
+                { id: 'avoid_3',   category: '表态专属', name: '试毒勇者', tier: 'bronze',  icon: '🛡️', cond: { type: 'verdictCount', verdict: 1, value: 3 },   desc: '3 次强烈避雷' },
+                { id: 'avoid_10',  category: '表态专属', name: '破雷先锋', tier: 'bronze',  icon: '⚡', cond: { type: 'verdictCount', verdict: 1, value: 10 },  desc: '10 次强烈避雷' },
+                { id: 'avoid_30',  category: '表态专属', name: '辟险明灯', tier: 'silver',  icon: '⚔️', cond: { type: 'verdictCount', verdict: 1, value: 30 },  desc: '30 次强烈避雷' },
+                { id: 'avoid_100', category: '表态专属', name: '镇雷统帅', tier: 'gold',    icon: '🗡️', cond: { type: 'verdictCount', verdict: 1, value: 100 }, desc: '100 次强烈避雷' },
+                { id: 'avoid_300', category: '表态专属', name: '风暴守望', tier: 'diamond', icon: '🌩️', cond: { type: 'verdictCount', verdict: 1, value: 300 }, desc: '300 次强烈避雷' },
+                // 推荐路线 verdict=5：3/10/30/100/300
+                { id: 'rec_3',   category: '表态专属', name: '拾光者',   tier: 'bronze',  icon: '🌱', cond: { type: 'verdictCount', verdict: 5, value: 3 },   desc: '3 次大力推荐' },
+                { id: 'rec_10',  category: '表态专属', name: '寻珠人',   tier: 'bronze',  icon: '📣', cond: { type: 'verdictCount', verdict: 5, value: 10 },  desc: '10 次大力推荐' },
+                { id: 'rec_30',  category: '表态专属', name: '甄光师',   tier: 'silver',  icon: '🎯', cond: { type: 'verdictCount', verdict: 5, value: 30 },  desc: '30 次大力推荐' },
+                { id: 'rec_100', category: '表态专属', name: '荟珍师',   tier: 'gold',    icon: '💎', cond: { type: 'verdictCount', verdict: 5, value: 100 }, desc: '100 次大力推荐' },
+                { id: 'rec_300', category: '表态专属', name: '星河领航', tier: 'diamond', icon: '👑', cond: { type: 'verdictCount', verdict: 5, value: 300 }, desc: '300 次大力推荐' },
+                // 亮点路线 verdict=4：3/10/30/100/300
+                { id: 'hl_3',   category: '表态专属', name: '微光拾者', tier: 'bronze',  icon: '✨', cond: { type: 'verdictCount', verdict: 4, value: 3 },   desc: '3 次颇具亮点' },
+                { id: 'hl_10',  category: '表态专属', name: '慧眼识光', tier: 'bronze',  icon: '🔍', cond: { type: 'verdictCount', verdict: 4, value: 10 },  desc: '10 次颇具亮点' },
+                { id: 'hl_30',  category: '表态专属', name: '亮点鉴赏', tier: 'silver',  icon: '🌟', cond: { type: 'verdictCount', verdict: 4, value: 30 },  desc: '30 次颇具亮点' },
+                { id: 'hl_100', category: '表态专属', name: '珠玑捕手', tier: 'gold',    icon: '💫', cond: { type: 'verdictCount', verdict: 4, value: 100 }, desc: '100 次颇具亮点' },
+                { id: 'hl_300', category: '表态专属', name: '星辉发掘', tier: 'diamond', icon: '👑', cond: { type: 'verdictCount', verdict: 4, value: 300 }, desc: '300 次颇具亮点' },
+                // 中庸路线 verdict=3：3/10/30/100/300
+                { id: 'mid_3',   category: '表态专属', name: '初探均衡', tier: 'bronze',  icon: '⚖️', cond: { type: 'verdictCount', verdict: 3, value: 3 },   desc: '3 次中规中矩' },
+                { id: 'mid_10',  category: '表态专属', name: '公允之声', tier: 'bronze',  icon: '📏', cond: { type: 'verdictCount', verdict: 3, value: 10 },  desc: '10 次中规中矩' },
+                { id: 'mid_30',  category: '表态专属', name: '客观丈量', tier: 'silver',  icon: '🎯', cond: { type: 'verdictCount', verdict: 3, value: 30 },  desc: '30 次中规中矩' },
+                { id: 'mid_100', category: '表态专属', name: '中道行者', tier: 'gold',    icon: '⚖️', cond: { type: 'verdictCount', verdict: 3, value: 100 }, desc: '100 次中规中矩' },
+                { id: 'mid_300', category: '表态专属', name: '平衡之秤', tier: 'diamond', icon: '👑', cond: { type: 'verdictCount', verdict: 3, value: 300 }, desc: '300 次中规中矩' },
+                // 谨慎路线 verdict=2：3/10/30/100/300
+                { id: 'caut_3',   category: '表态专属', name: '试探前行', tier: 'bronze',  icon: '🧭', cond: { type: 'verdictCount', verdict: 2, value: 3 },   desc: '3 次谨慎选择' },
+                { id: 'caut_10',  category: '表态专属', name: '理智天平', tier: 'bronze',  icon: '🔍', cond: { type: 'verdictCount', verdict: 2, value: 10 },  desc: '10 次谨慎选择' },
+                { id: 'caut_30',  category: '表态专属', name: '审慎参谋', tier: 'silver',  icon: '📊', cond: { type: 'verdictCount', verdict: 2, value: 30 },  desc: '30 次谨慎选择' },
+                { id: 'caut_100', category: '表态专属', name: '慎思明辨', tier: 'gold',    icon: '🧠', cond: { type: 'verdictCount', verdict: 2, value: 100 }, desc: '100 次谨慎选择' },
+                { id: 'caut_300', category: '表态专属', name: '洞察之眼', tier: 'diamond', icon: '👁️', cond: { type: 'verdictCount', verdict: 2, value: 300 }, desc: '300 次谨慎选择' },
+
+                // ========== 三、社交互动头衔（6）==========
+                { id: 'soc_reply_10',    category: '社交互动', name: '回音使者', tier: 'bronze',  icon: '💬', cond: { type: 'repliesSent', value: 10 },   desc: '发送 10 条回复' },
+                { id: 'soc_replied_10',  category: '社交互动', name: '话题播种', tier: 'silver',  icon: '💌', cond: { type: 'repliesReceived', value: 10 }, desc: '评论被回复 10 次' },
+                { id: 'soc_reply_50',    category: '社交互动', name: '互动桥梁', tier: 'silver',  icon: '🤝', cond: { type: 'repliesSent', value: 50 },   desc: '发送 50 条回复' },
+                { id: 'soc_replied_30',  category: '社交互动', name: '焦点中心', tier: 'gold',    icon: '🌟', cond: { type: 'repliesReceived', value: 30 }, desc: '评论被回复 30 次' },
+                { id: 'soc_like_100',    category: '社交互动', name: '共鸣磁场', tier: 'gold',    icon: '🔥', cond: { type: 'totalLikesReceived', value: 100 }, desc: '累计获赞 100 个' },
+                { id: 'soc_reply_200',   category: '社交互动', name: '社区之心', tier: 'diamond', icon: '🫂', cond: { type: 'repliesSent', value: 200 },  desc: '发送 200 条回复' },
+
+                // ========== 四、游戏类型头衔（6 类 × 3 = 18）==========
+                // 百合题材
+                { id: 'type_yuri_5',    category: '游戏类型', name: '初识百合', tier: 'bronze', icon: '🌸', cond: { type: 'genreReviews', genre: '百合', value: 5 },   desc: '5 条百合题材评论' },
+                { id: 'type_yuri_20',   category: '游戏类型', name: '百合园丁', tier: 'silver', icon: '💕', cond: { type: 'genreReviews', genre: '百合', value: 20 },  desc: '20 条百合题材评论' },
+                { id: 'type_yuri_50',   category: '游戏类型', name: '百合知音', tier: 'gold',   icon: '🐡', cond: { type: 'genreReviews', genre: '百合', value: 50 },  desc: '50 条百合题材评论' },
+                // 动作玩法
+                { id: 'type_action_5',  category: '游戏类型', name: '初执利刃', tier: 'bronze', icon: '⚔️', cond: { type: 'gameplayReviews', gameplay: '动作', value: 5 },   desc: '5 条动作玩法评论' },
+                { id: 'type_action_20', category: '游戏类型', name: '动作好手', tier: 'silver', icon: '🔥', cond: { type: 'gameplayReviews', gameplay: '动作', value: 20 },  desc: '20 条动作玩法评论' },
+                { id: 'type_action_50', category: '游戏类型', name: '武技宗师', tier: 'gold',   icon: '💪', cond: { type: 'gameplayReviews', gameplay: '动作', value: 50 },  desc: '50 条动作玩法评论' },
+                // 角色扮演玩法
+                { id: 'type_rpg_5',     category: '游戏类型', name: '初入角色', tier: 'bronze', icon: '🎭', cond: { type: 'gameplayReviews', gameplay: '角色扮演', value: 5 },  desc: '5 条角色扮演评论' },
+                { id: 'type_rpg_20',    category: '游戏类型', name: '幻境旅人', tier: 'silver', icon: '📖', cond: { type: 'gameplayReviews', gameplay: '角色扮演', value: 20 }, desc: '20 条角色扮演评论' },
+                { id: 'type_rpg_50',    category: '游戏类型', name: '幻境编织', tier: 'gold',   icon: '🧙', cond: { type: 'gameplayReviews', gameplay: '角色扮演', value: 50 }, desc: '50 条角色扮演评论' },
+                // 心理恐怖题材
+                { id: 'type_horror_5',  category: '游戏类型', name: '勇闯心渊', tier: 'bronze', icon: '🧠', cond: { type: 'genreReviews', genre: '心理恐怖', value: 5 },   desc: '5 条心理恐怖评论' },
+                { id: 'type_horror_20', category: '游戏类型', name: '深渊漫步', tier: 'silver', icon: '👁️', cond: { type: 'genreReviews', genre: '心理恐怖', value: 20 },  desc: '20 条心理恐怖评论' },
+                { id: 'type_horror_50', category: '游戏类型', name: '深渊凝视', tier: 'gold',   icon: '🖤', cond: { type: 'genreReviews', genre: '心理恐怖', value: 50 },  desc: '50 条心理恐怖评论' },
+                // 选择取向玩法
+                { id: 'type_choice_5',  category: '游戏类型', name: '初临岔路', tier: 'bronze', icon: '🔀', cond: { type: 'gameplayReviews', gameplay: '选择取向', value: 5 },  desc: '5 条选择取向评论' },
+                { id: 'type_choice_20', category: '游戏类型', name: '命运探索', tier: 'silver', icon: '🛤️', cond: { type: 'gameplayReviews', gameplay: '选择取向', value: 20 }, desc: '20 条选择取向评论' },
+                { id: 'type_choice_50', category: '游戏类型', name: '命运编织', tier: 'gold',   icon: '🎲', cond: { type: 'gameplayReviews', gameplay: '选择取向', value: 50 }, desc: '50 条选择取向评论' },
+                // 视觉小说玩法
+                { id: 'type_vn_5',      category: '游戏类型', name: '初翻书页', tier: 'bronze', icon: '📖', cond: { type: 'gameplayReviews', gameplay: '视觉小说', value: 5 },  desc: '5 条视觉小说评论' },
+                { id: 'type_vn_20',     category: '游戏类型', name: '文本漫步', tier: 'silver', icon: '📚', cond: { type: 'gameplayReviews', gameplay: '视觉小说', value: 20 }, desc: '20 条视觉小说评论' },
+                { id: 'type_vn_50',     category: '游戏类型', name: '叙事收藏', tier: 'gold',   icon: '✍️', cond: { type: 'gameplayReviews', gameplay: '视觉小说', value: 50 }, desc: '50 条视觉小说评论' },
+
+                // ========== 五、特殊成就头衔（5）==========
+                { id: 'sp_long_comment',   category: '特殊成就', name: '字斟句酌', tier: 'bronze', icon: '🗨️', cond: { type: 'maxCommentLength', value: 200 }, desc: '单条评论达 200 字上限' },
+                { id: 'sp_all_verdicts',   category: '特殊成就', name: '五味品鉴', tier: 'silver', icon: '🌈', cond: { type: 'allVerdictsUsed' },              desc: '使用过全部 5 种表态' },
+                { id: 'sp_single_like_10', category: '特殊成就', name: '人心所向', tier: 'silver', icon: '❤️', cond: { type: 'singleReviewMaxLikes', value: 10 }, desc: '单条评论获 10 赞' },
+                { id: 'sp_tags_50',        category: '特殊成就', name: '标签收藏家', tier: 'silver', icon: '🏷️', cond: { type: 'totalTagsUsed', value: 50 },       desc: '累计使用 50 个评价标签' },
+                { id: 'sp_single_like_50', category: '特殊成就', name: '众星捧月', tier: 'gold',   icon: '🔥', cond: { type: 'singleReviewMaxLikes', value: 50 }, desc: '单条评论获 50 赞' },
+            ];
+
             let customGenres = [];
             let customGameplays = [];
             let supabaseClient = null;
@@ -12703,7 +13015,7 @@
             let excludedTags = { genre: [], gameplay: [], platforms: [], heroineType: [], costumeType: [], perspective: [] };
             let blockOpenDims = new Set(['genre']);
             let blockSearchQuery = '';
-            let userData = { wishlist: [], played: [], achievements: [], reviews: [] };
+            let userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null };
             let searchTimeout = null;
             let cardObserver = null;
             let card3DListeners = [];
@@ -12796,6 +13108,234 @@
             function escapeHTML(s) {
                 if (!s) return '';
                 return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/`/g, '&#96;');
+            }
+
+            // ========== 头衔系统工具函数 ==========
+            function renderTitleBadge(title, opts) {
+                opts = opts || {};
+                if (!title) return '';
+                const sizeClass = opts.small ? ' style="font-size:0.62rem;padding:1px 6px;"' : '';
+                const iconSize = opts.small ? ' style="font-size:0.66rem;"' : '';
+                return `<span class="title-badge ${escapeHTML(title.tier)}" title="${escapeHTML(title.desc || title.name)}"${sizeClass}>` +
+                    `<span class="badge-icon"${iconSize}>${escapeHTML(title.icon || '🎖️')}</span>` +
+                    `<span class="badge-text">${escapeHTML(title.name)}</span>` +
+                    `</span>`;
+            }
+
+            function getUserTitles(userId) {
+                // 返回指定用户的头衔列表，兼容从 userData 或 comment author 读取
+                if (!userId) return { unlocked: [], equipped: null };
+                // 当前登录用户自己
+                if (currentUser && currentUser.id === userId) {
+                    const unlocked = (userData.titles || []).map(id => TITLES.find(t => t.id === id)).filter(Boolean);
+                    const equipped = TITLES.find(t => t.id === userData.equippedTitle);
+                    return { unlocked, equipped };
+                }
+                return { unlocked: [], equipped: null };
+            }
+
+            function equipTitle(titleId) {
+                if (!currentUser) { showToast('请先登录', 1200); return; }
+                // 如果传 null，表示取消佩戴
+                if (titleId === null) {
+                    userData.equippedTitle = null;
+                    saveUserData();
+                    refreshTitleDisplays();
+                    syncTitlesAndAchievementsToMetadata({ debounceMs: 100, silent: true });
+                    return;
+                }
+                const title = TITLES.find(t => t.id === titleId);
+                if (!title) { showToast('头衔不存在', 1000); return; }
+                if (!(userData.titles || []).includes(titleId)) {
+                    showToast('该头衔尚未解锁，继续加油吧～', 1600);
+                    return;
+                }
+                userData.equippedTitle = titleId;
+                saveUserData();
+                refreshTitleDisplays();
+                syncTitlesAndAchievementsToMetadata({ debounceMs: 100, silent: true });
+            }
+
+            function refreshTitleDisplays() {
+                // 刷新下拉菜单和评论渲染（通过重新渲染评论列表触发）
+                if (currentUser && typeof updateUIForLoggedIn === 'function') {
+                    try { updateUIForLoggedIn(currentUser); } catch (e) {}
+                }
+                const activeMod = document.getElementById('detailModalOverlay');
+                if (activeMod && activeMod.classList.contains('show')) {
+                    const gid = activeMod.getAttribute('data-game-id');
+                    if (gid && typeof loadCommunityReviews === 'function') loadCommunityReviews(Number(gid));
+                }
+                // 若成就弹窗已打开且在头衔 tab，则实时刷新头衔展示柜（佩戴立即看得到）
+                const achvMod = document.getElementById('achievementModalOverlay');
+                if (achvMod && achvMod.classList.contains('show')) {
+                    const titlesBtn = document.querySelector('.achievement-tab-btn[data-tab="titles"]');
+                    if (titlesBtn && titlesBtn.classList.contains('active')) {
+                        try { renderTitlesCabinet(); } catch (e) {}
+                    }
+                }
+            }
+
+            // 计算解锁条件所需的统计数据
+            function _buildTitleStats() {
+                const stats = {
+                    totalReviews: 0,
+                    // 表态计数（key=1~5，设计稿中 1=避雷 2=谨慎 3=中庸 4=亮点 5=推荐）
+                    verdictCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                    verdictsUsed: new Set(),
+                    // 社交：本地可统计字段
+                    repliesSent: 0,
+                    repliesReceived: 0,
+                    totalLikesReceived: 0,
+                    singleReviewMaxLikes: 0,
+                    totalTagsUsed: 0,
+                    maxCommentLength: 0,
+                    // 基于评论 JOIN 游戏类型的计数
+                    genreReviews: {},
+                    gameplayReviews: {}
+                };
+
+                const gameMap = {};
+                (games || []).forEach(g => { gameMap[g.id] = g; });
+
+                (userData.reviews || []).forEach(r => {
+                    stats.totalReviews++;
+                    // 表态计数：verdict 为数字 1-5
+                    const v = Number(r.verdict);
+                    if (v >= 1 && v <= 5) {
+                        stats.verdictCounts[v] = (stats.verdictCounts[v] || 0) + 1;
+                        stats.verdictsUsed.add(v);
+                    }
+                    // 点赞
+                    const likes = typeof r.likes === 'number' ? r.likes : 0;
+                    stats.totalLikesReceived += likes;
+                    if (likes > stats.singleReviewMaxLikes) stats.singleReviewMaxLikes = likes;
+                    // 标签
+                    if (Array.isArray(r.selected_tags)) stats.totalTagsUsed += r.selected_tags.length;
+                    // 评论文本最长字数
+                    const text = r.content ? stripCommentHTML(r.content) : '';
+                    if (text.length > stats.maxCommentLength) stats.maxCommentLength = text.length;
+                    // 游戏类型计数（基于评论关联的游戏 genre / gameplay）
+                    const game = r.game_id ? gameMap[r.game_id] : null;
+                    if (game) {
+                        (game.genre || []).forEach(gr => {
+                            stats.genreReviews[gr] = (stats.genreReviews[gr] || 0) + 1;
+                        });
+                        (game.gameplay || []).forEach(gp => {
+                            stats.gameplayReviews[gp] = (stats.gameplayReviews[gp] || 0) + 1;
+                        });
+                    }
+                });
+
+                // 【兼容】repliesSent / repliesReceived：如果后续接入 comment_replies / review_replies
+                // 表本地缓存，可在这里填充。当前默认 0，避免误判解锁。
+                return stats;
+            }
+
+            function checkTitleUnlocks() {
+                if (!currentUser) return [];
+                const stats = _buildTitleStats();
+                const prev = new Set(userData.titles || []);
+                const newlyUnlocked = [];
+
+                TITLES.forEach(t => {
+                    if (prev.has(t.id)) return;
+                    const c = t.cond;
+                    let ok = false;
+                    try {
+                        switch (c.type) {
+                            case 'totalReviews':
+                                ok = stats.totalReviews >= c.value;
+                                break;
+                            case 'verdictCount':
+                                ok = (stats.verdictCounts[c.verdict] || 0) >= c.value;
+                                break;
+                            case 'repliesSent':
+                                ok = stats.repliesSent >= c.value;
+                                break;
+                            case 'repliesReceived':
+                                ok = stats.repliesReceived >= c.value;
+                                break;
+                            case 'totalLikesReceived':
+                                ok = stats.totalLikesReceived >= c.value;
+                                break;
+                            case 'maxCommentLength':
+                                ok = stats.maxCommentLength >= c.value;
+                                break;
+                            case 'singleReviewMaxLikes':
+                                ok = stats.singleReviewMaxLikes >= c.value;
+                                break;
+                            case 'totalTagsUsed':
+                                ok = stats.totalTagsUsed >= c.value;
+                                break;
+                            case 'allVerdictsUsed':
+                                // 5 种表态全部使用过
+                                ok = stats.verdictsUsed.size >= 5 && stats.totalReviews >= 5;
+                                break;
+                            case 'genreReviews':
+                                // 兼容模糊匹配：游戏题材字段名有差异时优先精确，否则 substring
+                                let gExact = stats.genreReviews[c.genre] || 0;
+                                if (gExact === 0) {
+                                    for (const grKey of Object.keys(stats.genreReviews)) {
+                                        if (grKey && String(grKey).includes(String(c.genre))) gExact += stats.genreReviews[grKey];
+                                    }
+                                }
+                                ok = gExact >= c.value;
+                                break;
+                            case 'gameplayReviews':
+                                let gpExact = stats.gameplayReviews[c.gameplay] || 0;
+                                if (gpExact === 0) {
+                                    for (const gpKey of Object.keys(stats.gameplayReviews)) {
+                                        if (gpKey && String(gpKey).includes(String(c.gameplay))) gpExact += stats.gameplayReviews[gpKey];
+                                    }
+                                }
+                                ok = gpExact >= c.value;
+                                break;
+                            default:
+                                ok = false;
+                        }
+                    } catch (e) { ok = false; }
+                    if (ok) {
+                        userData.titles = userData.titles || [];
+                        userData.titles.push(t.id);
+                        newlyUnlocked.push(t);
+                    }
+                });
+
+                if (newlyUnlocked.length > 0) {
+                    saveUserData();
+                    newlyUnlocked.forEach((t, i) => setTimeout(() => showTitleToast(t), i * 900));
+                    if (!userData.equippedTitle) {
+                        const diamond = newlyUnlocked.find(t => t.tier === 'diamond');
+                        const gold = newlyUnlocked.find(t => t.tier === 'gold');
+                        const silver = newlyUnlocked.find(t => t.tier === 'silver');
+                        const best = diamond || gold || silver || newlyUnlocked[0];
+                        if (best) equipTitle(best.id);
+                    } else {
+                        syncTitlesAndAchievementsToMetadata({ silent: true });
+                    }
+                }
+                return newlyUnlocked;
+            }
+
+            function showTitleToast(title) {
+                let toast = document.getElementById('toast-notification');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'toast-notification';
+                    toast.className = 'toast-notification';
+                    document.body.appendChild(toast);
+                }
+                toast.className = 'toast-notification title-toast show';
+                toast.innerHTML =
+                    `<div style="text-align:center;">` +
+                    `<span class="toast-title-icon">🎖️</span>` +
+                    `<div style="font-size:0.92rem;font-weight:700;margin-bottom:4px;">解锁新头衔</div>` +
+                    `<div class="toast-title-badge">${renderTitleBadge(title)}</div>` +
+                    `<div class="toast-title-subtitle">${escapeHTML(title.desc || '')}</div>` +
+                    `</div>`;
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => { toast.classList.remove('show'); }, 2800);
             }
 
             function sanitizeCommentHTML(html) {
@@ -13039,8 +13579,10 @@
                             ...r,
                             game_id: Math.round(Number(r.game_id))
                         }));
-                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
-                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [] }; }
+                        userData.titles = parsed.titles || [];
+                        userData.equippedTitle = parsed.equippedTitle || null;
+                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null }; }
+                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null }; }
             }
 
             let _saveUserDataTimer = null;
@@ -13061,10 +13603,13 @@
             function _processPendingCloudOps() {
                 if (!currentUser || !supabaseClient) return;
                 const ops = _pendingCloudOps.splice(0);
+                let hasMetadataSync = false;
                 ops.forEach(op => {
                     if (op.type === 'push') pushToCloud(op.table, op.gameId);
                     else if (op.type === 'delete') deleteFromCloud(op.table, op.gameId);
+                    else if (op.type === 'syncMetadata') hasMetadataSync = true;
                 });
+                if (hasMetadataSync) syncTitlesAndAchievementsToMetadata({ silent: true, debounceMs: 200 });
             }
 
             async function deleteFromCloud(table, gameId) {
@@ -13116,6 +13661,77 @@
                 }
             }
 
+            // ========== 头衔 + 成就：统一同步到 auth.user_metadata ==========
+            let _titlesSyncTimer = null;
+            function syncTitlesAndAchievementsToMetadata(opts) {
+                opts = opts || {};
+                if (!currentUser || !supabaseClient) {
+                    _pendingCloudOps.push({ type: 'syncMetadata' });
+                    return Promise.resolve();
+                }
+                // 防抖：避免连续解锁多个头衔时频繁调用
+                return new Promise(resolve => {
+                    clearTimeout(_titlesSyncTimer);
+                    _titlesSyncTimer = setTimeout(async () => {
+                        try {
+                            const titles = Array.from(new Set(userData.titles || [])).filter(Boolean);
+                            const achievements = Array.from(new Set(userData.achievements || [])).filter(Boolean);
+                            const equipped_title = userData.equippedTitle || null;
+                            const { error } = await supabaseClient.auth.updateUser({
+                                data: { titles, achievements, equipped_title }
+                            });
+                            if (error) {
+                                console.error('❌ 头衔/成就同步到 metadata 失败:', error);
+                                if (!opts.silent) showToast('⚠️ 成就/头衔未同步到云端，请检查网络', 2000);
+                            } else {
+                                // 同步成功后刷新内存中的 currentUser.user_metadata 引用
+                                if (currentUser && currentUser.user_metadata) {
+                                    currentUser.user_metadata.titles = titles;
+                                    currentUser.user_metadata.achievements = achievements;
+                                    currentUser.user_metadata.equipped_title = equipped_title;
+                                }
+                                console.log(`✅ 头衔/成就同步完成：${titles.length} 个头衔，${achievements.length} 个成就，佩戴=${equipped_title || '无'}`);
+                            }
+                        } catch (e) {
+                            console.error('❌ 头衔/成就同步异常:', e);
+                        }
+                        resolve();
+                    }, opts.debounceMs != null ? opts.debounceMs : 400);
+                });
+            }
+
+            function mergeTitlesAndAchievementsFromMetadata() {
+                // 从云端 user_metadata 读取 titles / achievements / equipped_title，与本地取并集合并
+                if (!currentUser || !currentUser.user_metadata) return false;
+                const meta = currentUser.user_metadata;
+                let changed = false;
+
+                const cloudTitles = Array.isArray(meta.titles) ? meta.titles.filter(t => typeof t === 'string') : [];
+                const localTitles = Array.isArray(userData.titles) ? userData.titles : [];
+                const mergedTitles = Array.from(new Set([...localTitles, ...cloudTitles])).filter(Boolean);
+                if (mergedTitles.length !== localTitles.length || mergedTitles.some((t, i) => t !== localTitles[i])) {
+                    userData.titles = mergedTitles;
+                    changed = true;
+                }
+
+                const cloudAchs = Array.isArray(meta.achievements) ? meta.achievements.filter(a => typeof a === 'string') : [];
+                const localAchs = Array.isArray(userData.achievements) ? userData.achievements : [];
+                const mergedAchs = Array.from(new Set([...localAchs, ...cloudAchs])).filter(Boolean);
+                if (mergedAchs.length !== localAchs.length || mergedAchs.some((a, i) => a !== localAchs[i])) {
+                    userData.achievements = mergedAchs;
+                    changed = true;
+                }
+
+                // equipped_title：本地优先（用户当前设备主动选择的佩戴 > 云端上次同步值）
+                // —— 只有当本地为空时才采用云端，避免 merge 在 UI 刷新时把用户刚佩戴的选择覆盖掉
+                if (!userData.equippedTitle && meta.equipped_title) {
+                    userData.equippedTitle = meta.equipped_title;
+                    changed = true;
+                }
+
+                return changed;
+            }
+
             // ================================================================
             // 愿望单与玩过
             // ================================================================
@@ -13158,6 +13774,7 @@
                 } else {
                     userData.played.push(id);
                     checkAchievements();
+                    setTimeout(() => { try { checkTitleUnlocks(); } catch (e) {} }, 50);
                     pushToCloud('user_played', id);
                 }
                 saveUserData();
@@ -13204,6 +13821,7 @@
                 if (newUnlocked.length > 0) {
                     saveUserData();
                     newUnlocked.forEach(ach => showAchievementToast(ach));
+                    syncTitlesAndAchievementsToMetadata({ silent: true });
                 } else { saveUserData(); }
                 updateAchievementDot();
             }
@@ -13306,9 +13924,112 @@
                 });
             }
 
+            function renderTitlesCabinet() {
+                const container = document.getElementById('titlesContent');
+                if (!container) return;
+                // 先刷新头衔解锁情况（但不弹 Toast，避免打开弹窗被打断）
+                const _prevToast = window.showTitleToast;
+                try {
+                    // 临时禁用 Toast，仅静默更新解锁列表
+                    window.showTitleToast = function () {};
+                    checkTitleUnlocks();
+                } finally {
+                    window.showTitleToast = _prevToast;
+                }
+
+                const unlockedIds = new Set(userData.titles || []);
+                const equippedId = userData.equippedTitle;
+                const unlockedCount = unlockedIds.size;
+                const totalCount = TITLES.length;
+
+                // 按分类分组
+                const categories = {};
+                TITLES.forEach(t => {
+                    if (!categories[t.category]) categories[t.category] = [];
+                    categories[t.category].push(t);
+                });
+
+                let html = '';
+                // 顶部：当前佩戴 + 进度
+                const equippedTitle = equippedId ? TITLES.find(t => t.id === equippedId) : null;
+                html += `<div style="margin-bottom:14px;">`;
+                if (equippedTitle) {
+                    html += `<div class="profile-equipped-label">✨ 当前佩戴的头衔</div>`;
+                    html += `<div class="profile-header-titles">${renderTitleBadge(equippedTitle)}</div>`;
+                } else {
+                    html += `<div class="profile-equipped-label" style="margin-bottom:8px;">尚未佩戴任何头衔（点击下方已解锁的头衔即可佩戴）</div>`;
+                }
+                html += `</div>`;
+                html += `<div class="title-cabinet-section" style="margin-top:0;padding-top:0;border-top:none;">
+                    <div class="title-cabinet-header">
+                        <div class="title-cabinet-title">🎖️ 头衔展示柜</div>
+                        <div class="title-cabinet-progress">已解锁 ${unlockedCount} / ${totalCount}</div>
+                    </div>
+                </div>`;
+
+                // 稀有度配色说明
+                const tierLegend = [
+                    { t: 'bronze', n: '青铜', c: 'linear-gradient(135deg,#a08068,#c0a488)' },
+                    { t: 'silver', n: '白银', c: 'linear-gradient(135deg,#828a96,#aab2bc)' },
+                    { t: 'gold', n: '黄金', c: 'linear-gradient(135deg,#b89648,#d4b870)' },
+                    { t: 'diamond', n: '钻石', c: 'linear-gradient(135deg,#8a82a8,#7ea8a4)' },
+                ];
+                html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">` +
+                    tierLegend.map(tl =>
+                        `<span style="display:inline-flex;align-items:center;gap:5px;font-size:0.7rem;color:var(--text3);">` +
+                        `<span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${tl.c};"></span>${tl.n}</span>`
+                    ).join('') + `</div>`;
+
+                // 按分类渲染展示柜
+                Object.keys(categories).forEach(cat => {
+                    const list = categories[cat];
+                    const catUnlocked = list.filter(t => unlockedIds.has(t.id)).length;
+                    html += `<div class="title-category-label">${escapeHTML(cat)} · ${catUnlocked}/${list.length}</div>`;
+                    html += `<div class="title-cabinet">`;
+                    list.forEach(t => {
+                        const isUnlocked = unlockedIds.has(t.id);
+                        const isEquipped = equippedId === t.id;
+                        const cls = 'cabinet-slot ' + (isUnlocked ? 'unlocked' : 'locked') + (isEquipped ? ' equipped' : '');
+                        const equipTag = isEquipped ? `<span class="equip-tag">佩戴中</span>` : '';
+                        html += `<div class="${cls}" data-title-id="${escapeHTML(t.id)}" title="${isUnlocked ? (isEquipped ? '点击取消佩戴' : '点击佩戴这个头衔') : '未解锁：' + escapeHTML(t.desc)}">` +
+                            equipTag +
+                            `<div class="slot-icon">${escapeHTML(t.icon || '🎖️')}</div>` +
+                            `<div class="slot-name">${escapeHTML(t.name)}</div>` +
+                            `<div class="slot-cond">${isUnlocked ? '<span style="color:var(--accent2);">✓ 已解锁</span>' : escapeHTML(t.desc)}</div>` +
+                            `</div>`;
+                    });
+                    html += `</div>`;
+                });
+
+                container.innerHTML = html;
+
+                // ⚠️ 事件委托（只绑定一次）：在 titlesContent 上监听点击，避免每次 re-render 后重绑导致的问题
+                if (!container.dataset.delegated) {
+                    container.dataset.delegated = '1';
+                    container.addEventListener('click', function (e) {
+                        const slot = e.target.closest('.cabinet-slot');
+                        if (!slot) return;
+                        const titleId = slot.dataset.titleId;
+                        const title = TITLES.find(t => t.id === titleId);
+                        if (!title) { showToast('头衔不存在', 1000); return; }
+                        const unlockedIds = new Set(userData.titles || []);
+                        const equippedId = userData.equippedTitle;
+                        if (!unlockedIds.has(titleId)) { showToast('该头衔尚未解锁，继续加油吧～', 1600); return; }
+                        if (equippedId === titleId) {
+                            equipTitle(null);
+                            showToast('已取消佩戴头衔', 1200);
+                        } else {
+                            equipTitle(titleId);
+                            showToast(`已佩戴头衔「${title.name}」`, 1400);
+                        }
+                    });
+                }
+            }
+
             function openAchievementModal() {
                 const overlay = document.getElementById('achievementModalOverlay');
                 renderAchievementModal();
+                renderTitlesCabinet();
                 switchAchievementTab('achievements');
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
@@ -13326,6 +14047,8 @@
                 document.querySelectorAll('.achievement-tab-content').forEach(content => {
                     content.classList.toggle('active', content.id === 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
                 });
+                // 切换到头衔页时刷新展示柜
+                if (tabId === 'titles') renderTitlesCabinet();
                 const modal = document.querySelector('#achievementModalOverlay .modal');
                 if (modal) modal.scrollTop = 0;
             }
@@ -13701,6 +14424,8 @@
                     });
                 }
                 saveUserData();
+                // 评论保存后检测头衔解锁
+                setTimeout(() => { try { checkTitleUnlocks(); } catch (e) { console.warn('头衔检测异常:', e); } }, 60);
 
                 const detailOverlay = document.getElementById('detailModalOverlay');
                 if (detailOverlay && detailOverlay.classList.contains('show')) {
@@ -13916,6 +14641,43 @@
                         error = fallback.error;
                     }
                     if (error) throw error;
+
+                    // 修复历史评论 custom_id 不同步：
+                    // custom_id 功能是后加的，之前保存的评论行 custom_id 为 null → 这里回填
+                    if (data && data.length) {
+                        // ① 当前登录用户自己的评论：直接从会话拿（不需要查库）
+                        const myId = currentUser?.id;
+                        const needLookupIds = [];
+                        data.forEach(row => {
+                            if (!row.custom_id) {
+                                if (myId && row.user_id === myId) {
+                                    row.custom_id = currentUser.user_metadata?.custom_id || null;
+                                } else if (row.user_id) {
+                                    needLookupIds.push(row.user_id);
+                                }
+                            }
+                        });
+                        // ② 其他历史评论用户：批量查 user_profiles 表拿到 custom_id 后回填
+                        if (needLookupIds.length) {
+                            const uniqueIds = [...new Set(needLookupIds)];
+                            try {
+                                const { data: profiles } = await supabaseClient
+                                    .from('user_profiles')
+                                    .select('id, custom_id')
+                                    .in('id', uniqueIds);
+                                if (profiles) {
+                                    const idToCid = {};
+                                    profiles.forEach(p => { if (p.custom_id) idToCid[p.id] = p.custom_id; });
+                                    data.forEach(row => {
+                                        if (!row.custom_id && row.user_id && idToCid[row.user_id]) {
+                                            row.custom_id = idToCid[row.user_id];
+                                        }
+                                    });
+                                }
+                            } catch (pfErr) { /* ignore */ }
+                        }
+                    }
+
                     return data || [];
                 } catch (e) { console.error('❌ 获取评论失败:', e); return []; }
             }
@@ -16323,7 +17085,7 @@
                                 <span>📊 社区评分</span>
                                 <span class="review-stats" id="ratingStatsDisplay">⏳ 加载中...</span>
                             </div>
-                            <div id="communityCommentsList" style="margin-top:6px;max-height:300px;overflow-y:auto;">
+                            <div id="communityCommentsList" style="margin-top:6px;max-height:clamp(420px,65vh,750px);overflow-y:auto;">
                                 <div style="text-align:center;color:var(--text3);padding:12px;">⏳ 加载评论中...</div>
                             </div>
                         </div>
@@ -16871,21 +17633,44 @@
                     ? `<span class="comment-custom-id">@${escapeHTML(r.custom_id)}</span>`
                     : '';
 
+                // 头衔徽章：优先显示作者佩戴的头衔（容器支持多个徽章并排）
+                let titleBadgesHtml = '';
+                try {
+                    const badges = [];
+                    // 当前登录用户自己的佩戴头衔
+                    if (r.user_id && currentUser && currentUser.id === r.user_id) {
+                        const equipped = TITLES.find(t => t.id === userData.equippedTitle);
+                        if (equipped) badges.push(renderTitleBadge(equipped));
+                    } else if (r.user_id && r._equipped_title && typeof r._equipped_title === 'object') {
+                        // 兼容云端扩展：评论作者数据自带头衔
+                        badges.push(renderTitleBadge(r._equipped_title));
+                    }
+                    titleBadgesHtml = badges.length
+                        ? `<div class="comment-header-titles">${badges.join('')}</div>`
+                        : '';
+                } catch (e) { titleBadgesHtml = ''; }
+
                 return `
                     <div class="comment-item" data-review-id="${reviewId}">
                         <div class="comment-header">
                             ${avatar}
                             <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
                             ${customIdHtml}
-                            ${verdictDisplay}
-                            ${tagsDisplay}
-                            <span class="comment-time">${time}</span>
+                            ${titleBadgesHtml}
                         </div>
+                        ${(verdictDisplay || tagsDisplay) ? `
+                            <div class="comment-verdict-tags-row">
+                                ${verdictDisplay}
+                                ${tagsDisplay}
+                            </div>
+                        ` : ''}
                         ${commentText ? `<div class="comment-text">${renderCommentWithSpoilers(stripCommentHTML(commentText))}</div>` : ''}
                         <div class="comment-actions">
+                            <span class="comment-time">${time}</span>
                             ${likeBtnHtml}
-                            ${shareBtnHtml}
                             ${replyBtnHtml}
+                            <span style="flex:1"></span>
+                            ${shareBtnHtml}
                         </div>
                         ${repliesHtml}
                         <div class="comment-reply-compose" id="gameReplyCompose-${reviewId}" style="display:none;">
@@ -22060,6 +22845,16 @@
                 const navUserDropdownInner = document.getElementById('navUserDropdownInner');
                 const navUserBtn = document.getElementById('navUserBtn');
 
+                // 从云端 user_metadata 合并头衔和成就（取云端 ∪ 本地并集）
+                try {
+                    const changed = mergeTitlesAndAchievementsFromMetadata();
+                    if (changed) {
+                        saveUserData();
+                        // 合并后如果本地比云端多（之前本地有新增但没同步），再推送一次
+                        syncTitlesAndAchievementsToMetadata({ silent: true, debounceMs: 1000 });
+                    }
+                } catch (e) { console.warn('合并头衔/成就元数据失败:', e); }
+
                 const metadata = user.user_metadata || {};
                 const displayName = metadata.display_name || user.email || '用户';
                 const customId = metadata.custom_id || '';
@@ -22086,12 +22881,22 @@
                 // 更新导航栏下拉菜单
                 if (navUserDropdownInner) {
                     const customIdHTML = customId
-                        ? `<div class="nav-user-dropdown-customid">@${escapeHTML(customId)}</div>`
+                        ? `<span class="nav-user-dropdown-customid" style="margin-left:0;">@${escapeHTML(customId)}</span>`
                         : '';
+                    const titleBadgeHtml = (() => {
+                        try {
+                            const equipped = TITLES.find(t => t.id === (userData.equippedTitle || null));
+                            if (equipped) return renderTitleBadge(equipped, { small: true });
+                        } catch (e) {}
+                        return '';
+                    })();
                     navUserDropdownInner.innerHTML = `
                         <div class="nav-user-dropdown-header">
-                            <div class="nav-user-dropdown-username">${escapeHTML(displayName)}</div>
-                            ${customIdHTML}
+                            <div class="nav-user-menu-header-row">
+                                ${titleBadgeHtml}
+                                <div class="nav-user-dropdown-username">${escapeHTML(displayName)}</div>
+                                ${customIdHTML}
+                            </div>
                             <div class="nav-user-dropdown-email">${escapeHTML(user.email || '')}</div>
                         </div>
                         <div class="nav-user-dropdown-item" id="navProfileEditBtn">
@@ -22101,7 +22906,7 @@
                             <span class="item-icon">📖</span> 游戏日记
                         </div>
                         <div class="nav-user-dropdown-item" id="navAchievementBtn">
-                            <span class="item-icon">🏆</span> 成就
+                            <span class="item-icon">🏆</span> 成就 / 头衔
                         </div>
                         <div class="nav-user-dropdown-item" id="navBlockManageBtn">
                             <span class="item-icon">🚫</span> 屏蔽内容管理
@@ -22649,6 +23454,9 @@
                 setSyncStatus('syncing', '正在展开地图');
 
                 try {
+                    // 步骤 0：先从云端 user_metadata 合并头衔+成就（都是单向解锁）
+                    try { mergeTitlesAndAchievementsFromMetadata(); } catch (e) { console.warn(e); }
+
                     const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
                         supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
                         supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
@@ -22787,9 +23595,15 @@
 
                     renderGallery();
                     updateAchievementDot();
-                    checkAchievements();
+                    checkAchievements(); // 内部会触发 syncTitlesAndAchievementsToMetadata
+                    // 再调用一次确保头衔列表同步（例如从第二台设备同步过来的已解锁头衔，需要回写 metadata 保证双端一致）
+                    syncTitlesAndAchievementsToMetadata({ silent: true, debounceMs: 500 });
+
                     setSyncStatus('synced', '已同步');
-                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项`);
+                    const tCnt = (userData.titles || []).length;
+                    const aCnt = (userData.achievements || []).length;
+                    const eqT = userData.equippedTitle || '无';
+                    console.log(`✅ 同步完成：愿望单 ${mergedWishlist.length} 项，玩过 ${mergedPlayed.length} 项，评论 ${mergedReviews.length} 项；头衔 ${tCnt} 个，成就 ${aCnt} 个，佩戴=${eqT}`);
                     _syncInProgress = false;
 
                 } catch (error) {
