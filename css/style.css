@@ -1312,8 +1312,8 @@
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            width: min(340px, calc(100vw - 24px));
-            max-width: calc(100vw - 24px);
+            width: calc(100vw - 24px);
+            max-width: 340px;
             max-height: 420px;
             background: #faf7fd;
             border: 1px solid var(--border);
@@ -6351,8 +6351,9 @@
             color: var(--text);
             cursor: pointer;
             font-size: 0.85rem;
-            transition: background 0.15s;
-            font-family: inherit;
+            font-weight: 500;
+            touch-action: manipulation;
+            transition: all 0.2s;
         }
 
         #userDropdownMenu .dropdown-item:hover {
@@ -9390,8 +9391,6 @@
             inset: 0;
             z-index: 3000;
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -9492,6 +9491,7 @@
             cursor: pointer;
             font-size: 0.88rem;
             font-weight: 500;
+            touch-action: manipulation;
             transition: all 0.2s;
             font-family: inherit;
         }
@@ -9512,6 +9512,17 @@
             border-color: var(--accent2);
         }
 
+        .guide-card .guide-btn:active {
+            transform: scale(0.96);
+            background: var(--card-hover);
+        }
+
+        .guide-card .guide-btn.primary:active {
+            background: var(--accent2);
+            border-color: var(--accent2);
+            transform: scale(0.96);
+        }
+
         .guide-card .guide-skip {
             position: absolute;
             top: 12px;
@@ -9522,6 +9533,7 @@
             font-size: 0.85rem;
             cursor: pointer;
             padding: 4px 8px;
+            touch-action: manipulation;
         }
 
         .guide-card .guide-skip:hover {
@@ -9532,10 +9544,8 @@
         .announcement-modal-overlay {
             position: fixed;
             inset: 0;
-            z-index: 3000;
+            z-index: 4000;
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -9589,6 +9599,7 @@
             font-size: 1.1rem;
             cursor: pointer;
             padding: 4px 8px;
+            touch-action: manipulation;
             transition: color 0.2s;
         }
 
@@ -9659,6 +9670,22 @@
         .announcement-modal-btn.primary:hover {
             background: var(--accent2);
             border-color: var(--accent2);
+        }
+
+        .announcement-modal-btn:active {
+            transform: scale(0.96);
+            background: var(--card-hover);
+        }
+
+        .announcement-modal-btn.primary:active {
+            background: var(--accent2);
+            border-color: var(--accent2);
+            transform: scale(0.96);
+        }
+
+        .announcement-modal-close:active {
+            color: var(--text);
+            transform: rotate(90deg) scale(0.9);
         }
 
         @media (max-width: 480px) {
