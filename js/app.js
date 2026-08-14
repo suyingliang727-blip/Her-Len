@@ -10899,11 +10899,36 @@
             const ANNOUNCEMENT_SEEN_KEY = 'heroineAnnouncementSeenId';
             let currentAnnouncement = null;
 
-            // 拉取最近公告，找出用户未读的最新一条（按发布时间排序，非置顶优先）
+            // 已读公告 id 集合（兼容旧版：只存单个 id 的字符串）
+            function getSeenAnnouncementIds() {
+                try {
+                    const raw = localStorage.getItem(ANNOUNCEMENT_SEEN_KEY);
+                    if (!raw) return [];
+                    let parsed = null;
+                    try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+                    if (Array.isArray(parsed)) return parsed.map(String);
+                    return [String(raw)];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function markAnnouncementSeen(id) {
+                if (id == null) return;
+                const seen = getSeenAnnouncementIds();
+                const sid = String(id);
+                if (!seen.includes(sid)) seen.push(sid);
+                try {
+                    localStorage.setItem(ANNOUNCEMENT_SEEN_KEY, JSON.stringify(seen));
+                } catch (e) {
+                    console.warn('⚠️ 无法写入公告已读状态', e.message || e);
+                }
+            }
+
+            // 只展示最新一条公告，且仅当它从未被读过（点过「我知道了」即视为已读，永不再弹）
             async function fetchLatestUnreadAnnouncement() {
                 if (!supabaseClient) return null;
                 try {
-                    const seenId = localStorage.getItem(ANNOUNCEMENT_SEEN_KEY);
                     const { data, error } = await supabaseClient
                         .from('site_announcements')
                         .select('id, title, pinned, created_at')
@@ -10911,9 +10936,10 @@
                         .limit(20);
                     if (error) throw error;
                     if (!data || data.length === 0) return null;
-                    // 从最新往回找第一条未读的
-                    const unread = data.filter(a => String(a.id) !== seenId);
-                    return unread.length > 0 ? unread[0] : null;
+                    const latest = data[0];
+                    const seen = getSeenAnnouncementIds();
+                    if (seen.includes(String(latest.id))) return null;
+                    return latest;
                 } catch (e) {
                     console.warn('⚠️ 公告拉取失败', e.message || e);
                     return null;
@@ -10948,7 +10974,7 @@
                 if (!overlay) return;
                 overlay.classList.remove('show');
                 if (currentAnnouncement && currentAnnouncement.id) {
-                    localStorage.setItem(ANNOUNCEMENT_SEEN_KEY, String(currentAnnouncement.id));
+                    markAnnouncementSeen(currentAnnouncement.id);
                 }
             }
 
