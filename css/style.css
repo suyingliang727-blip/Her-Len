@@ -8005,6 +8005,20 @@
                 flex-shrink: 0;
             }
 
+            /* 移动端：通知面板改为固定全宽下拉，绝不超出屏幕 */
+            .notif-panel {
+                position: fixed;
+                top: 56px;
+                left: 8px;
+                right: 8px;
+                width: auto;
+                max-width: none;
+                max-height: calc(100vh - 72px);
+            }
+            .notif-panel .notif-list {
+                max-height: calc(100vh - 130px);
+            }
+
             .header-action-link {
                 padding: 4px 8px;
                 font-size: 0.75rem;
@@ -9600,7 +9614,8 @@
             cursor: pointer;
             padding: 4px 8px;
             touch-action: manipulation;
-            transition: color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.2s, transform 0.12s ease, background 0.12s ease;
         }
 
         .announcement-modal-close:hover {
@@ -9652,8 +9667,10 @@
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 500;
-            transition: all 0.2s;
             font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
         }
 
         .announcement-modal-btn:hover {
@@ -9673,19 +9690,27 @@
         }
 
         .announcement-modal-btn:active {
-            transform: scale(0.96);
-            background: var(--card-hover);
+            transform: scale(0.92);
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(155, 138, 189, 0.4);
         }
 
         .announcement-modal-btn.primary:active {
+            transform: scale(0.92);
             background: var(--accent2);
             border-color: var(--accent2);
-            transform: scale(0.96);
+            color: #fff;
+            filter: brightness(0.85);
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
         }
 
         .announcement-modal-close:active {
-            color: var(--text);
-            transform: rotate(90deg) scale(0.9);
+            color: var(--accent);
+            transform: rotate(90deg) scale(0.85);
+            background: rgba(155, 138, 189, 0.18);
+            border-radius: 50%;
         }
 
         @media (max-width: 480px) {
@@ -9697,6 +9722,14 @@
             }
             .announcement-modal-body {
                 font-size: 0.85rem;
+            }
+            .announcement-modal-btn {
+                min-height: 44px;
+                font-size: 0.95rem;
+                padding: 10px 22px;
+            }
+            .announcement-modal-close {
+                padding: 8px 12px;
             }
         }
 
