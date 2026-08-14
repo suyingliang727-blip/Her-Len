@@ -14969,6 +14969,7 @@
                             ...row,
                             id: Number(row.id),
                             englishName: row.englishName || '',
+                            heroineType: row.heroineType === '无性别默认女' ? '无明确性别默认女' : (row.heroineType || ''),
                             genre: row.genre || [],
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
@@ -15009,7 +15010,11 @@
                 if (local) {
                     try {
                         const parsed = JSON.parse(local);
-                        games = parsed.map(g => ({ ...g, id: Number(g.id) }));
+                        games = parsed.map(g => ({
+                            ...g,
+                            id: Number(g.id),
+                            heroineType: g.heroineType === '无性别默认女' ? '无明确性别默认女' : (g.heroineType || '')
+                        }));
                         games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
                         if (currentView === 'series') renderSeriesView(); else renderGallery(); // 立即渲染缓存数据
                     } catch (_) { games = []; }
@@ -23459,6 +23464,38 @@
                 setSyncStatus('syncing', '正在展开地图');
 
                 try {
+                    // 步骤 -1：用内存里的 games 集合（已从 localStorage/Supabase 加载，不受 RLS 影响）
+                    //          清理本地 userData 里的孤儿 game_id，从源头避免 FK 外键错误刷屏
+                    if (Array.isArray(games) && games.length > 0 && userData) {
+                        const validGameIds = new Set(games.map(g => Number(g.id)));
+                        let cleaned = false;
+                        const cleanArr = (arr, name) => {
+                            if (!Array.isArray(arr)) return arr;
+                            const before = arr.length;
+                            const next = arr.filter(id => validGameIds.has(Number(id)));
+                            if (next.length !== before) {
+                                console.warn(`🧹 清理本地 ${name} 中 ${before - next.length} 个无效 game_id：`, arr.filter(id => !validGameIds.has(Number(id))));
+                                cleaned = true;
+                            }
+                            return next;
+                        };
+                        const cleanReviewArr = (arr) => {
+                            if (!Array.isArray(arr)) return arr;
+                            const before = arr.length;
+                            const next = arr.filter(r => validGameIds.has(Number(r.game_id)));
+                            if (next.length !== before) {
+                                const removed = arr.filter(r => !validGameIds.has(Number(r.game_id))).map(r => r.game_id);
+                                console.warn(`🧹 清理本地 reviews 中 ${before - next.length} 个无效 game_id：`, removed);
+                                cleaned = true;
+                            }
+                            return next;
+                        };
+                        userData.wishlist = cleanArr(userData.wishlist, 'wishlist');
+                        userData.played = cleanArr(userData.played, 'played');
+                        userData.reviews = cleanReviewArr(userData.reviews);
+                        if (cleaned) saveUserData();
+                    }
+
                     // 步骤 0：先从云端 user_metadata 合并头衔+成就（都是单向解锁）
                     try { mergeTitlesAndAchievementsFromMetadata(); } catch (e) { console.warn(e); }
 
@@ -23466,15 +23503,15 @@
                     const safeBatchInsert = async (table, items, opts = {}) => {
                         const method = opts._method || 'insert';
                         delete opts._method;
-                        if (!items || items.length === 0) return { failedIds: [] };
+                        if (!items || items.length === 0) return { table, failedIds: [] };
                         const doWrite = (data) => {
                             if (method === 'upsert') return supabaseClient.from(table).upsert(data, opts);
                             return supabaseClient.from(table).insert(data, opts);
                         };
                         try {
                             const { error } = await doWrite(items);
-                            if (!error) return { failedIds: [] };
-                            if (error.code === '23505') return { failedIds: [] };
+                            if (!error) return { table, failedIds: [] };
+                            if (error.code === '23505') return { table, failedIds: [] };
                             if (error.code !== '23503' || !error.message || !error.message.includes('foreign key constraint')) {
                                 throw error;
                             }
@@ -23502,7 +23539,7 @@
                             if (failedIds.length > 0) {
                                 console.warn(`⚠️ ${table} 有 ${failedIds.length} 个 game_id 因外键约束被跳过:`, failedIds);
                             }
-                            return { failedIds };
+                            return { table, failedIds };
                         } catch (e) {
                             console.error(`❌ ${table} 批量${method === 'upsert' ? 'upsert' : 'insert'}异常：`, e);
                             throw e;
@@ -23595,7 +23632,27 @@
                     }
 
                     if (uploadPromises.length > 0) {
-                        await Promise.all(uploadPromises);
+                        const results = await Promise.all(uploadPromises);
+                        // 双保险：同步时 FK 失败跳过的 game_id，也从本地 userData 清掉，下次不会再尝试
+                        let needSave = false;
+                        for (const r of results) {
+                            if (!r || !Array.isArray(r.failedIds) || r.failedIds.length === 0) continue;
+                            const rmSet = new Set(r.failedIds.map(Number));
+                            if (r.table === 'user_played' && Array.isArray(userData.played)) {
+                                const before = userData.played.length;
+                                userData.played = userData.played.filter(id => !rmSet.has(Number(id)));
+                                if (userData.played.length !== before) needSave = true;
+                            } else if (r.table === 'user_wishlist' && Array.isArray(userData.wishlist)) {
+                                const before = userData.wishlist.length;
+                                userData.wishlist = userData.wishlist.filter(id => !rmSet.has(Number(id)));
+                                if (userData.wishlist.length !== before) needSave = true;
+                            } else if (r.table === 'user_reviews' && Array.isArray(userData.reviews)) {
+                                const before = userData.reviews.length;
+                                userData.reviews = userData.reviews.filter(rr => !rmSet.has(Number(rr.game_id)));
+                                if (userData.reviews.length !== before) needSave = true;
+                            }
+                        }
+                        if (needSave) saveUserData();
                     }
 
                     const mergedWishlist = [...new Set([...cloudWishlist, ...localWishlist])];
