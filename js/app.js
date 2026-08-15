@@ -198,6 +198,13 @@
             let _reviewPage = {};
             const REVIEW_PAGE_SIZE = 10;
             let _batchRpcBroken = false;
+            // ★ 评论回复分页：每条评论默认只渲染前 REPLY_CHUNK 个根回复，超出显示"加载更多"
+            const REPLY_CHUNK = 3;
+            // ★ 记录每条评论当前已展开的根回复数：{ [reviewId]: number }
+            let _replyReveal = {};
+            // ★ 评论区 Realtime 订阅状态
+            let _commentRealtimeListener = null;
+            let _commentRtDebounce = null;
             // ★ 评论列表短期缓存：避免短时间内重复打开同一游戏详情页时重复拉取
             //   结构：{ [gameId]: { ts, reviews, repliesMap, stats } }，TTL 2分钟
             let _reviewsListCache = {};
@@ -2083,7 +2090,7 @@
                         //   screenshots 保留在列表中：详情弹窗一打开就要立即显示截图，避免等待。
                         //   搜索函数 gameMatchesSearch() 不再匹配 fullDescription（已不在列表数据中）。
                         const { data, error } = await client.from('games')
-                            .select('id, title, englishName, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots')
+                            .select('id, title, englishName, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots, isDraft')
                             .not('id', 'in', '(1,2)')
                             .order('id', { ascending: true })
                             .range(offset, offset + PAGE_SIZE - 1);
@@ -2209,6 +2216,7 @@
                         localStorage.setItem(SYNC_META_KEY, String(Date.now()));
                     } catch (_) {}
                     if (currentView === 'series') renderSeriesView(); else renderGallery(); // 用新数据重新渲染
+                    syncAutoReleasedGames(); // 管理员：把到期未标记的游戏落库为已发售
                 }
             }
 
@@ -2490,7 +2498,8 @@
                 const filtered = games.filter(game => {
                     const id = Number(game.id);
                     if (id === 1 || id === 2) return false;
-                    if (game.isReleased !== (currentView === 'released')) return false;
+                    if (game.isDraft) return false; // 导入缓冲区中的草稿不进总览
+                    if (isGameReleased(game) !== (currentView === 'released')) return false;
                     if (searchQuery && !gameMatchesSearch(game, searchQuery)) return false;
                     if (wishlistMode && !isInWishlist(game.id)) return false;
                     if (excludePlayedMode && isPlayed(game.id)) return false;
@@ -2618,6 +2627,7 @@
                 // 收集所有有系列的游戏（应用屏蔽内容过滤）
                 const seriesMap = {};
                 games.forEach(g => {
+                    if (g.isDraft) return; // 导入缓冲区中的草稿不进系列视图
                     if (g.series && g.series.trim()) {
                         // 屏蔽内容过滤
                         if (!showAdultContent && g.costumeType === '含恶俗设计') return;
@@ -2671,7 +2681,7 @@
                         } else if (g.hasChinese === '无中文') {
                             metaSpans.push('<span class="tag-muted">无中文</span>');
                         }
-                        if (g.isReleased) {
+                        if (isGameReleased(g)) {
                             (g.genre || []).slice(0, 3).forEach(t => metaSpans.push(`<span>${escapeHTML(t)}</span>`));
                             (g.gameplay || []).slice(0, 2).forEach(t => metaSpans.push(`<span>${escapeHTML(t)}</span>`));
                         } else {
@@ -2695,9 +2705,9 @@
                                     <div class="card-desc">${escapeHTML(g.description || '')}</div>
                                     <div class="card-meta">${metaSpans.join('')}</div>
                                 </div>
-                                <div class="card-user-actions ${g.isReleased ? '' : 'only-wish'}">
+                                <div class="card-user-actions ${isGameReleased(g) ? '' : 'only-wish'}">
                                     <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${g.id}" onclick="event.stopPropagation();toggleWishlist(${g.id});"><span class="icon">${inWish ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inWish ? '已加入' : '加入愿望单'}</span></button>
-                                    ${g.isReleased ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${g.id}" onclick="event.stopPropagation();togglePlayed(${g.id});"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
+                                    ${isGameReleased(g) ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${g.id}" onclick="event.stopPropagation();togglePlayed(${g.id});"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
                                 </div>
                             </div>`;
                     }).join('');
@@ -2993,7 +3003,7 @@
                 else if (game.hasChinese === '无中文') metaParts.push('<span class="tag-muted">无中文</span>');
                 const metaGenres = (game.genre || []).slice(0, 3);
                 const metaGameplays = (game.gameplay || []).slice(0, 2);
-                if (game.isReleased) {
+                if (isGameReleased(game)) {
                     metaGenres.forEach(t => metaParts.push('<span>' + escapeHTML(t) + '</span>'));
                     metaGameplays.forEach(t => metaParts.push('<span>' + escapeHTML(t) + '</span>'));
                 } else {
@@ -3026,9 +3036,9 @@
                             <div class="card-desc">${escapeHTML(game.description || '')}</div>
                             <div class="card-meta">${metaParts.join('')}<div class="card-rating-count" data-game-id="${game.id}"></div></div>
                         </div>
-                        <div class="card-user-actions ${game.isReleased ? '' : 'only-wish'}">
+                        <div class="card-user-actions ${isGameReleased(game) ? '' : 'only-wish'}">
                             <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}"><span class="icon">${inWish ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inWish ? '已加入' : '加入愿望单'}</span></button>
-                            ${game.isReleased ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
+                            ${isGameReleased(game) ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
                         </div>
                         ${adminBtns}
                     </div>`;
@@ -3089,9 +3099,11 @@
                 const addBtn = document.getElementById('btnAddGame');
                 const impBtn = document.getElementById('btnImportCSV');
                 const adminBtn = document.getElementById('btnToggleAdmin');
+                const bufBtn = document.getElementById('btnBuffer');
                 if (isAdmin) {
                     if (addBtn) addBtn.style.display = '';
                     if (impBtn) impBtn.style.display = '';
+                    if (bufBtn) bufBtn.style.display = '';
                     if (adminBtn) {
                         adminBtn.style.display = '';
                         if (isAdminMode) {
@@ -3105,6 +3117,7 @@
                 } else {
                     if (addBtn) addBtn.style.display = 'none';
                     if (impBtn) impBtn.style.display = 'none';
+                    if (bufBtn) bufBtn.style.display = 'none';
                     if (adminBtn) adminBtn.style.display = 'none';
                     isAdminMode = false;
                 }
@@ -3503,6 +3516,10 @@
                     seriesOrder: parseInt(getVal('efSeriesOrder')) || 0
                 };
 
+                // 保留草稿标记：缓冲区中的游戏编辑保存后仍为草稿，上架由缓冲区「上架」按钮触发
+                const _editExisting = games.find(g => g.id === gameData.id);
+                if (_editExisting && _editExisting.isDraft) gameData.isDraft = true;
+
                 for (const field of ['cover', 'steamLink']) {
                     const val = gameData[field];
                     if (val) { try { new URL(val); } catch (_) { showToast('⚠️ ' + field + ' 格式无效', 1500); return; } }
@@ -3541,6 +3558,7 @@
                 }
                 closeEditModal();
                 renderGallery();
+                if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
                 try { localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); } catch (_) {}
                 invalidateSyncCache();
                 showToast(`✅ "${title}" 已保存`, 2000);
@@ -3565,6 +3583,223 @@
                 showToast('✅ 已删除', 1500);
                 setSyncStatus('synced');
             }
+
+            // ================================================================
+            // 导入缓冲区（草稿区）：仅管理员可见
+            //   CSV 导入 → 缓冲区 → 完善信息 → 「上架」→ 按发售日自动分流总览
+            // ================================================================
+            function getDraftGames() {
+                return (games || []).filter(g => g.isDraft);
+            }
+
+            function computeReleased(releaseDate) {
+                const d = (releaseDate || '').trim();
+                if (!d) return true;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const rd = new Date(String(d).replace(/-/g, '/'));
+                if (isNaN(rd.getTime())) return true;
+                return rd <= today;
+            }
+
+            // 有效发售状态：手动标记已发售，或发售日已到期（未发售板块的游戏到期自动视为已发售）
+            function isGameReleased(game) {
+                if (!game) return false;
+                if (game.isReleased) return true;
+                const d = (game.releaseDate || '').trim();
+                if (!d) return false;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const rd = new Date(String(d).replace(/-/g, '/'));
+                if (isNaN(rd.getTime())) return false;
+                return rd <= today;
+            }
+
+            // 管理员加载时：把「发售日已到期但未标记」的游戏落库为已发售，保持数据库/编辑表单/admin.html 一致
+            let _autoReleasedSyncing = false;
+            async function syncAutoReleasedGames() {
+                if (!isAdmin || _autoReleasedSyncing) return;
+                const flips = (games || []).filter(g => !g.isDraft && !g.isReleased && isGameReleased(g));
+                if (flips.length === 0) return;
+                _autoReleasedSyncing = true;
+                try {
+                    flips.forEach(g => g.isReleased = true);
+                    const client = getSupabase();
+                    if (client) {
+                        for (let i = 0; i < flips.length; i += 50) {
+                            const batch = flips.slice(i, i + 50).map(g => ({ id: g.id, isReleased: true }));
+                            const { error } = await client.from('games').upsert(batch, { onConflict: 'id' });
+                            if (error) { console.warn('[Sync] 自动上架同步失败:', error.message); return; }
+                        }
+                    }
+                    saveGamesToLocal();
+                    invalidateSyncCache();
+                    console.log(`[Sync] 自动上架：已将 ${flips.length} 款到期游戏标记为已发售`);
+                } finally {
+                    _autoReleasedSyncing = false;
+                }
+            }
+
+            function saveGamesToLocal() {
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); } catch (_) {}
+            }
+
+            function renderBuffer() {
+                const modal = document.getElementById('bufferModal');
+                if (!modal) return;
+                const drafts = getDraftGames();
+                if (drafts.length === 0) {
+                    modal.innerHTML = `
+                        <button class="modal-close" onclick="closeBuffer()">✕</button>
+                        <h2 style="margin-bottom:14px;color:var(--accent);">🗂 导入缓冲区</h2>
+                        <div style="padding:30px 10px;text-align:center;color:var(--text3);">
+                            <div style="font-size:2rem;margin-bottom:10px;">📭</div>
+                            <div>缓冲区为空</div>
+                            <div style="font-size:0.82rem;margin-top:6px;">CSV 导入的游戏会先到这里，完善信息后点击「上架」</div>
+                        </div>`;
+                    return;
+                }
+                modal.innerHTML = `
+                    <button class="modal-close" onclick="closeBuffer()">✕</button>
+                    <h2 style="margin-bottom:4px;color:var(--accent);">🗂 导入缓冲区</h2>
+                    <div style="font-size:0.82rem;color:var(--text3);margin-bottom:14px;">共 ${drafts.length} 款待完善 · 完善后点「上架」即按发售日自动进入总览（已发售/未发售）</div>
+                    <div class="buffer-list">
+                        ${drafts.map(g => `
+                            <div class="buffer-item">
+                                <div class="buffer-info">
+                                    <div class="buffer-title">${escapeHTML(g.title || '未命名')}</div>
+                                    <div class="buffer-meta">${escapeHTML((g.genre || []).slice(0, 3).join(' · ') || '暂无题材')}${g.releaseDate ? ' · 发售日 ' + escapeHTML(g.releaseDate) : ''}</div>
+                                </div>
+                                <div class="buffer-actions">
+                                    <button class="btn btn-sm" onclick="editDraft(${g.id})">✏️ 编辑</button>
+                                    <button class="btn btn-sm btn-accent" onclick="publishDraft(${g.id})">🚀 上架</button>
+                                    <button class="btn btn-sm" onclick="deleteDraft(${g.id})">🗑 删除</button>
+                                </div>
+                            </div>`).join('')}
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-accent" onclick="publishAllDrafts()">🚀 全部上架</button>
+                        <button type="button" class="btn" onclick="closeBuffer()">关闭</button>
+                        <button type="button" class="btn" style="margin-left:auto;color:var(--danger);" onclick="clearBuffer()">🗑 清空缓冲区</button>
+                    </div>`;
+            }
+
+            function openBuffer() {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可查看缓冲区', 1500); return; }
+                renderBuffer();
+                const overlay = document.getElementById('bufferModalOverlay');
+                if (overlay) {
+                    overlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+            window.openBuffer = openBuffer;
+
+            function closeBuffer() {
+                const overlay = document.getElementById('bufferModalOverlay');
+                if (overlay) overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            window.closeBuffer = closeBuffer;
+
+            window.editDraft = function (id) {
+                const g = games.find(x => x.id === id);
+                if (!g) return;
+                showEditModal(g);
+            };
+
+            window.publishDraft = async function (id) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                const g = games.find(x => x.id === id);
+                if (!g) return;
+                const title = g.title || '未命名';
+                if (!g.cover && !g.description && (g.genre || []).length === 0) {
+                    if (!confirm(`「${title}」信息还不完整（无封面/简介/题材），确定要上架吗？`)) return;
+                }
+                g.isDraft = false;
+                g.isReleased = computeReleased(g.releaseDate);
+                const client = getSupabase();
+                if (client) {
+                    setSyncStatus('syncing');
+                    const { error } = await client.from('games').upsert(g, { onConflict: 'id' });
+                    if (error) {
+                        setSyncStatus('error', error.message);
+                        showToast('❌ 上架失败: ' + error.message, 2500);
+                        return;
+                    }
+                }
+                saveGamesToLocal();
+                invalidateSyncCache();
+                renderGallery();
+                if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
+                setSyncStatus('synced');
+                showToast(`🚀 "${title}" 已上架，按发售日进入${g.isReleased ? '已发售' : '未发售'}`, 2400);
+            };
+
+            window.publishAllDrafts = async function () {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                const drafts = getDraftGames();
+                if (drafts.length === 0) { showToast('缓冲区为空', 1500); return; }
+                drafts.forEach(g => {
+                    g.isDraft = false;
+                    g.isReleased = computeReleased(g.releaseDate);
+                });
+                const client = getSupabase();
+                if (client) {
+                    setSyncStatus('syncing');
+                    for (let i = 0; i < drafts.length; i += 50) {
+                        const batch = drafts.slice(i, i + 50);
+                        const { error } = await client.from('games').upsert(batch, { onConflict: 'id' });
+                        if (error) {
+                            setSyncStatus('error', error.message);
+                            showToast('❌ 上架失败: ' + error.message, 2500);
+                            return;
+                        }
+                    }
+                }
+                saveGamesToLocal();
+                invalidateSyncCache();
+                renderGallery();
+                if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
+                setSyncStatus('synced');
+                showToast(`🚀 已上架 ${drafts.length} 款游戏`, 2200);
+            };
+
+            window.deleteDraft = function (id) {
+                const g = games.find(x => x.id === id);
+                if (!g) return;
+                if (!confirm(`确定从缓冲区删除「${g.title || '未命名'}」？将同时从云端删除该记录。`)) return;
+                deleteGame(id).then(() => {
+                    if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
+                });
+            };
+
+            window.clearBuffer = function () {
+                const drafts = getDraftGames();
+                if (drafts.length === 0) { showToast('缓冲区为空', 1500); return; }
+                if (!confirm(`确定清空缓冲区（共 ${drafts.length} 款）？将同时从云端删除这些记录，且无法恢复。`)) return;
+                (async () => {
+                    const client = getSupabase();
+                    if (client) {
+                        setSyncStatus('syncing');
+                        for (const g of drafts) {
+                            const { error } = await client.from('games').delete().eq('id', g.id);
+                            if (error) {
+                                setSyncStatus('error', error.message);
+                                showToast('❌ 清空失败: ' + error.message, 2500);
+                                return;
+                            }
+                        }
+                    }
+                    games = games.filter(g => !g.isDraft);
+                    saveGamesToLocal();
+                    invalidateSyncCache();
+                    renderGallery();
+                    if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
+                    setSyncStatus('synced');
+                    showToast('🗑 缓冲区已清空', 1500);
+                })();
+            };
 
             function importCSV(file) {
                 if (!isAdmin) { showToast('⚠️ 仅管理员可导入', 1500); return; }
@@ -3603,6 +3838,7 @@
                                     isPSExclusive: false, isNSExclusive: false,
                                     hasMacSupport: '', videos: [], screenshots: [],
                                     otherLinks: '', isReleased: true,
+                                    isDraft: true, // ★ CSV 导入一律先进入缓冲区，完善后上架
                                     series: (row['系列名'] || '').trim(),
                                     seriesOrder: parseInt(row['系列排序']) || 0
                                 };
@@ -3613,15 +3849,28 @@
                                 const client = getSupabase();
                                 if (client) {
                                     setSyncStatus('syncing');
+                                    let upsertError = null;
                                     for (let i = 0; i < games.length; i += 50) {
                                         const batch = games.slice(i, i + 50);
-                                        await client.from('games').upsert(batch, { onConflict: 'id' });
+                                        const { error } = await client.from('games').upsert(batch, { onConflict: 'id' });
+                                        if (error) { upsertError = error; break; }
                                     }
-                                    setSyncStatus('synced');
+                                    if (upsertError) {
+                                        setSyncStatus('error', upsertError.message);
+                                        if (/is_draft|isDraft|column/i.test(upsertError.message || '')) {
+                                            showToast('⚠️ 云端缺少 is_draft 列，请在 Supabase 执行 add_is_draft_column.sql', 3500);
+                                        } else {
+                                            showToast('❌ 同步失败: ' + upsertError.message, 2500);
+                                        }
+                                    } else {
+                                        setSyncStatus('synced');
+                                    }
                                 }
+                                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); } catch (_) {}
                                 renderGallery();
+                                if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
                                 invalidateSyncCache();
-                                showToast(`✅ 成功导入 ${added} 款游戏`, 2500);
+                                showToast(`📥 已导入 ${added} 款到缓冲区，完善后点击「上架」`, 2500);
                             } else {
                                 showToast('⚠️ 没有导入任何游戏', 2000);
                             }
@@ -3860,7 +4109,7 @@
                     sp.textContent = '无中文';
                     meta.appendChild(sp);
                 }
-                if (game.isReleased) {
+                if (isGameReleased(game)) {
                     (game.genre || []).slice(0, 3).forEach(t => {
                         const sp = document.createElement('span');
                         sp.style.cssText =
@@ -4152,7 +4401,7 @@
 
                 const platforms = (game.platforms || []).map(p => `<span>${escapeHTML(p)}</span>`).join('');
                 let otherRows = '';
-                if (game.isReleased) {
+                if (isGameReleased(game)) {
                     otherRows =
                         `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
                           <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
@@ -4264,14 +4513,14 @@
                         </div>
                     `;
 
-                const detailPlayBtnHtml = game.isReleased ?
+                const detailPlayBtnHtml = isGameReleased(game) ?
                     `<button class="btn btn-sm" data-game-id="${game.id}" id="detailPlayBtn"><span class="icon">${isPlayed(game.id) ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span> ${isPlayed(game.id) ? '取消玩过标记' : '标记为玩过'}</button>` :
                     '';
 
                 // 构建系列作品区块HTML
                 let seriesSectionHtml = '';
                 if (game.series && game.series.trim()) {
-                    const seriesGames = games.filter(g => g.series === game.series).sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
+                    const seriesGames = games.filter(g => !g.isDraft && g.series === game.series).sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
                     if (seriesGames.length > 1) {
                         const seriesItemsHtml = seriesGames.map(g => {
                             const isCurrent = g.id === game.id;
@@ -4304,7 +4553,7 @@
                                 <button class="detail-back-btn" id="detailBackBtn">
                                     <span class="back-icon">←</span> 返回列表
                                 </button>
-                                <span class="detail-status-label">${game.isReleased ? '📀 已发售' : '⏳ 未发售'}</span>
+                                <span class="detail-status-label">${isGameReleased(game) ? '📀 已发售' : '⏳ 未发售'}</span>
                                 <span class="detail-id">#${game.id}</span>
                                 <button class="detail-share-btn" id="detailShareBtn">📤 分享</button>
                             </div>
@@ -4732,31 +4981,42 @@
                 // 2. 云端同步
                 if (supabaseClient) {
                     try {
-                        if (!wasLiked) {
-                            const { error } = await supabaseClient.from('review_likes')
-                                .insert({ review_id: reviewDbId, user_id: currentUser.id });
-                            // 23505 = 唯一约束冲突（已点过），忽略
-                            if (error && error.code !== '23505') throw error;
-                        } else {
-                            const { error } = await supabaseClient.from('review_likes')
-                                .delete().eq('review_id', reviewDbId).eq('user_id', currentUser.id);
-                            if (error) throw error;
+                        // 优先使用 RPC（原子化：单次往返完成插入/删除+计数）
+                        const { data: newCount, error: rpcErr } = await supabaseClient
+                            .rpc('toggle_review_like', { p_review_id: reviewDbId, p_user_id: currentUser.id });
+                        if (!rpcErr && typeof newCount === 'number') {
+                            _reviewLikesCache[reviewDbId].count = newCount;
+                            return !wasLiked;
                         }
-                    } catch (e) {
-                        console.error('评论点赞云端同步失败:', e);
-                        // 回滚本地
-                        const likes2 = getReviewLikesLocal();
-                        if (likes2[reviewDbId]) {
-                            const i = likes2[reviewDbId].indexOf(currentUser.id);
-                            if (!wasLiked && i >= 0) likes2[reviewDbId].splice(i, 1);
-                            else if (wasLiked && i === -1) likes2[reviewDbId].push(currentUser.id);
-                            saveReviewLikesLocal(likes2);
+                        throw (rpcErr || new Error('rpc no data'));
+                    } catch (_e) {
+                        try {
+                            if (!wasLiked) {
+                                const { error } = await supabaseClient.from('review_likes')
+                                    .insert({ review_id: reviewDbId, user_id: currentUser.id });
+                                // 23505 = 唯一约束冲突（已点过），忽略
+                                if (error && error.code !== '23505') throw error;
+                            } else {
+                                const { error } = await supabaseClient.from('review_likes')
+                                    .delete().eq('review_id', reviewDbId).eq('user_id', currentUser.id);
+                                if (error) throw error;
+                            }
+                        } catch (e) {
+                            console.error('评论点赞云端同步失败:', e);
+                            // 回滚本地
+                            const likes2 = getReviewLikesLocal();
+                            if (likes2[reviewDbId]) {
+                                const i = likes2[reviewDbId].indexOf(currentUser.id);
+                                if (!wasLiked && i >= 0) likes2[reviewDbId].splice(i, 1);
+                                else if (wasLiked && i === -1) likes2[reviewDbId].push(currentUser.id);
+                                saveReviewLikesLocal(likes2);
+                            }
+                            _reviewLikesCache[reviewDbId].liked = wasLiked;
+                            _reviewLikesCache[reviewDbId].count += (wasLiked ? 1 : -1);
+                            if (_reviewLikesCache[reviewDbId].count < 0) _reviewLikesCache[reviewDbId].count = 0;
+                            showToast('⚠️ 操作失败，请重试', 1500);
+                            return wasLiked;
                         }
-                        _reviewLikesCache[reviewDbId].liked = wasLiked;
-                        _reviewLikesCache[reviewDbId].count += (wasLiked ? 1 : -1);
-                        if (_reviewLikesCache[reviewDbId].count < 0) _reviewLikesCache[reviewDbId].count = 0;
-                        showToast('⚠️ 操作失败，请重试', 1500);
-                        return wasLiked;
                     }
                 }
                 return !wasLiked;
@@ -4803,7 +5063,21 @@
                 const replyTree = buildGameReplyTree([...flatReplies]);
                 let repliesHtml = '';
                 if (replyTree.length > 0) {
-                    repliesHtml = '<div class="comment-reply-list">' + renderGameReplyTree(replyTree, reviewId, 0, flatReplies) + '</div>';
+                    // ★ 回复分页：默认只渲染前 REPLY_CHUNK 个根回复（含其全部子回复），
+                    //   超出部分通过"加载更多"展开，减少首屏 DOM 与渲染开销
+                    const revealed = _replyReveal[reviewId] || REPLY_CHUNK;
+                    let treeForRender = replyTree;
+                    let hiddenRoots = 0;
+                    if (replyTree.length > revealed) {
+                        treeForRender = replyTree.slice(0, revealed);
+                        hiddenRoots = replyTree.length - revealed;
+                    }
+                    repliesHtml = '<div class="comment-reply-list">' + renderGameReplyTree(treeForRender, reviewId, 0, flatReplies) + '</div>';
+                    if (hiddenRoots > 0) {
+                        repliesHtml += `<div class="comment-replies-more" style="text-align:center;padding:6px 0;">
+                            <button class="btn btn-sm comment-replies-more-btn" data-review-id="${reviewId}" data-reveal="${revealed + REPLY_CHUNK}">展开更多回复（${hiddenRoots}）</button>
+                        </div>`;
+                    }
                 }
 
                 const customIdHtml = r.custom_id
@@ -4883,8 +5157,36 @@
                 });
             }
 
-            // 绑定游戏评论回复事件
+            // ★ 展开更多回复：增加该评论的根回复展示数并局部重渲染
+            async function revealMoreReplies(btn) {
+                const reviewId = btn.dataset.reviewId;
+                const reveal = Number(btn.dataset.reveal) || 0;
+                _replyReveal[reviewId] = reveal;
+                const gameId = Number(String(reviewId).split('_')[0]);
+                if (!gameId) return;
+                const cached = _reviewsListCache[String(gameId)];
+                if (!cached) { loadCommunityReviews(gameId); return; }
+                const review = cached.reviews.find(x => x.id === reviewId || `${gameId}_${x.user_id}` === reviewId);
+                if (!review) return;
+                const itemEl = document.querySelector('.comment-item[data-review-id="' + reviewId + '"]');
+                if (!itemEl) return;
+                const html = await renderReviewItem(review, gameId, cached.repliesMap);
+                const wrap = document.createElement('div');
+                wrap.innerHTML = html;
+                const newItem = wrap.firstElementChild;
+                if (!newItem) return;
+                itemEl.replaceWith(newItem);
+                bindReviewShareButtons(newItem);
+                bindGameCommentReplyEvents(newItem);
+            }
+
             function bindGameCommentReplyEvents(container) {
+                // 回复分页：展开更多
+                container.querySelectorAll('.comment-replies-more-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        revealMoreReplies(this);
+                    });
+                });
                 // 回复按钮（含嵌套回复）
                 container.querySelectorAll('.comment-reply-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
@@ -5055,12 +5357,64 @@
                 });
             }
 
+            // ★ 评论区 Realtime：新回复/点赞实时刷新（订阅一次，全局复用）
+            function initCommentRealtime() {
+                if (!supabaseClient || _commentRealtimeListener) return;
+                try {
+                    _commentRealtimeListener = supabaseClient
+                        .channel('comment-changes')
+                        .on('postgres_changes', {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'game_comment_replies'
+                        }, (payload) => {
+                            const row = payload.new || {};
+                            const gameId = row.game_id;
+                            if (gameId == null) return;
+                            const overlay = document.getElementById('detailModalOverlay');
+                            if (!overlay || !overlay.classList.contains('show')) return;
+                            const openGameId = overlay.dataset.gameId;
+                            if (openGameId && String(openGameId) === String(gameId)) {
+                                invalidateReviewsListCache(Number(gameId));
+                                clearTimeout(_commentRtDebounce);
+                                _commentRtDebounce = setTimeout(() => {
+                                    try { loadCommunityReviews(Number(gameId)); } catch (_) {}
+                                }, 800);
+                            }
+                        })
+                        .on('postgres_changes', {
+                            event: '*',
+                            schema: 'public',
+                            table: 'review_likes'
+                        }, (payload) => {
+                            if (payload.eventType !== 'INSERT' && payload.eventType !== 'DELETE') return;
+                            const row = payload.eventType === 'INSERT' ? payload.new : payload.old;
+                            const reviewDbId = row ? row.review_id : null;
+                            const userId = row ? row.user_id : null;
+                            if (!reviewDbId) return;
+                            // 自己触发的点赞变化已由 toggleReviewLike 本地处理，跳过避免重复计数
+                            if (userId && currentUser && userId === currentUser.id) return;
+                            const entry = _reviewLikesCache[reviewDbId];
+                            if (!entry) return;
+                            const delta = payload.eventType === 'INSERT' ? 1 : -1;
+                            entry.count = Math.max(0, (entry.count || 0) + delta);
+                            document.querySelectorAll('.comment-like-btn[data-review-db-id="' + reviewDbId + '"]').forEach(btn => {
+                                const span = btn.querySelector('.like-count');
+                                if (span) span.textContent = entry.count > 0 ? entry.count : '';
+                            });
+                        })
+                        .subscribe();
+                } catch (_) { }
+            }
+
             async function loadCommunityReviews(gameId) {
                 const statsDisplay = document.getElementById('ratingStatsDisplay');
                 const commentsList = document.getElementById('communityCommentsList');
                 if (!statsDisplay || !commentsList) return;
 
+                initCommentRealtime();
                 _reviewPage[gameId] = 0;
+                _replyReveal = {};
 
                 // ★ 优化：优先使用短期缓存（2分钟内重复打开同一详情页直接复用数据）
                 const cacheKey = String(gameId);
@@ -7730,6 +8084,23 @@
                     showToast('请先登录', 1500);
                     return;
                 }
+                // ★ 优先使用 RPC：单次往返完成 判断+插入/删除+计数更新
+                let likedNow = null;
+                try {
+                    const { data, error } = await supabaseClient
+                        .rpc('toggle_mod_like', { p_post_id: postId, p_user_id: currentUser.id });
+                    if (!error) likedNow = !!data;
+                } catch (_) {}
+                if (likedNow !== null) {
+                    if (likedNow) {
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post && post.user_id && post.user_id !== currentUser.id) {
+                            createModNotification(post.user_id, 'like', postId);
+                        }
+                    }
+                    return;
+                }
+                // 回退：老逻辑（select 后 insert/delete + 计数RPC）
                 try {
                     const { data: existing } = await supabaseClient.from('mod_likes')
                         .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
@@ -7779,6 +8150,23 @@
                     showToast('请先登录', 1500);
                     return;
                 }
+                // ★ 优先使用 RPC：单次往返完成 判断+插入/删除+计数更新
+                let thankedNow = null;
+                try {
+                    const { data, error } = await supabaseClient
+                        .rpc('toggle_mod_thanks', { p_post_id: postId, p_user_id: currentUser.id });
+                    if (!error) thankedNow = !!data;
+                } catch (_) {}
+                if (thankedNow !== null) {
+                    if (thankedNow) {
+                        const post = modPosts.find(p => p.id === postId);
+                        if (post && post.user_id && post.user_id !== currentUser.id) {
+                            createModNotification(post.user_id, 'thanks', postId);
+                        }
+                    }
+                    return;
+                }
+                // 回退：老逻辑（select 后 insert/delete + 计数RPC）
                 try {
                     const { data: existing } = await supabaseClient.from('mod_thanks')
                         .select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
@@ -8633,24 +9021,54 @@
                 const container = document.getElementById('modDetailContainer');
                 if (!overlay || !container) return;
 
-                // 并行执行所有独立查询（从4批次优化为2批次）
-                const [counts, userState, thanksList, comments] = await Promise.all([
-                    // 批次1：计数查询
-                    supabaseClient ? Promise.all([
+                // ★ 优化：计数与用户状态优先走 RPC（单次往返），失败回退到多条查询
+                const fetchDetailData = async () => {
+                    if (!supabaseClient) return { counts: [null, null, null], userState: [false, false] };
+                    try {
+                        const countsRes = await supabaseClient.rpc('get_mod_post_counts', { p_post_ids: [post.id] });
+                        if (!countsRes.error && countsRes.data && countsRes.data.length > 0) {
+                            let liked = false;
+                            let thanked = false;
+                            if (currentUser) {
+                                const stateRes = await supabaseClient.rpc('get_mod_user_state', { p_post_id: post.id, p_user_id: currentUser.id });
+                                if (!stateRes.error && stateRes.data && stateRes.data[0]) {
+                                    liked = !!stateRes.data[0].liked;
+                                    thanked = !!stateRes.data[0].thanked;
+                                }
+                            }
+                            const row = countsRes.data[0];
+                            return {
+                                counts: [{ count: row.likes_count }, { count: row.thanks_count }, { count: row.comments_count }],
+                                userState: [liked, thanked]
+                            };
+                        }
+                    } catch (_) {}
+                    // 回退：分多条查询
+                    const counts = await Promise.all([
                         supabaseClient.from('mod_likes').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
                         supabaseClient.from('mod_thanks').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
                         supabaseClient.from('mod_comments').select('id', { count: 'exact', head: true }).eq('post_id', post.id)
-                    ]).catch(() => [null, null, null]) : [null, null, null],
-                    // 批次2：用户状态查询
-                    currentUser && supabaseClient ? Promise.all([
-                        checkUserModLike(post.id),
-                        checkUserModThanks(post.id)
-                    ]).catch(() => [false, false]) : [false, false],
-                    // 批次3：感谢列表
+                    ]).catch(() => [null, null, null]);
+                    let userState = [false, false];
+                    if (currentUser) {
+                        userState = await Promise.all([
+                            checkUserModLike(post.id),
+                            checkUserModThanks(post.id)
+                        ]).catch(() => [false, false]);
+                    }
+                    return { counts, userState };
+                };
+
+                // 并行执行所有独立查询
+                const [detail, thanksList, comments] = await Promise.all([
+                    fetchDetailData(),
+                    // 感谢列表
                     fetchModThanksList(post.id).catch(() => []),
-                    // 批次4：评论列表
+                    // 评论列表
                     fetchModComments(post.id).catch(() => [])
                 ]);
+
+                const { counts, userState } = detail;
 
                 // 更新计数
                 if (counts[0]) post.likes_count = counts[0].count || post.likes_count || 0;
@@ -9184,7 +9602,7 @@
                     const q = this.value.trim().toLowerCase();
                     if (q.length < 1) { listEl.classList.remove('show'); return; }
                     const matches = games.filter(g =>
-                        g.title && g.title.toLowerCase().includes(q)
+                        !g.isDraft && g.title && g.title.toLowerCase().includes(q)
                     ).slice(0, 6);
                     if (matches.length === 0) { listEl.classList.remove('show'); return; }
                     listEl.innerHTML = matches.map(g => {
@@ -9432,6 +9850,157 @@
                 });
             }
 
+            // ================================================================
+            // 忘记密码（发送重置邮件）
+            // ================================================================
+            function openForgotForm() {
+                if (!supabaseClient) { showToast('Supabase 未初始化', 1500); return; }
+                const forgotForm = document.getElementById('forgotPasswordForm');
+                const wrap = document.getElementById('forgotFormWrap');
+                const sentMsg = document.getElementById('forgotSentMsg');
+                if (wrap) wrap.style.display = 'block';
+                if (sentMsg) sentMsg.style.display = 'none';
+                if (document.getElementById('forgotEmail')) document.getElementById('forgotEmail').value = '';
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('emailConfirmMessage').style.display = 'none';
+                document.getElementById('authErrorMsg').textContent = '';
+                forgotForm.style.display = 'block';
+            }
+
+            function backToLoginFromForgot() {
+                document.getElementById('forgotPasswordForm').style.display = 'none';
+                switchAuthTab('login');
+            }
+
+            function handleForgotPassword() {
+                const email = document.getElementById('forgotEmail').value.trim();
+                const errorEl = document.getElementById('authErrorMsg');
+                if (!email) { errorEl.textContent = '请输入邮箱地址'; return; }
+                if (!supabaseClient) { errorEl.textContent = 'Supabase 未初始化'; return; }
+
+                errorEl.textContent = '';
+                const btn = document.getElementById('forgotSendBtn');
+                btn.disabled = true;
+                btn.textContent = '发送中...';
+
+                supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + window.location.pathname
+                }).then(({ error }) => {
+                    btn.disabled = false;
+                    btn.textContent = '发送重置链接';
+                    if (error) {
+                        errorEl.textContent = error.message;
+                    } else {
+                        const wrap = document.getElementById('forgotFormWrap');
+                        const sentMsg = document.getElementById('forgotSentMsg');
+                        if (wrap) wrap.style.display = 'none';
+                        if (sentMsg) sentMsg.style.display = 'block';
+                        showToast('📨 重置链接已发送，请查收邮箱', 3000);
+                    }
+                }).catch(err => {
+                    btn.disabled = false;
+                    btn.textContent = '发送重置链接';
+                    errorEl.textContent = err.message || '发送失败，请重试';
+                });
+            }
+
+            // ================================================================
+            // 重置密码（邮件链接落地页）
+            // ================================================================
+            function openResetPwModal() {
+                document.getElementById('resetPwMsg').textContent = '';
+                document.getElementById('resetPwInput').value = '';
+                document.getElementById('resetPwConfirm').value = '';
+                document.getElementById('resetPwModalOverlay').classList.add('show');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => document.getElementById('resetPwInput')?.focus(), 50);
+            }
+
+            function closeResetPwModal() {
+                document.getElementById('resetPwModalOverlay').classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            function handleResetPassword() {
+                const pw = document.getElementById('resetPwInput').value;
+                const confirmPw = document.getElementById('resetPwConfirm').value;
+                const msg = document.getElementById('resetPwMsg');
+                if (!pw) { msg.textContent = '请输入新密码'; return; }
+                if (pw.length < 6) { msg.textContent = '密码至少6位'; return; }
+                if (pw !== confirmPw) { msg.textContent = '两次输入的密码不一致'; return; }
+                if (!supabaseClient) { msg.textContent = 'Supabase 未初始化'; return; }
+
+                msg.textContent = '';
+                const btn = document.getElementById('resetPwBtn');
+                btn.disabled = true;
+                btn.textContent = '保存中...';
+
+                supabaseClient.auth.updateUser({ password: pw }).then(({ error }) => {
+                    btn.disabled = false;
+                    btn.textContent = '保存新密码';
+                    if (error) {
+                        msg.textContent = error.message;
+                    } else {
+                        closeResetPwModal();
+                        showToast('✅ 密码已更新', 2500);
+                        // 清除 URL 中的恢复令牌，避免刷新页面时重复触发
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    }
+                }).catch(err => {
+                    btn.disabled = false;
+                    btn.textContent = '保存新密码';
+                    msg.textContent = err.message || '保存失败，请重试';
+                });
+            }
+
+            // ================================================================
+            // 更改邮箱
+            // ================================================================
+            async function changeEmail() {
+                if (!currentUser) { showToast('请先登录', 1500); return; }
+                if (!supabaseClient) { showToast('Supabase 未初始化', 1500); return; }
+                const input = document.getElementById('profileNewEmail');
+                const msg = document.getElementById('profileEmailMsg');
+                const newEmail = input.value.trim();
+                if (!newEmail) {
+                    msg.textContent = '请输入新邮箱地址';
+                    msg.style.color = 'var(--danger)';
+                    return;
+                }
+                if (newEmail === currentUser.email) {
+                    msg.textContent = '新邮箱与当前邮箱相同';
+                    msg.style.color = 'var(--danger)';
+                    return;
+                }
+
+                const btn = document.getElementById('profileChangeEmailBtn');
+                btn.disabled = true;
+                btn.textContent = '发送中...';
+                msg.textContent = '';
+
+                try {
+                    const { error } = await supabaseClient.auth.updateUser(
+                        { email: newEmail },
+                        { emailRedirectTo: window.location.origin }
+                    );
+                    if (error) {
+                        msg.textContent = error.message;
+                        msg.style.color = 'var(--danger)';
+                    } else {
+                        msg.textContent = '📨 验证邮件已发送到新邮箱，请点击邮件中的链接完成更换（原邮箱也会收到通知）';
+                        msg.style.color = 'var(--success, #4caf50)';
+                    }
+                } catch (e) {
+                    msg.textContent = e.message || '发送失败，请重试';
+                    msg.style.color = 'var(--danger)';
+                }
+                btn.disabled = false;
+                btn.textContent = '📧 更换邮箱';
+            }
+
             function openAuthModal() {
                 const overlay = document.getElementById('authModalOverlay');
                 overlay.classList.add('show');
@@ -9439,6 +10008,14 @@
                 switchAuthTab('login');
                 document.getElementById('authErrorMsg').textContent = '';
                 document.getElementById('emailConfirmMessage').style.display = 'none';
+                const forgotForm = document.getElementById('forgotPasswordForm');
+                if (forgotForm) {
+                    forgotForm.style.display = 'none';
+                    const wrap = document.getElementById('forgotFormWrap');
+                    const sentMsg = document.getElementById('forgotSentMsg');
+                    if (wrap) wrap.style.display = 'block';
+                    if (sentMsg) sentMsg.style.display = 'none';
+                }
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('registerForm').style.display = 'none';
             }
@@ -9454,8 +10031,10 @@
                 const loginForm = document.getElementById('loginForm');
                 const registerForm = document.getElementById('registerForm');
                 const confirmMsg = document.getElementById('emailConfirmMessage');
+                const forgotForm = document.getElementById('forgotPasswordForm');
                 const errorEl = document.getElementById('authErrorMsg');
                 errorEl.textContent = '';
+                if (forgotForm) forgotForm.style.display = 'none';
 
                 if (tab === 'login') {
                     loginTab.classList.add('active');
@@ -9491,6 +10070,14 @@
                 const metadata = currentUser.user_metadata || {};
                 nameInput.value = metadata.display_name || '';
                 customIdInput.value = metadata.custom_id || '';
+
+                // 邮箱字段
+                const emailCurrent = document.getElementById('profileEmailCurrent');
+                if (emailCurrent) emailCurrent.textContent = currentUser.email ? `（当前：${currentUser.email}）` : '';
+                const emailInput = document.getElementById('profileNewEmail');
+                if (emailInput) emailInput.value = '';
+                const emailMsg = document.getElementById('profileEmailMsg');
+                if (emailMsg) emailMsg.textContent = '';
 
                 // 初始化显示名称状态
                 displayNameMsg.textContent = '';
@@ -10394,6 +10981,33 @@
                     if (e.key === 'Enter') handleRegister();
                 });
 
+                // 忘记密码
+                document.getElementById('loginForgotLink').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openForgotForm();
+                });
+                document.getElementById('forgotSendBtn').addEventListener('click', handleForgotPassword);
+                document.getElementById('forgotBackToLogin').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    backToLoginFromForgot();
+                });
+                document.getElementById('forgotEmail').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleForgotPassword();
+                });
+
+                // 设置新密码弹窗
+                document.getElementById('resetPwModalClose').addEventListener('click', closeResetPwModal);
+                document.getElementById('resetPwModalOverlay').addEventListener('click', function (e) {
+                    if (e.target === this) closeResetPwModal();
+                });
+                document.getElementById('resetPwBtn').addEventListener('click', handleResetPassword);
+                document.getElementById('resetPwInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleResetPassword();
+                });
+                document.getElementById('resetPwConfirm').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleResetPassword();
+                });
+
                 document.getElementById('profileModalClose').addEventListener('click', closeProfileModal);
                 document.getElementById('profileModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeProfileModal();
@@ -10477,6 +11091,7 @@
                     }
                 });
                 document.getElementById('profileSaveBtn').addEventListener('click', saveProfile);
+                document.getElementById('profileChangeEmailBtn').addEventListener('click', changeEmail);
                 document.getElementById('profileDisplayName').addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -10534,6 +11149,14 @@
                     const file = this.files[0];
                     if (file) importCSV(file);
                 });
+                const bufferBtn = document.getElementById('btnBuffer');
+                if (bufferBtn) bufferBtn.addEventListener('click', openBuffer);
+                const bufferOverlay = document.getElementById('bufferModalOverlay');
+                if (bufferOverlay) {
+                    bufferOverlay.addEventListener('click', function (e) {
+                        if (e.target === bufferOverlay) closeBuffer();
+                    });
+                }
                 document.getElementById('editModalOverlay').addEventListener('click', function (e) {
                     // 不允许点击遮罩关闭编辑弹窗，避免误触导致填写内容丢失
                 });
@@ -11406,6 +12029,7 @@
                 resetActiveFilters();
                 bindGlobalEvents();
                 updateAdminUI();
+                syncAutoReleasedGames(); // 管理员：发售日到期但未标记的游戏自动改为已发售
                 if (currentView === 'series') {
                     renderSeriesView();
                 } else {
@@ -11440,6 +12064,15 @@
 
                 if (supabaseClient) {
                     supabaseClient.auth.onAuthStateChange((event, session) => {
+                        // 邮箱重置链接落地：打开"设置新密码"弹窗
+                        if (event === 'PASSWORD_RECOVERY') {
+                            openResetPwModal();
+                        }
+                        // 用户信息变更（如更换邮箱确认后）：刷新显示
+                        if (event === 'USER_UPDATED' && session) {
+                            const el = document.getElementById('profileEmailCurrent');
+                            if (el && session.user) el.textContent = session.user.email ? `（当前：${session.user.email}）` : '';
+                        }
                         if (session) {
                             currentUser = session.user;
                             updateUIForLoggedIn(currentUser);

@@ -3025,6 +3025,116 @@
             }
         }
 
+        /* ---------- 导入缓冲区弹窗：居中窄弹窗（与编辑弹窗一致） ---------- */
+        @media (min-width: 769px) {
+            #bufferModalOverlay {
+                display: none;
+                align-items: flex-start;
+                justify-content: center;
+                padding: 40px 20px;
+                overflow-y: auto;
+                background: var(--overlay);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+            }
+            #bufferModalOverlay.show {
+                display: flex;
+            }
+            #bufferModalOverlay .modal {
+                background: var(--surface2);
+                border-radius: 16px;
+                border: 1px solid var(--border);
+                max-width: 760px;
+                width: 100%;
+                max-height: calc(100vh - 80px);
+                height: auto;
+                min-height: unset;
+                box-shadow: var(--shadow-lg);
+                padding: 20px 24px 24px;
+                overflow-y: auto;
+                margin: 0 auto;
+            }
+            #bufferModalOverlay .modal .modal-close {
+                display: flex !important;
+                position: sticky;
+                top: 0;
+                float: right;
+                font-size: 1.1rem;
+                cursor: pointer;
+                color: var(--text2);
+                z-index: 10;
+                background: var(--modal-bg);
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid var(--border);
+                transition: all .2s;
+                margin-left: auto;
+                margin-bottom: 8px;
+            }
+            #bufferModalOverlay .modal .modal-close:hover {
+                color: var(--danger);
+                border-color: var(--danger);
+                transform: rotate(90deg);
+            }
+        }
+
+        /* 编辑弹窗需叠在缓冲区弹窗之上（缓冲区中点「编辑」时） */
+        #editModalOverlay { z-index: 1050; }
+
+        /* ---------- 缓冲区列表项 ---------- */
+        .buffer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .buffer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+        }
+        .buffer-info {
+            min-width: 0;
+            flex: 1;
+        }
+        .buffer-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .buffer-meta {
+            font-size: 0.78rem;
+            color: var(--text3);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .buffer-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .buffer-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .buffer-actions {
+                justify-content: flex-end;
+            }
+        }
+
         .modal {
             background: var(--bg);
             border-radius: 0;

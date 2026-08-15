@@ -205,6 +205,7 @@
             <button class="btn btn-sm" id="btnToggleAdmin" title="切换管理模式" style="display:none;">🔧 管理</button>
             <button class="btn btn-sm" id="btnAddGame" title="手动添加游戏" style="display:none;">＋ 添加</button>
             <button class="btn btn-sm" id="btnImportCSV" title="从CSV批量导入" style="display:none;">📂 导入</button>
+            <button class="btn btn-sm" id="btnBuffer" title="查看导入缓冲区（CSV导入的游戏先在此完善）" style="display:none;">🗂 缓冲区</button>
             <input type="file" id="csvFileInput" accept=".csv" style="display:none;" />
 
             <span class="sync-status" id="syncStatus">☁️ 已同步</span>
@@ -430,6 +431,11 @@
         <div class="modal" id="editModal"></div>
     </div>
 
+    <!-- ===== 导入缓冲区弹窗（仅管理员可见） ===== -->
+    <div class="modal-overlay" id="bufferModalOverlay">
+        <div class="modal" id="bufferModal"></div>
+    </div>
+
     <!-- ===== 成就弹窗 ===== -->
     <div class="modal-overlay" id="achievementModalOverlay">
         <div class="modal" id="achievementModal">
@@ -493,7 +499,10 @@
                     <input type="password" id="loginPassword" placeholder="密码" />
                 </div>
                 <button class="btn btn-accent" id="loginBtn" style="width:100%; padding:12px;">登录</button>
-                <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
+                <p style="text-align:center; margin-top:10px; font-size:0.85rem;">
+                    <a href="#" id="loginForgotLink" style="color:var(--accent);">忘记密码？</a>
+                </p>
+                <p style="text-align:center; margin-top:6px; font-size:0.85rem; color:var(--text3);">
                     还没有账号？ <a href="#" id="switchToRegister" style="color:var(--accent);">立即注册</a>
                 </p>
             </div>
@@ -520,6 +529,26 @@
                 <h3>验证邮件已发送</h3>
                 <p style="color:var(--text2);">请查收你的邮箱，点击验证链接完成注册。</p>
                 <button class="btn" id="resendConfirmBtn" style="margin-top:12px;">重新发送验证邮件</button>
+            </div>
+
+            <div id="forgotPasswordForm" style="display:none;">
+                <div id="forgotFormWrap">
+                    <h2 style="text-align:center; margin-bottom:8px;">重置密码</h2>
+                    <p style="text-align:center; color:var(--text2); margin-bottom:20px;">输入注册邮箱，我们将发送重置链接</p>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" id="forgotEmail" placeholder="you@example.com" />
+                    </div>
+                    <button class="btn btn-accent" id="forgotSendBtn" style="width:100%; padding:12px;">发送重置链接</button>
+                    <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
+                        <a href="#" id="forgotBackToLogin" style="color:var(--accent);">返回登录</a>
+                    </p>
+                </div>
+                <div id="forgotSentMsg" style="display:none; text-align:center; padding:20px;">
+                    <div style="font-size:3rem;">📨</div>
+                    <h3>重置链接已发送</h3>
+                    <p style="color:var(--text2);">请查收你的邮箱，点击链接设置新密码。</p>
+                </div>
             </div>
 
             <div style="margin-top: 12px; color:var(--danger); font-size:0.85rem; text-align:center;" id="authErrorMsg">
@@ -562,6 +591,15 @@
                         <button class="btn btn-sm" id="profileCheckIdBtn" style="white-space:nowrap; padding:6px 12px; font-size:0.8rem;">检查可用</button>
                     </div>
                     <div id="profileCustomIdMsg" style="font-size:0.78rem; margin-top:4px; min-height:16px;"></div>
+                </div>
+
+                <div class="form-group" style="width:100%;">
+                    <label>邮箱 <span id="profileEmailCurrent" style="font-size:0.75rem; color:var(--text3); font-weight:normal;"></span></label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="email" id="profileNewEmail" placeholder="输入新邮箱地址" style="flex:1;" />
+                        <button class="btn btn-sm" id="profileChangeEmailBtn" style="white-space:nowrap; padding:6px 12px; font-size:0.8rem;">📧 更换邮箱</button>
+                    </div>
+                    <div id="profileEmailMsg" style="font-size:0.78rem; margin-top:4px; min-height:16px;"></div>
                 </div>
 
                 <button class="btn btn-accent" id="profileSaveBtn" style="width:100%; padding:10px;">💾 保存资料</button>
@@ -748,6 +786,25 @@
     <!-- ===== 快捷键提示 ===== -->
     <div class="shortcut-hint" id="shortcutHint">
         按 <kbd>?</kbd> 查看快捷键 · <kbd>/</kbd> 搜索 · <kbd>R</kbd> 随机
+    </div>
+
+    <!-- ===== 设置新密码弹窗（邮件重置链接落地页） ===== -->
+    <div class="modal-overlay" id="resetPwModalOverlay">
+        <div class="modal" id="resetPwModal" style="max-width:420px;">
+            <button class="modal-close" id="resetPwModalClose">✕</button>
+            <h2 style="text-align:center; margin-bottom:8px;">🔑 设置新密码</h2>
+            <p style="text-align:center; color:var(--text2); margin-bottom:20px;">请输入你的新密码</p>
+            <div class="form-group">
+                <label>新密码（至少6位）</label>
+                <input type="password" id="resetPwInput" placeholder="设置新密码" />
+            </div>
+            <div class="form-group">
+                <label>确认新密码</label>
+                <input type="password" id="resetPwConfirm" placeholder="再次输入新密码" />
+            </div>
+            <button class="btn btn-accent" id="resetPwBtn" style="width:100%; padding:12px;">保存新密码</button>
+            <div style="margin-top:12px; color:var(--danger); font-size:0.85rem; text-align:center;" id="resetPwMsg"></div>
+        </div>
     </div>
 
     <!-- ===== 页脚水印 ===== -->
