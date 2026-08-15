@@ -3539,6 +3539,7 @@
                 // 保留草稿标记：缓冲区中的游戏编辑保存后仍为草稿，上架由缓冲区「上架」按钮触发
                 const _editExisting = games.find(g => g.id === gameData.id);
                 if (_editExisting && _editExisting.isDraft) gameData.isDraft = true;
+                sanitizeGameEnums(gameData);
 
                 for (const field of ['cover', 'steamLink']) {
                     const val = gameData[field];
@@ -3738,6 +3739,7 @@
                 }
                 g.isDraft = false;
                 g.isReleased = computeReleased(g.releaseDate);
+                sanitizeGameEnums(g); // 清洗枚举，兼容此前已导入的旧草稿
                 const client = getSupabase();
                 if (client) {
                     setSyncStatus('syncing');
@@ -3763,6 +3765,7 @@
                 drafts.forEach(g => {
                     g.isDraft = false;
                     g.isReleased = computeReleased(g.releaseDate);
+                    sanitizeGameEnums(g);
                 });
                 const client = getSupabase();
                 if (client) {
@@ -3977,6 +3980,54 @@
                 });
             }
 
+            // ---- 枚举字段清洗：保证入库值符合云端 check 约束（如 games_heroine_type_check） ----
+            function normalizePerspective(v) {
+                const s = String(v || '').trim();
+                if (PERSPECTIVE_OPTIONS.includes(s)) return s;
+                if (s.includes('横')) return '横版';
+                if (s.includes('切换')) return '可切换人称';
+                if (s.includes('第一')) return '第一人称';
+                return '第三人称';
+            }
+            function normalizeHeroineType(v) {
+                const s = String(v || '').trim();
+                if (HEROINE_TYPE_OPTIONS.includes(s)) return s;
+                if (s.includes('可选')) return '可选女主';
+                if (s.includes('动物')) return '动物女主';
+                if (s.includes('双')) return '双女主';
+                if (s.includes('多')) return '多主角含女主';
+                if (s.includes('默认') || s.includes('无明确')) return '无明确性别默认女';
+                if (s.includes('固定') || s.includes('女主')) return '固定女主';
+                return '固定女主';
+            }
+            function normalizeCostumeType(v) {
+                const s = String(v || '').trim();
+                if (COSTUME_TYPE_OPTIONS.includes(s)) return s;
+                if (s.includes('恶俗')) return '含恶俗设计';
+                if (s.includes('不合理')) return '服设不合理';
+                if (s.includes('自选')) return '服设可自选';
+                return '服设合理';
+            }
+            function normalizeHasChinese(v) {
+                const s = String(v || '').trim();
+                if (s === '有中文' || s === '无中文') return s;
+                return s.includes('支持') || s.includes('有') ? '有中文' : '无中文';
+            }
+            function normalizeHasMacSupport(v) {
+                const s = String(v || '').trim();
+                if (s === '支持Mac' || s === '不支持Mac') return s;
+                return s.includes('支持') ? '支持Mac' : '不支持Mac';
+            }
+            function sanitizeGameEnums(game) {
+                if (!game) return game;
+                game.perspective = normalizePerspective(game.perspective);
+                game.heroineType = normalizeHeroineType(game.heroineType);
+                game.costumeType = normalizeCostumeType(game.costumeType);
+                game.hasChinese = normalizeHasChinese(game.hasChinese);
+                game.hasMacSupport = normalizeHasMacSupport(game.hasMacSupport);
+                return game;
+            }
+
             function importCSV(file) {
                 if (!isAdmin) { showToast('⚠️ 仅管理员可导入', 1500); return; }
                 const reader = new FileReader();
@@ -3988,14 +4039,25 @@
                                 showToast('⚠️ CSV 解析出错', 2000);
                                 return;
                             }
-                            let added = 0;
+                            // 防 id 冲突：以本地最大值与云端当前最大 id 的较高者为起始，避免陈旧缓存覆盖已有记录
+                            let nextId = getNextId();
+                            const client = getSupabase();
+                            if (client) {
+                                try {
+                                    const { data: maxRows } = await client.from('games')
+                                        .select('id').order('id', { ascending: false }).limit(1);
+                                    const maxId = maxRows && maxRows.length > 0 ? Number(maxRows[0].id) : 0;
+                                    if (maxId >= nextId) nextId = maxId + 1;
+                                } catch (_) {}
+                            }
+                            const newGames = [];
                             const maxImport = 500;
                             for (const row of results.data) {
-                                if (added >= maxImport) { showToast('⚠️ 单次最多导入 ' + maxImport + ' 条', 2000); break; }
+                                if (newGames.length >= maxImport) { showToast('⚠️ 单次最多导入 ' + maxImport + ' 条', 2000); break; }
                                 const title = (row['游戏名'] || '').trim();
                                 if (!title) continue;
                                 const game = {
-                                    id: getNextId(),
+                                    id: nextId++,
                                     title,
                                     description: (row['游戏简介'] || '').trim(),
                                     fullDescription: (row['游戏简介'] || '').trim(),
@@ -4018,25 +4080,33 @@
                                     series: (row['系列名'] || '').trim(),
                                     seriesOrder: parseInt(row['系列排序']) || 0
                                 };
+                                sanitizeGameEnums(game); // 清洗枚举，避免违反云端 check 约束
                                 games.push(game);
-                                added++;
+                                newGames.push(game);
                             }
-                            if (added > 0) {
-                                const client = getSupabase();
+                            if (newGames.length > 0) {
                                 if (client) {
                                     setSyncStatus('syncing');
-                                    let upsertError = null;
-                                    for (let i = 0; i < games.length; i += 50) {
-                                        const batch = games.slice(i, i + 50);
+                                    let failedCount = 0;
+                                    let lastErr = null;
+                                    for (let i = 0; i < newGames.length; i += 50) {
+                                        const batch = newGames.slice(i, i + 50);
                                         const { error } = await client.from('games').upsert(batch, { onConflict: 'id' });
-                                        if (error) { upsertError = error; break; }
+                                        if (error) {
+                                            // 批次失败（如个别行仍违反云端约束）：逐条重试，能入库的尽量入库
+                                            lastErr = error;
+                                            for (const g of batch) {
+                                                const r = await client.from('games').upsert(g, { onConflict: 'id' });
+                                                if (r.error) failedCount++;
+                                            }
+                                        }
                                     }
-                                    if (upsertError) {
-                                        setSyncStatus('error', upsertError.message);
-                                        if (/is_draft|isDraft|column/i.test(upsertError.message || '')) {
+                                    if (failedCount > 0) {
+                                        setSyncStatus('error', lastErr ? lastErr.message : '');
+                                        if (/is_draft|isDraft|column/i.test((lastErr && lastErr.message) || '')) {
                                             showToast('⚠️ 云端缺少 isDraft 列，请在 Supabase 执行 add_is_draft_column.sql', 3500);
                                         } else {
-                                            showToast('❌ 同步失败: ' + upsertError.message, 2500);
+                                            showToast(`⚠️ ${newGames.length - failedCount} 条已同步，${failedCount} 条失败已保留在本地缓冲区`, 3200);
                                         }
                                     } else {
                                         setSyncStatus('synced');
@@ -4046,7 +4116,7 @@
                                 renderGallery();
                                 if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
                                 invalidateSyncCache();
-                                showToast(`📥 已导入 ${added} 款到缓冲区，完善后点击「上架」`, 2500);
+                                showToast(`📥 已导入 ${newGames.length} 款到缓冲区，完善后点击「上架」`, 2500);
                             } else {
                                 showToast('⚠️ 没有导入任何游戏', 2000);
                             }
