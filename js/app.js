@@ -2043,6 +2043,8 @@
             const SETTINGS_KEY = 'heroineGamesSettingsV2';
             const SYNC_META_KEY = 'heroineGamesSyncMetaV2';
             const SYNC_TTL = 5 * 60 * 1000;
+            // isDraft 列不存在时（尚未执行 add_is_draft_column.sql），降级为不带该字段的查询，避免同步报错
+            let _isDraftColumnMissing = false;
 
             function invalidateSyncCache() {
                 try { localStorage.removeItem(SYNC_META_KEY); } catch (_) {}
@@ -2083,20 +2085,37 @@
                         || msg.includes('abort') || msg.includes('reset');
                 };
                 // 单页查询 + 最多 3 次渐进重试（500ms / 1200ms / 2500ms），单页失败不影响已拉取到的页
+                const BASE_SELECT = 'id, title, englishName, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots';
+                const runPageQuery = async (offset) => {
+                    const select = _isDraftColumnMissing ? BASE_SELECT : BASE_SELECT + ', isDraft';
+                    const { data, error } = await client.from('games')
+                        .select(select)
+                        .not('id', 'in', '(1,2)')
+                        .order('id', { ascending: true })
+                        .range(offset, offset + PAGE_SIZE - 1);
+                    if (error) throw error;
+                    return data || [];
+                };
                 const fetchPageWithRetry = async (offset, attempt = 0) => {
                     try {
                         // ★ 轻量列表查询：fullDescription / videos 字段不在列表展示，从列表中排除以降低 payload，
                         //   详情页打开时通过 loadGameDetailFromSupabase 按需懒加载补齐（只查这两个字段）。
                         //   screenshots 保留在列表中：详情弹窗一打开就要立即显示截图，避免等待。
                         //   搜索函数 gameMatchesSearch() 不再匹配 fullDescription（已不在列表数据中）。
-                        const { data, error } = await client.from('games')
-                            .select('id, title, englishName, description, cover, genre, gameplay, platforms, releaseDate, isReleased, heroineType, perspective, costumeType, hasChinese, hasDemo, hasMacSupport, isPSExclusive, isNSExclusive, steamLink, steamAppId, otherLinks, mainStoryDuration, lowestPrice, series, seriesOrder, screenshots, isDraft')
-                            .not('id', 'in', '(1,2)')
-                            .order('id', { ascending: true })
-                            .range(offset, offset + PAGE_SIZE - 1);
-                        if (error) throw error;
-                        return data || [];
+                        return await runPageQuery(offset);
                     } catch (e) {
+                        // isDraft 列尚未添加（需执行 add_is_draft_column.sql）→ 降级为不带该字段的查询，保证正常加载
+                        if (!_isDraftColumnMissing && /column\s+games\.is[Dd]raft\s+does not exist|is[Dd]raft.*(does not exist|not exist)|could not find.*is[Dd]raft/i.test(e?.message || '')) {
+                            _isDraftColumnMissing = true;
+                            console.warn('[Sync] games.isDraft 列不存在，已降级加载（如需缓冲区功能，请在 Supabase 执行 add_is_draft_column.sql）');
+                            try {
+                                return await runPageQuery(offset);
+                            } catch (e2) {
+                                if (attempt >= 3 || !isRetryable(e2)) throw e2;
+                                await new Promise(r => setTimeout(r, [500, 1200, 2500][attempt]));
+                                return fetchPageWithRetry(offset, attempt + 1);
+                            }
+                        }
                         const delays = [500, 1200, 2500];
                         if (attempt >= delays.length || !isRetryable(e)) throw e;
                         const wait = delays[attempt];
@@ -2144,6 +2163,7 @@
                             gameplay: row.gameplay || [],
                             platforms: row.platforms || [],
                             isReleased: row.isReleased !== undefined ? row.isReleased : true,
+                            isDraft: row.isDraft === true,
                             hasDemo: row.hasDemo || false,
                             hasMacSupport: row.hasMacSupport || '不支持Mac',
                             isPSExclusive: row.isPSExclusive || false,
@@ -3677,7 +3697,7 @@
                                 </div>
                             </div>`).join('')}
                     </div>
-                    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                    <div class="buffer-footer" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
                         <button type="button" class="btn btn-accent" onclick="publishAllDrafts()">🚀 全部上架</button>
                         <button type="button" class="btn" onclick="closeBuffer()">关闭</button>
                         <button type="button" class="btn" style="margin-left:auto;color:var(--danger);" onclick="clearBuffer()">🗑 清空缓冲区</button>
@@ -3801,6 +3821,162 @@
                 })();
             };
 
+            // ================================================================
+            // 网页内投稿：用户提交 → 缓冲区（isDraft）→ 管理员补全后上架
+            // ================================================================
+            const SUBMIT_THROTTLE_KEY = 'heroineSubmitThrottle';
+            const SUBMIT_THROTTLE_MS = 30000;
+
+            function submitThrottleLeft() {
+                try {
+                    const last = Number(localStorage.getItem(SUBMIT_THROTTLE_KEY) || 0);
+                    return Math.max(0, SUBMIT_THROTTLE_MS - (Date.now() - last));
+                } catch (_) { return 0; }
+            }
+
+            function openSubmitModal() {
+                const overlay = document.getElementById('submitModalOverlay');
+                if (!overlay) {
+                    // 兜底：弹窗缺失时退回原飞书问卷入口
+                    const link = document.getElementById('navSubmit');
+                    if (link && link.href) window.open(link.href, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+                const left = submitThrottleLeft();
+                if (left > 0) {
+                    showToast(`⏳ 请 ${Math.ceil(left / 1000)} 秒后再投稿`, 2000);
+                    return;
+                }
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                const titleInput = document.getElementById('sfTitle');
+                if (titleInput) setTimeout(() => titleInput.focus(), 120);
+            }
+            window.openSubmitModal = openSubmitModal;
+
+            function closeSubmitModal() {
+                const overlay = document.getElementById('submitModalOverlay');
+                if (overlay) overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            window.closeSubmitModal = closeSubmitModal;
+
+            async function submitGameFromForm() {
+                const getVal = id => (document.getElementById(id) || {}).value || '';
+                const title = getVal('sfTitle').trim();
+                if (!title) { showToast('⚠️ 请输入游戏名称', 1800); return; }
+                // 精确重名拦截（含缓冲区草稿）：中文名或英文名任一匹配即拦截
+                const dupTitle = title.toLowerCase();
+                const dupExact = games.find(g => {
+                    if (g.id === 1 || g.id === 2 || !g.title) return false;
+                    return g.title.trim().toLowerCase() === dupTitle ||
+                        (g.englishName && g.englishName.trim().toLowerCase() === dupTitle);
+                });
+                if (dupExact) { showToast('⚠️ 该游戏已在库中，请勿重复投稿', 2400); return; }
+                const steamLink = getVal('sfSteamLink').trim();
+                if (steamLink) {
+                    try { new URL(steamLink); } catch (_) { showToast('⚠️ Steam链接格式无效', 1800); return; }
+                }
+                if (currentUser) {
+                    const banned = await isCurrentUserBanned();
+                    if (banned) { showToast('🚫 您已被限制投稿', 2000); return; }
+                }
+                // 安全取 id：以本地最大值为基准，同时参考云端当前最大 id，避免陈旧缓存导致覆盖已有记录
+                let nextId = getNextId();
+                const client = getSupabase();
+                if (client) {
+                    try {
+                        const { data: maxRows } = await client.from('games')
+                            .select('id')
+                            .order('id', { ascending: false })
+                            .limit(1);
+                        const maxId = maxRows && maxRows.length > 0 ? Number(maxRows[0].id) : 0;
+                        if (maxId >= nextId) nextId = maxId + 1;
+                    } catch (_) {}
+                }
+                const game = {
+                    id: nextId,
+                    title,
+                    perspective: getVal('sfPerspective') || '第三人称',
+                    costumeType: getVal('sfCostumeType') || '服设合理',
+                    heroineType: getVal('sfHeroineType') || '固定女主',
+                    steamLink,
+                    description: '', fullDescription: '',
+                    genre: [], gameplay: [], platforms: ['PC'],
+                    hasChinese: '无中文', releaseDate: '',
+                    lowestPrice: '', hasDemo: false, mainStoryDuration: '',
+                    cover: '', steamAppId: '', isPSExclusive: false, isNSExclusive: false,
+                    hasMacSupport: '不支持Mac', videos: [], screenshots: [],
+                    otherLinks: '', isReleased: false,
+                    isDraft: true, // ★ 用户投稿先进缓冲区，管理员补全后上架
+                    series: '', seriesOrder: 0
+                };
+                if (client) {
+                    const { error } = await client.from('games').upsert(game, { onConflict: 'id' });
+                    if (error) {
+                        if (/isDraft|is_draft|column|permission|policy|row-level|new row violates/i.test(error.message)) {
+                            showToast('⚠️ 投稿暂时不可用，请稍后再试', 2800);
+                        } else {
+                            showToast('❌ 投稿提交失败: ' + error.message, 2500);
+                        }
+                        return;
+                    }
+                }
+                games.push(game);
+                saveGamesToLocal();
+                invalidateSyncCache();
+                if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
+                try { localStorage.setItem(SUBMIT_THROTTLE_KEY, String(Date.now())); } catch (_) {}
+                ['sfTitle', 'sfSteamLink'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                closeSubmitModal();
+                showToast('✅ 投稿成功！管理员补全信息后即会出现在总览', 2600);
+            }
+            window.submitGameFromForm = submitGameFromForm;
+
+            // 投稿时输入游戏名自动提示库内已有游戏，防止重复投稿
+            function setupSubmitTitleAutocomplete() {
+                const input = document.getElementById('sfTitle');
+                if (!input) return;
+                let listEl = input.parentNode.querySelector('.mod-autocomplete-list');
+                if (!listEl) {
+                    listEl = document.createElement('div');
+                    listEl.className = 'mod-autocomplete-list';
+                    input.parentNode.appendChild(listEl);
+                }
+                input.addEventListener('input', function () {
+                    const q = this.value.trim().toLowerCase();
+                    if (q.length < 1) { listEl.classList.remove('show'); return; }
+                    const matches = games.filter(g =>
+                        g.id !== 1 && g.id !== 2 &&
+                        (
+                            (g.title && g.title.toLowerCase().includes(q)) ||
+                            (g.englishName && g.englishName.toLowerCase().includes(q))
+                        )
+                    ).slice(0, 6);
+                    if (matches.length === 0) { listEl.classList.remove('show'); return; }
+                    listEl.innerHTML = matches.map(g => {
+                        const draftTag = g.isDraft ? ' <span class="submit-draft-tag">缓冲区</span>' : '';
+                        const enSub = g.englishName && g.englishName.toLowerCase() !== q ?
+                            ` <span class="submit-name-sub">${escapeHTML(g.englishName)}</span>` : '';
+                        return `<div class="mod-autocomplete-item" data-id="${g.id}" data-title="${escapeHTML(g.title)}">${escapeHTML(g.title)}${enSub}${draftTag}</div>`;
+                    }).join('');
+                    listEl.classList.add('show');
+                    listEl.querySelectorAll('.mod-autocomplete-item').forEach(item => {
+                        item.addEventListener('click', function () {
+                            input.value = this.dataset.title;
+                            listEl.classList.remove('show');
+                            showToast('⚠️ 该游戏已在库中，请勿重复投稿', 2200);
+                        });
+                    });
+                });
+                input.addEventListener('blur', function () {
+                    setTimeout(() => listEl.classList.remove('show'), 200);
+                });
+            }
+
             function importCSV(file) {
                 if (!isAdmin) { showToast('⚠️ 仅管理员可导入', 1500); return; }
                 const reader = new FileReader();
@@ -3858,7 +4034,7 @@
                                     if (upsertError) {
                                         setSyncStatus('error', upsertError.message);
                                         if (/is_draft|isDraft|column/i.test(upsertError.message || '')) {
-                                            showToast('⚠️ 云端缺少 is_draft 列，请在 Supabase 执行 add_is_draft_column.sql', 3500);
+                                            showToast('⚠️ 云端缺少 isDraft 列，请在 Supabase 执行 add_is_draft_column.sql', 3500);
                                         } else {
                                             showToast('❌ 同步失败: ' + upsertError.message, 2500);
                                         }
@@ -11155,6 +11331,28 @@
                 if (bufferOverlay) {
                     bufferOverlay.addEventListener('click', function (e) {
                         if (e.target === bufferOverlay) closeBuffer();
+                    });
+                }
+                const navSubmit = document.getElementById('navSubmit');
+                if (navSubmit) {
+                    navSubmit.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        openSubmitModal();
+                    });
+                }
+                const submitBtn = document.getElementById('btnSubmitGame');
+                if (submitBtn) submitBtn.addEventListener('click', submitGameFromForm);
+                setupSubmitTitleAutocomplete();
+                const submitOverlay = document.getElementById('submitModalOverlay');
+                if (submitOverlay) {
+                    submitOverlay.addEventListener('click', function (e) {
+                        if (e.target === submitOverlay) closeSubmitModal();
+                    });
+                    submitOverlay.addEventListener('keydown', function (e) {
+                        if (e.target && (e.target.id === 'sfTitle' || e.target.id === 'sfSteamLink') && e.key === 'Enter') {
+                            e.preventDefault();
+                            submitGameFromForm();
+                        }
                     });
                 }
                 document.getElementById('editModalOverlay').addEventListener('click', function (e) {

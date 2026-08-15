@@ -436,6 +436,49 @@
         <div class="modal" id="bufferModal"></div>
     </div>
 
+    <!-- ===== 投稿弹窗（用户在网页内投稿，自动进入缓冲区） ===== -->
+    <div class="modal-overlay" id="submitModalOverlay">
+        <div class="modal" id="submitModal">
+            <button class="modal-close" onclick="closeSubmitModal()">✕</button>
+            <h2 style="margin-bottom:4px;color:var(--accent);">📝 投稿游戏</h2>
+            <div style="font-size:0.82rem;color:var(--text3);margin-bottom:16px;">推荐你喜欢的女性主角游戏，提交后管理员会补全信息并上架</div>
+            <div class="form-group"><label>游戏名 *</label><div style="position:relative;"><input type="text" id="sfTitle" placeholder="请输入游戏名称，已有游戏会自动提示" autocomplete="off" required></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>游玩视角 *</label>
+                    <select id="sfPerspective">
+                        <option value="第三人称" selected>第三人称</option>
+                        <option value="第一人称">第一人称</option>
+                        <option value="可切换人称">可切换人称</option>
+                        <option value="横版">横版</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>服设分类 *</label>
+                    <select id="sfCostumeType">
+                        <option value="服设合理" selected>服设合理</option>
+                        <option value="服设不合理">服设不合理</option>
+                        <option value="含恶俗设计">含恶俗设计</option>
+                        <option value="服设可自选">服设可自选</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>主角分类 *</label>
+                <select id="sfHeroineType">
+                    <option value="固定女主" selected>固定女主</option>
+                    <option value="可选女主">可选女主</option>
+                    <option value="动物女主">动物女主</option>
+                    <option value="双女主">双女主</option>
+                    <option value="多主角含女主">多主角含女主</option>
+                    <option value="无明确性别默认女">无明确性别默认女</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Steam链接（选填）</label><input type="text" id="sfSteamLink" placeholder="https://store.steampowered.com/app/..."></div>
+            <div class="submit-footer" style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-accent" id="btnSubmitGame">📮 提交投稿</button>
+                <button type="button" class="btn" onclick="closeSubmitModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== 成就弹窗 ===== -->
     <div class="modal-overlay" id="achievementModalOverlay">
         <div class="modal" id="achievementModal">
