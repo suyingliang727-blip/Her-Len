@@ -4786,9 +4786,13 @@
 
                 // 获取回复树（优先使用预加载数据，避免每条评论都发一次网络请求）
                 let flatReplies;
-                if (preloadedReplies && preloadedReplies[reviewDbId]) {
+                // 兼容两种存的 key：评论主键 id（老数据）或 gameId_userId（新数据）
+                const preloadedReplyList = preloadedReplies
+                    ? (preloadedReplies[reviewId] || preloadedReplies[reviewDbId] || null)
+                    : null;
+                if (preloadedReplyList) {
                     // ★ 优化：预加载数据命中时，纯同步路径，不触发 await
-                    flatReplies = preloadedReplies[reviewDbId];
+                    flatReplies = preloadedReplyList;
                 } else if (preloadedReplies) {
                     // 预加载Map存在但本条评论无回复：直接空数组，避免无谓的 await
                     flatReplies = [];
@@ -4966,7 +4970,7 @@
                     btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const reviewId = this.dataset.reviewId;
-                        const parentReplyId = Number(this.dataset.parentReplyId);
+                        const parentReplyId = this.dataset.parentReplyId;
                         const replyToUserId = this.dataset.replyToUserId;
                         const input = document.getElementById('gameNestedReplyInput-' + reviewId + '-' + parentReplyId);
                         if (!input) return;
@@ -4993,7 +4997,7 @@
                 container.querySelectorAll('.comment-reply-delete-btn').forEach(btn => {
                     btn.addEventListener('click', async function () {
                         const reviewId = this.dataset.reviewId;
-                        const replyId = Number(this.dataset.replyId);
+                        const replyId = this.dataset.replyId;
                         if (!confirm('确定删除这条回复吗？')) return;
                         await deleteGameCommentReply(String(reviewId), replyId);
                         showToast('✅ 回复已删除', 1500);
@@ -5086,10 +5090,15 @@
                         let gameRepliesMap = {};
                         try {
                             if (supabaseClient && reviewDbIds.length > 0) {
+                                // 兼容两种存的 review_id：评论主键 id（老数据）或 gameId_userId（新数据）
+                                const compositeIds = reviews
+                                    .map(rev => `${gameId}_${rev.user_id}`)
+                                    .filter(Boolean);
+                                const matchIds = [...new Set([...reviewDbIds, ...compositeIds])];
                                 const { data, error } = await supabaseClient
                                     .from('game_comment_replies')
                                     .select('*')
-                                    .in('review_id', reviewDbIds)
+                                    .in('review_id', matchIds)
                                     .order('created_at', { ascending: true });
                                 if (!error && data) {
                                     data.forEach(r => {
@@ -5174,10 +5183,15 @@
                                     let moreRepliesMap = {};
                                     try {
                                         if (supabaseClient && ids.length > 0) {
+                                            // 兼容两种存的 review_id：评论主键 id（老数据）或 gameId_userId（新数据）
+                                            const compositeIds = moreReviews
+                                                .map(rev => `${gid}_${rev.user_id}`)
+                                                .filter(Boolean);
+                                            const matchIds = [...new Set([...ids, ...compositeIds])];
                                             const { data, error } = await supabaseClient
                                                 .from('game_comment_replies')
                                                 .select('*')
-                                                .in('review_id', ids)
+                                                .in('review_id', matchIds)
                                                 .order('created_at', { ascending: true });
                                             if (!error && data) {
                                                 data.forEach(r => {
@@ -6594,6 +6608,9 @@
                             .select('id, created_at')
                             .single();
                         if (!error && data) {
+                            // ★ 清除该游戏评论列表缓存（回复数变化）
+                            const gameIdFromReview = Number(String(reviewId).split('_')[0]);
+                            if (!isNaN(gameIdFromReview)) invalidateReviewsListCache(gameIdFromReview);
                             return {
                                 id: data.id,
                                 review_id: replyData.review_id,
@@ -6636,21 +6653,23 @@
                 // 云端删除（CASCADE 会自动清理子回复）
                 if (supabaseClient) {
                     try {
-                        await supabaseClient.from('game_comment_replies').delete().eq('id', Number(replyId));
+                        await supabaseClient.from('game_comment_replies').delete().eq('id', String(replyId));
                     } catch (_) {}
                 }
 
-                // localStorage 回退：递归收集要删除的所有ID
+                // localStorage 回退：递归收集要删除的所有ID（统一按字符串比较，兼容云端 uuid 与本地数字 id）
                 const replies = getGameCommentReplies();
                 if (replies[reviewId]) {
                     function collectChildIds(targetId, items) {
-                        const ids = [targetId];
+                        const ids = [String(targetId)];
                         let found = true;
                         while (found) {
                             found = false;
                             items.forEach(r => {
-                                if (ids.includes(r.parent_reply_id) && !ids.includes(r.id)) {
-                                    ids.push(r.id);
+                                const rid = String(r.id);
+                                const pid = r.parent_reply_id != null ? String(r.parent_reply_id) : null;
+                                if (pid && ids.includes(pid) && !ids.includes(rid)) {
+                                    ids.push(rid);
                                     found = true;
                                 }
                             });
@@ -6658,7 +6677,7 @@
                         return ids;
                     }
                     const idsToDelete = collectChildIds(replyId, replies[reviewId]);
-                    replies[reviewId] = replies[reviewId].filter(r => !idsToDelete.includes(r.id));
+                    replies[reviewId] = replies[reviewId].filter(r => !idsToDelete.includes(String(r.id)));
                     saveGameCommentReplies(replies);
                 }
                 // ★ 清除该游戏评论列表缓存
@@ -6715,11 +6734,12 @@
                 const roots = [];
                 flatReplies.forEach(r => {
                     r._children = [];
-                    map[r.id] = r;
+                    map[String(r.id)] = r;
                 });
                 flatReplies.forEach(r => {
-                    if (r.parent_reply_id && map[r.parent_reply_id]) {
-                        map[r.parent_reply_id]._children.push(r);
+                    const pid = r.parent_reply_id != null ? String(r.parent_reply_id) : null;
+                    if (pid && map[pid]) {
+                        map[pid]._children.push(r);
                     } else {
                         roots.push(r);
                     }
@@ -6949,21 +6969,23 @@
                 // 云端删除（CASCADE 会自动清理子回复）
                 if (supabaseClient) {
                     try {
-                        await supabaseClient.from('mod_comment_replies').delete().eq('id', Number(replyId));
+                        await supabaseClient.from('mod_comment_replies').delete().eq('id', String(replyId));
                     } catch (_) {}
                 }
 
-                // localStorage 回退：递归收集要删除的所有ID
+                // localStorage 回退：递归收集要删除的所有ID（统一按字符串比较，兼容云端 uuid 与本地数字 id）
                 const replies = getModCommentReplies();
                 if (replies[commentId]) {
                     function collectChildIds(targetId, items) {
-                        const ids = [targetId];
+                        const ids = [String(targetId)];
                         let found = true;
                         while (found) {
                             found = false;
                             items.forEach(r => {
-                                if (ids.includes(r.parent_reply_id) && !ids.includes(r.id)) {
-                                    ids.push(r.id);
+                                const rid = String(r.id);
+                                const pid = r.parent_reply_id != null ? String(r.parent_reply_id) : null;
+                                if (pid && ids.includes(pid) && !ids.includes(rid)) {
+                                    ids.push(rid);
                                     found = true;
                                 }
                             });
@@ -6971,7 +6993,7 @@
                         return ids;
                     }
                     const idsToDelete = collectChildIds(replyId, replies[commentId]);
-                    replies[commentId] = replies[commentId].filter(r => !idsToDelete.includes(r.id));
+                    replies[commentId] = replies[commentId].filter(r => !idsToDelete.includes(String(r.id)));
                     saveModCommentReplies(replies);
                 }
             }
@@ -7011,11 +7033,12 @@
                 const roots = [];
                 flatReplies.forEach(r => {
                     r._children = [];
-                    map[r.id] = r;
+                    map[String(r.id)] = r;
                 });
                 flatReplies.forEach(r => {
-                    if (r.parent_reply_id && map[r.parent_reply_id]) {
-                        map[r.parent_reply_id]._children.push(r);
+                    const pid = r.parent_reply_id != null ? String(r.parent_reply_id) : null;
+                    if (pid && map[pid]) {
+                        map[pid]._children.push(r);
                     } else {
                         roots.push(r);
                     }
@@ -8924,7 +8947,7 @@
                     btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         const commentId = this.dataset.commentId;
-                        const parentReplyId = Number(this.dataset.parentReplyId);
+                        const parentReplyId = this.dataset.parentReplyId;
                         const replyToUserId = this.dataset.replyToUserId;
                         const input = document.getElementById('modNestedReplyInput-' + commentId + '-' + parentReplyId);
                         if (!input) return;
@@ -9025,7 +9048,7 @@
                         if (replyId) {
                             // 删除回复
                             if (!confirm('确定删除这条回复吗？')) return;
-                            await deleteModCommentReply(String(commentId), Number(replyId));
+                            await deleteModCommentReply(String(commentId), replyId);
                             showToast('✅ 回复已删除', 1500);
                             closeModDetail();
                             const updated = modPosts.find(p => p.id === post.id);
