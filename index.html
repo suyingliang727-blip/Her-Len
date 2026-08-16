@@ -151,7 +151,7 @@
         <div class="search-row" id="searchRow">
             <div class="search-input-wrap">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="搜索游戏名或关键词…" autocomplete="off" />
+                <input type="text" id="searchInput" name="search" placeholder="搜索游戏名或关键词…" autocomplete="off" />
                 <button class="search-clear-btn" id="searchClearBtn" aria-label="清除搜索">✕</button>
             </div>
         </div>
@@ -535,11 +535,11 @@
                 <p style="text-align:center; color:var(--text2); margin-bottom:20px;">登录以同步你的游戏数据</p>
                 <div class="form-group">
                     <label>邮箱</label>
-                    <input type="email" id="loginEmail" placeholder="you@example.com" />
+                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="username" />
                 </div>
                 <div class="form-group">
                     <label>密码</label>
-                    <input type="password" id="loginPassword" placeholder="密码" />
+                    <input type="password" id="loginPassword" placeholder="密码" autocomplete="current-password" />
                 </div>
                 <button class="btn btn-accent" id="loginBtn" style="width:100%; padding:12px;">登录</button>
                 <p style="text-align:center; margin-top:10px; font-size:0.85rem;">
@@ -555,15 +555,15 @@
                 <p style="text-align:center; color:var(--text2); margin-bottom:20px;">注册后即可跨设备同步游戏数据</p>
                 <div class="form-group">
                     <label>邮箱</label>
-                    <input type="email" id="registerEmail" placeholder="you@example.com" />
+                    <input type="email" id="registerEmail" placeholder="you@example.com" autocomplete="email" />
                 </div>
                 <div class="form-group">
                     <label>昵称（选填，留空将随机生成，不会公开展示你的邮箱）</label>
-                    <input type="text" id="registerUsername" placeholder="例如：星月猎手（可留空）" maxlength="20" />
+                    <input type="text" id="registerUsername" placeholder="例如：星月猎手（可留空）" maxlength="20" autocomplete="nickname" />
                 </div>
                 <div class="form-group">
                     <label>密码（至少6位）</label>
-                    <input type="password" id="registerPassword" placeholder="设置密码" />
+                    <input type="password" id="registerPassword" placeholder="设置密码" autocomplete="new-password" />
                 </div>
                 <button class="btn btn-accent" id="registerBtn" style="width:100%; padding:12px;">注册</button>
                 <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
@@ -584,7 +584,7 @@
                     <p style="text-align:center; color:var(--text2); margin-bottom:20px;">输入注册邮箱，我们将发送重置链接</p>
                     <div class="form-group">
                         <label>邮箱</label>
-                        <input type="email" id="forgotEmail" placeholder="you@example.com" />
+                        <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email" />
                     </div>
                     <button class="btn btn-accent" id="forgotSendBtn" style="width:100%; padding:12px;">发送重置链接</button>
                     <p style="text-align:center; margin-top:12px; font-size:0.85rem; color:var(--text3);">
@@ -843,11 +843,11 @@
             <p style="text-align:center; color:var(--text2); margin-bottom:20px;">请输入你的新密码</p>
             <div class="form-group">
                 <label>新密码（至少6位）</label>
-                <input type="password" id="resetPwInput" placeholder="设置新密码" />
+                <input type="password" id="resetPwInput" placeholder="设置新密码" autocomplete="new-password" />
             </div>
             <div class="form-group">
                 <label>确认新密码</label>
-                <input type="password" id="resetPwConfirm" placeholder="再次输入新密码" />
+                <input type="password" id="resetPwConfirm" placeholder="再次输入新密码" autocomplete="new-password" />
             </div>
             <button class="btn btn-accent" id="resetPwBtn" style="width:100%; padding:12px;">保存新密码</button>
             <div style="margin-top:12px; color:var(--danger); font-size:0.85rem; text-align:center;" id="resetPwMsg"></div>
