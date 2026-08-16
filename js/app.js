@@ -1522,7 +1522,7 @@
                     comment: comment || null,
                     play_date: existingReview?.play_date || new Date().toISOString().split('T')[0],
                     play_hours: playHours,
-                    display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                    display_name: getDisplayName(currentUser),
                     avatar_url: currentUser.user_metadata?.avatar_url || null,
                     custom_id: currentUser.user_metadata?.custom_id || null
                 };
@@ -1731,7 +1731,7 @@
                         if (commentsList && isNewReview && comment) {
                             const tempReview = {
                                 avatar_url: currentUser.user_metadata?.avatar_url || null,
-                                display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                                display_name: getDisplayName(currentUser),
                                 verdict: verdict,
                                 selected_tags: selectedTags || [],
                                 comment: comment,
@@ -4266,7 +4266,7 @@
                         infoCol.style.cssText = 'flex:1;min-width:0;';
                         const nameLine = document.createElement('div');
                         nameLine.style.cssText = 'font-size:0.85rem;font-weight:600;color:#1e1822;';
-                        nameLine.textContent = reviewer.displayName || '用户';
+                        nameLine.textContent = safeDisplayName(reviewer.displayName);
                         infoCol.appendChild(nameLine);
 
                         const metaLine = document.createElement('div');
@@ -5287,7 +5287,7 @@
                 const likeBtnHtml = (reviewDbId && currentUser) ?
                     `<button class="comment-like-btn${isLiked ? ' liked' : ''}" data-review-db-id="${reviewDbId}" data-review-id="${reviewId}">${isLiked ? '❤️' : '🤍'} <span class="like-count">${likeCount > 0 ? likeCount : ''}</span></button>` : '';
                 const shareBtnHtml =
-                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(r.display_name || '用户')}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-verdict="${r.verdict || ''}" data-tags="${escapeHTML(r.selected_tags ? r.selected_tags.join(',') : '')}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
+                    `<button class="comment-share-btn" data-game-id="${gameId}" data-comment="${escapeHTML(stripCommentHTML(commentText))}" data-username="${escapeHTML(safeDisplayName(r.display_name))}" data-avatar="${escapeHTML(r.avatar_url || '')}" data-verdict="${r.verdict || ''}" data-tags="${escapeHTML(r.selected_tags ? r.selected_tags.join(',') : '')}" data-date="${escapeHTML(r.created_at || '')}">📤 分享</button>`;
                 const replyBtnHtml = `<button class="comment-reply-btn" data-review-id="${reviewId}">💬 回复</button>`;
 
                 // 获取回复树（优先使用预加载数据，避免每条评论都发一次网络请求）
@@ -5351,7 +5351,7 @@
                     <div class="comment-item" data-review-id="${reviewId}">
                         <div class="comment-header">
                             ${avatar}
-                            <span class="comment-name">${escapeHTML(r.display_name || '用户')}</span>
+                            <span class="comment-name">${escapeHTML(safeDisplayName(r.display_name))}</span>
                             ${customIdHtml}
                             ${titleBadgesHtml}
                         </div>
@@ -5705,7 +5705,7 @@
                                         if (!gameRepliesMap[r.review_id]) gameRepliesMap[r.review_id] = [];
                                         gameRepliesMap[r.review_id].push({
                                             id: r.id, review_id: r.review_id, user_id: r.user_id,
-                                            content: r.content, display_name: r.display_name || '用户',
+                                            content: r.content, display_name: safeDisplayName(r.display_name),
                                             avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
                                             reply_to: r.reply_to,
                                             parent_reply_id: r.parent_reply_id, created_at: r.created_at
@@ -5798,7 +5798,7 @@
                                                     if (!moreRepliesMap[r.review_id]) moreRepliesMap[r.review_id] = [];
                                                     moreRepliesMap[r.review_id].push({
                                                         id: r.id, review_id: r.review_id, user_id: r.user_id,
-                                                        content: r.content, display_name: r.display_name || '用户',
+                                                        content: r.content, display_name: safeDisplayName(r.display_name),
                                                         avatar_url: r.avatar_url || null, custom_id: r.custom_id || null,
                                                         reply_to: r.reply_to,
                                                         parent_reply_id: r.parent_reply_id, created_at: r.created_at
@@ -5939,7 +5939,7 @@
                 if (currentUser) {
                     avatar.innerHTML = currentUser.user_metadata?.avatar_url ? 
                         `<img src="${escapeHTML(currentUser.user_metadata.avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : '👤';
-                    username.textContent = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || '用户';
+                    username.textContent = getDisplayName(currentUser);
                 }
                 stats.innerHTML = `已记录 ${reviews.length} 款游戏 · 标记玩过 ${played.length} 款 · 成就 ${unlockedAchievements.length}/${totalAchievements}`;
                 
@@ -7194,7 +7194,7 @@
                     content: content,
                     reply_to: replyTo || null,
                     parent_reply_id: parentReplyId || null,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    display_name: getDisplayName(currentUser),
                     avatar_url: metadata.avatar_url || null,
                     custom_id: metadata.custom_id || null
                 };
@@ -7216,7 +7216,7 @@
                                 review_id: replyData.review_id,
                                 user_id: replyData.user_id,
                                 content: replyData.content,
-                                display_name: metadata.display_name || currentUser.email || '用户',
+                                display_name: getDisplayName(currentUser),
                                 avatar_url: metadata.avatar_url || null,
                                 custom_id: metadata.custom_id || null,
                                 reply_to: replyTo,
@@ -7234,7 +7234,7 @@
                     id: Date.now(),
                     user_id: currentUser.id,
                     content: content,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    display_name: getDisplayName(currentUser),
                     avatar_url: metadata.avatar_url || null,
                     custom_id: metadata.custom_id || null,
                     reply_to: replyTo,
@@ -7300,7 +7300,7 @@
                                 review_id: r.review_id,
                                 user_id: r.user_id,
                                 content: r.content,
-                                display_name: r.display_name || '用户',
+                                display_name: safeDisplayName(r.display_name),
                                 avatar_url: r.avatar_url || null,
                                 custom_id: r.custom_id || null,
                                 reply_to: r.reply_to,
@@ -7361,7 +7361,7 @@
                     if (reply.reply_to && flatReplies) {
                         const target = flatReplies.find(r => r.user_id === reply.reply_to);
                         if (target) {
-                            replyToLabel = `<span class="comment-reply-to-label">@${escapeHTML(target.display_name)}</span>`;
+                            replyToLabel = `<span class="comment-reply-to-label">@${escapeHTML(safeDisplayName(target.display_name))}</span>`;
                         }
                     }
                     const deleteHtml = (isReplyOwn || isAdmin) ?
@@ -7376,7 +7376,7 @@
                         <div class="comment-reply-item" data-reply-id="${reply.id}">
                             <div class="comment-reply-item-header">
                                 ${replyAvatar}
-                                <span class="comment-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                <span class="comment-reply-item-name">${escapeHTML(safeDisplayName(reply.display_name))}</span>
                                 ${replyCustomIdHtml}
                                 <span class="comment-reply-item-time">${replyTime}</span>
                             </div>
@@ -7437,7 +7437,7 @@
                                 content: r.content,
                                 reply_to: r.reply_to || null,
                                 parent_reply_id: r.parent_reply_id || null,
-                                display_name: r.display_name || '用户',
+                                display_name: safeDisplayName(r.display_name),
                                 avatar_url: r.avatar_url || null,
                                 created_at: r.created_at
                             });
@@ -7469,7 +7469,7 @@
                                 content: r.content,
                                 reply_to: r.reply_to || null,
                                 parent_reply_id: r.parent_reply_id || null,
-                                display_name: r.display_name || '用户',
+                                display_name: safeDisplayName(r.display_name),
                                 avatar_url: r.avatar_url || null,
                                 created_at: r.created_at
                             });
@@ -7519,7 +7519,7 @@
                     content: content,
                     reply_to: replyTo || null,
                     parent_reply_id: parentReplyId || null,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    display_name: getDisplayName(currentUser),
                     avatar_url: metadata.avatar_url || null
                 };
 
@@ -7537,7 +7537,7 @@
                                 comment_id: replyData.comment_id,
                                 user_id: replyData.user_id,
                                 content: replyData.content,
-                                display_name: metadata.display_name || currentUser.email || '用户',
+                                display_name: getDisplayName(currentUser),
                                 avatar_url: metadata.avatar_url || null,
                                 reply_to: replyTo,
                                 parent_reply_id: parentReplyId || null,
@@ -7554,7 +7554,7 @@
                     id: Date.now(),
                     user_id: currentUser.id,
                     content: content,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    display_name: getDisplayName(currentUser),
                     avatar_url: metadata.avatar_url || null,
                     reply_to: replyTo,
                     parent_reply_id: parentReplyId || null,
@@ -7613,7 +7613,7 @@
                                 comment_id: r.comment_id,
                                 user_id: r.user_id,
                                 content: r.content,
-                                display_name: r.display_name || '用户',
+                                display_name: safeDisplayName(r.display_name),
                                 avatar_url: r.avatar_url || null,
                                 reply_to: r.reply_to,
                                 parent_reply_id: r.parent_reply_id,
@@ -7661,7 +7661,7 @@
                     if (reply.reply_to && flatReplies) {
                         const target = flatReplies.find(r => r.user_id === reply.reply_to);
                         if (target) {
-                            replyToLabel = `<span class="mod-reply-to-label">@${escapeHTML(target.display_name)}</span>`;
+                            replyToLabel = `<span class="mod-reply-to-label">@${escapeHTML(safeDisplayName(target.display_name))}</span>`;
                         }
                     }
                     const deleteHtml = (isReplyOwn || isAdmin) ?
@@ -7673,7 +7673,7 @@
                         <div class="mod-reply-item" data-reply-id="${reply.id}">
                             <div class="mod-reply-item-header">
                                 ${replyAvatar}
-                                <span class="mod-reply-item-name">${escapeHTML(reply.display_name || '用户')}</span>
+                                <span class="mod-reply-item-name">${escapeHTML(safeDisplayName(reply.display_name))}</span>
                                 <span class="mod-reply-item-time">${replyTime}</span>
                             </div>
                             <div class="mod-reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
@@ -8186,7 +8186,7 @@
                 const metadata = currentUser.user_metadata || {};
                 const record = {
                     user_id: currentUser.id,
-                    display_name: metadata.display_name || currentUser.email || '用户',
+                    display_name: getDisplayName(currentUser),
                     avatar_url: metadata.avatar_url || null,
                     game_name: postData.gameName,
                     title: postData.title,
@@ -8430,7 +8430,7 @@
                             supabaseClient.from('mod_thanks').insert({
                                 post_id: postId,
                                 user_id: currentUser.id,
-                                display_name: metadata.display_name || currentUser.email || '用户',
+                                display_name: getDisplayName(currentUser),
                                 avatar_url: metadata.avatar_url || null
                             }),
                             supabaseClient.rpc('increment_mod_thanks', { pid: postId }),
@@ -8487,7 +8487,7 @@
                     const { data, error } = await supabaseClient.from('mod_comments').insert({
                         post_id: postId,
                         user_id: currentUser.id,
-                        display_name: metadata.display_name || currentUser.email || '用户',
+                        display_name: getDisplayName(currentUser),
                         avatar_url: metadata.avatar_url || null,
                         content: content
                     }).select().single();
@@ -8698,7 +8698,7 @@
                     return `<div class="notif-item${unreadCls}" data-notif-id="${n.id}" data-target-type="${n.target_type}" data-target-id="${n.target_id}">
                         ${avatarHtml}
                         <div class="notif-item-body">
-                            <div class="notif-item-text"><strong>${escapeHTML(n.actor_name || '用户')}</strong> ${typeText}</div>
+                            <div class="notif-item-text"><strong>${escapeHTML(safeDisplayName(n.actor_name))}</strong> ${typeText}</div>
                             ${preview}
                             <div class="notif-item-time">${time}</div>
                         </div>
@@ -8757,7 +8757,7 @@
                 if (!supabaseClient || !currentUser) return;
                 if (postOwnerId === currentUser.id) return;
                 const metadata = currentUser.user_metadata || {};
-                const displayName = metadata.display_name || currentUser.email || '用户';
+                const displayName = getDisplayName(currentUser);
                 const avatarUrl = metadata.avatar_url || null;
                 try {
                     await supabaseClient.from('notifications').insert({
@@ -8779,7 +8779,7 @@
                 if (!supabaseClient || !currentUser) return;
                 if (targetUserId === currentUser.id) return;
                 const metadata = currentUser.user_metadata || {};
-                const displayName = metadata.display_name || currentUser.email || '用户';
+                const displayName = getDisplayName(currentUser);
                 const avatarUrl = metadata.avatar_url || null;
                 try {
                     await supabaseClient.from('notifications').insert({
@@ -8802,7 +8802,7 @@
                 if (!supabaseClient || !currentUser) return;
                 if (targetUserId === currentUser.id) return;
                 const metadata = currentUser.user_metadata || {};
-                const displayName = metadata.display_name || currentUser.email || '用户';
+                const displayName = getDisplayName(currentUser);
                 const avatarUrl = metadata.avatar_url || null;
                 try {
                     await supabaseClient.from('notifications').insert({
@@ -8829,7 +8829,7 @@
                 if (currentUser) {
                     const metadata = currentUser.user_metadata || {};
                     const avatarUrl = metadata.avatar_url || '';
-                    const displayName = metadata.display_name || currentUser.email || '用户';
+                    const displayName = getDisplayName(currentUser);
                     area.innerHTML = `
                         <button class="mod-compose-trigger-btn" onclick="toggleModComposeForm()">✍️ 发布MOD</button>
                         <div class="mod-compose" style="display:none;">
@@ -9052,7 +9052,7 @@
                         <div class="mod-post-item" data-post-id="${post.id}">
                             <div class="mod-post-item-header">
                                 ${avatarHtml}
-                                <span class="mod-post-item-user" data-user-id="${post.user_id}" style="cursor:pointer;">${escapeHTML(post.display_name || '用户')}</span>
+                                <span class="mod-post-item-user" data-user-id="${post.user_id}" style="cursor:pointer;">${escapeHTML(safeDisplayName(post.display_name))}</span>
                                 ${badgesHtml}
                                 ${adminBadgeMenu}
                                 <span class="mod-post-item-time">${formatModTime(post.created_at)}</span>
@@ -9191,7 +9191,7 @@
                     <div class="author-card-header">
                         ${avatarHtml}
                         <div>
-                            <div class="author-card-name">${escapeHTML(stats.display_name || '用户')}</div>
+                            <div class="author-card-name">${escapeHTML(safeDisplayName(stats.display_name))}</div>
                             ${badges ? `<div class="author-card-badges">${badges}</div>` : ''}
                         </div>
                     </div>
@@ -9255,7 +9255,7 @@
                     category: checked.value,
                     description: desc.trim(),
                     reporter_id: currentUser ? currentUser.id : null,
-                    reporter_name: currentUser ? (currentUser.display_name || currentUser.email || '用户') : '匿名'
+                    reporter_name: currentUser ? getDisplayName(currentUser) : '匿名'
                 });
                 if (error) { showToast('❌ 举报提交失败: ' + error.message, 2500); return; }
                 closeModReport();
@@ -9330,8 +9330,8 @@
                 if (thanksList.length > 0) {
                     const avatars = thanksList.slice(0, 10).map(t => {
                         return t.avatar_url ?
-                            `<img src="${escapeHTML(t.avatar_url)}" class="mod-thanks-avatar" referrerpolicy="no-referrer" title="${escapeHTML(t.display_name || '用户')}" />` :
-                            `<span class="mod-thanks-avatar-placeholder" title="${escapeHTML(t.display_name || '用户')}">👤</span>`;
+                            `<img src="${escapeHTML(t.avatar_url)}" class="mod-thanks-avatar" referrerpolicy="no-referrer" title="${escapeHTML(safeDisplayName(t.display_name))}" />` :
+                            `<span class="mod-thanks-avatar-placeholder" title="${escapeHTML(safeDisplayName(t.display_name))}">👤</span>`;
                     }).join('');
                     const extra = thanksList.length > 10 ? `<span class="mod-thanks-extra">+${thanksList.length - 10}</span>` : '';
                     thanksListHtml = `<div class="mod-thanks-list"><span class="mod-thanks-label">💖 感谢作者：</span>${avatars}${extra}</div>`;
@@ -9353,7 +9353,7 @@
                                 if (!modRepliesMap[r.comment_id]) modRepliesMap[r.comment_id] = [];
                                 modRepliesMap[r.comment_id].push({
                                     id: r.id, comment_id: r.comment_id, user_id: r.user_id,
-                                    content: r.content, display_name: r.display_name || '用户',
+                                    content: r.content, display_name: safeDisplayName(r.display_name),
                                     avatar_url: r.avatar_url || null, reply_to: r.reply_to,
                                     parent_reply_id: r.parent_reply_id, created_at: r.created_at
                                 });
@@ -9387,7 +9387,7 @@
                             ${cAvatar}
                             <div class="mod-comment-body">
                                 <div class="mod-comment-header">
-                                    <span class="mod-comment-name">${escapeHTML(c.display_name || '用户')}</span>
+                                    <span class="mod-comment-name">${escapeHTML(safeDisplayName(c.display_name))}</span>
                                     <span class="mod-comment-time">${formatModTime(c.created_at)}</span>
                                     ${deleteBtn}
                                 </div>
@@ -9432,7 +9432,7 @@
                     </div>
                     <h1 class="mod-detail-title">${escapeHTML(post.title)}</h1>
                     <div class="mod-detail-meta">
-                        <span class="mod-detail-meta-item mod-detail-author" data-user-id="${post.user_id}" style="cursor:pointer;">👤 ${escapeHTML(post.display_name || '用户')}</span>
+                        <span class="mod-detail-meta-item mod-detail-author" data-user-id="${post.user_id}" style="cursor:pointer;">👤 ${escapeHTML(safeDisplayName(post.display_name))}</span>
                         <span class="mod-detail-meta-item">📅 ${formatModTime(post.created_at)}</span>
                         <span class="mod-detail-game-tag">🎮 ${escapeHTML(post.game_name)}</span>
                         <span class="mod-tag ${typeClass}">${typeIcon} ${escapeHTML(post.mod_type || '其他')}</span>
@@ -9811,7 +9811,7 @@
                                 <div class="detail-mod-item-body">
                                     <div class="detail-mod-item-title">${escapeHTML(post.title)}</div>
                                     <div class="detail-mod-item-meta">
-                                        <span>${escapeHTML(post.display_name || '用户')}</span>
+                                        <span>${escapeHTML(safeDisplayName(post.display_name))}</span>
                                         <span>❤️ ${post.likes_count || 0}</span>
                                         <span>💬 ${post.comments_count || 0}</span>
                                     </div>
@@ -10045,9 +10045,12 @@
                 const email = document.getElementById('registerEmail').value.trim();
                 const password = document.getElementById('registerPassword').value;
                 const errorEl = document.getElementById('authErrorMsg');
+                const rawName = (document.getElementById('registerUsername').value || '').trim();
 
                 if (!email || !password) { errorEl.textContent = '请填写完整信息'; return; }
                 if (password.length < 6) { errorEl.textContent = '密码至少6位'; return; }
+                if (rawName && rawName.length < 2) { errorEl.textContent = '昵称至少2个字符，或留空自动生成'; return; }
+                if (rawName && rawName.includes('@')) { errorEl.textContent = '昵称不能包含邮箱或 @ 符号'; return; }
 
                 errorEl.textContent = '';
                 const registerBtn = document.getElementById('registerBtn');
@@ -10061,28 +10064,91 @@
                     return;
                 }
 
-                supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        emailRedirectTo: window.location.origin
-                    }
-                }).then(({ data, error }) => {
-                    registerBtn.disabled = false;
-                    registerBtn.textContent = '注册';
-                    if (error) {
-                        errorEl.textContent = error.message;
-                    } else {
-                        document.getElementById('registerForm').style.display = 'none';
-                        document.getElementById('loginForm').style.display = 'none';
-                        document.getElementById('emailConfirmMessage').style.display = 'block';
-                        showToast('📨 验证邮件已发送，请查收邮箱', 3000);
-                    }
+                // 未填写昵称时自动生成随机昵称，避免公开展示注册邮箱
+                Promise.resolve(rawName || generateUniqueRandomUsername()).then(username => {
+                    return supabaseClient.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            emailRedirectTo: window.location.origin,
+                            data: { display_name: username }
+                        }
+                    }).then(({ data, error }) => {
+                        registerBtn.disabled = false;
+                        registerBtn.textContent = '注册';
+                        if (error) {
+                            errorEl.textContent = error.message;
+                        } else {
+                            document.getElementById('registerForm').style.display = 'none';
+                            document.getElementById('loginForm').style.display = 'none';
+                            document.getElementById('emailConfirmMessage').style.display = 'block';
+                            showToast('📨 验证邮件已发送，请查收邮箱', 3000);
+                        }
+                    });
                 }).catch(err => {
                     registerBtn.disabled = false;
                     registerBtn.textContent = '注册';
-                    errorEl.textContent = err.message || '注册失败，请重试';
+                    errorEl.textContent = (err && err.message) || '注册失败，请重试';
                 });
+            }
+
+            // 生成女性向·游戏风格的随机昵称
+            function generateRandomUsername() {
+                const prefix = ['星', '月', '夜', '雪', '樱', '露', '糖', '喵', '梦', '雾', '光', '莓', '桃', '软', '云', '岚', '霜', '祈', '绯', '霓'];
+                const suffix = ['玩家', '骑士', '猎手', '法师', '冒险家', '旅人', '少女', '收藏家', '占星师', '编织者', '召唤师', '流浪者', '观察者', '绘师', '指挥官', '歌姬', '守护者', '漫游者'];
+                const p = prefix[Math.floor(Math.random() * prefix.length)];
+                const s = suffix[Math.floor(Math.random() * suffix.length)];
+                return p + s + Math.floor(100 + Math.random() * 900);
+            }
+
+            // 随机昵称重试直至可用（RPC 未部署时直接返回）
+            async function generateUniqueRandomUsername() {
+                for (let i = 0; i < 10; i++) {
+                    const name = generateRandomUsername();
+                    if (supabaseClient) {
+                        try {
+                            const { data, error } = await supabaseClient.rpc('check_display_name_available', { name_to_check: name });
+                            if (!error && data === false) continue; // 已占用，重新生成
+                            return name;
+                        } catch (_) { return name; }
+                    }
+                    return name;
+                }
+                return generateRandomUsername();
+            }
+
+            // 公开显示的昵称：绝不回退到邮箱
+            function getDisplayName(user) {
+                user = user || currentUser;
+                if (!user) return '游客';
+                const meta = user.user_metadata || {};
+                const n = meta.display_name || meta.username || '';
+                return n || '神秘玩家';
+            }
+
+            // 脱敏：评论/通知等历史数据可能存过邮箱，渲染前掩码
+            function safeDisplayName(name) {
+                const s = String(name || '').trim();
+                if (!s) return '用户';
+                if (s.includes('@') && /@\S+\.\S+/.test(s)) return '神秘玩家';
+                return s;
+            }
+
+            // 老用户兜底：无昵称时自动补一个随机昵称并持久化，避免公开邮箱
+            function ensureDisplayName(user) {
+                if (!user) return user;
+                const meta = user.user_metadata || {};
+                if (meta.display_name) return user;
+                const name = generateRandomUsername();
+                user.user_metadata = { ...meta, display_name: name };
+                if (supabaseClient) {
+                    supabaseClient.auth.updateUser({ data: { display_name: name } })
+                        .then(({ data, error }) => {
+                            if (!error && data && data.user) currentUser = data.user;
+                        })
+                        .catch(() => {});
+                }
+                return user;
             }
 
             function handleLogout() {
@@ -10885,7 +10951,7 @@
                 } catch (e) { console.warn('合并头衔/成就元数据失败:', e); }
 
                 const metadata = user.user_metadata || {};
-                const displayName = metadata.display_name || user.email || '用户';
+                const displayName = getDisplayName(user);
                 const customId = metadata.custom_id || '';
                 const avatarUrl = metadata.avatar_url || null;
 
@@ -11683,7 +11749,7 @@
                                 comment: local.comment || null,
                                 play_date: local.play_date || null,
                                 play_hours: local.play_hours || 0,
-                                display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                                display_name: getDisplayName(currentUser),
                                 avatar_url: currentUser.user_metadata?.avatar_url || null,
                                 custom_id: currentUser.user_metadata?.custom_id || null
                             });
@@ -11696,7 +11762,7 @@
                                 comment: local.comment || null,
                                 play_date: local.play_date || null,
                                 play_hours: local.play_hours || 0,
-                                display_name: currentUser.user_metadata?.display_name || currentUser.email || '用户',
+                                display_name: getDisplayName(currentUser),
                                 avatar_url: currentUser.user_metadata?.avatar_url || null,
                                 custom_id: currentUser.user_metadata?.custom_id || null
                             });
@@ -11751,7 +11817,7 @@
                         }
                     }
 
-                    const curDisplayName = currentUser.user_metadata?.display_name || currentUser.email || '用户';
+                    const curDisplayName = getDisplayName(currentUser);
                     const curAvatarUrl = currentUser.user_metadata?.avatar_url || null;
                     const toUpdate = mergedReviews.filter(r =>
                         r.display_name !== curDisplayName || r.avatar_url !== curAvatarUrl
@@ -11765,6 +11831,24 @@
                                 .then(() => { })
                         );
                         await Promise.all(updatePromises);
+                    }
+
+                    // 同步 MOD 区与通知里缓存的昵称/头像快照（留言板已下线，不再处理）
+                    const snapshotTables = [
+                        { table: 'mod_posts', whereUser: 'user_id' },
+                        { table: 'mod_comments', whereUser: 'user_id' },
+                        { table: 'mod_comment_replies', whereUser: 'user_id' },
+                        { table: 'notifications', whereUser: 'actor_id', nameCol: 'actor_name', avatarCol: 'actor_avatar' }
+                    ];
+                    for (const t of snapshotTables) {
+                        try {
+                            const upd = t.nameCol
+                                ? { [t.nameCol]: curDisplayName, [t.avatarCol]: curAvatarUrl }
+                                : { display_name: curDisplayName, avatar_url: curAvatarUrl };
+                            await supabaseClient.from(t.table).update(upd).eq(t.whereUser, userId);
+                        } catch (e) {
+                            console.warn(`⚠️ 同步 ${t.table} 昵称快照失败:`, e && e.message);
+                        }
                     }
 
                     userData.wishlist = mergedWishlist;
@@ -12342,7 +12426,7 @@
                             if (el && session.user) el.textContent = session.user.email ? `（当前：${session.user.email}）` : '';
                         }
                         if (session) {
-                            currentUser = session.user;
+                            currentUser = ensureDisplayName(session.user);
                             updateUIForLoggedIn(currentUser);
                             updateAdminUI();
                             initNotifSystem();
@@ -12373,7 +12457,7 @@
 
                     const { data: { session } } = await supabaseClient.auth.getSession();
                     if (session) {
-                        currentUser = session.user;
+                        currentUser = ensureDisplayName(session.user);
                         updateUIForLoggedIn(currentUser);
                         updateAdminUI();
                         initNotifSystem();
