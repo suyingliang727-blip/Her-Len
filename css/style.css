@@ -3265,7 +3265,7 @@
         /* ---------- 详情页 Grid 容器 ---------- */
         .detail-container {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
             grid-template-areas:
                 "header header"
                 "main main"
@@ -3746,6 +3746,7 @@
             padding-top: 16px;
             border-top: 2px solid var(--border);
             grid-column: 1 / -1;
+            min-width: 0;
         }
 
         .detail-related-mods-title {
@@ -9258,7 +9259,7 @@
             }
 
             .detail-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
                 grid-template-areas:
                     "header"
                     "main"
