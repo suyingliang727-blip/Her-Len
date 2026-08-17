@@ -212,6 +212,262 @@
             let _ratingBatchTimer = null;
             let _ratingBatchPending = [];
 
+            // ★ 新用户24h限制：注册未满24h不能评论/评分/回复
+            const NEW_USER_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24小时
+
+            function isNewUserRestricted() {
+                if (!currentUser || !currentUser.created_at) return false;
+                const createdTime = new Date(currentUser.created_at).getTime();
+                return (Date.now() - createdTime) < NEW_USER_COOLDOWN_MS;
+            }
+
+            function getNewUserRestrictionTimeRemaining() {
+                if (!currentUser || !currentUser.created_at) return null;
+                const createdTime = new Date(currentUser.created_at).getTime();
+                const elapsed = Date.now() - createdTime;
+                const remaining = NEW_USER_COOLDOWN_MS - elapsed;
+                if (remaining <= 0) return null;
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                return { hours, minutes, remaining };
+            }
+
+            function getNewUserRestrictionHint() {
+                const remaining = getNewUserRestrictionTimeRemaining();
+                if (!remaining) return null;
+                let hint = '⚠️ 新注册用户需等待24h后才能使用评论、评分、回复功能。';
+                if (remaining.hours > 0) {
+                    hint += `剩余 ${remaining.hours} 小时${remaining.minutes > 0 ? ` ${remaining.minutes} 分钟` : ''}`;
+                } else {
+                    hint += `剩余 ${remaining.minutes} 分钟`;
+                }
+                return hint;
+            }
+
+            // ================================================================
+            // ★ 反爬虫/反刷机制
+            // ================================================================
+
+            // --- 1. 请求频率限制器 ---
+            const RATE_LIMIT = {
+                // 不同操作类型的限制配置
+                limits: {
+                    review:    { max: 3,  windowMs: 60000 },  // 评论：1分钟内最多3条
+                    reply:     { max: 5,  windowMs: 60000 },  // 回复：1分钟内最多5条
+                    like:      { max: 20, windowMs: 60000 },  // 点赞：1分钟内最多20次
+                    default:   { max: 10, windowMs: 60000 },  // 其他：1分钟内最多10次
+                },
+                // 记录每个操作的请求时间戳：{ key: [timestamp, ...] }
+                _records: {},
+                // 检查是否超过限制
+                check(action) {
+                    const cfg = this.limits[action] || this.limits.default;
+                    const now = Date.now();
+                    if (!this._records[action]) this._records[action] = [];
+                    // 清理超出时间窗口的旧记录
+                    this._records[action] = this._records[action].filter(t => now - t < cfg.windowMs);
+                    if (this._records[action].length >= cfg.max) {
+                        const oldest = this._records[action][0];
+                        const waitMs = cfg.windowMs - (now - oldest);
+                        return { allowed: false, waitMs, waitSec: Math.ceil(waitMs / 1000) };
+                    }
+                    this._records[action].push(now);
+                    return { allowed: true };
+                }
+            };
+
+            // --- 2. 蜜罐字段：生成隐藏字段 HTML（对用户不可见，但脚本会填写） ---
+            function getHoneypotFieldsHTML() {
+                const ts = Date.now();
+                const fakeName = 'url_' + Math.random().toString(36).slice(2, 8);
+                const fakeId = 'field_' + Math.random().toString(36).slice(2, 8);
+                return `
+                    <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;height:0;overflow:hidden;" aria-hidden="true">
+                        <input type="text" name="${fakeName}" id="${fakeId}" tabindex="-1" autocomplete="off" />
+                    </div>
+                `;
+            }
+
+            // 蜜罐验证：检查隐藏字段是否被填写（脚本常会填写所有可见输入框）
+            function checkHoneypotFilled() {
+                const honeypot = document.querySelector('[id^="field_"][id$="_hp"]');
+                if (honeypot && honeypot.value && honeypot.value.trim().length > 0) {
+                    console.warn('[AntiBot] 蜜罐触发，疑似脚本操作');
+                    return true;
+                }
+                // 查找任何位于隐藏区域的有值输入框
+                const hiddenInputs = document.querySelectorAll('input[type="text"][tabindex="-1"]');
+                for (const inp of hiddenInputs) {
+                    if (inp.value && inp.value.trim().length > 0) return true;
+                }
+                return false;
+            }
+
+            // 注入蜜罐到指定容器
+            function injectHoneypot(container) {
+                if (!container) return;
+                const div = document.createElement('div');
+                div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;height:0;overflow:hidden;';
+                div.setAttribute('aria-hidden', 'true');
+                const ts = Date.now();
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = 'field_' + Math.random().toString(36).slice(2, 8);
+                input.id = input.name + '_hp';
+                input.tabIndex = -1;
+                input.autocomplete = 'off';
+                div.appendChild(input);
+                container.appendChild(div);
+            }
+
+            // --- 3. 人机交互检测 ---
+            const HUMAN_INTERACTION = {
+                _hasInteracted: false,
+                _hasMouseMoved: false,
+                _hasScrolled: false,
+                _hasTyped: false,
+                _initDone: false,
+                init() {
+                    if (this._initDone) return;
+                    this._initDone = true;
+                    const track = () => { this._hasInteracted = true; };
+                    const trackMouse = () => { this._hasMouseMoved = true; this._hasInteracted = true; };
+                    const trackScroll = () => { this._hasScrolled = true; this._hasInteracted = true; };
+                    const trackKey = () => { this._hasTyped = true; this._hasInteracted = true; };
+                    document.addEventListener('click', track, { once: true });
+                    document.addEventListener('touchstart', track, { once: true });
+                    document.addEventListener('mousemove', trackMouse, { once: true });
+                    document.addEventListener('scroll', trackScroll, { once: true });
+                    document.addEventListener('keydown', trackKey, { once: true });
+                },
+                // 检查是否有足够的人机交互迹象
+                isHumanLike() {
+                    return this._hasInteracted;
+                },
+                getInteractionScore() {
+                    let score = 0;
+                    if (this._hasMouseMoved) score += 3;
+                    if (this._hasScrolled) score += 2;
+                    if (this._hasTyped) score += 2;
+                    if (this._hasInteracted) score += 1;
+                    return score;
+                }
+            };
+
+            // --- 4. 页面加载时间跟踪 ---
+            const PAGE_LOAD_TIME = {
+                _loadTs: Date.now(),
+                // 最小页面停留时间（毫秒）
+                MIN_SECONDS: 5,
+                // 检查是否已过最小时间
+                isReady() {
+                    return (Date.now() - this._loadTs) >= this.MIN_SECONDS * 1000;
+                },
+                getElapsed() {
+                    return Date.now() - this._loadTs;
+                }
+            };
+
+            // --- 5. 反爬虫统一检查（在提交前调用） ---
+            function checkAntiBot(action) {
+                // 蜜罐检查
+                if (checkHoneypotFilled()) {
+                    showToast('检测到异常操作，请稍后再试', 3000);
+                    return false;
+                }
+                // 人机交互检查
+                if (!HUMAN_INTERACTION.isHumanLike()) {
+                    showToast('请先与页面进行交互后再提交', 2000);
+                    return false;
+                }
+                // 最小页面停留时间
+                if (!PAGE_LOAD_TIME.isReady()) {
+                    const remain = PAGE_LOAD_TIME.MIN_SECONDS - Math.floor(PAGE_LOAD_TIME.getElapsed() / 1000);
+                    showToast(`请稍候 ${remain} 秒后再提交`, 2000);
+                    return false;
+                }
+                // 频率限制
+                const result = RATE_LIMIT.check(action);
+                if (!result.allowed) {
+                    showToast(`操作过于频繁，请 ${result.waitSec} 秒后再试`, 3000);
+                    return false;
+                }
+                return true;
+            }
+
+            // --- 6. 内容保护：阻止右键/复制/选中/拖拽 ---
+            function initContentProtection() {
+                // 注入 CSS：阻止文本选中（输入框/文本区除外）
+                const style = document.createElement('style');
+                style.textContent = `
+                    body {
+                        -webkit-user-select: none;
+                        -moz-user-select: none;
+                        -ms-user-select: none;
+                        user-select: none;
+                    }
+                    input, textarea, [contenteditable="true"] {
+                        -webkit-user-select: text;
+                        -moz-user-select: text;
+                        -ms-user-select: text;
+                        user-select: text;
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // 阻止右键菜单
+                document.addEventListener('contextmenu', function (e) {
+                    // 不对输入框和文本区域禁用右键（方便用户编辑）
+                    const tag = e.target.tagName;
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                    e.preventDefault();
+                    return false;
+                });
+
+                // 阻止拖拽（防止文本被拖拽复制）
+                document.addEventListener('dragstart', function (e) {
+                    const tag = e.target.tagName;
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                    e.preventDefault();
+                    return false;
+                });
+
+                // 阻止复制（允许输入框内的复制）
+                document.addEventListener('copy', function (e) {
+                    const tag = e.target.tagName;
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // 阻止选中（允许输入框内的选中）
+                document.addEventListener('selectstart', function (e) {
+                    const tag = e.target.tagName;
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                    e.preventDefault();
+                    return false;
+                });
+
+                // 阻止通过 Ctrl+C / Ctrl+A / Ctrl+U 等快捷键复制/查看源码
+                document.addEventListener('keydown', function (e) {
+                    // 允许输入框内的操作
+                    const tag = e.target.tagName;
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                    // Ctrl+C 复制、Ctrl+A 全选、Ctrl+U 查看源码、Ctrl+S 保存、Ctrl+P 打印、F12 开发者工具
+                    if (e.ctrlKey || e.metaKey) {
+                        if (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'p' || e.key === 'a') {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                    // F12 开发者工具
+                    if (e.key === 'F12') {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+
             // 分享相关
             let shareQRInstance = null;
 
@@ -1421,6 +1677,8 @@
             // 构建折叠的评分/评论编辑区（默认隐藏，点击按钮展开）
             function buildReviewEditorHTML(gameId, hasVerdict, hasComment) {
                 const both = !hasVerdict && !hasComment;
+                const isRestricted = isNewUserRestricted();
+                const restrictionHint = isRestricted ? getNewUserRestrictionHint() : null;
                 let editorParts = '';
                 if (!hasVerdict) {
                     editorParts += `
@@ -1448,9 +1706,12 @@
                 let label = '✏️ 我要评价';
                 if (hasVerdict && !hasComment) label = '✏️ 写评论';
                 else if (!hasVerdict && hasComment) label = '✏️ 我要评分';
+                const restrictionHtml = restrictionHint
+                    ? `<div style="background:#fff3cd;color:#856404;padding:6px 10px;border-radius:6px;font-size:12px;margin-bottom:6px;border:1px solid #ffc107;">${escapeHTML(restrictionHint)}</div>`
+                    : '';
                 return `
                             <button class="btn btn-sm btn-accent" id="writeReviewBtn" style="padding:2px 10px;">${label}</button>
-                            <div id="reviewEditorArea" style="display:none;">${editorParts}</div>`;
+                            <div id="reviewEditorArea" style="display:none;">${restrictionHtml}${editorParts}</div>`;
             }
 
             // 绑定“我要评价”展开/收起按钮
@@ -1460,10 +1721,21 @@
                 if (writeBtn && editorArea) {
                     writeBtn.dataset.closedLabel = writeBtn.textContent;
                     writeBtn.addEventListener('click', function () {
+                        if (isNewUserRestricted()) {
+                            const hint = getNewUserRestrictionHint();
+                            showToast(hint || '⚠️ 新注册用户需等待24h后才能使用评论和评分功能', 4000);
+                            return;
+                        }
+                        if (!checkAntiBot('review')) return;
                         const visible = editorArea.style.display !== 'none';
                         editorArea.style.display = visible ? 'none' : '';
                         this.textContent = visible ? this.dataset.closedLabel : '✏️ 收起';
                         if (!visible) {
+                            // 首次展开时注入蜜罐
+                            if (!editorArea.dataset.honeypotInjected) {
+                                injectHoneypot(editorArea);
+                                editorArea.dataset.honeypotInjected = '1';
+                            }
                             const ta = editorArea.querySelector('textarea');
                             if (ta) ta.focus();
                         }
@@ -1508,6 +1780,12 @@
 
             async function saveReview(gameId, verdict, selectedTags, comment) {
                 if (!currentUser) { showToast('请先登录才能评分和评论', 2000); return; }
+                if (isNewUserRestricted()) {
+                    const hint = getNewUserRestrictionHint();
+                    showToast(hint || '⚠️ 新注册用户需等待24h后才能使用评论和评分功能', 4000);
+                    return;
+                }
+                if (!checkAntiBot('review')) return;
                 if (verdict === null && !comment) {
                     await deleteReview(gameId);
                     return;
@@ -5437,6 +5715,12 @@
                 container.querySelectorAll('.comment-reply-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
                         if (!currentUser) { showToast('请先登录', 1500); return; }
+                        if (isNewUserRestricted()) {
+                            const hint = getNewUserRestrictionHint();
+                            showToast(hint || '⚠️ 新注册用户需等待24h后才能使用回复功能', 4000);
+                            return;
+                        }
+                        if (!checkAntiBot('reply')) return;
                         const reviewId = this.dataset.reviewId;
                         const replyId = this.dataset.replyId;
 
@@ -5452,6 +5736,11 @@
                             // 嵌套回复
                             const composeEl = document.getElementById('gameNestedReplyCompose-' + reviewId + '-' + replyId);
                             if (composeEl) {
+                                // 首次展开时注入蜜罐
+                                if (!composeEl.dataset.honeypotInjected) {
+                                    injectHoneypot(composeEl);
+                                    composeEl.dataset.honeypotInjected = '1';
+                                }
                                 composeEl.style.display = 'block';
                                 document.getElementById('gameNestedReplyInput-' + reviewId + '-' + replyId)?.focus();
                             }
@@ -5459,6 +5748,11 @@
                             // 一级回复
                             const composeEl = document.getElementById('gameReplyCompose-' + reviewId);
                             if (composeEl) {
+                                // 首次展开时注入蜜罐
+                                if (!composeEl.dataset.honeypotInjected) {
+                                    injectHoneypot(composeEl);
+                                    composeEl.dataset.honeypotInjected = '1';
+                                }
                                 composeEl.style.display = 'block';
                                 document.getElementById('gameReplyInput-' + reviewId)?.focus();
                             }
@@ -7186,6 +7480,12 @@
 
             async function addGameCommentReply(reviewId, content, replyTo = null, parentReplyId = null) {
                 if (!currentUser) return null;
+                if (isNewUserRestricted()) {
+                    const hint = getNewUserRestrictionHint();
+                    showToast(hint || '⚠️ 新注册用户需等待24h后才能使用回复功能', 4000);
+                    return null;
+                }
+                if (!checkAntiBot('reply')) return null;
                 const metadata = currentUser.user_metadata || {};
                 const replyData = {
                     review_id: String(reviewId),
@@ -12400,6 +12700,8 @@
                 initTopNavEvents();
                 initAnnouncementEvents();
                 initModLoadMoreEvent();
+                initContentProtection();
+                HUMAN_INTERACTION.init();
 
                 document.addEventListener('click', function (e) {
                     if (!e.target.closest('.mod-admin-badge-menu')) {
