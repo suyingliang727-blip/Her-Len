@@ -5596,7 +5596,7 @@
                         treeForRender = replyTree.slice(0, revealed);
                         hiddenRoots = replyTree.length - revealed;
                     }
-                    repliesHtml = '<div class="comment-reply-list">' + renderGameReplyTree(treeForRender, reviewId, 0, flatReplies) + '</div>';
+                    repliesHtml = '<div class="comment-reply-list">' + renderGameReplyTree(treeForRender, reviewId, 0, flatReplies, r.user_id) + '</div>';
                     if (hiddenRoots > 0) {
                         repliesHtml += `<div class="comment-replies-more" style="text-align:center;padding:6px 0;">
                             <button class="btn btn-sm comment-replies-more-btn" data-review-id="${reviewId}" data-reveal="${revealed + REPLY_CHUNK}">展开更多回复（${hiddenRoots}）</button>
@@ -5814,6 +5814,7 @@
                         const reviewId = this.dataset.reviewId;
                         const parentReplyId = this.dataset.parentReplyId;
                         const replyToUserId = this.dataset.replyToUserId;
+                        const reviewAuthorId = this.dataset.reviewAuthorId;
                         const input = document.getElementById('gameNestedReplyInput-' + reviewId + '-' + parentReplyId);
                         if (!input) return;
                         const text = input.value.trim();
@@ -5821,10 +5822,16 @@
                         guardSubmitBtn(this, async () => {
                             await addGameCommentReply(String(reviewId), text, replyToUserId, parentReplyId);
 
-                            // 发送通知
+                            // 发送通知给被回复者（父回复作者）
                             if (supabaseClient) {
                                 try {
                                     await createReplyNotification(replyToUserId, 'game_comment', reviewId, '游戏评论', text);
+                                } catch (_) {}
+                            }
+                            // 同时通知原评论作者（子回复也应让其知晓）
+                            if (reviewAuthorId && reviewAuthorId !== replyToUserId) {
+                                try {
+                                    await createReplyNotification(reviewAuthorId, 'game_comment', reviewId, '游戏评论', text);
                                 } catch (_) {}
                             }
 
@@ -7647,7 +7654,7 @@
                 return roots;
             }
 
-            function renderGameReplyTree(nodes, reviewId, depth, flatReplies) {
+            function renderGameReplyTree(nodes, reviewId, depth, flatReplies, reviewAuthorId) {
                 const maxDepth = 4;
                 const isTooDeep = depth >= maxDepth;
                 let html = '';
@@ -7687,12 +7694,12 @@
                                     <textarea id="gameNestedReplyInput-${reviewId}-${reply.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
                                     <div class="comment-reply-compose-actions">
                                         <button class="btn btn-sm game-nested-reply-cancel-btn" data-review-id="${reviewId}" data-reply-id="${reply.id}">取消</button>
-                                        <button class="btn btn-sm btn-accent game-nested-reply-submit-btn" data-review-id="${reviewId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}">发送</button>
+                                        <button class="btn btn-sm btn-accent game-nested-reply-submit-btn" data-review-id="${reviewId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}" data-review-author-id="${reviewAuthorId || ''}">发送</button>
                                     </div>
                                 </div>
                             ` : ''}
                             ${reply._children && reply._children.length > 0 ? `
-                                <div class="comment-nested-reply-list">${renderGameReplyTree(reply._children, reviewId, depth + 1, flatReplies)}</div>
+                                <div class="comment-nested-reply-list">${renderGameReplyTree(reply._children, reviewId, depth + 1, flatReplies, reviewAuthorId)}</div>
                             ` : ''}
                         </div>`;
                 });
@@ -7947,7 +7954,7 @@
             }
 
             // 递归渲染MOD评论回复树
-            function renderModReplyTree(nodes, commentId, depth, flatReplies) {
+            function renderModReplyTree(nodes, commentId, depth, flatReplies, commentAuthorId) {
                 const maxDepth = 4;
                 const isTooDeep = depth >= maxDepth;
                 let html = '';
@@ -7983,12 +7990,12 @@
                                     <textarea id="modNestedReplyInput-${commentId}-${reply.id}" placeholder="写下你的回复..." maxlength="200"></textarea>
                                     <div class="mod-reply-compose-actions">
                                         <button class="btn btn-sm mod-nested-reply-cancel-btn" data-comment-id="${commentId}" data-reply-id="${reply.id}">取消</button>
-                                        <button class="btn btn-sm btn-accent mod-nested-reply-submit-btn" data-comment-id="${commentId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}">发送</button>
+                                        <button class="btn btn-sm btn-accent mod-nested-reply-submit-btn" data-comment-id="${commentId}" data-parent-reply-id="${reply.id}" data-reply-to-user-id="${reply.user_id}" data-comment-author-id="${commentAuthorId || ''}">发送</button>
                                     </div>
                                 </div>
                             ` : ''}
                             ${reply._children && reply._children.length > 0 ? `
-                                <div class="mod-nested-reply-list">${renderModReplyTree(reply._children, commentId, depth + 1, flatReplies)}</div>
+                                <div class="mod-nested-reply-list">${renderModReplyTree(reply._children, commentId, depth + 1, flatReplies, commentAuthorId)}</div>
                             ` : ''}
                         </div>`;
                 });
@@ -9675,7 +9682,7 @@
                     const modReplyTree = buildModReplyTree([...flatModReplies]);
                     let repliesHtml = '';
                     if (modReplyTree.length > 0) {
-                        repliesHtml = '<div class="mod-reply-list">' + renderModReplyTree(modReplyTree, c.id, 0, flatModReplies) + '</div>';
+                        repliesHtml = '<div class="mod-reply-list">' + renderModReplyTree(modReplyTree, c.id, 0, flatModReplies, c.user_id) + '</div>';
                     }
 
                     // 点赞信息
@@ -9913,6 +9920,7 @@
                         const commentId = this.dataset.commentId;
                         const parentReplyId = this.dataset.parentReplyId;
                         const replyToUserId = this.dataset.replyToUserId;
+                        const commentAuthorId = this.dataset.commentAuthorId;
                         const input = document.getElementById('modNestedReplyInput-' + commentId + '-' + parentReplyId);
                         if (!input) return;
                         const text = input.value.trim();
@@ -9920,10 +9928,16 @@
                         guardSubmitBtn(this, async () => {
                             await addModCommentReply(String(commentId), text, replyToUserId, parentReplyId);
 
-                            // 发送通知
+                            // 发送通知给被回复者（父回复作者）
                             if (supabaseClient) {
                                 try {
                                     await createReplyNotification(replyToUserId, 'mod_comment', Number(commentId), post.title, text);
+                                } catch (_) {}
+                            }
+                            // 同时通知原评论作者
+                            if (commentAuthorId && commentAuthorId !== replyToUserId) {
+                                try {
+                                    await createReplyNotification(commentAuthorId, 'mod_comment', Number(commentId), post.title, text);
                                 } catch (_) {}
                             }
 
