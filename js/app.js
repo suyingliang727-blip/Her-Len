@@ -726,7 +726,7 @@
                     userData.equippedTitle = null;
                     saveUserData();
                     refreshTitleDisplays();
-                    syncTitlesAndAchievementsToMetadata({ debounceMs: 100, silent: true });
+                    syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
                     return;
                 }
                 const title = TITLES.find(t => t.id === titleId);
@@ -738,7 +738,7 @@
                 userData.equippedTitle = titleId;
                 saveUserData();
                 refreshTitleDisplays();
-                syncTitlesAndAchievementsToMetadata({ debounceMs: 100, silent: true });
+                syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
             }
 
             function refreshTitleDisplays() {
@@ -897,7 +897,7 @@
                         const best = diamond || gold || silver || newlyUnlocked[0];
                         if (best) equipTitle(best.id);
                     } else {
-                        syncTitlesAndAchievementsToMetadata({ silent: true });
+                        syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
                     }
                 }
                 return newlyUnlocked;
@@ -1273,38 +1273,114 @@
 
             // ========== 头衔 + 成就：统一同步到 auth.user_metadata ==========
             let _titlesSyncTimer = null;
+            let _titlesSyncInFlight = false;
+            let _titlesSyncPending = false;
+            let _titlesSyncRetryCount = 0;
+            const MAX_TITLES_SYNC_RETRY = 2;
+
+            async function _doSyncTitlesAndAchievements(opts) {
+                if (!currentUser || !supabaseClient) {
+                    _pendingCloudOps.push({ type: 'syncMetadata' });
+                    return;
+                }
+                if (_titlesSyncInFlight) {
+                    _titlesSyncPending = true;
+                    return;
+                }
+                _titlesSyncInFlight = true;
+                _titlesSyncPending = false;
+                try {
+                    const { data: { user: freshUser }, error: gErr } = await supabaseClient.auth.getUser();
+                    if (gErr) throw gErr;
+                    const cloudMeta = (freshUser && freshUser.user_metadata) ? freshUser.user_metadata : {};
+
+                    const localTitles = Array.from(new Set(userData.titles || [])).filter(Boolean);
+                    const cloudTitles = Array.isArray(cloudMeta.titles) ? cloudMeta.titles.filter(t => typeof t === 'string') : [];
+                    const titles = Array.from(new Set([...localTitles, ...cloudTitles])).filter(Boolean);
+
+                    const localAchs = Array.from(new Set(userData.achievements || [])).filter(Boolean);
+                    const cloudAchs = Array.isArray(cloudMeta.achievements) ? cloudMeta.achievements.filter(a => typeof a === 'string') : [];
+                    const achievements = Array.from(new Set([...localAchs, ...cloudAchs])).filter(Boolean);
+
+                    const equipped_title = userData.equippedTitle || cloudMeta.equipped_title || null;
+
+                    let localChanged = false;
+                    if (titles.length !== localTitles.length || titles.some((t, i) => t !== localTitles[i])) {
+                        userData.titles = titles.slice();
+                        localChanged = true;
+                    }
+                    if (achievements.length !== localAchs.length || achievements.some((a, i) => a !== localAchs[i])) {
+                        userData.achievements = achievements.slice();
+                        localChanged = true;
+                    }
+                    if (equipped_title !== (userData.equippedTitle || null)) {
+                        userData.equippedTitle = equipped_title;
+                        localChanged = true;
+                    }
+                    if (localChanged) saveUserData();
+
+                    const { error } = await supabaseClient.auth.updateUser({
+                        data: { titles, achievements, equipped_title }
+                    });
+                    if (error) {
+                        console.error('❌ 头衔/成就同步到 metadata 失败:', error);
+                        if (!opts.silent) showToast('⚠️ 成就/头衔未同步到云端，请检查网络', 2000);
+                        if (_titlesSyncRetryCount < MAX_TITLES_SYNC_RETRY) {
+                            _titlesSyncRetryCount++;
+                            console.warn(`🔄 头衔同步重试 (${_titlesSyncRetryCount}/${MAX_TITLES_SYNC_RETRY})`);
+                            await new Promise(r => setTimeout(r, 500 * _titlesSyncRetryCount));
+                            _doSyncTitlesAndAchievements(opts);
+                            return;
+                        }
+                    } else {
+                        _titlesSyncRetryCount = 0;
+                        if (currentUser && currentUser.user_metadata) {
+                            currentUser.user_metadata.titles = titles;
+                            currentUser.user_metadata.achievements = achievements;
+                            currentUser.user_metadata.equipped_title = equipped_title;
+                        }
+                        console.log(`✅ 头衔/成就同步完成：${titles.length} 个头衔，${achievements.length} 个成就，佩戴=${equipped_title || '无'}`);
+                    }
+                } catch (e) {
+                    console.error('❌ 头衔/成就同步异常:', e);
+                    if (_titlesSyncRetryCount < MAX_TITLES_SYNC_RETRY) {
+                        _titlesSyncRetryCount++;
+                        console.warn(`🔄 头衔同步重试 (${_titlesSyncRetryCount}/${MAX_TITLES_SYNC_RETRY})`);
+                        await new Promise(r => setTimeout(r, 500 * _titlesSyncRetryCount));
+                        _doSyncTitlesAndAchievements(opts);
+                        return;
+                    }
+                } finally {
+                    _titlesSyncInFlight = false;
+                    if (_titlesSyncPending) {
+                        _titlesSyncPending = false;
+                        _doSyncTitlesAndAchievements(opts);
+                    }
+                }
+            }
+
+            function _flushTitlesSync() {
+                if (_titlesSyncTimer) {
+                    clearTimeout(_titlesSyncTimer);
+                    _titlesSyncTimer = null;
+                    _doSyncTitlesAndAchievements({ silent: true });
+                }
+            }
+
             function syncTitlesAndAchievementsToMetadata(opts) {
                 opts = opts || {};
                 if (!currentUser || !supabaseClient) {
                     _pendingCloudOps.push({ type: 'syncMetadata' });
                     return Promise.resolve();
                 }
-                // 防抖：避免连续解锁多个头衔时频繁调用
+                if (opts.flushNow) {
+                    _flushTitlesSync();
+                    return Promise.resolve();
+                }
                 return new Promise(resolve => {
                     clearTimeout(_titlesSyncTimer);
                     _titlesSyncTimer = setTimeout(async () => {
-                        try {
-                            const titles = Array.from(new Set(userData.titles || [])).filter(Boolean);
-                            const achievements = Array.from(new Set(userData.achievements || [])).filter(Boolean);
-                            const equipped_title = userData.equippedTitle || null;
-                            const { error } = await supabaseClient.auth.updateUser({
-                                data: { titles, achievements, equipped_title }
-                            });
-                            if (error) {
-                                console.error('❌ 头衔/成就同步到 metadata 失败:', error);
-                                if (!opts.silent) showToast('⚠️ 成就/头衔未同步到云端，请检查网络', 2000);
-                            } else {
-                                // 同步成功后刷新内存中的 currentUser.user_metadata 引用
-                                if (currentUser && currentUser.user_metadata) {
-                                    currentUser.user_metadata.titles = titles;
-                                    currentUser.user_metadata.achievements = achievements;
-                                    currentUser.user_metadata.equipped_title = equipped_title;
-                                }
-                                console.log(`✅ 头衔/成就同步完成：${titles.length} 个头衔，${achievements.length} 个成就，佩戴=${equipped_title || '无'}`);
-                            }
-                        } catch (e) {
-                            console.error('❌ 头衔/成就同步异常:', e);
-                        }
+                        await _doSyncTitlesAndAchievements(opts);
                         resolve();
                     }, opts.debounceMs != null ? opts.debounceMs : 400);
                 });
@@ -1431,7 +1507,7 @@
                 if (newUnlocked.length > 0) {
                     saveUserData();
                     newUnlocked.forEach(ach => showAchievementToast(ach));
-                    syncTitlesAndAchievementsToMetadata({ silent: true });
+                    syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
                 } else { saveUserData(); }
                 updateAchievementDot();
             }
@@ -13103,7 +13179,35 @@
                         initNotifSystem();
                         // 初始同步延迟500ms，避免与其他初始化竞争
                         setTimeout(() => {
-                            syncUserDataWithCloud().then(() => _processPendingCloudOps()).catch(e => console.warn('[Sync] 初始同步失败:', e.message));
+                            syncUserDataWithCloud().then(() => {
+                                _processPendingCloudOps();
+                                // 恢复：检查 sessionStorage 中是否有上次页面关闭时未完成的同步数据
+                                try {
+                                    const pendingRaw = sessionStorage.getItem('_pendingTitlesSync');
+                                    if (pendingRaw) {
+                                        sessionStorage.removeItem('_pendingTitlesSync');
+                                        const pending = JSON.parse(pendingRaw);
+                                        if (pending && pending.ts && (Date.now() - pending.ts < 3600000)) {
+                                            const localLen = (userData.titles || []).length + (userData.achievements || []).length;
+                                            const remoteLen = (pending.titles || []).length + (pending.achievements || []).length;
+                                            if (remoteLen > localLen || pending.equipped_title !== (userData.equippedTitle || null)) {
+                                                console.log('🔄 恢复未完成的头衔/成就同步...');
+                                                if (Array.isArray(pending.titles)) {
+                                                    userData.titles = Array.from(new Set([...(userData.titles || []), ...pending.titles])).filter(Boolean);
+                                                }
+                                                if (Array.isArray(pending.achievements)) {
+                                                    userData.achievements = Array.from(new Set([...(userData.achievements || []), ...pending.achievements])).filter(Boolean);
+                                                }
+                                                if (pending.equipped_title && !userData.equippedTitle) {
+                                                    userData.equippedTitle = pending.equipped_title;
+                                                }
+                                                saveUserData();
+                                                syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
+                                            }
+                                        }
+                                    }
+                                } catch (e) { console.warn('恢复同步数据失败:', e); }
+                            }).catch(e => console.warn('[Sync] 初始同步失败:', e.message));
                         }, 500);
                     } else {
                         updateUIForLoggedOut();
@@ -13173,6 +13277,73 @@
                             }
                         }
                     });
+
+                    window.addEventListener('beforeunload', function () {
+                        _flushTitlesSync();
+                        if (_pendingCloudOps.length > 0) {
+                            try { _processPendingCloudOps(); } catch (e) {}
+                        }
+                        try {
+                            const pendingSync = {
+                                titles: userData.titles || [],
+                                achievements: userData.achievements || [],
+                                equipped_title: userData.equippedTitle || null,
+                                ts: Date.now()
+                            };
+                            sessionStorage.setItem('_pendingTitlesSync', JSON.stringify(pendingSync));
+                        } catch (e) {}
+                    });
+
+                    window.addEventListener('pagehide', function () {
+                        _flushTitlesSync();
+                        try {
+                            const pendingSync = {
+                                titles: userData.titles || [],
+                                achievements: userData.achievements || [],
+                                equipped_title: userData.equippedTitle || null,
+                                ts: Date.now()
+                            };
+                            sessionStorage.setItem('_pendingTitlesSync', JSON.stringify(pendingSync));
+                        } catch (e) {}
+                    });
+
+                    window.__diagnoseMetadataSync = async function () {
+                        if (!supabaseClient) return console.error('Supabase 未初始化');
+                        if (!currentUser) return console.error('用户未登录');
+                        console.log('🔍 诊断 metadata 同步...');
+                        console.log('  本地 userData.titles:', userData.titles);
+                        console.log('  本地 userData.achievements:', userData.achievements);
+                        console.log('  本地 userData.equippedTitle:', userData.equippedTitle);
+                        try {
+                            const { data: { user }, error } = await supabaseClient.auth.getUser();
+                            if (error) { console.error('  ❌ auth.getUser 失败:', error); return; }
+                            const meta = user && user.user_metadata ? user.user_metadata : {};
+                            console.log('  云端 raw_user_meta_data:', meta);
+                            console.log('  云端 titles:', meta.titles);
+                            console.log('  云端 achievements:', meta.achievements);
+                            console.log('  云端 equipped_title:', meta.equipped_title);
+                            if (!meta.titles && !meta.achievements && !meta.equipped_title) {
+                                console.warn('  ⚠️ 云端 metadata 为空，尝试写入测试数据...');
+                                const testData = {
+                                    titles: userData.titles || [],
+                                    achievements: userData.achievements || [],
+                                    equipped_title: userData.equippedTitle || null,
+                                    _test: 'diagnosed_' + Date.now()
+                                };
+                                const { error: wErr } = await supabaseClient.auth.updateUser({ data: testData });
+                                if (wErr) {
+                                    console.error('  ❌ 写入失败:', wErr);
+                                    console.error('  错误详情:', JSON.stringify(wErr));
+                                } else {
+                                    console.log('  ✅ 写入成功！请刷新 Supabase 仪表板查看');
+                                }
+                            } else {
+                                console.log('  ✅ 云端已有 metadata，同步正常');
+                            }
+                        } catch (e) {
+                            console.error('  ❌ 诊断异常:', e);
+                        }
+                    };
                 }
             }
 
