@@ -314,7 +314,7 @@
                 const SUSPICIOUS_CORES = [
                     /gm(e|a)enr?/i, /outl[o0]k/i, /qqm/i, /gmeen/i,
                     /163m|126m|hotma|sinam|foxma/i,
-                    /0zsaip|olipii|bltiwd|meenramy/i,
+                    /ozsaip|olipii|bltiwd|meenramy/i,
                     /emalupe/i, /tempmail/i, /temp-mail/i
                 ];
                 if (SUSPICIOUS_CORES.some(r => r.test(domainCore + '.' + domain))) {
