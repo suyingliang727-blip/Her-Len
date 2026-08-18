@@ -12254,7 +12254,9 @@
                                 play_hours: local.play_hours || 0,
                                 display_name: getDisplayName(currentUser),
                                 avatar_url: currentUser.user_metadata?.avatar_url || null,
-                                custom_id: currentUser.user_metadata?.custom_id || null
+                                custom_id: currentUser.user_metadata?.custom_id || null,
+                                created_at: local.created_at || new Date().toISOString(),
+                                updated_at: local.updated_at || new Date().toISOString()
                             });
                         } else if ((local.updated_at || '') > (cloud.updated_at || '')) {
                             toUploadReviews.push({
@@ -12267,7 +12269,9 @@
                                 play_hours: local.play_hours || 0,
                                 display_name: getDisplayName(currentUser),
                                 avatar_url: currentUser.user_metadata?.avatar_url || null,
-                                custom_id: currentUser.user_metadata?.custom_id || null
+                                custom_id: currentUser.user_metadata?.custom_id || null,
+                                created_at: local.created_at || cloud.created_at || new Date().toISOString(),
+                                updated_at: local.updated_at || new Date().toISOString()
                             });
                         }
                     }
