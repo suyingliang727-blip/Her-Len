@@ -326,13 +326,8 @@
                     return '该邮箱域名疑似临时/仿冒域名，请使用常用邮箱注册';
                 }
 
-                // 8. 通用域名格式兜底：主名长度过短或异常（通常 3 字母以下极少为真常用邮箱域名）
-                if (domainCore.length <= 2) {
-                    return '邮箱域名格式异常';
-                }
-
-                // 9. 仅限指定邮箱：gmail / qq / 163 / outlook
-                //    不在白名单的域名一律拒绝注册
+                // 8. 仅限指定邮箱：gmail / qq / 163 / outlook
+                //    不在白名单的域名一律拒绝注册（包含主名长度过短等异常域名）
                 const ALLOWED_DOMAINS = [
                     'gmail.com',
                     'qq.com',
