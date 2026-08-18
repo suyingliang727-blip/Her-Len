@@ -326,6 +326,18 @@
                     return '邮箱域名格式异常';
                 }
 
+                // 9. 仅限指定邮箱：gmail / qq / 163 / outlook
+                //    不在白名单的域名一律拒绝注册
+                const ALLOWED_DOMAINS = [
+                    'gmail.com',
+                    'qq.com',
+                    '163.com',
+                    'outlook.com'
+                ];
+                if (!ALLOWED_DOMAINS.includes(domain)) {
+                    return '目前仅支持 Gmail、QQ 邮箱、163 邮箱、Outlook 邮箱注册';
+                }
+
                 return null; // 正常
             }
 
@@ -1123,11 +1135,19 @@
             // ================================================================
             // 用户数据
             // ================================================================
-            const USER_DATA_KEY = 'heroineUserData';
+            // ★ 用户数据本地缓存：按用户隔离，切换账号时不会串号
+            // 登录用户 → heroineUserData_{userId}；未登录 → heroineUserData_guest
+            function _getUserDataKey() {
+                if (currentUser && currentUser.id) {
+                    return 'heroineUserData_' + currentUser.id;
+                }
+                return 'heroineUserData_guest';
+            }
 
             function loadUserData() {
+                const key = _getUserDataKey();
                 try {
-                    const raw = localStorage.getItem(USER_DATA_KEY);
+                    const raw = localStorage.getItem(key);
                     if (raw) {
                         const parsed = JSON.parse(raw);
                         userData.wishlist = (parsed.wishlist || []).map(id => Math.round(Number(id))).filter(id => Number.isInteger(id) && id > 0);
@@ -1141,6 +1161,18 @@
                         userData.equippedTitle = parsed.equippedTitle || null;
                     } else { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null }; }
                 } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null }; }
+
+                // 迁移：旧版本使用通用 heroineUserData key，首次登录时迁移到用户专属 key
+                const legacyKey = 'heroineUserData';
+                if (key !== legacyKey) {
+                    try {
+                        const legacyRaw = localStorage.getItem(legacyKey);
+                        if (legacyRaw && !localStorage.getItem(key)) {
+                            localStorage.setItem(key, legacyRaw);
+                            localStorage.removeItem(legacyKey);
+                        }
+                    } catch (_) {}
+                }
             }
 
             let _saveUserDataTimer = null;
@@ -1148,7 +1180,7 @@
                 if (_saveUserDataTimer) clearTimeout(_saveUserDataTimer);
                 _saveUserDataTimer = setTimeout(function () {
                     _saveUserDataTimer = null;
-                    localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+                    localStorage.setItem(_getUserDataKey(), JSON.stringify(userData));
                     updateAchievementDot();
                 }, 30);
             }
@@ -10653,8 +10685,12 @@
                 if (!supabaseClient) return;
                 _dbAdminConfirmed = null;
                 isAdmin = false;
-                // 登出时清理通用 quiz_passed，防止切换账号串号
+                // 登出时：保存当前用户数据到专属 key，清除通用 key 和 quiz_passed，防止切换账号串号
                 try {
+                    if (currentUser && currentUser.id) {
+                        localStorage.setItem('heroineUserData_' + currentUser.id, JSON.stringify(userData));
+                    }
+                    localStorage.removeItem('heroineUserData'); // 旧通用 key
                     localStorage.removeItem('quiz_passed');
                 } catch (e) {}
                 supabaseClient.auth.signOut().then(() => {
@@ -12959,7 +12995,15 @@
                             if (el && session.user) el.textContent = session.user.email ? `（当前：${session.user.email}）` : '';
                         }
                         if (session) {
+                            // ★ 登录/切换账号：保存旧用户数据 → 加载新用户数据
+                            if (currentUser && currentUser.id && currentUser.id !== session.user.id) {
+                                try {
+                                    localStorage.setItem('heroineUserData_' + currentUser.id, JSON.stringify(userData));
+                                } catch (e) {}
+                            }
                             currentUser = ensureDisplayName(session.user);
+                            // 重新加载对应用户的本地缓存（从 heroineUserData_{userId}）
+                            loadUserData();
                             updateUIForLoggedIn(currentUser);
                             updateAdminUI();
                             initNotifSystem();
@@ -12969,10 +13013,19 @@
                             }
                             // 初始同步由 init() 中的 getSession() 处理，此处不再重复
                         } else {
+                            // ★ 登出：保存当前用户数据到专属 key → 清空 userData → 加载 guest 数据
+                            if (currentUser && currentUser.id) {
+                                try {
+                                    localStorage.setItem('heroineUserData_' + currentUser.id, JSON.stringify(userData));
+                                } catch (e) {}
+                            }
                             currentUser = null;
                             _dbAdminConfirmed = null;
                             isAdmin = false;
                             isAdminMode = false;
+                            // 清空 userData 并加载 guest 级数据
+                            userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null };
+                            loadUserData(); // 此时 currentUser 为 null，会加载 heroineUserData_guest
                             updateUIForLoggedOut();
                             document.getElementById('notifBellWrap').style.display = 'none';
                             _unreadCount = 0;
