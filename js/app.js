@@ -215,10 +215,54 @@
             // ★ 新用户24h限制：注册未满24h不能评论/评分/回复
             const NEW_USER_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24小时
 
+            // 一次性/临时邮箱域名黑名单（精简版，覆盖主流临时邮箱）
+            const DISPOSABLE_EMAIL_DOMAINS = new Set([
+                'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'mailinator.com',
+                '10minuteemail.com', 'tempinbox.com', 'temp-mail.com', 'yopmail.com',
+                'dispostable.com', 'trashmail.com', 'tempmailer.com', 'temporary-mail.net',
+                'temp.email', 'tempmail.net', 'tempmail.io', 'tempmailguru.com',
+                'disposable.email', 'tempmailz.com', 'tempmailbox.com',
+                'temp-mail.info', 'tempmailzone.com', 'tempmail.xyz',
+                'tempmailonline.com', 'tempmail.co', 'tempmail.email', 'emailondeck.com',
+                'emailtemp.org', 'tempail.com', 'tempail.ru', 'tempail.org',
+                'temporaryemail.com', 'temporaryemail.ru', 'tempemail.com',
+                'tempemail.org', 'tempemail.net', 'tempemail.co', 'tempemail.site',
+                'tempemaildesign.com', 'tempemaildesign.net', 'tempemaildesign.org',
+                'tempemaildesign.xyz', 'tempemaildesign.online', 'tempemaildesign.store',
+                'tempemaildesign.shop', 'tempemaildesign.biz', 'tempemaildesign.co',
+                'tempemaildesign.info', 'tempemaildesign.cc', 'tempemaildesign.ws',
+                'tempemaildesign.app', 'tempemaildesign.io', 'tempemaildesign.pro',
+                'tempemaildesign.dev', 'tempemaildesign.tech', 'tempemaildesign.cloud',
+                'tempemaildesign.host', 'tempemaildesign.vip', 'tempemaildesign.top',
+                'emalupe.com'
+            ]);
+
+            // 检查是否为一次性邮箱
+            function isDisposableEmail(email) {
+                if (!email) return false;
+                const domain = email.split('@')[1];
+                if (!domain) return false;
+                const normalized = domain.toLowerCase().trim();
+                return DISPOSABLE_EMAIL_DOMAINS.has(normalized) || 
+                       DISPOSABLE_EMAIL_DOMAINS.has(normalized.split('.')[0] + '.com');
+            }
+
             function isNewUserRestricted() {
-                if (!currentUser || !currentUser.created_at) return false;
+                if (!currentUser) return true;
+                // 如果没有 created_at，说明数据异常，保守拒绝
+                if (!currentUser.created_at) return true;
                 const createdTime = new Date(currentUser.created_at).getTime();
-                return (Date.now() - createdTime) < NEW_USER_COOLDOWN_MS;
+                const now = Date.now();
+                const diff = now - createdTime;
+                // 负数或无效时间也视为受限
+                if (isNaN(diff) || diff < 0) return true;
+
+                // ★ 额外检查：一次性邮箱用户始终受限（无论注册多久）
+                if (currentUser.email && isDisposableEmail(currentUser.email)) {
+                    return true;
+                }
+
+                return diff < NEW_USER_COOLDOWN_MS;
             }
 
             function getNewUserRestrictionTimeRemaining() {
@@ -10365,6 +10409,13 @@
                 if (password.length < 6) { errorEl.textContent = '密码至少6位'; return; }
                 if (rawName && rawName.length < 2) { errorEl.textContent = '昵称至少2个字符，或留空自动生成'; return; }
                 if (rawName && rawName.includes('@')) { errorEl.textContent = '昵称不能包含邮箱或 @ 符号'; return; }
+
+                // ★ 拦截一次性/临时邮箱
+                if (isDisposableEmail(email)) {
+                    errorEl.textContent = '检测到使用临时邮箱，无法注册。请使用常用邮箱（QQ邮箱、Gmail、Outlook等）注册';
+                    showToast('❌ 临时邮箱无法注册，请使用常用邮箱', 4000);
+                    return;
+                }
 
                 errorEl.textContent = '';
                 const registerBtn = document.getElementById('registerBtn');
