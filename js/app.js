@@ -366,8 +366,13 @@
             function isNewUserRestricted() {
                 if (!currentUser) return true;
                 if (currentUser.email && isDisposableEmail(currentUser.email)) return true;
-                // ★ 邮箱未验证：也视为受限
-                if (!currentUser.email_confirmed_at) return true;
+                // ★ 邮箱未验证：视为受限（但老用户在邮箱验证启用前注册的豁免）
+                if (!currentUser.email_confirmed_at) {
+                    // created_at 早于 2026-08-18 视为老用户，不受邮箱验证限制
+                    const createdTs = currentUser.created_at ? new Date(currentUser.created_at).getTime() : 0;
+                    const cutoffTs = new Date('2026-08-18T00:00:00Z').getTime();
+                    if (createdTs >= cutoffTs) return true;
+                }
                 return !hasPassedQuiz();
             }
 
@@ -377,7 +382,12 @@
                     return '⚠️ 检测到使用临时邮箱，无法使用评论功能。请使用常用邮箱重新注册账号。';
                 }
                 if (!currentUser.email_confirmed_at) {
-                    return '📧 请先完成邮箱验证（点击注册邮件中的验证链接）后再使用评论功能。';
+                    // 老用户豁免
+                    const createdTs = currentUser.created_at ? new Date(currentUser.created_at).getTime() : 0;
+                    const cutoffTs = new Date('2026-08-18T00:00:00Z').getTime();
+                    if (createdTs >= cutoffTs) {
+                        return '📧 请先完成邮箱验证（点击注册邮件中的验证链接）后再使用评论功能。';
+                    }
                 }
                 if (!hasPassedQuiz()) {
                     return '🔒 需通过知识答题后才能使用评论、评分、回复功能。';
@@ -13013,8 +13023,10 @@
                             }
                             currentUser = ensureDisplayName(session.user);
                             // ★ 邮箱验证强制门禁：如果 email_confirmed_at 为空，禁止用户使用任何需要登录的功能
-                            //    提示用户去邮箱点验证链接，并重新触发邮件（邮箱验证要在 Supabase 控制台开启）
-                            if (!currentUser.email_confirmed_at) {
+                            //    老用户（created_at 早于 2026-08-18）豁免
+                            const _cutoffTs = new Date('2026-08-18T00:00:00Z').getTime();
+                            const _userCreatedTs = currentUser.created_at ? new Date(currentUser.created_at).getTime() : 0;
+                            if (!currentUser.email_confirmed_at && _userCreatedTs >= _cutoffTs) {
                                 updateUIForLoggedIn(currentUser); // 先显示登录态（让用户看到自己是谁），再 toast 提示
                                 showToast('⚠️ 邮箱尚未验证，请先点击注册邮件中的验证链接，未验证邮箱无法评论', 6000);
                                 setTimeout(() => {
@@ -13079,7 +13091,10 @@
                     if (session) {
                         currentUser = ensureDisplayName(session.user);
                         // ★ 邮箱未验证：提示用户但不强制登出（服务端仍会在写数据时拦截）
-                        if (!currentUser.email_confirmed_at) {
+                        //    老用户（created_at 早于 2026-08-18）豁免
+                        const _cutoffTs2 = new Date('2026-08-18T00:00:00Z').getTime();
+                        const _userCreatedTs2 = currentUser.created_at ? new Date(currentUser.created_at).getTime() : 0;
+                        if (!currentUser.email_confirmed_at && _userCreatedTs2 >= _cutoffTs2) {
                             updateUIForLoggedIn(currentUser);
                             updateAdminUI();
                             initNotifSystem();
