@@ -212,10 +212,8 @@
             let _ratingBatchTimer = null;
             let _ratingBatchPending = [];
 
-            // ★ 新用户24h限制：注册未满24h不能评论/评分/回复
-            const NEW_USER_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24小时
-
-            // 一次性/临时邮箱域名黑名单（精简版，覆盖主流临时邮箱）
+            // ★ 答题解锁：用户需通过答题才能评论/评分/回复，答题页面在 quiz.html
+            // 一次性/临时邮箱域名黑名单
             const DISPOSABLE_EMAIL_DOMAINS = new Set([
                 'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'mailinator.com',
                 '10minuteemail.com', 'tempinbox.com', 'temp-mail.com', 'yopmail.com',
@@ -234,7 +232,9 @@
                 'tempemaildesign.app', 'tempemaildesign.io', 'tempemaildesign.pro',
                 'tempemaildesign.dev', 'tempemaildesign.tech', 'tempemaildesign.cloud',
                 'tempemaildesign.host', 'tempemaildesign.vip', 'tempemaildesign.top',
-                'emalupe.com'
+                'emalupe.com',
+                // 2026-08-18 新增：恶意用户批量注册使用的一次性/仿冒域名
+                'ozsaip.com', 'olipii.com', 'bltiwd.com', 'gmeenramy.com'
             ]);
 
             // 检查是否为一次性邮箱
@@ -243,49 +243,137 @@
                 const domain = email.split('@')[1];
                 if (!domain) return false;
                 const normalized = domain.toLowerCase().trim();
-                return DISPOSABLE_EMAIL_DOMAINS.has(normalized) || 
+                return DISPOSABLE_EMAIL_DOMAINS.has(normalized) ||
                        DISPOSABLE_EMAIL_DOMAINS.has(normalized.split('.')[0] + '.com');
+            }
+
+            // ★ 可疑邮箱格式校验：针对伪 QQ 邮箱、仿冒常用邮箱名的域名、前缀长度异常等
+            // 返回 null 表示正常，否则返回错误提示文案
+            function validateEmailFormat(email) {
+                if (!email) return '请输入邮箱';
+                // 通用基础格式（长度、@、前后内容）
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return '邮箱格式不正确';
+                const [localPart, domainRaw] = email.split('@');
+                const domain = domainRaw.toLowerCase();
+
+                // 1. QQ 邮箱 / vip.qq.com / foxmail.com：本地部分必须是纯数字 QQ 号
+                //    常见长度 5-11 位（实际新号已 10 位）
+                if (domain === 'qq.com' || domain === 'vip.qq.com' || domain === 'foxmail.com') {
+                    if (!/^[1-9][0-9]{4,11}$/.test(localPart)) {
+                        return 'QQ 邮箱账号部分应为 5-12 位纯数字 QQ 号，当前格式异常';
+                    }
+                }
+
+                // 2. 163 / 126 / yeah.net：前缀 4-18 位，字母/数字/下划线，必须以字母开头（网易规则）
+                if (domain === '163.com' || domain === '126.com' || domain === 'yeah.net') {
+                    if (!/^[a-zA-Z][a-zA-Z0-9_]{3,17}$/.test(localPart)) {
+                        return '网易邮箱账号格式异常，应为字母开头、4-18 位字母/数字/下划线';
+                    }
+                }
+
+                // 3. Gmail：本地部分 6-30 位，字母/数字/点号，字母数字开头结尾，点号不连续
+                if (domain === 'gmail.com' || domain === 'googlemail.com') {
+                    if (!/^[a-zA-Z0-9]([a-zA-Z0-9.]*[a-zA-Z0-9])?$/.test(localPart) ||
+                        localPart.length < 6 || localPart.length > 30 ||
+                        /\.\./.test(localPart)) {
+                        return 'Gmail 账号格式异常';
+                    }
+                }
+
+                // 4. Outlook / Hotmail / Live：前缀 1-64 位，字母/数字/_/-/./+
+                if (domain === 'outlook.com' || domain === 'hotmail.com' ||
+                    domain === 'live.com' || domain === 'live.cn' || domain === 'msn.com') {
+                    if (!/^[a-zA-Z0-9._+\-]{1,64}$/.test(localPart)) {
+                        return 'Outlook/Hotmail 账号格式异常';
+                    }
+                }
+
+                // 5. Sina：sina.com / sina.cn
+                if (domain === 'sina.com' || domain === 'sina.cn') {
+                    if (!/^[a-zA-Z0-9_]{4,16}$/.test(localPart)) {
+                        return '新浪邮箱账号格式异常，应为 4-16 位字母/数字/下划线';
+                    }
+                }
+
+                // 6. 本地部分明显是随机字符串（全字母+数字乱序、长度 8+、极低元音比），
+                //    典型如 n1li7s7bkh / 1he55jteoi / 64hxktog2 这类"撞库/脚本邮箱"
+                if (/^[a-z0-9]{8,}$/i.test(localPart)) {
+                    const low = localPart.toLowerCase();
+                    const letters = (low.match(/[a-z]/g) || []).length;
+                    const digits = (low.match(/[0-9]/g) || []).length;
+                    const vowels = (low.match(/[aeiou]/g) || []).length;
+                    // 字母数字混杂、长度>=8、且元音占比<15%：高度疑似脚本随机
+                    if (letters >= 3 && digits >= 2 && (letters + digits) >= 8 && vowels / letters < 0.15) {
+                        return '邮箱账号疑似自动生成，请使用你常用的真实邮箱';
+                    }
+                }
+
+                // 7. 仿冒知名邮箱域名（如 gmeenramy.com -> 仿 gmail、qq 混淆）
+                //    简化判断：域名主名包含 gmai/outlok/qqma/163ma/hotmai/sinam 等近邻名
+                const domainCore = domain.split('.')[0] || '';
+                const SUSPICIOUS_CORES = [
+                    /gm(e|a)enr?/i, /outl[o0]k/i, /qqm/i, /gmeen/i,
+                    /163m|126m|hotma|sinam|foxma/i,
+                    /0zsaip|olipii|bltiwd|meenramy/i,
+                    /emalupe/i, /tempmail/i, /temp-mail/i
+                ];
+                if (SUSPICIOUS_CORES.some(r => r.test(domainCore + '.' + domain))) {
+                    return '该邮箱域名疑似临时/仿冒域名，请使用常用邮箱注册';
+                }
+
+                // 8. 通用域名格式兜底：主名长度过短或异常（通常 3 字母以下极少为真常用邮箱域名）
+                if (domainCore.length <= 2) {
+                    return '邮箱域名格式异常';
+                }
+
+                return null; // 正常
+            }
+
+            // 检查用户是否已通过答题（必须按用户专属状态判定，避免切换账号串号）
+            // 优先级：云端 user_metadata > 本地 quiz_passed_{userId}。通用 quiz_passed 不参与判定。
+            function hasPassedQuiz() {
+                if (!currentUser) return false;
+                if (currentUser.user_metadata && currentUser.user_metadata.quiz_passed) {
+                    return true;
+                }
+                const userPassed = localStorage.getItem('quiz_passed_' + currentUser.id);
+                if (userPassed === 'true') return true;
+                return false;
+            }
+
+            // 跳转到答题页面
+            function goToQuizPage() {
+                window.location.href = 'quiz.html';
             }
 
             function isNewUserRestricted() {
                 if (!currentUser) return true;
-                // 如果没有 created_at，说明数据异常，保守拒绝
-                if (!currentUser.created_at) return true;
-                const createdTime = new Date(currentUser.created_at).getTime();
-                const now = Date.now();
-                const diff = now - createdTime;
-                // 负数或无效时间也视为受限
-                if (isNaN(diff) || diff < 0) return true;
-
-                // ★ 额外检查：一次性邮箱用户始终受限（无论注册多久）
-                if (currentUser.email && isDisposableEmail(currentUser.email)) {
-                    return true;
-                }
-
-                return diff < NEW_USER_COOLDOWN_MS;
-            }
-
-            function getNewUserRestrictionTimeRemaining() {
-                if (!currentUser || !currentUser.created_at) return null;
-                const createdTime = new Date(currentUser.created_at).getTime();
-                const elapsed = Date.now() - createdTime;
-                const remaining = NEW_USER_COOLDOWN_MS - elapsed;
-                if (remaining <= 0) return null;
-                const hours = Math.floor(remaining / (60 * 60 * 1000));
-                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-                return { hours, minutes, remaining };
+                if (currentUser.email && isDisposableEmail(currentUser.email)) return true;
+                return !hasPassedQuiz();
             }
 
             function getNewUserRestrictionHint() {
-                const remaining = getNewUserRestrictionTimeRemaining();
-                if (!remaining) return null;
-                let hint = '⚠️ 新注册用户需等待24h后才能使用评论、评分、回复功能。';
-                if (remaining.hours > 0) {
-                    hint += `剩余 ${remaining.hours} 小时${remaining.minutes > 0 ? ` ${remaining.minutes} 分钟` : ''}`;
-                } else {
-                    hint += `剩余 ${remaining.minutes} 分钟`;
+                if (!currentUser) return null;
+                if (currentUser.email && isDisposableEmail(currentUser.email)) {
+                    return '⚠️ 检测到使用临时邮箱，无法使用评论功能。请使用常用邮箱重新注册账号。';
                 }
-                return hint;
+                if (!hasPassedQuiz()) {
+                    return '🔒 需通过知识答题后才能使用评论、评分、回复功能。';
+                }
+                return null;
+            }
+
+            // 答题通过回跳后：移除当前可见评论区的限制提示，并重新启用交互
+            function refreshCommentAreaAfterQuiz() {
+                try {
+                    if (hasPassedQuiz()) {
+                        // 移除所有可见的"去答题"按钮所在限制提示框
+                        document.querySelectorAll('#startQuizBtn').forEach(btn => {
+                            const hintBox = btn.closest('div[style*="#fff3cd"]') || btn.parentElement;
+                            if (hintBox && hintBox.parentElement) hintBox.remove();
+                        });
+                    }
+                } catch (e) { /* 忽略 */ }
             }
 
             // ================================================================
@@ -1751,7 +1839,10 @@
                 if (hasVerdict && !hasComment) label = '✏️ 写评论';
                 else if (!hasVerdict && hasComment) label = '✏️ 我要评分';
                 const restrictionHtml = restrictionHint
-                    ? `<div style="background:#fff3cd;color:#856404;padding:6px 10px;border-radius:6px;font-size:12px;margin-bottom:6px;border:1px solid #ffc107;">${escapeHTML(restrictionHint)}</div>`
+                    ? `<div style="background:#fff3cd;color:#856404;padding:6px 10px;border-radius:6px;font-size:12px;margin-bottom:6px;border:1px solid #ffc107;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                            <span>${escapeHTML(restrictionHint)}</span>
+                            ${!hasPassedQuiz() && currentUser ? '<button class="btn btn-sm btn-accent" id="startQuizBtn" style="padding:2px 12px;border-radius:12px;flex-shrink:0;">去答题</button>' : ''}
+                        </div>`
                     : '';
                 return `
                             <button class="btn btn-sm btn-accent" id="writeReviewBtn" style="padding:2px 10px;">${label}</button>
@@ -1767,7 +1858,11 @@
                     writeBtn.addEventListener('click', function () {
                         if (isNewUserRestricted()) {
                             const hint = getNewUserRestrictionHint();
-                            showToast(hint || '⚠️ 新注册用户需等待24h后才能使用评论和评分功能', 4000);
+                            showToast(hint || '🔒 请先完成答题解锁', 4000);
+                            // 如果是因为未答题，自动弹出答题弹窗
+                            if (currentUser && !hasPassedQuiz() && !(currentUser.email && isDisposableEmail(currentUser.email))) {
+                                goToQuizPage();
+                            }
                             return;
                         }
                         if (!checkAntiBot('review')) return;
@@ -1783,6 +1878,14 @@
                             const ta = editorArea.querySelector('textarea');
                             if (ta) ta.focus();
                         }
+                    });
+                }
+                // 绑定"去答题"按钮
+                const quizBtn = area.querySelector('#startQuizBtn');
+                if (quizBtn) {
+                    quizBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        goToQuizPage();
                     });
                 }
             }
@@ -1826,7 +1929,10 @@
                 if (!currentUser) { showToast('请先登录才能评分和评论', 2000); return; }
                 if (isNewUserRestricted()) {
                     const hint = getNewUserRestrictionHint();
-                    showToast(hint || '⚠️ 新注册用户需等待24h后才能使用评论和评分功能', 4000);
+                    showToast(hint || '🔒 请先完成答题解锁', 4000);
+                    if (!hasPassedQuiz() && !(currentUser.email && isDisposableEmail(currentUser.email))) {
+                        goToQuizPage();
+                    }
                     return;
                 }
                 if (!checkAntiBot('review')) return;
@@ -5761,7 +5867,10 @@
                         if (!currentUser) { showToast('请先登录', 1500); return; }
                         if (isNewUserRestricted()) {
                             const hint = getNewUserRestrictionHint();
-                            showToast(hint || '⚠️ 新注册用户需等待24h后才能使用回复功能', 4000);
+                            showToast(hint || '🔒 请先完成答题解锁', 4000);
+                            if (!hasPassedQuiz() && !(currentUser.email && isDisposableEmail(currentUser.email))) {
+                                goToQuizPage();
+                            }
                             return;
                         }
                         if (!checkAntiBot('reply')) return;
@@ -7533,7 +7642,10 @@
                 if (!currentUser) return null;
                 if (isNewUserRestricted()) {
                     const hint = getNewUserRestrictionHint();
-                    showToast(hint || '⚠️ 新注册用户需等待24h后才能使用回复功能', 4000);
+                    showToast(hint || '🔒 请先完成答题解锁', 4000);
+                    if (!hasPassedQuiz() && !(currentUser.email && isDisposableEmail(currentUser.email))) {
+                        goToQuizPage();
+                    }
                     return null;
                 }
                 if (!checkAntiBot('reply')) return null;
@@ -10410,10 +10522,31 @@
                 if (rawName && rawName.length < 2) { errorEl.textContent = '昵称至少2个字符，或留空自动生成'; return; }
                 if (rawName && rawName.includes('@')) { errorEl.textContent = '昵称不能包含邮箱或 @ 符号'; return; }
 
-                // ★ 拦截一次性/临时邮箱
+                // ★ 1. 基础格式+可疑格式拦截（伪 QQ 邮箱、仿冒域名、脚本随机前缀）
+                const fmtErr = validateEmailFormat(email);
+                if (fmtErr) {
+                    errorEl.textContent = fmtErr;
+                    showToast('❌ ' + fmtErr, 4000);
+                    return;
+                }
+
+                // ★ 2. 拦截一次性/临时邮箱
                 if (isDisposableEmail(email)) {
                     errorEl.textContent = '检测到使用临时邮箱，无法注册。请使用常用邮箱（QQ邮箱、Gmail、Outlook等）注册';
                     showToast('❌ 临时邮箱无法注册，请使用常用邮箱', 4000);
+                    return;
+                }
+
+                // ★ 3. 反脚本：注册页停留时间 + 人机交互检测（与评论区保持一致）
+                if (!window._pageEnterTime) window._pageEnterTime = Date.now();
+                if (Date.now() - window._pageEnterTime < 5000) {
+                    errorEl.textContent = '操作过快，请稍后再尝试注册';
+                    showToast('⏱ 操作过快，请稍后再试', 3000);
+                    return;
+                }
+                if (window.HUMAN_INTERACTION && !window.HUMAN_INTERACTION.hasInteracted()) {
+                    errorEl.textContent = '检测到异常请求，请手动操作后再注册';
+                    showToast('⚠ 请手动完成注册操作', 3500);
                     return;
                 }
 
@@ -10520,6 +10653,10 @@
                 if (!supabaseClient) return;
                 _dbAdminConfirmed = null;
                 isAdmin = false;
+                // 登出时清理通用 quiz_passed，防止切换账号串号
+                try {
+                    localStorage.removeItem('quiz_passed');
+                } catch (e) {}
                 supabaseClient.auth.signOut().then(() => {
                     showToast('已登出', 1500);
                 }).catch(() => {
@@ -11625,6 +11762,7 @@
                 document.getElementById('authModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeAuthModal();
                 });
+
                 document.getElementById('authTabLogin').addEventListener('click', () => switchAuthTab('login'));
                 document.getElementById('authTabRegister').addEventListener('click', () => switchAuthTab('register'));
                 document.getElementById('switchToRegister').addEventListener('click', (e) => {
@@ -12731,6 +12869,30 @@
             async function init() {
                 loadSettings();
                 loadUserData();
+
+                // ★ 答题通过回跳检测：从 quiz.html 通过后回带 ?quiz=passed
+                (function checkQuizPassed() {
+                    try {
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.get('quiz') === 'passed') {
+                            // 清理 URL 参数，避免刷新重复提示
+                            params.delete('quiz');
+                            const clean = params.toString();
+                            const newUrl = window.location.pathname + (clean ? '?' + clean : '') + window.location.hash;
+                            window.history.replaceState({}, document.title, newUrl);
+                            // 延迟提示，等待 UI 就绪
+                            setTimeout(() => {
+                                if (typeof showToast === 'function') {
+                                    showToast('🎉 答题通过！评论、评分、回复功能已解锁', 3500);
+                                }
+                                // 刷新当前可见的评论/评分区域，移除限制提示
+                                if (typeof refreshCommentAreaAfterQuiz === 'function') {
+                                    refreshCommentAreaAfterQuiz();
+                                }
+                            }, 600);
+                        }
+                    } catch (e) { /* 忽略 */ }
+                })();
 
                 const grid = document.getElementById('galleryGrid');
                 if (grid) {
