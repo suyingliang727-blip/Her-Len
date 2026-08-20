@@ -175,7 +175,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;will
 body.history-locked{position:fixed;width:100%;overflow:hidden}
 
 /* ===== 平板 ===== */
-@media(max-width:960px){.cards-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}.container{padding:30px 20px 50px}}
+@media(max-width:960px){
+.container{padding:30px 20px 40px}
+.header{margin-bottom:22px}
+.header-icon{font-size:2.6rem}
+.header-title{font-size:1.5rem}
+.header-sub{font-size:0.78rem}
+.shuffle-stage{height:260px}
+.deck{width:100px;height:150px}
+.deck-card{width:100px;height:150px}
+.deck-glow{width:140px;height:140px}
+.energy-ring:nth-child(1){width:140px;height:140px}
+.energy-ring:nth-child(2){width:200px;height:200px}
+.energy-ring:nth-child(3){width:260px;height:260px}
+.cards-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
+}
 
 /* ===== 手机 ===== */
 @media(max-width:640px){
