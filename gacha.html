@@ -239,6 +239,33 @@ html{overflow-y:auto}
 .btn-draw{padding:10px 24px;font-size:0.82rem}
 }
 
+/* ===== 横屏/短屏（iPad横屏等） ===== */
+@media(max-height:860px){
+.container{padding-top:20px;padding-bottom:24px}
+.header{margin-bottom:12px}
+.header-icon{font-size:2rem;margin-bottom:4px}
+.header-title{font-size:1.3rem}
+.header-sub{font-size:0.72rem;margin-top:2px}
+.divider{margin:12px auto 0}
+.stats{margin-top:12px;font-size:0.7rem}
+.actions{margin:12px 0 16px;gap:10px}
+.btn-draw{padding:10px 28px;font-size:0.85rem}
+.shuffle-stage{height:180px}
+.deck{width:80px;height:120px}
+.deck-card{width:80px;height:120px}
+.deck-glow{width:100px;height:100px}
+.energy-ring:nth-child(1){width:100px;height:100px}
+.energy-ring:nth-child(2){width:150px;height:150px}
+.energy-ring:nth-child(3){width:200px;height:200px}
+.cards-grid{grid-template-columns:repeat(4,1fr);gap:14px}
+.fortune-text{margin-bottom:16px;font-size:0.75rem}
+}
+
+/* 短屏+窄屏同时命中时进一步压缩 */
+@media(max-height:860px) and (max-width:960px){
+.cards-grid{grid-template-columns:repeat(3,1fr);gap:12px}
+}
+
 /* ===== 纯CSS装饰层 ===== */
 .deco-vignette{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 65% at 50% 50%,transparent 0%,rgba(8,4,18,0.7) 100%)}
 .deco-nebula-tl{position:fixed;top:-15%;left:-10%;width:50vw;height:50vh;z-index:0;pointer-events:none;border-radius:50%;background:radial-gradient(ellipse at center,rgba(130,60,200,0.35) 0%,rgba(90,40,160,0.15) 40%,transparent 70%);animation:decoDrift1 28s ease-in-out infinite alternate;will-change:transform}
