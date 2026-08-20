@@ -99,17 +99,17 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;will
 
 /* ===== 抽卡牌 ===== */
 .gacha-card{position:relative;perspective:1200px;cursor:pointer;border-radius:20px;opacity:0;transform:translateY(40px) scale(0.96);transition:opacity 0.7s cubic-bezier(0.34,1.56,0.64,1),transform 0.7s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.5s ease,border-color 0.4s ease,background 0.4s ease}
-.gacha-inner{aspect-ratio:3/4}
+.gacha-inner{position:relative;width:100%;height:100%;border-radius:20px;transform-style:preserve-3d;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1)}
+.gacha-front{position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;transform:rotateY(180deg);background:rgba(30,22,58,0.98);border:1px solid rgba(201,168,76,0.35);box-shadow:inset 0 1px 0 rgba(201,168,76,0.1),0 8px 32px rgba(0,0,0,0.4);display:flex;flex-direction:column;height:100%}
+.gacha-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;transform:rotateY(0deg);border:2px solid rgba(201,168,76,0.5);box-shadow:inset 0 1px 0 rgba(201,168,76,0.15),inset 0 0 40px rgba(201,168,76,0.05),0 8px 32px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center}
 .gacha-card.visible{opacity:1;transform:translateY(0) scale(1)}
 .gacha-card.flipped{background:rgba(30,22,58,0.98);border:1px solid rgba(201,168,76,0.4);box-shadow:0 0 0 1px rgba(201,168,76,0.15),0 4px 16px rgba(0,0,0,0.5),0 12px 40px rgba(0,0,0,0.35),0 0 60px -20px rgba(140,100,200,0.15)}
 .gacha-card.just-flipped{box-shadow:0 0 0 1px rgba(201,168,76,0.2),0 4px 16px rgba(0,0,0,0.5),0 12px 40px rgba(0,0,0,0.35),0 0 60px -10px rgba(201,168,76,0.3)}
 @media(hover:hover){.gacha-card.flipped:hover{transform:translateY(-8px) scale(1.015);box-shadow:0 0 0 1px rgba(201,168,76,0.35),0 8px 24px rgba(0,0,0,0.5),0 20px 60px rgba(0,0,0,0.4),0 0 80px -20px rgba(201,168,76,0.2);border-color:rgba(201,168,76,0.55)}}
 .gacha-card.exiting{transition:all 0.4s cubic-bezier(0.4,0,0.2,1);pointer-events:none}
-.gacha-inner{position:relative;width:100%;border-radius:20px;transform-style:preserve-3d;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1)}
 .gacha-card.flipped .gacha-inner{transform:rotateY(180deg)}
 
 /* ★ 牌背 */
-.gacha-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;transform:rotateY(0deg);border:2px solid rgba(201,168,76,0.5);box-shadow:inset 0 1px 0 rgba(201,168,76,0.15),inset 0 0 40px rgba(201,168,76,0.05),0 8px 32px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center}
 .gacha-back-bg{position:absolute;inset:0;background:linear-gradient(160deg,#261e58 0%,#1c1648 40%,#181240 100%)}
 .gacha-back-border-outer{position:absolute;inset:5px;border:1.5px solid rgba(201,168,76,0.45);border-radius:15px;pointer-events:none}
 .gacha-back-border-inner{position:absolute;inset:12px;border:1px solid rgba(201,168,76,0.3);border-radius:10px;pointer-events:none}
@@ -132,7 +132,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;will
 @keyframes shimmerSweep{0%{transform:translateX(-100%) translateY(-100%) rotate(45deg)}100%{transform:translateX(100%) translateY(100%) rotate(45deg)}}
 
 /* ★ 牌面 */
-.gacha-front{position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;transform:rotateY(180deg);background:rgba(30,22,58,0.98);border:1px solid rgba(201,168,76,0.35);box-shadow:inset 0 1px 0 rgba(201,168,76,0.1),0 8px 32px rgba(0,0,0,0.4);display:flex;flex-direction:column}
 .gacha-front .cover-wrap{position:relative;width:100%;aspect-ratio:460/215;overflow:hidden;flex-shrink:0;z-index:3}
 .gacha-front .cover{width:100%;height:100%;object-fit:cover;display:block}
 .gacha-front .cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:rgba(201,168,76,0.12)}
@@ -190,7 +189,6 @@ body.history-locked{position:fixed;width:100%;overflow:hidden}
 .energy-ring:nth-child(2){width:200px;height:200px}
 .energy-ring:nth-child(3){width:260px;height:260px}
 .cards-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
-.gacha-inner{aspect-ratio:3/4}
 }
 
 /* ===== 手机 ===== */
@@ -207,7 +205,6 @@ html{overflow-y:auto}
 .btn-draw{padding:11px 28px;font-size:0.85rem;width:100%}
 .btn-secondary{padding:8px 16px;font-size:0.72rem}
 .cards-grid{grid-template-columns:1fr;gap:12px}
-.gacha-inner{aspect-ratio:4/5}
 .shuffle-stage{height:200px;max-width:100%}
 .deck{width:80px;height:120px}
 .deck-card{width:80px;height:120px}
@@ -240,7 +237,6 @@ html{overflow-y:auto}
 /* ===== 极小屏 ===== */
 @media(max-width:360px){
 .cards-grid{grid-template-columns:1fr;gap:12px}
-.gacha-inner{aspect-ratio:4/5}
 .header-title{font-size:1.15rem}
 .btn-draw{padding:10px 24px;font-size:0.82rem}
 }
