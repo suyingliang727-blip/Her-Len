@@ -8677,6 +8677,8 @@
                 if (galleryContainer) galleryContainer.style.display = 'none';
                 if (modSection) modSection.classList.remove('show');
                 if (announcementsSection) announcementsSection.classList.remove('show');
+                var testHubSection = document.getElementById('testHubSection');
+                if (testHubSection) testHubSection.classList.remove('show');
                 if (viewTabs) viewTabs.style.display = 'none';
                 if (searchRow) searchRow.style.display = 'none';
                 if (filterCategoryRow) filterCategoryRow.style.display = 'none';
@@ -8707,6 +8709,11 @@
                     document.title = 'Her Lens · 网站公告';
                     loadAnnouncements();
                     window.scrollTo(0, 0);
+                } else if (view === 'test') {
+                    const testHubSection = document.getElementById('testHubSection');
+                    if (testHubSection) testHubSection.classList.add('show');
+                    document.title = 'Her Lens · 游玩测试';
+                    window.scrollTo(0, 0);
                 }
             }
 
@@ -8717,7 +8724,7 @@
                         e.stopPropagation();
                         const nav = this.dataset.nav;
                         if (nav === 'test') {
-                            window.open('taste-test-scenario.html', '_blank');
+                            switchMainView('test');
                             return;
                         }
                         switchMainView(nav);
@@ -11870,7 +11877,7 @@
                     if (e.target === this) closeTipModal();
                 });
 
-                document.getElementById('btnRandomPick').addEventListener('click', randomPick);
+                document.getElementById('btnGacha').addEventListener('click', function(){ window.location.href = 'gacha.html'; });
                 document.getElementById('btnWishlistToggle').addEventListener('click', function() {
                     toggleWishlistMode();
                 });
@@ -12731,7 +12738,10 @@
                             break;
                         case 'r':
                         case 'R':
-                            if (!e.ctrlKey && !e.metaKey) randomPick();
+                            if (!e.ctrlKey && !e.metaKey) {
+                                e.preventDefault();
+                                window.location.href = 'gacha.html';
+                            }
                             break;
                         case '?':
                             if (localStorage.getItem(GUIDE_KEY) !== 'true') {
@@ -12841,44 +12851,6 @@
             // ================================================================
             // ★★★ 优化的随机推荐 ★★★
             // ================================================================
-            function randomPick() {
-                const filtered = getFilteredGames();
-                if (filtered.length === 0) { showToast('当前列表中没有游戏可推荐 😅', 2000); return; }
-
-                let pick;
-                const preferredGenres = getUserPreferredGenres();
-                if (preferredGenres.length > 0 && userData.played.length >= 3) {
-                    // 加权随机：偏好题材的游戏权重更高
-                    const weighted = filtered.map(g => {
-                        const matchCount = (g.genre || []).filter(genre => preferredGenres.includes(genre)).length;
-                        return { game: g, weight: 1 + matchCount * 2 };
-                    });
-                    const totalWeight = weighted.reduce((s, w) => s + w.weight, 0);
-                    let rand = Math.random() * totalWeight;
-                    pick = weighted[0].game;
-                    for (const w of weighted) {
-                        rand -= w.weight;
-                        if (rand <= 0) { pick = w.game; break; }
-                    }
-                } else {
-                    pick = filtered[Math.floor(Math.random() * filtered.length)];
-                }
-
-                const cards = document.querySelectorAll('.gallery-card');
-                let target = null;
-                for (const c of cards) { if (Number(c.dataset.gameId) === pick.id) { target = c; break; } }
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    target.classList.remove('highlight');
-                    void target.offsetWidth;
-                    target.classList.add('highlight');
-                    setTimeout(() => target.classList.remove('highlight'), 3600);
-                    const genreHint = preferredGenres.length > 0 && userData.played.length >= 3 ?
-                        '（根据你的偏好推荐）' : '';
-                    showToast(`🎲 今日推荐：${pick.title} ${genreHint}`, 2800);
-                    celebrate();
-                } else { showToast(`🎲 今日推荐：${pick.title} — ${pick.description || '暂无简介'}`, 3500); }
-            }
 
             // ================================================================
             // 庆祝彩带 & 鼓掌音效

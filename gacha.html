@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>命运之轮 · Her Lens</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+:root{
+    --deep:#0e0818;--gold:#c9a84c;--gold-dim:#8a7235;--gold-glow:rgba(201,168,76,0.35);
+    --cream:#e8dcc8;--cream-dim:#a89b85;
+    --card-bg:rgba(255,255,255,0.08);--card-border:rgba(201,168,76,0.2);
+    --tag-bg:rgba(201,168,76,0.08);--tag-border:rgba(201,168,76,0.18);--tag-text:var(--gold);
+    --iridescent-opacity:0.10;--silver-sweep-color:rgba(255,255,255,0.40);
+}
+html{width:100%;min-height:100vh;min-height:100dvh;overflow:hidden;background:var(--deep)}
+body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--deep);color:var(--cream);font-family:'Cinzel','Georgia',serif;-webkit-text-size-adjust:100%}
+
+/* ===== 星空背景 ===== */
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 70% 40%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(1px 1px at 90% 80%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 15% 75%,rgba(201,168,76,0.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85% 25%,rgba(201,168,76,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 40% 85%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 60% 35%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(ellipse at 50% 0%,rgba(50,20,80,0.6) 0%,transparent 70%),linear-gradient(180deg,#0a0618 0%,#0e0822 30%,#14102e 60%,#0e0818 100%);pointer-events:none}
+
+/* ===== 星云光晕 ===== */
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;will-change:transform;background:radial-gradient(ellipse 600px 400px at 20% 30%,rgba(100,50,140,0.14) 0%,transparent 70%),radial-gradient(ellipse 500px 350px at 80% 60%,rgba(70,40,130,0.12) 0%,transparent 70%),radial-gradient(ellipse 400px 300px at 50% 80%,rgba(120,60,80,0.08) 0%,transparent 70%);animation:nebulaDrift 20s ease-in-out infinite alternate}
+@keyframes nebulaDrift{0%{opacity:0.6;transform:translate3d(0,0,0)}50%{opacity:1;transform:translate3d(15px,-10px,0)}100%{opacity:0.7;transform:translate3d(-10px,8px,0)}}
+
+/* ===== 星座连线 ===== */
+#constellationCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.35}
+
+/* ===== 粒子 ===== */
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;border-radius:50%;opacity:0;animation:floatUp linear infinite}
+.particle--gold{background:var(--gold)}
+.particle--white{background:rgba(255,255,255,0.8)}
+.particle--blue{background:rgba(140,160,220,0.7)}
+@keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(0.5)}15%{opacity:.8}85%{opacity:.6}100%{opacity:0;transform:translateY(-100vh) scale(1)}}
+
+.container{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:40px 24px 60px;display:flex;flex-direction:column;align-items:center;min-height:100vh;min-height:100dvh;padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
+
+/* ===== 返回 ===== */
+.back-btn{position:fixed;top:20px;left:20px;z-index:100;display:flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(201,168,76,0.25);border-radius:20px;color:var(--gold);font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.08em;cursor:pointer;transition:all 0.3s;text-decoration:none}
+.back-btn:hover{background:rgba(201,168,76,0.12);border-color:var(--gold);transform:translateX(-2px)}
+
+/* ===== 标题 ===== */
+.header{text-align:center;margin-bottom:32px}
+.header-icon{font-size:3.2rem;filter:drop-shadow(0 0 20px var(--gold-glow));animation:iconFloat 4s ease-in-out infinite;display:block;margin-bottom:12px}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.header-title{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--gold) 0%,#e8d5a0 50%,var(--gold) 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmerText 4s ease-in-out infinite;letter-spacing:0.12em}
+@keyframes shimmerText{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.header-sub{font-size:0.85rem;color:var(--cream-dim);margin-top:6px;letter-spacing:0.06em;font-family:'Georgia',serif;font-style:italic}
+.divider{width:200px;height:1px;margin:24px auto 0;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);position:relative}
+.divider::after{content:'\25C6';position:absolute;top:-8px;left:50%;transform:translateX(-50%);color:var(--gold-dim);font-size:0.6rem}
+
+/* ===== 操作栏 ===== */
+.actions{display:flex;gap:16px;align-items:center;margin:28px 0 36px;flex-wrap:wrap;justify-content:center}
+.btn-draw{padding:14px 36px;background:linear-gradient(135deg,var(--gold) 0%,#a08830 100%);border:none;border-radius:12px;color:var(--deep);font-family:'Cinzel',serif;font-size:0.95rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;box-shadow:0 4px 20px var(--gold-glow);transition:all 0.3s}
+.btn-draw:hover{transform:translateY(-3px);box-shadow:0 8px 32px var(--gold-glow)}
+.btn-draw:active{transform:translateY(0)}
+.btn-draw:disabled{opacity:0.5;cursor:default;transform:none}
+.btn-secondary{padding:10px 20px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);border-radius:10px;color:var(--cream-dim);font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.08em;cursor:pointer;transition:all 0.3s}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08)}
+.stats{font-size:0.75rem;color:var(--cream-dim);letter-spacing:0.06em;font-family:'Georgia',serif}
+.stats strong{color:var(--gold)}
+
+/* ===== 洗牌区域 ===== */
+.shuffle-stage{position:relative;width:100%;max-width:600px;height:360px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;perspective:1200px}
+
+/* 能量环 */
+.energy-ring{position:absolute;top:50%;left:50%;border-radius:50%;border:1px solid rgba(140,100,200,0.15);pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(0.5)}
+.energy-ring.active{animation:energyPulse 2.5s ease-out forwards}
+.energy-ring:nth-child(1){width:180px;height:180px;animation-delay:0s}
+.energy-ring:nth-child(2){width:260px;height:260px;animation-delay:0.3s}
+.energy-ring:nth-child(3){width:340px;height:340px;animation-delay:0.6s}
+@keyframes energyPulse{0%{opacity:0.6;transform:translate(-50%,-50%) scale(0.5);border-color:rgba(140,100,200,0.3)}60%{opacity:0.2}100%{opacity:0;transform:translate(-50%,-50%) scale(1.3);border-color:rgba(140,100,200,0)}}
+
+/* 牌堆 */
+.deck{position:relative;width:140px;height:210px;transition:all 0.8s cubic-bezier(0.34,1.56,0.64,1)}
+.deck-card{position:absolute;width:140px;height:210px;border-radius:12px;border:2px solid rgba(201,168,76,0.5);background:linear-gradient(160deg,#261e58 0%,#1c1648 40%,#181240 100%);box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 12px rgba(140,100,200,0.08);transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1)}
+.deck-card-inner{width:100%;height:100%;border-radius:10px;border:1.5px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.deck-card-inner::before{content:'';position:absolute;inset:0;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(201,168,76,0.03) 0deg 15deg,transparent 15deg 30deg);opacity:0.5}
+.deck-card-moon{font-size:1.8rem;filter:drop-shadow(0 0 6px var(--gold-glow));position:relative;z-index:1}
+
+/* 牌堆呼吸光 */
+.deck-glow{position:absolute;top:50%;left:50%;width:200px;height:200px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(140,100,200,0.18) 0%,transparent 70%);pointer-events:none;animation:deckGlow 3s ease-in-out infinite}
+@keyframes deckGlow{0%,100%{opacity:0.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
+
+/* 洗牌状态文字 */
+.shuffle-text{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:0.8rem;color:var(--gold-dim);letter-spacing:0.15em;opacity:0;transition:opacity 0.5s}
+.shuffle-text.visible{opacity:1}
+
+/* ===== 发牌后卡片网格 ===== */
+.cards-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px;width:100%;max-width:1200px}
+.cards-grid.active{display:grid}
+
+/* ===== 占卜结语 ===== */
+.fortune-text{text-align:center;font-size:0.82rem;color:var(--gold-dim);letter-spacing:0.12em;line-height:1.8;max-width:500px;margin:0 auto 28px;min-height:0;overflow:hidden;opacity:0;max-height:0;transition:opacity 0.8s ease,max-height 0.8s ease,margin 0.8s ease}
+.fortune-text.visible{opacity:1;max-height:200px;margin:0 auto 28px}
+.fortune-text .fortune-label{display:block;font-size:0.65rem;color:rgba(201,168,76,0.5);letter-spacing:0.2em;margin-bottom:6px;text-transform:uppercase}
+
+/* ===== 抽卡牌 ===== */
+.gacha-card{position:relative;perspective:1200px;cursor:pointer;border-radius:20px;opacity:0;transform:translateY(40px) scale(0.96);transition:opacity 0.7s cubic-bezier(0.34,1.56,0.64,1),transform 0.7s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.5s ease,border-color 0.4s ease,background 0.4s ease}
+.gacha-card.visible{opacity:1;transform:translateY(0) scale(1)}
+.gacha-card.flipped{background:rgba(30,22,58,0.98);border:1px solid rgba(201,168,76,0.4);box-shadow:0 0 0 1px rgba(201,168,76,0.15),0 4px 16px rgba(0,0,0,0.5),0 12px 40px rgba(0,0,0,0.35),0 0 60px -20px rgba(140,100,200,0.15)}
+.gacha-card.just-flipped{box-shadow:0 0 0 1px rgba(201,168,76,0.2),0 4px 16px rgba(0,0,0,0.5),0 12px 40px rgba(0,0,0,0.35),0 0 60px -10px rgba(201,168,76,0.3)}
+@media(hover:hover){.gacha-card.flipped:hover{transform:translateY(-8px) scale(1.015);box-shadow:0 0 0 1px rgba(201,168,76,0.35),0 8px 24px rgba(0,0,0,0.5),0 20px 60px rgba(0,0,0,0.4),0 0 80px -20px rgba(201,168,76,0.2);border-color:rgba(201,168,76,0.55)}}
+.gacha-card.exiting{transition:all 0.4s cubic-bezier(0.4,0,0.2,1);pointer-events:none}
+.gacha-inner{position:relative;width:100%;border-radius:20px;transform-style:preserve-3d;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1)}
+.gacha-card.flipped .gacha-inner{transform:rotateY(180deg)}
+
+/* ★ 牌背 */
+.gacha-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;transform:rotateY(0deg);border:2px solid rgba(201,168,76,0.5);box-shadow:inset 0 1px 0 rgba(201,168,76,0.15),inset 0 0 40px rgba(201,168,76,0.05),0 8px 32px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center}
+.gacha-back-bg{position:absolute;inset:0;background:linear-gradient(160deg,#261e58 0%,#1c1648 40%,#181240 100%)}
+.gacha-back-border-outer{position:absolute;inset:5px;border:1.5px solid rgba(201,168,76,0.45);border-radius:15px;pointer-events:none}
+.gacha-back-border-inner{position:absolute;inset:12px;border:1px solid rgba(201,168,76,0.3);border-radius:10px;pointer-events:none}
+.gacha-back-pattern{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(201,168,76,0.05) 0deg 15deg,transparent 15deg 30deg);opacity:0.8}
+.gacha-back-moon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border:2px solid rgba(201,168,76,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 28px rgba(201,168,76,0.25),inset 0 0 18px rgba(201,168,76,0.12)}
+.gacha-back-moon-icon{font-size:1.6rem;filter:drop-shadow(0 0 8px var(--gold-glow));animation:moonPulse 3s ease-in-out infinite}
+@keyframes moonPulse{0%,100%{filter:drop-shadow(0 0 8px var(--gold-glow));transform:scale(1)}50%{filter:drop-shadow(0 0 16px var(--gold-glow));transform:scale(1.08)}}
+.gacha-back-label{position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:0.6rem;letter-spacing:0.25em;color:var(--gold-dim);text-transform:uppercase}
+.gacha-back-stars{position:absolute;inset:0;pointer-events:none}
+.gacha-back-star{position:absolute;width:3px;height:3px;background:var(--gold);border-radius:50%;opacity:0.4}
+.gacha-back-star:nth-child(1){top:18%;left:22%;animation:starPulse 2.5s ease-in-out infinite}
+.gacha-back-star:nth-child(2){top:25%;right:20%;animation:starPulse 3s ease-in-out infinite .5s}
+.gacha-back-star:nth-child(3){bottom:28%;left:25%;animation:starPulse 2.8s ease-in-out infinite 1s}
+.gacha-back-star:nth-child(4){bottom:22%;right:22%;animation:starPulse 3.2s ease-in-out infinite 1.5s}
+.gacha-back-star:nth-child(5){top:40%;left:15%;width:2px;height:2px;animation:starPulse 2.6s ease-in-out infinite .8s}
+.gacha-back-star:nth-child(6){top:38%;right:15%;width:2px;height:2px;animation:starPulse 3.1s ease-in-out infinite 1.2s}
+@keyframes starPulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.8;transform:scale(1.3)}}
+.gacha-back-shimmer{position:absolute;inset:0;border-radius:20px;overflow:hidden;pointer-events:none}
+.gacha-back-shimmer::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 40%,rgba(201,168,76,0.06) 48%,rgba(201,168,76,0.12) 50%,rgba(201,168,76,0.06) 52%,transparent 60%);animation:shimmerSweep 5s ease-in-out infinite}
+@keyframes shimmerSweep{0%{transform:translateX(-100%) translateY(-100%) rotate(45deg)}100%{transform:translateX(100%) translateY(100%) rotate(45deg)}}
+
+/* ★ 牌面 */
+.gacha-front{position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;transform:rotateY(180deg);background:rgba(30,22,58,0.98);border:1px solid rgba(201,168,76,0.35);box-shadow:inset 0 1px 0 rgba(201,168,76,0.1),0 8px 32px rgba(0,0,0,0.4);display:flex;flex-direction:column}
+.gacha-front .cover-wrap{position:relative;width:100%;aspect-ratio:460/215;overflow:hidden;flex-shrink:0;z-index:3}
+.gacha-front .cover{width:100%;height:100%;object-fit:cover;display:block}
+.gacha-front .cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:rgba(201,168,76,0.12)}
+.gacha-front .heroine-tag{position:absolute;top:8px;left:8px;z-index:5;background:linear-gradient(135deg,#6b5a8a,#4a3a66);color:#fff;padding:2px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;letter-spacing:0.04em;border:1px solid rgba(255,255,255,0.20);box-shadow:0 2px 14px rgba(60,40,80,0.45);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,0.25);text-transform:uppercase}
+.gacha-front .card-body{padding:10px 14px 14px;flex:1;display:flex;flex-direction:column;gap:4px;position:relative;z-index:3}
+.gacha-front .card-title{font-weight:700;font-size:.95rem;color:var(--cream);line-height:1.3}
+.gacha-front .card-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.gacha-front .card-meta span{font-size:.68rem;padding:2px 7px;border-radius:10px;background:rgba(201,168,76,0.15);color:var(--tag-text);white-space:nowrap;border:1px solid rgba(201,168,76,0.3)}
+
+/* ★ 牌面特效 */
+.gacha-front .card-parallax-bg{position:absolute;inset:-20%;z-index:0;pointer-events:none;border-radius:30px;background:radial-gradient(ellipse at var(--parallax-x,50%) var(--parallax-y,50%),rgba(201,168,76,0.04) 0%,transparent 70%);opacity:0.5;transition:background 0.6s ease}
+.gacha-card.flipped:hover .card-parallax-bg{opacity:1}
+.gacha-front .card-iridescent{position:absolute;inset:0;border-radius:20px;pointer-events:none;z-index:10;opacity:var(--iridescent-opacity);background:conic-gradient(from var(--iridescent-angle,0deg) at 50% 50%,rgba(160,120,220,0.18),rgba(130,80,200,0.10),rgba(200,150,255,0.14),rgba(110,70,180,0.08),rgba(160,120,220,0.18));mix-blend-mode:overlay;transition:opacity 0.4s}
+.gacha-card.flipped:hover .card-iridescent{opacity:calc(var(--iridescent-opacity) + 0.05)}
+.gacha-front .card-silver-sweep{position:absolute;inset:0;border-radius:20px;pointer-events:none;z-index:11;opacity:0;background:linear-gradient(110deg,transparent 20%,var(--silver-sweep-color) 45%,var(--silver-sweep-color) 55%,transparent 80%);transition:opacity 0.3s;mask-image:linear-gradient(180deg,transparent 0%,black 30%,black 70%,transparent 100%);-webkit-mask-image:linear-gradient(180deg,transparent 0%,black 30%,black 70%,transparent 100%)}
+.gacha-front .card-silver-sweep.trigger{animation:silverSweepAnim 0.8s ease-out forwards}
+@keyframes silverSweepAnim{0%{opacity:.5;transform:translateX(-100%)}100%{opacity:0;transform:translateX(100%)}}
+.gacha-front .card-shine{position:absolute;inset:0;border-radius:20px;pointer-events:none;z-index:12;opacity:0;background:radial-gradient(circle at var(--shine-x,50%) var(--shine-y,50%),rgba(255,255,255,0.15) 0%,transparent 50%);transition:opacity 0.4s}
+.gacha-card.flipped:hover .card-shine{opacity:1}
+.gacha-front .card-flash{position:absolute;inset:0;border-radius:20px;pointer-events:none;z-index:13;background:radial-gradient(circle at 50% 50%,rgba(160,120,230,0.45) 0%,transparent 70%);opacity:0}
+.gacha-card.just-flipped .card-flash{animation:flashBurst 0.8s ease-out forwards}
+@keyframes flashBurst{0%{opacity:1;transform:scale(0.5)}100%{opacity:0;transform:scale(1.5)}}
+
+/* ===== 历史 ===== */
+.history-panel{position:fixed;top:0;right:-400px;width:380px;max-width:90vw;height:100vh;background:linear-gradient(180deg,#100a24,#0e0818);border-left:1px solid rgba(201,168,76,0.15);z-index:200;display:flex;flex-direction:column;transition:right 0.4s cubic-bezier(0.34,1.56,0.64,1);box-shadow:-8px 0 40px rgba(0,0,0,0.5)}
+.history-panel.open{right:0}
+.history-header{padding:24px 20px 16px;border-bottom:1px solid rgba(201,168,76,0.1);display:flex;align-items:center;justify-content:space-between}
+.history-title{font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.08em}
+.history-close{width:28px;height:28px;border-radius:50%;border:1px solid rgba(201,168,76,0.2);background:transparent;color:var(--cream-dim);font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.history-close:hover{border-color:var(--gold);color:var(--gold)}
+.history-body{flex:1;overflow-y:auto;padding:16px 20px}
+.history-empty{text-align:center;padding:40px 20px;color:var(--cream-dim);font-size:0.85rem;font-style:italic}
+.history-item{padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.06)}
+.history-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.history-time{font-size:0.7rem;color:var(--cream-dim);letter-spacing:0.04em}
+.history-count{font-size:0.7rem;color:var(--gold);font-weight:600}
+.history-games{display:flex;flex-wrap:wrap;gap:4px}
+.history-game{padding:2px 8px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:6px;font-size:0.65rem;color:var(--cream-dim)}
+.history-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.history-overlay.open{opacity:1;pointer-events:auto}
+body.history-locked{position:fixed;width:100%;overflow:hidden}
+
+/* ===== 平板 ===== */
+@media(max-width:960px){.cards-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}.container{padding:30px 20px 50px}}
+
+/* ===== 手机 ===== */
+@media(max-width:640px){
+html{overflow-y:auto}
+.container{padding:52px 14px 40px;min-height:100vh;min-height:100dvh}
+.back-btn{top:10px;left:10px;padding:5px 10px;font-size:0.68rem;border-radius:16px}
+.header{margin-bottom:20px}
+.header-icon{font-size:2.4rem;margin-bottom:6px}
+.header-title{font-size:1.3rem;letter-spacing:0.08em}
+.header-sub{font-size:0.72rem;margin-top:4px}
+.stats{font-size:0.7rem}
+.actions{gap:8px;margin:16px 0 20px;flex-direction:column;width:100%;max-width:280px}
+.btn-draw{padding:11px 28px;font-size:0.85rem;width:100%}
+.btn-secondary{padding:8px 16px;font-size:0.72rem}
+.cards-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+.shuffle-stage{height:200px;max-width:100%}
+.deck{width:80px;height:120px}
+.deck-card{width:80px;height:120px}
+.deck-glow{width:100px;height:100px}
+.deck-card-moon{font-size:1.2rem}
+.energy-ring:nth-child(1){width:110px;height:110px}
+.energy-ring:nth-child(2){width:160px;height:160px}
+.energy-ring:nth-child(3){width:210px;height:210px}
+.gacha-back-moon{width:36px;height:36px}
+.gacha-back-moon-icon{font-size:1.1rem}
+.gacha-back-label{font-size:0.48rem;bottom:12px}
+.gacha-back-border-outer{inset:3px}
+.gacha-back-border-inner{inset:7px}
+.gacha-front .card-title{font-size:0.78rem}
+.gacha-front .card-meta span{font-size:0.58rem;padding:1px 5px}
+.gacha-front .heroine-tag{font-size:0.58rem;padding:1px 7px}
+.gacha-front .cover-placeholder{font-size:1.8rem}
+.shuffle-text{font-size:0.68rem}
+.fortune-text{font-size:0.72rem;padding:0 8px}
+.history-panel{width:100%;max-width:100vw}
+.history-header{padding:16px}
+.history-body{padding:12px 16px}
+/* 移动端禁用装饰层重排动画 */
+.deco-nebula-tl,.deco-nebula-br,.deco-nebula-c{animation:none}
+.deco-aurora{animation:none;opacity:0.6}
+}
+
+/* ===== 极小屏 ===== */
+@media(max-width:360px){
+.cards-grid{grid-template-columns:1fr;gap:14px;max-width:280px}
+.header-title{font-size:1.15rem}
+.btn-draw{padding:10px 24px;font-size:0.82rem}
+}
+
+/* ===== 纯CSS装饰层 ===== */
+.deco-vignette{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 65% at 50% 50%,transparent 0%,rgba(8,4,18,0.7) 100%)}
+.deco-nebula-tl{position:fixed;top:-15%;left:-10%;width:50vw;height:50vh;z-index:0;pointer-events:none;border-radius:50%;background:radial-gradient(ellipse at center,rgba(130,60,200,0.35) 0%,rgba(90,40,160,0.15) 40%,transparent 70%);animation:decoDrift1 28s ease-in-out infinite alternate;will-change:transform}
+.deco-nebula-br{position:fixed;bottom:-15%;right:-10%;width:45vw;height:45vh;z-index:0;pointer-events:none;border-radius:50%;background:radial-gradient(ellipse at center,rgba(100,50,180,0.3) 0%,rgba(70,30,140,0.12) 40%,transparent 70%);animation:decoDrift2 32s ease-in-out infinite alternate;will-change:transform}
+.deco-nebula-c{position:fixed;top:30%;left:50%;width:40vw;height:35vh;z-index:0;pointer-events:none;border-radius:50%;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(150,80,220,0.22) 0%,transparent 65%);animation:decoDrift3 36s ease-in-out infinite alternate;will-change:transform}
+.deco-stars-sm{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(1.5px 1.5px at 8% 15%,rgba(200,180,255,0.85) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 22% 42%,rgba(200,180,255,0.7) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 35% 78%,rgba(200,180,255,0.8) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 48% 55%,rgba(200,180,255,0.65) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 62% 22%,rgba(200,180,255,0.75) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 75% 68%,rgba(200,180,255,0.7) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 88% 35%,rgba(200,180,255,0.85) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 12% 88%,rgba(200,180,255,0.65) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 55% 92%,rgba(200,180,255,0.75) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 92% 12%,rgba(200,180,255,0.7) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 42% 8%,rgba(220,200,255,0.6) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 68% 48%,rgba(220,200,255,0.55) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 18% 62%,rgba(220,200,255,0.6) 0%,transparent 100%),radial-gradient(1.2px 1.2px at 82% 85%,rgba(220,200,255,0.55) 0%,transparent 100%)}
+.deco-stars-gold{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(2px 2px at 25% 30%,rgba(201,168,76,0.8) 0%,transparent 100%),radial-gradient(2px 2px at 70% 70%,rgba(201,168,76,0.65) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 18%,rgba(201,168,76,0.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85% 50%,rgba(201,168,76,0.65) 0%,transparent 100%)}
+.deco-ring{position:fixed;top:50%;left:50%;width:min(70vw,500px);height:min(70vw,500px);transform:translate(-50%,-50%);z-index:0;pointer-events:none;border-radius:50%;border:1px solid rgba(140,100,200,0.2);box-shadow:0 0 80px rgba(140,100,200,0.1),inset 0 0 60px rgba(140,100,200,0.07);animation:decoRingPulse 12s ease-in-out infinite}
+.deco-ring2{position:fixed;top:50%;left:50%;width:min(50vw,350px);height:min(50vw,350px);transform:translate(-50%,-50%);z-index:0;pointer-events:none;border-radius:50%;border:1px solid rgba(201,168,76,0.15);animation:decoRingPulse 12s ease-in-out infinite 4s}
+.deco-aurora{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;background:conic-gradient(from 180deg at 50% 120%,transparent 0deg,rgba(110,60,180,0.15) 60deg,transparent 120deg,rgba(90,50,160,0.12) 200deg,transparent 280deg,rgba(130,70,200,0.15) 340deg,transparent 360deg);animation:decoAuroraSpin 60s linear infinite;will-change:transform}
+@keyframes decoDrift1{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(30px,20px,0)}}
+@keyframes decoDrift2{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(-25px,-15px,0)}}
+@keyframes decoDrift3{0%{transform:translateX(-50%) translate3d(0,0,0)}100%{transform:translateX(-50%) translate3d(15px,10px,0)}}
+@keyframes decoRingPulse{0%,100%{opacity:0.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.03)}}
+@keyframes decoAuroraSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+<canvas id="constellationCanvas"></canvas>
+<div class="deco-vignette"></div>
+<div class="deco-nebula-tl"></div>
+<div class="deco-nebula-br"></div>
+<div class="deco-nebula-c"></div>
+<div class="deco-stars-sm"></div>
+<div class="deco-stars-gold"></div>
+<div class="deco-ring"></div>
+<div class="deco-ring2"></div>
+<div class="deco-aurora"></div>
+<a href="index.html" class="back-btn">&larr; 返回</a>
+
+<div class="container">
+    <div class="header">
+        <span class="header-icon">🌙</span>
+        <div class="header-title">命运之轮</div>
+        <div class="header-sub" id="headerSub">闭上双眼，心中默念你的疑惑……</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stats" style="margin-top:24px">卡池共 <strong id="poolCount">0</strong> 款游戏 · 已抽卡 <strong id="drawCount">0</strong> 次</div>
+    <div class="actions">
+        <button class="btn-draw" id="btnDraw">✦ 命运抽牌</button>
+        <button class="btn-secondary" id="btnRevealAll" style="display:none">全部揭晓</button>
+        <button class="btn-secondary" id="btnHistory">📜 记录</button>
+    </div>
+
+    <!-- 洗牌舞台 -->
+    <div class="shuffle-stage" id="shuffleStage">
+        <div class="energy-ring" id="energyRing1"></div>
+        <div class="energy-ring" id="energyRing2"></div>
+        <div class="energy-ring" id="energyRing3"></div>
+        <div class="deck-glow"></div>
+        <div class="deck" id="deck"></div>
+        <div class="shuffle-text" id="shuffleText">命运正在洗牌...</div>
+    </div>
+
+    <!-- 占卜结语 -->
+    <div class="fortune-text" id="fortuneText"></div>
+
+    <!-- 发牌后网格 -->
+    <div class="cards-grid" id="cardsGrid"></div>
+</div>
+
+<div class="history-overlay" id="historyOverlay"></div>
+<div class="history-panel" id="historyPanel">
+    <div class="history-header">
+        <div class="history-title">📜 抽卡记录</div>
+        <button class="history-close" id="historyClose">✕</button>
+    </div>
+    <div class="history-body" id="historyBody"><div class="history-empty">暂无抽卡记录</div></div>
+</div>
+
+<script>
+(function(){
+    var STORAGE_KEY='heroineGamesDataV2',HISTORY_KEY='herlens_gacha_history',SETTINGS_KEY='heroineGamesSettingsV2';
+    var games=[],drawHistory=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+    var showAdultContent=false;
+    var excludedTags={genre:[],gameplay:[],platforms:[],heroineType:[],costumeType:[],perspective:[]};
+    var DECK_COUNT=8;
+
+    /* ========== 占卜语 ========== */
+    var FORTUNE_INTRO=[
+        '星辰已为你排列，牌阵正在成形……',
+        '命运的丝线开始交织，答案即将浮现……',
+        '月光洒落牌面，属于你的故事正在展开……',
+        '塔罗的低语穿过迷雾，为你指引方向……',
+        '宇宙听到了你的呼唤，命运之轮开始转动……',
+        '星象已然明朗，让牌面为你诉说……'
+    ];
+    var FORTUNE_DEAL=[
+        '牌已落定，每一张都是命运的馈赠。',
+        '八张牌，八个可能，皆是星辰的安排。',
+        '牌面尚在沉睡，等待你唤醒其中的秘密。',
+        '命运将答案藏于牌中，只待你亲手揭开。',
+        '牌阵已成，未来在迷雾中若隐若现。'
+    ];
+    var FORTUNE_REVEAL=[
+        '所有牌面已然揭晓——这就是命运为你写下的篇章。',
+        '迷雾散尽，命运的全貌展现在你眼前。',
+        '牌面尽显，愿你在其中找到前行的勇气。',
+        '命运已将答案铺陈，愿你的心有所归。',
+        '星辰无言，牌面有声——这就是属于你的故事。'
+    ];
+    function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+    function loadGames(){var l=localStorage.getItem(STORAGE_KEY);if(l){try{var p=JSON.parse(l);games=p.map(function(g){return Object.assign({},g,{id:Number(g.id)})}).filter(function(g){return g.id!==1&&g.id!==2&&!g.isDraft})}catch(_){games=[]}}}
+    function loadSettings(){
+        try{
+            var s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+            showAdultContent=s.contentSettings?.showAdultContent===true;
+            var ex=s.contentSettings?.excludedTags||{};
+            excludedTags={
+                genre:Array.isArray(ex.genre)?ex.genre:[],
+                gameplay:Array.isArray(ex.gameplay)?ex.gameplay:[],
+                platforms:Array.isArray(ex.platforms)?ex.platforms:[],
+                heroineType:Array.isArray(ex.heroineType)?ex.heroineType:[],
+                costumeType:Array.isArray(ex.costumeType)?ex.costumeType:[],
+                perspective:Array.isArray(ex.perspective)?ex.perspective:[]
+            };
+        }catch(_){}
+    }
+    function isTagExcluded(game){
+        if(!showAdultContent&&game.costumeType==='含恶俗设计') return true;
+        if(excludedTags.heroineType.includes(game.heroineType)) return true;
+        if(excludedTags.costumeType.includes(game.costumeType)) return true;
+        if(excludedTags.perspective.includes(game.perspective)) return true;
+        for(var i=0;i<(game.genre||[]).length;i++){if(excludedTags.genre.includes(game.genre[i])) return true}
+        for(var i=0;i<(game.gameplay||[]).length;i++){if(excludedTags.gameplay.includes(game.gameplay[i])) return true}
+        for(var i=0;i<(game.platforms||[]).length;i++){if(excludedTags.platforms.includes(game.platforms[i])) return true}
+        return false;
+    }
+    function getFiltered(){return games.filter(function(g){return g.view!=='unreleased'&&!isTagExcluded(g)})}
+
+    /* ========== 音效 ========== */
+    var audioCtx=null;
+    function getAudio(){if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+
+    function playShuffleSound(){
+        var ctx=getAudio();var now=ctx.currentTime;
+        // 快速连续的纸牌摩擦声
+        for(var i=0;i<12;i++){
+            var osc=ctx.createOscillator();var gain=ctx.createGain();
+            var filter=ctx.createBiquadFilter();
+            filter.type='bandpass';filter.frequency.value=2000+Math.random()*3000;filter.Q.value=1.5;
+            osc.type='sawtooth';osc.frequency.value=80+Math.random()*60;
+            var t=now+i*0.04;
+            gain.gain.setValueAtTime(0,t);
+            gain.gain.linearRampToValueAtTime(0.03,t+0.01);
+            gain.gain.linearRampToValueAtTime(0,t+0.035);
+            osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+            osc.start(t);osc.stop(t+0.04);
+        }
+    }
+
+    function playDealSound(){
+        var ctx=getAudio();var now=ctx.currentTime;
+        // 柔和的放置声
+        var osc=ctx.createOscillator();var gain=ctx.createGain();
+        var filter=ctx.createBiquadFilter();
+        filter.type='lowpass';filter.frequency.value=600;
+        osc.type='sine';osc.frequency.setValueAtTime(200,now);osc.frequency.exponentialRampToValueAtTime(80,now+0.15);
+        gain.gain.setValueAtTime(0.12,now);gain.gain.exponentialRampToValueAtTime(0.001,now+0.15);
+        osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+        osc.start(now);osc.stop(now+0.15);
+    }
+
+    function playFlipSound(){
+        var ctx=getAudio();var now=ctx.currentTime;
+        // 翻牌 "啪" 声
+        var buf=ctx.createBuffer(1,ctx.sampleRate*0.08,ctx.sampleRate);
+        var data=buf.getChannelData(0);
+        for(var i=0;i<data.length;i++){
+            var t=i/data.length;
+            data[i]=(Math.random()*2-1)*Math.exp(-t*30)*0.3;
+        }
+        var src=ctx.createBufferSource();src.buffer=buf;
+        var filter=ctx.createBiquadFilter();
+        filter.type='highpass';filter.frequency.value=800;
+        var gain=ctx.createGain();gain.gain.value=0.25;
+        src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+        src.start(now);
+    }
+
+    function playMysticalChime(){
+        var ctx=getAudio();var now=ctx.currentTime;
+        // 神秘和弦
+        [523.25,659.25,783.99].forEach(function(f,i){
+            var osc=ctx.createOscillator();var gain=ctx.createGain();
+            osc.type='sine';osc.frequency.value=f;
+            var t=now+i*0.12;
+            gain.gain.setValueAtTime(0,t);
+            gain.gain.linearRampToValueAtTime(0.08,t+0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001,t+1.2);
+            osc.connect(gain);gain.connect(ctx.destination);
+            osc.start(t);osc.stop(t+1.2);
+        });
+    }
+
+    function initParticles(){
+        var c=document.getElementById('particles');
+        var types=['particle--gold','particle--white','particle--blue'];
+        var count=window.innerWidth<640?15:35;
+        for(var i=0;i<count;i++){
+            var p=document.createElement('div');
+            var type=types[i%3];
+            if(i>24) type=types[Math.floor(Math.random()*3)];
+            p.className='particle '+type;
+            p.style.left=Math.random()*100+'%';
+            p.style.bottom='-10px';
+            var size=(1+Math.random()*2.5);
+            p.style.width=size+'px';p.style.height=size+'px';
+            p.style.animationDuration=(8+Math.random()*14)+'s';
+            p.style.animationDelay=Math.random()*12+'s';
+            c.appendChild(p);
+        }
+    }
+
+    /* ========== 星座连线 ========== */
+    function initConstellation(){
+        var canvas=document.getElementById('constellationCanvas');
+        var ctx=canvas.getContext('2d');
+        var stars=[];var starCount=window.innerWidth<640?8:18;
+        var w,h,raf;var lastFrame=0;var frameInterval=window.innerWidth<640?50:0;
+        var dpr=Math.min(window.devicePixelRatio||1,2);
+        function resize(){
+            w=window.innerWidth;h=window.innerHeight;
+            canvas.width=w*dpr;canvas.height=h*dpr;
+            canvas.style.width=w+'px';canvas.style.height=h+'px';
+            ctx.setTransform(dpr,0,0,dpr,0,0);
+            starCount=window.innerWidth<640?8:18;
+            frameInterval=window.innerWidth<640?50:0;
+            initStars();
+        }
+        function initStars(){
+            stars=[];
+            for(var i=0;i<starCount;i++){
+                stars.push({x:Math.random()*w,y:Math.random()*h,r:0.5+Math.random()*1.2,bright:0.2+Math.random()*0.5,phase:Math.random()*Math.PI*2,speed:0.003+Math.random()*0.005});
+            }
+        }
+        function draw(ts){
+            if(frameInterval&&ts-lastFrame<frameInterval){raf=requestAnimationFrame(draw);return}
+            lastFrame=ts;
+            ctx.clearRect(0,0,w,h);
+            var now=Date.now();
+            for(var i=0;i<stars.length;i++){
+                var s=stars[i];
+                var alpha=s.bright+Math.sin(now*s.speed+s.phase)*0.15;
+                ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+                ctx.fillStyle='rgba(170,140,230,'+Math.max(0,alpha).toFixed(2)+')';ctx.fill();
+            }
+            for(var i=0;i<stars.length;i++){
+                for(var j=i+1;j<stars.length;j++){
+                    var dx=stars[i].x-stars[j].x;var dy=stars[i].y-stars[j].y;
+                    var dist=Math.sqrt(dx*dx+dy*dy);
+                    if(dist<220){
+                        var alpha2=(1-dist/220)*0.12;
+                        ctx.beginPath();ctx.moveTo(stars[i].x,stars[i].y);ctx.lineTo(stars[j].x,stars[j].y);
+                        ctx.strokeStyle='rgba(170,140,230,'+alpha2.toFixed(3)+')';ctx.lineWidth=0.5;ctx.stroke();
+                    }
+                }
+            }
+            raf=requestAnimationFrame(draw);
+        }
+        resize();
+        window.addEventListener('resize',resize);
+        // Pause when tab hidden to save battery
+        document.addEventListener('visibilitychange',function(){
+            if(document.hidden){cancelAnimationFrame(raf)}else{requestAnimationFrame(draw)}
+        });
+        requestAnimationFrame(draw);
+    }
+
+    /* ========== 能量环触发 ========== */
+    function triggerEnergyRings(){
+        var rings=document.querySelectorAll('.energy-ring');
+        rings.forEach(function(r){r.classList.remove('active');void r.offsetWidth;r.classList.add('active')});
+    }
+
+    /* ========== 洗牌动画 ========== */
+    function buildDeck(){
+        var deck=document.getElementById('deck');
+        deck.innerHTML='';
+        deck.style.cssText='';  // reset any leftover transform/opacity from previous draw
+        for(var i=0;i<DECK_COUNT;i++){
+            var card=document.createElement('div');
+            card.className='deck-card';
+            card.style.top=(i*3)+'px';
+            card.style.zIndex=i;
+            card.innerHTML='<div class="deck-card-inner"><span class="deck-card-moon">🌙</span></div>';
+            deck.appendChild(card);
+        }
+    }
+
+    function animateShuffle(onDone){
+        var deck=document.getElementById('deck');
+        var cards=deck.querySelectorAll('.deck-card');
+        var txt=document.getElementById('shuffleText');
+        var count=cards.length;
+        var half=Math.ceil(count/2);
+
+        // Phase 1: 展示牌堆
+        deck.style.transform='translateY(-20px) scale(1.05)';
+        txt.classList.add('visible');
+        txt.textContent='星辰正在为你排列……';
+        playMysticalChime();
+        triggerEnergyRings();
+
+        setTimeout(function(){
+            // Phase 2: 左右分开
+            playShuffleSound();
+            var leftCards=[].slice.call(cards,0,half);
+            var rightCards=[].slice.call(cards,half);
+            leftCards.forEach(function(c,i){
+                c.style.transition='all 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+                c.style.transform='translateX(-90px) rotate(-8deg)';
+            });
+            rightCards.forEach(function(c,i){
+                c.style.transition='all 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+                c.style.transform='translateX(90px) rotate(8deg)';
+            });
+
+            setTimeout(function(){
+                // Phase 3: 交错合并（riffle）
+                playShuffleSound();
+                txt.textContent='命运的丝线正在交织……';
+                var merged=[];
+                for(var i=0;i<half;i++){
+                    merged.push(leftCards[i]);
+                    if(rightCards[i-half]) merged.push(rightCards[i-half]);
+                }
+                // 补齐剩余
+                for(var i=merged.length;i<count;i++){
+                    merged.push(rightCards[i-half]||leftCards[i-half]||cards[i]);
+                }
+
+                // 先把所有牌移到中间
+                leftCards.concat(rightCards).forEach(function(c){
+                    c.style.transition='all 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+                    c.style.transform='translateX(0) rotate(0)';
+                });
+
+                setTimeout(function(){
+                    // 再次分开
+                    playShuffleSound();
+                    merged.forEach(function(c,i){
+                        c.style.transition='all 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+                        if(i%2===0) c.style.transform='translateX(-70px) rotate(-5deg)';
+                        else c.style.transform='translateX(70px) rotate(5deg)';
+                    });
+
+                    setTimeout(function(){
+                        // 第二次合并
+                        txt.textContent='答案即将浮现……';
+                        merged.forEach(function(c,i){
+                            c.style.transition='all 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+                            c.style.transform='translateX(0) rotate(0)';
+                            c.style.top=(i*3)+'px';
+                        });
+
+                        setTimeout(function(){
+                            // Phase 4: 牌堆飞出
+                            deck.style.transition='all 0.6s cubic-bezier(0.4,0,0.2,1)';
+                            deck.style.transform='translateY(-60px) scale(0.8)';
+                            deck.style.opacity='0';
+
+                            setTimeout(function(){
+                                txt.classList.remove('visible');
+                                if(onDone) onDone();
+                            },600);
+                        },600);
+                    },500);
+                },400);
+            },500);
+        },800);
+    }
+
+    /* ========== 发牌到网格 ========== */
+    function dealCards(drawn){
+        var grid=document.getElementById('cardsGrid');
+        grid.innerHTML='';
+        grid.classList.add('active');
+        var stage=document.getElementById('shuffleStage');
+        stage.style.display='none';
+
+        drawn.forEach(function(g,i){
+            var meta=(g.genre||[]).slice(0,3);
+            var cover=g.cover?'<img class="cover" src="'+esc(g.cover)+'" alt="'+esc(g.title)+'" loading="lazy" />':'<div class="cover-placeholder">🎮</div>';
+            var heroineTag=g.heroineType?'<div class="heroine-tag">'+esc(g.heroineType)+'</div>':'';
+
+            var card=document.createElement('div');
+            card.className='gacha-card';card.dataset.gameId=g.id;
+            card.innerHTML=
+                '<div class="gacha-inner">'+
+                    '<div class="gacha-back">'+
+                        '<div class="gacha-back-bg"></div>'+
+                        '<div class="gacha-back-pattern"></div>'+
+                        '<div class="gacha-back-border-outer"></div>'+
+                        '<div class="gacha-back-border-inner"></div>'+
+                        '<div class="gacha-back-stars"><div class="gacha-back-star"></div><div class="gacha-back-star"></div><div class="gacha-back-star"></div><div class="gacha-back-star"></div><div class="gacha-back-star"></div><div class="gacha-back-star"></div></div>'+
+                        '<div class="gacha-back-shimmer"></div>'+
+                        '<div class="gacha-back-moon"><span class="gacha-back-moon-icon">🌙</span></div>'+
+                        '<div class="gacha-back-label">轻触翻开命运</div>'+
+                    '</div>'+
+                    '<div class="gacha-front">'+
+                        '<div class="card-parallax-bg"></div>'+
+                        '<div class="card-iridescent"></div>'+
+                        '<div class="card-silver-sweep"></div>'+
+                        '<div class="card-shine"></div>'+
+                        '<div class="card-flash"></div>'+
+                        '<div class="cover-wrap">'+cover+heroineTag+'</div>'+
+                        '<div class="card-body">'+
+                            '<div class="card-title">'+esc(g.title||'')+'</div>'+
+                            '<div class="card-meta">'+meta.map(function(t){return '<span>'+esc(t)+'</span>'}).join('')+'</div>'+
+                        '</div>'+
+                    '</div>'+
+                '</div>';
+
+            card.addEventListener('click',function(){
+                if(this.classList.contains('flipped')){
+                    var id=Number(this.dataset.gameId);
+                    if(id) window.open('index.html?game='+id,'_blank');
+                }else{
+                    playFlipSound();
+                    this.classList.add('flipped','just-flipped');
+                    var self=this;setTimeout(function(){self.classList.remove('just-flipped')},900);
+                    checkRevealed();
+                }
+            });
+
+            bindCardEffects(card);
+            grid.appendChild(card);
+            (function(c,delay){
+                setTimeout(function(){
+                    c.classList.add('visible');
+                    playDealSound();
+                },delay);
+            })(card,30+i*80);
+        });
+        checkRevealed();
+        // 显示占卜结语
+        var fortune=document.getElementById('fortuneText');
+        fortune.innerHTML='<span class="fortune-label">— 占卜师的低语 —</span>'+pickRandom(FORTUNE_DEAL);
+        setTimeout(function(){fortune.classList.add('visible')},600);
+    }
+
+    /* ========== 卡片特效 ========== */
+    function bindCardEffects(card){
+        var iridescent=card.querySelector('.card-iridescent');
+        var shine=card.querySelector('.card-shine');
+        var silver=card.querySelector('.card-silver-sweep');
+        var tid=null;
+
+        function applyT(cx,cy){
+            card.style.transform='translateY(-8px) scale(1.015) perspective(1200px) rotateX('+((cy-0.5)*2*-6)+'deg) rotateY('+((cx-0.5)*2*6)+'deg)';
+            if(iridescent) iridescent.style.setProperty('--iridescent-angle',cx*360+'deg');
+            if(shine){shine.style.setProperty('--shine-x',cx*100+'%');shine.style.setProperty('--shine-y',cy*100+'%')}
+        }
+        function resetT(){
+            card.style.transform='';
+            if(iridescent) iridescent.style.setProperty('--iridescent-angle','0deg');
+            if(shine){shine.style.setProperty('--shine-x','50%');shine.style.setProperty('--shine-y','50%')}
+        }
+        function sweep(){
+            if(!silver)return;silver.classList.remove('trigger');void silver.offsetWidth;silver.classList.add('trigger');
+            if(tid)clearTimeout(tid);tid=setTimeout(function(){silver.classList.remove('trigger');tid=null},800);
+        }
+
+        card.addEventListener('mousemove',function(e){
+            if(!card.classList.contains('flipped'))return;
+            var r=card.getBoundingClientRect();
+            applyT(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height)));
+        });
+        card.addEventListener('mouseleave',function(){resetT();sweep()});
+        var touching=false;
+        card.addEventListener('touchstart',function(e){if(!card.classList.contains('flipped'))return;var t=e.touches[0];if(!t)return;touching=true;var r=card.getBoundingClientRect();applyT(Math.max(0,Math.min(1,(t.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(t.clientY-r.top)/r.height)))},{passive:true});
+        card.addEventListener('touchmove',function(e){if(!touching)return;var t=e.touches[0];if(!t)return;var r=card.getBoundingClientRect();applyT(Math.max(0,Math.min(1,(t.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(t.clientY-r.top)/r.height)))},{passive:true});
+        var tEnd=function(){touching=false;resetT();sweep()};
+        card.addEventListener('touchend',tEnd,{passive:true});
+        card.addEventListener('touchcancel',tEnd,{passive:true});
+    }
+
+    /* ========== 全部翻开 / 检测 ========== */
+    function revealAll(){
+        document.querySelectorAll('.gacha-card:not(.flipped)').forEach(function(c,i){
+            setTimeout(function(){c.classList.add('flipped','just-flipped');var s=c;setTimeout(function(){s.classList.remove('just-flipped')},900);checkRevealed()},i*120);
+        });
+        // 全部揭晓后显示签文
+        setTimeout(function(){
+            var fortune=document.getElementById('fortuneText');
+            fortune.innerHTML='<span class="fortune-label">— 命运的低语 —</span>'+pickRandom(FORTUNE_REVEAL);
+            fortune.classList.add('visible');
+        },document.querySelectorAll('.gacha-card').length*120+400);
+    }
+    function checkRevealed(){
+        var all=document.querySelectorAll('.gacha-card');
+        var flipped=document.querySelectorAll('.gacha-card.flipped');
+        var allRevealed=all.length>0&&all.length===flipped.length;
+        document.getElementById('btnRevealAll').style.display=allRevealed?'none':'';
+    }
+
+    /* ========== 旧卡片退场动画 ========== */
+    function exitOldCards(callback){
+        var grid=document.getElementById('cardsGrid');
+        var oldCards=grid.querySelectorAll('.gacha-card');
+        if(oldCards.length===0){callback();return}
+        // 翻开所有未翻的卡
+        oldCards.forEach(function(c){
+            if(!c.classList.contains('flipped')){
+                c.classList.add('flipped','just-flipped');
+            }
+        });
+        // 全部缩小淡出
+        setTimeout(function(){
+            oldCards.forEach(function(c,i){
+                c.classList.add('exiting');
+                c.style.transitionDelay=(i*25)+'ms';
+                c.style.transform='translateY(30px) scale(0.85)';
+                c.style.opacity='0';
+            });
+            var delay=oldCards.length*25+400;
+            setTimeout(function(){
+                grid.classList.remove('active');
+                grid.innerHTML='';
+                callback();
+            },delay);
+        },250);
+    }
+
+    /* ========== 抽卡主流程 ========== */
+    var isAnimating=false;
+
+    function doDraw(){
+        if(isAnimating) return;
+        var pool=getFiltered();
+        if(pool.length===0){alert('卡池为空，请先返回主页添加游戏');return}
+
+        isAnimating=true;
+        document.getElementById('btnDraw').disabled=true;
+        document.getElementById('headerSub').textContent=pickRandom(FORTUNE_INTRO);
+
+        var count=Math.min(8,pool.length);
+        var shuffled=pool.slice().sort(function(){return Math.random()-0.5});
+        var drawn=shuffled.slice(0,count);
+
+        var stage=document.getElementById('shuffleStage');
+        var grid=document.getElementById('cardsGrid');
+
+        // 如果有旧卡片，先退场
+        var hasOldCards=grid.querySelectorAll('.gacha-card').length>0;
+
+        function startShuffle(){
+            stage.style.display='';
+            grid.classList.remove('active');
+            grid.innerHTML='';
+            document.getElementById('btnRevealAll').style.display='none';
+            document.getElementById('fortuneText').classList.remove('visible');
+            buildDeck();
+            requestAnimationFrame(function(){
+                animateShuffle(function(){
+                    dealCards(drawn);
+                    isAnimating=false;
+                    document.getElementById('btnDraw').disabled=false;
+                });
+            });
+        }
+
+        if(hasOldCards){
+            exitOldCards(startShuffle);
+        }else{
+            startShuffle();
+        }
+
+        drawHistory.unshift({time:Date.now(),games:drawn.map(function(g){return g.title})});
+        if(drawHistory.length>50) drawHistory=drawHistory.slice(0,50);
+        localStorage.setItem(HISTORY_KEY,JSON.stringify(drawHistory));
+        document.getElementById('drawCount').textContent=drawHistory.length;
+    }
+
+    /* ========== 历史 ========== */
+    function toggleHistory(){
+        var isOpen=document.getElementById('historyPanel').classList.toggle('open');
+        document.getElementById('historyOverlay').classList.toggle('open');
+        if(isOpen){
+            document.body.style.top=-window.scrollY+'px';
+            document.body.classList.add('history-locked');
+        }else{
+            var top=document.body.style.top;
+            document.body.classList.remove('history-locked');
+            document.body.style.top='';
+            if(top) window.scrollTo(0,-parseInt(top));
+        }
+        renderHistory();
+    }
+    function renderHistory(){
+        var body=document.getElementById('historyBody');
+        if(drawHistory.length===0){body.innerHTML='<div class="history-empty">暂无抽卡记录</div>';return}
+        body.innerHTML=drawHistory.map(function(item){
+            var t=new Date(item.time);
+            var ts=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+            return '<div class="history-item"><div class="history-item-header"><span class="history-time">'+ts+'</span><span class="history-count">'+item.games.length+' 款</span></div><div class="history-games">'+item.games.map(function(g){return '<span class="history-game">'+esc(g)+'</span>'}).join('')+'</div></div>';
+        }).join('');
+    }
+
+    /* ========== 初始化 ========== */
+    document.addEventListener('DOMContentLoaded',function(){
+        loadGames();
+        loadSettings();
+        document.getElementById('poolCount').textContent=getFiltered().length;
+        document.getElementById('drawCount').textContent=drawHistory.length;
+        initParticles();
+        initConstellation();
+        buildDeck();
+
+        document.getElementById('btnDraw').addEventListener('click',doDraw);
+        document.getElementById('btnRevealAll').addEventListener('click',revealAll);
+        document.getElementById('btnHistory').addEventListener('click',toggleHistory);
+        document.getElementById('historyClose').addEventListener('click',toggleHistory);
+        document.getElementById('historyOverlay').addEventListener('click',toggleHistory);
+    });
+})();
+</script>
+</body>
+</html>

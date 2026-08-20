@@ -102,7 +102,7 @@
             <nav class="top-nav" id="topNav">
                 <button class="top-nav-item active" data-nav="games">游戏总览</button>
                 <button class="top-nav-item" data-nav="mods">MOD总览</button>
-                <button class="top-nav-item" data-nav="test" id="navPersonalityTest">人格测试</button>
+                <button class="top-nav-item" data-nav="test" id="navPersonalityTest">游玩测试</button>
                 <button class="top-nav-item" data-nav="announcements">网站公告</button>
 
                 <button class="top-nav-item" id="navTip" title="打赏网页，支持创作">打赏网页</button>
@@ -188,8 +188,8 @@
                 <span class="sort-select-arrow" aria-hidden="true">▾</span>
             </label>
 
-            <button class="btn btn-random btn-sm" id="btnRandomPick" title="从当前列表中随机推荐一款游戏">
-                <span class="dice-icon">🎲</span> 随机
+            <button class="btn btn-sm btn-gacha" id="btnGacha" title="从当前游戏池中随机抽取 8 款推荐">
+                <span class="dice-icon">🌙</span> 抽卡
             </button>
 
             <button class="btn btn-sm btn-wishlist" id="btnWishlistToggle" title="仅显示已加入愿望单的游戏">
@@ -288,6 +288,30 @@
         </div>
         <div class="announcements-list" id="announcementsList">
             <div class="announcements-empty">加载中...</div>
+        </div>
+    </div>
+
+    <!-- ===== 游玩测试大厅 ===== -->
+    <div class="test-hub-section" id="testHubSection" style="display:none;">
+        <div class="test-hub-header">
+            <div class="test-hub-title">🎮 游玩测试</div>
+            <div class="test-hub-subtitle">选择一项测试开始，每一次探索都是了解自己的旅程</div>
+        </div>
+        <div class="test-hub-grid">
+            <div class="test-hub-card" onclick="window.open('taste-test-scenario.html','_blank')">
+                <div class="test-hub-icon">🔮</div>
+                <div class="test-hub-name">游戏人格测试</div>
+                <div class="test-hub-desc">39 道场景题 · 6 章叙事 · 16 种职业</div>
+                <div class="test-hub-tag">你在游戏世界中是什么职业？</div>
+                <div class="test-hub-btn">开始 →</div>
+            </div>
+            <div class="test-hub-card" onclick="window.open('monster-test-scenario.html','_blank')">
+                <div class="test-hub-icon">🐉</div>
+                <div class="test-hub-name">魔物觉醒测试</div>
+                <div class="test-hub-desc">36 道场景题 · 6 章成长 · 16 种魔物</div>
+                <div class="test-hub-tag">从魔素开始，你将觉醒为何物？</div>
+                <div class="test-hub-btn">开始 →</div>
+            </div>
         </div>
     </div>
 
@@ -770,10 +794,10 @@
                 <div class="guide-step-location">📍 搜索栏位于页面顶部，筛选标签在游戏列表上方</div>
             </div>
             <div class="guide-step" data-step="3">
-                <span class="guide-step-icon">🎲</span>
-                <div class="guide-step-title">随机推荐</div>
-                <div class="guide-step-desc">不知道玩什么？点击「🎲 随机」按钮，系统会推荐游戏。<br>快捷键 <kbd>R</kbd> 随机推荐</div>
-                <div class="guide-step-location">📍 随机按钮位于顶部工具栏中</div>
+                <span class="guide-step-icon">🌙</span>
+                <div class="guide-step-title">抽卡推荐</div>
+                <div class="guide-step-desc">不知道玩什么？点击「🌙 抽卡」按钮，一次翻开 8 张卡牌发现新游戏。<br>快捷键 <kbd>R</kbd> 打开抽卡</div>
+                <div class="guide-step-location">📍 抽卡按钮位于顶部工具栏中</div>
             </div>
             <div class="guide-step" data-step="4">
                 <span class="guide-step-icon">❤️</span>

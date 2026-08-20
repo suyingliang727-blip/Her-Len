@@ -1,5 +1,5 @@
         /* ================================================================
-   全局变量 & 主题 (与原版一致)
+   全局变量 & 主题 (与原版一�?
    ================================================================ */
         :root {
             --bg: #f3eff7;
@@ -48,6 +48,8 @@
             --glass-shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
             --card-bg-glass: rgba(255, 255, 255, 0.65);
             --card-border-glass: rgba(213, 207, 224, 0.55);
+            --iridescent-opacity: 0.10;
+            --silver-sweep-color: rgba(255,255,255,0.60);
             --backdrop-blur-level: 0px;
             --card-3d-enabled: 0;
             --bg-animation-enabled: 0;
@@ -317,6 +319,8 @@
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
             --card-bg-glass: rgba(255, 255, 255, 0.04);
             --card-border-glass: rgba(255, 255, 255, 0.06);
+            --iridescent-opacity: 0.08;
+            --silver-sweep-color: rgba(255,255,255,0.25);
             --accent-light: rgba(184, 162, 214, 0.15);
         }
 
@@ -850,7 +854,7 @@
             }
         }
 
-        /* ===== 公告栏 ===== */
+        /* ===== 公告�?===== */
         .announcement-bar {
             background: var(--announcement-bg);
             border-bottom: 1.5px solid var(--announcement-border);
@@ -1053,7 +1057,7 @@
             margin-right: 8px;
         }
 
-        /* ===== 顶部导航栏 ===== */
+        /* ===== 顶部导航�?===== */
         .top-nav {
             display: flex;
             align-items: center;
@@ -1666,7 +1670,7 @@
             justify-content: center;
         }
 
-        /* ===== 主界面屏蔽提示条（极简浅色风格） ===== */
+        /* ===== 主界面屏蔽提示条（极简浅色风格�?===== */
         .adult-content-banner {
             display: none;
             flex-wrap: wrap;
@@ -1705,7 +1709,7 @@
             line-height: 1;
         }
 
-        /* 用户排除的其他标签 chip（多个时放在右侧） */
+        /* 用户排除的其他标�?chip（多个时放在右侧�?*/
         .excluded-tag-chip {
             display: inline-flex;
             align-items: center;
@@ -1754,7 +1758,7 @@
             border-color: rgba(155, 138, 189, 0.35);
         }
 
-        /* 悬停/长按弹出的气泡提示 */
+        /* 悬停/长按弹出的气泡提�?*/
         .adult-content-tooltip {
             position: absolute;
             bottom: calc(100% + 8px);
@@ -1923,31 +1927,6 @@
             pointer-events: none;
         }
 
-        .btn-random {
-            background: linear-gradient(135deg, #f5b342, #f5a623);
-            color: #fff;
-            border-color: #f5b342;
-            font-weight: 600;
-            box-shadow: 0 2px 12px rgba(245, 179, 66, 0.20);
-            transition: all 0.3s ease;
-        }
-
-        .btn-random:hover {
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 4px 24px rgba(245, 179, 66, 0.35);
-            border-color: #f5a623;
-            color: #fff;
-        }
-
-        .btn-random .dice-icon {
-            display: inline-block;
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .btn-random:active .dice-icon {
-            transform: rotate(360deg) scale(1.2);
-        }
-
         .btn-wishlist {
             border-color: #e74c3c;
             color: #e74c3c;
@@ -2098,7 +2077,7 @@
             border-right: 1.5px solid var(--border);
         }
 
-        /* —— 方案A：原生下拉 select 样式，替换旧分段按钮 —— */
+        /* —�?方案A：原生下�?select 样式，替换旧分段按钮 —�?*/
         .sort-select-wrapper {
             display: inline-flex;
             align-items: center;
@@ -2395,7 +2374,7 @@
             font-weight: 600;
         }
 
-        /* 详情页系列区块 */
+        /* 详情页系列区�?*/
         .detail-series-section {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -2428,9 +2407,9 @@
             display: flex;
             gap: 20px;
             overflow-x: auto;
-            /* 给滚动条留出明显空间，方便 PC 端用户拖拽 */
+            /* 给滚动条留出明显空间，方�?PC 端用户拖�?*/
             padding-bottom: 10px;
-            /* 系列作品横向滚动时，禁止子内容撑宽父容器（否则会把详情页整体撑宽超过手机屏幕） */
+            /* 系列作品横向滚动时，禁止子内容撑宽父容器（否则会把详情页整体撑宽超过手机屏幕�?*/
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
@@ -2438,7 +2417,7 @@
             scrollbar-width: thin;
             scrollbar-color: var(--accent) var(--border);
         }
-        /* PC 端：让横向滚动条更粗壮、更显眼，方便点击拖拽 */
+        /* PC 端：让横向滚动条更粗壮、更显眼，方便点击拖�?*/
         .detail-series-list::-webkit-scrollbar {
             height: 10px;
         }
@@ -2740,7 +2719,7 @@
             flex-shrink: 0;
         }
 
-        /* ★ 系列作品板块：功能按钮强制同一行水平排列，不上下堆叠 */
+        /* �?系列作品板块：功能按钮强制同一行水平排列，不上下堆�?*/
         .series-group-cards .gallery-card .card-user-actions {
             flex-wrap: nowrap;
             padding: 4px 10px 8px;
@@ -2757,7 +2736,7 @@
             white-space: nowrap;
         }
 
-        /* ★ 未发售游戏（仅一个愿望单按钮）：按钮靠右对齐，符合用户使用习惯 */
+        /* �?未发售游戏（仅一个愿望单按钮）：按钮靠右对齐，符合用户使用习�?*/
         .gallery-card .card-user-actions.only-wish {
             justify-content: flex-end;
         }
@@ -2887,10 +2866,9 @@
         }
 
         /* ================================================================
-   ★★★ 详情页 — 全新排版 (桌面端两栏 / 移动端单栏) ★★★
-   ================================================================ */
+   ★★�?详情�?�?全新排版 (桌面端两�?/ 移动端单�? ★★�?   ================================================================ */
 
-        /* 材质纹理：纸质+噪点+内阴影+光晕 */
+        /* 材质纹理：纸�?噪点+内阴�?光晕 */
         .texture-card {
             position: relative;
             background-color: rgba(248, 244, 252, 0.72);
@@ -3081,7 +3059,7 @@
             }
         }
 
-        /* 编辑弹窗需叠在缓冲区弹窗之上（缓冲区中点「编辑」时） */
+        /* 编辑弹窗需叠在缓冲区弹窗之上（缓冲区中点「编辑」时�?*/
         #editModalOverlay { z-index: 1050; }
 
         /* ---------- 缓冲区列表项 ---------- */
@@ -3220,7 +3198,7 @@
                 flex: 1;
                 padding: 10px 6px;
             }
-            /* 投稿弹窗：游玩视角/服设分类上下堆叠，占满整行 */
+            /* 投稿弹窗：游玩视�?服设分类上下堆叠，占满整�?*/
             #submitModalOverlay .form-row .form-group {
                 min-width: 100%;
             }
@@ -3262,7 +3240,7 @@
             overflow-x: hidden;
         }
 
-        /* ---------- 详情页 Grid 容器 ---------- */
+        /* ---------- 详情�?Grid 容器 ---------- */
         .detail-container {
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
@@ -3275,13 +3253,13 @@
             gap: 18px 28px;
             max-width: 1280px;
             margin: 0 auto;
-            /* 强制不被内部横向滚动子元素撑宽 */
+            /* 强制不被内部横向滚动子元素撑�?*/
             width: 100%;
             box-sizing: border-box;
             overflow-x: hidden;
         }
 
-        /* ---------- 顶部栏 ---------- */
+        /* ---------- 顶部�?---------- */
         .detail-header {
             grid-area: header;
             display: flex;
@@ -3431,7 +3409,7 @@
             white-space: nowrap;
         }
 
-        /* 元信息 + 操作按钮组合区块：PC端左右分布、移动端自动换行 */
+        /* 元信�?+ 操作按钮组合区块：PC端左右分布、移动端自动换行 */
         .detail-meta-block {
             display: flex;
             flex-wrap: wrap;
@@ -3470,7 +3448,7 @@
             gap: 4px;
         }
 
-        /* ★ 短简介：解除长度限制 */
+        /* �?短简介：解除长度限制 */
         .detail-short-desc {
             font-size: 0.88rem;
             line-height: 1.5;
@@ -3481,7 +3459,7 @@
             border-top: 1px solid var(--border);
         }
 
-        /* ---------- 详细简介 ---------- */
+        /* ---------- 详细简�?---------- */
         .detail-description {
             grid-area: desc;
             border-radius: 14px;
@@ -3493,7 +3471,7 @@
             text-indent: 0;
         }
 
-        /* ---------- 底部：其他信息 + 实机展示图 ---------- */
+        /* ---------- 底部：其他信�?+ 实机展示�?---------- */
         .detail-other-info {
             grid-area: other;
             border-radius: 14px;
@@ -3503,7 +3481,7 @@
             justify-content: space-between;
         }
 
-        /* ★ 左侧信息表格：加大字号和行距 */
+        /* �?左侧信息表格：加大字号和行距 */
         .detail-other-info .detail-info-table {
             width: 100%;
             border-collapse: collapse;
@@ -3538,7 +3516,7 @@
             color: var(--tag-text);
         }
 
-        /* ★ 链接按钮区：字号与表格一致，行距统一 */
+        /* �?链接按钮区：字号与表格一致，行距统一 */
         .detail-links {
             margin-top: 0;
             padding-top: 12px;
@@ -3596,7 +3574,7 @@
             justify-content: flex-start;
         }
 
-        /* 普通截图（非 GIF/视频） */
+        /* 普通截图（�?GIF/视频�?*/
         .detail-screenshots-grid img {
             width: 100%;
             height: auto;
@@ -3620,7 +3598,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        /* ★★★ GIF 专用：强制覆盖通用规则 ★★★ */
+        /* ★★�?GIF 专用：强制覆盖通用规则 ★★�?*/
         .detail-screenshots-grid .screenshot-wrap.gif-img img {
             max-height: none !important;
             object-fit: contain !important;
@@ -3633,7 +3611,7 @@
             background: var(--tag-bg);
         }
 
-        /* 截图容器：弹性居中 */
+        /* 截图容器：弹性居�?*/
         .detail-screenshots-grid .screenshot-wrap {
             position: relative;
             flex-shrink: 0;
@@ -3675,7 +3653,7 @@
             object-fit: contain;
         }
 
-        /* ---------- 评论区 ---------- */
+        /* ---------- 评论�?---------- */
         .review-section {
             grid-area: reviews;
             margin-top: 4px;
@@ -4266,8 +4244,7 @@
         }
 
         /* ================================================================
-   ★★★ 图片查看器浮窗 ★★★
-   ================================================================ */
+   ★★�?图片查看器浮�?★★�?   ================================================================ */
         #imageViewerOverlay {
             z-index: 2100;
             background: rgba(0, 0, 0, 0.75);
@@ -4317,8 +4294,7 @@
         }
 
         /* ================================================================
-   ★★★ 玩过记录卡片 — 宽屏5列 ★★★
-   ================================================================ */
+   ★★�?玩过记录卡片 �?宽屏5�?★★�?   ================================================================ */
         .played-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -4448,8 +4424,7 @@
         }
 
         /* ================================================================
-   ★★★ 打赏弹窗 — 经典设计 ★★★
-   ================================================================ */
+   ★★�?打赏弹窗 �?经典设计 ★★�?   ================================================================ */
         #tipModalOverlay {
             background: var(--overlay);
             padding: 20px;
@@ -4597,8 +4572,7 @@
         }
 
         /* ================================================================
-   ★★★ 分享浮层 — 直接展示生成的图片 (移动端可长按保存) ★★★
-   ================================================================ */
+   ★★�?分享浮层 �?直接展示生成的图�?(移动端可长按保存) ★★�?   ================================================================ */
         #shareFloatOverlay {
             position: fixed;
             inset: 0;
@@ -4737,7 +4711,7 @@
             box-shadow: 0 4px 20px rgba(155, 138, 189, 0.30);
         }
 
-        /* 移动端长按提示 */
+        /* 移动端长按提�?*/
         .long-press-hint {
             font-size: 0.7rem;
             color: var(--text3);
@@ -4774,8 +4748,7 @@
         }
 
         /* ================================================================
-   ★★★ 其他弹窗 (成就/登录/个人资料/我的评论) ★★★
-   ================================================================ */
+   ★★�?其他弹窗 (成就/登录/个人资料/我的评论) ★★�?   ================================================================ */
         #achievementModalOverlay .modal {
             max-width: 900px;
             margin: 0 auto;
@@ -5382,7 +5355,7 @@
             transform: scale(1.15);
         }
 
-        /* 表态档位样式 */
+        /* 表态档位样�?*/
         .verdict-strip {
             display: flex;
             gap: 6px;
@@ -5420,7 +5393,7 @@
             margin-bottom: 2px;
         }
 
-        /* 标签池样式 */
+        /* 标签池样�?*/
         .tag-pool {
             display: flex;
             flex-wrap: wrap;
@@ -5486,7 +5459,7 @@
             cursor: default;
         }
 
-        /* 社区评论中的表态+标签 行 */
+        /* 社区评论中的表�?标签 �?*/
         .comment-verdict-tags-row {
             margin: 2px 0 6px 0;
             display: flex;
@@ -5495,7 +5468,7 @@
             gap: 6px;
         }
         .comment-verdict-tags-row .tags-display {
-            margin-top: 0; /* 取消标签自身的 margin-top，避免与表态标签上下错位 */
+            margin-top: 0; /* 取消标签自身�?margin-top，避免与表态标签上下错�?*/
         }
         .comment-verdict {
             font-weight: 700;
@@ -5577,7 +5550,7 @@
             white-space: pre-wrap;
         }
 
-        /* 剧透遮挡（Steam风格） */
+        /* 剧透遮挡（Steam风格�?*/
         .comment-spoiler {
             background: var(--text2);
             color: var(--text2);
@@ -6083,7 +6056,7 @@
             50% { box-shadow: 0 1px 6px rgba(138, 130, 168, 0.22); }
         }
 
-        /* 评论区头衔徽章容器：紧跟在 custom_id 后面，支持多个徽章并排 */
+        /* 评论区头衔徽章容器：紧跟�?custom_id 后面，支持多个徽章并�?*/
         .comment-header-titles {
             display: flex;
             align-items: center;
@@ -6095,7 +6068,7 @@
             padding: 3px 10px;
         }
 
-        /* 头衔展示柜 */
+        /* 头衔展示�?*/
         .title-cabinet-section {
             margin-top: 20px;
             padding-top: 16px;
@@ -6171,7 +6144,7 @@
         }
         .cabinet-slot .slot-cond { font-size: 0.6rem; color: var(--text3); line-height: 1.2; }
 
-        /* 个人资料顶部的头衔显示 */
+        /* 个人资料顶部的头衔显�?*/
         .profile-header-titles {
             display: flex;
             align-items: center;
@@ -6202,7 +6175,7 @@
             font-size: 0.66rem;
         }
 
-        /* 游戏日记封面的头衔显示 */
+        /* 游戏日记封面的头衔显�?*/
         .diary-cover-titles {
             display: flex;
             align-items: center;
@@ -6212,7 +6185,7 @@
             margin-bottom: 4px;
         }
 
-        /* 成就解锁 Toast（头衔版） */
+        /* 成就解锁 Toast（头衔版�?*/
         .toast-notification.title-toast {
             border-color: rgba(155, 138, 189, 0.5);
             background-color: rgba(250, 247, 253, 0.92);
@@ -6776,8 +6749,7 @@
         }
 
         /* ================================================================
-   游戏日记样式 - 独立子页面
-   ================================================================ */
+   游戏日记样式 - 独立子页�?   ================================================================ */
         .diary-page {
             position: fixed;
             top: 0;
@@ -6791,7 +6763,7 @@
             flex-direction: column;
         }
 
-        /* 封面视图 - 仿书皮封面 */
+        /* 封面视图 - 仿书皮封�?*/
         .diary-cover {
             text-align: center;
             padding: 75px 60px;
@@ -6933,7 +6905,7 @@
             box-shadow: 0 9px 30px rgba(155, 138, 189, 0.5);
         }
 
-        /* 收起日记按钮 - 左下角 */
+        /* 收起日记按钮 - 左下�?*/
         .diary-close-btn {
             position: absolute;
             bottom: 24px;
@@ -6984,7 +6956,7 @@
             overflow: hidden;
         }
 
-        /* 桌面端书签丝带 */
+        /* 桌面端书签丝�?*/
         #diaryBookmarkRail {
             width: 140px;
             display: flex;
@@ -7097,7 +7069,7 @@
             border-right-color: #3d3546;
         }
 
-        /* 移动端书签按钮 */
+        /* 移动端书签按�?*/
         .diary-mobile-bm-btn {
             display: flex;
             align-items: center;
@@ -7111,7 +7083,7 @@
             cursor: pointer;
         }
 
-        /* 移动端书签下拉面板 */
+        /* 移动端书签下拉面�?*/
         .diary-mobile-dropdown {
             background: #fff;
             border-bottom: 1px solid rgba(213, 207, 224, 0.35);
@@ -7156,7 +7128,7 @@
         .diary-mobile-item-name { flex: 1; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .diary-mobile-item-score { color: #f5b342; font-size: 0.76rem; font-weight: 600; }
 
-        /* 工具栏 */
+        /* 工具�?*/
         .diary-toolbar {
             display: flex;
             justify-content: space-between;
@@ -7193,7 +7165,7 @@
             cursor: pointer;
         }
 
-        /* 日记展开 - 桌面端左右分栏 */
+        /* 日记展开 - 桌面端左右分�?*/
         /* 日记翻页动画 */
         .diary-flip-out {
             animation: diaryFlipOut 0.4s ease forwards;
@@ -7313,7 +7285,7 @@
             border-radius: 20px 0 0 20px;
         }
 
-        /* 右页 - 评论内容（翻书动画用） */
+        /* 右页 - 评论内容（翻书动画用�?*/
         .diary-page-right {
             flex: 1;
             background: rgba(250, 247, 253, 0.82);
@@ -7368,7 +7340,7 @@
             100% { transform: perspective(1500px) rotateY(0deg); }
         }
 
-        /* 自然翻书 - 翻页层（双面纸张） */
+        /* 自然翻书 - 翻页层（双面纸张�?*/
         .diary-flip-sheet {
             position: absolute;
             top: 0;
@@ -7402,7 +7374,7 @@
             border-radius: 20px 0 0 20px;
             box-shadow: inset -10px 0 20px -10px rgba(60, 30, 80, 0.18);
         }
-        /* 翻页动态阴影 */
+        /* 翻页动态阴�?*/
         .diary-flip-sheet .flip-face::after {
             content: '';
             position: absolute;
@@ -7465,7 +7437,7 @@
             border-radius: 0 20px 20px 0;
         }
 
-        /* texture-card 美化 - 左页：光泽叠层 */
+        /* texture-card 美化 - 左页：光泽叠�?*/
         .diary-page-left.texture-card::before {
             background:
                 linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 35%),
@@ -7493,7 +7465,7 @@
             z-index: 2;
         }
 
-        /* 右页无内阴影，避免覆盖内容 */
+        /* 右页无内阴影，避免覆盖内�?*/
         .diary-page-right.texture-card::after {
             display: none;
         }
@@ -7674,7 +7646,7 @@
             object-fit: cover;
         }
 
-        /* GIF截图 - 固定宽度，保持原始比例 */
+        /* GIF截图 - 固定宽度，保持原始比�?*/
         .screenshot-thumb.gif-thumb {
             width: 100px;
             height: 70px;
@@ -7953,7 +7925,7 @@
             border-color: rgba(155, 138, 189, 0.5);
         }
 
-        /* 底部操作栏 */
+        /* 底部操作�?*/
         .diary-bottom-bar {
             display: flex;
             justify-content: space-between;
@@ -8012,7 +7984,7 @@
             font-weight: 500;
         }
 
-        /* 空状态 */
+        /* 空状�?*/
         .diary-empty {
             text-align: center;
             padding: 60px 20px;
@@ -8172,7 +8144,7 @@
                 top: 4px;
                 left: 4px;
             }
-            /* 平板端：未发售游戏卡片，单个愿望单按钮靠右对齐 */
+            /* 平板端：未发售游戏卡片，单个愿望单按钮靠右对�?*/
             .gallery-card .card-user-actions.only-wish {
                 justify-content: flex-end;
             }
@@ -8221,7 +8193,7 @@
                 flex-shrink: 0;
             }
 
-            /* 移动端：通知面板改为固定全宽下拉，绝不超出屏幕 */
+            /* 移动端：通知面板改为固定全宽下拉，绝不超出屏�?*/
             .notif-panel {
                 position: fixed;
                 top: 56px;
@@ -8413,7 +8385,7 @@
             .gallery-card .card-desc {
                 font-size: .65rem;
                 line-height: 1.3;
-                /* 恢复第一次修改后的状态：移动端简介只展示 2 行 */
+                /* 恢复第一次修改后的状态：移动端简介只展示 2 �?*/
                 -webkit-line-clamp: 2;
             }
 
@@ -8431,16 +8403,16 @@
                 padding: 4px 8px 6px;
                 gap: 4px;
                 border-top: 1px solid var(--border);
-                /* 手机端：保持吸底，按钮与 meta 之间无视觉空隙，跨卡片按钮严格对齐 */
+                /* 手机端：保持吸底，按钮与 meta 之间无视觉空隙，跨卡片按钮严格对�?*/
                 margin-top: auto;
                 justify-content: flex-end;
-                /* 手机端：强制同一行，避免恢复文字后两个按钮上下堆叠 */
+                /* 手机端：强制同一行，避免恢复文字后两个按钮上下堆�?*/
                 flex-wrap: nowrap;
                 flex-shrink: 0;
             }
 
             .gallery-card .card-user-actions .action-btn {
-                /* 手机端：按钮平均占空间，内容可缩小也不换行 */
+                /* 手机端：按钮平均占空间，内容可缩小也不换�?*/
                 padding: 3px 5px;
                 line-height: 1;
                 flex: 1 1 0;
@@ -8454,7 +8426,7 @@
                 display: inline-flex;
             }
 
-            /* 手机端：恢复文字显示，但使用更小字号以明确语义 */
+            /* 手机端：恢复文字显示，但使用更小字号以明确语�?*/
             .gallery-card .card-user-actions .action-btn .action-label {
                 display: inline;
                 font-size: .5rem;
@@ -8473,11 +8445,6 @@
             .gallery-card .card-rating-count {
                 font-size: .58rem;
                 padding: 0 10px 4px;
-            }
-
-            .btn-random {
-                padding: 4px 10px;
-                font-size: .7rem;
             }
 
             .btn-wishlist {
@@ -8636,12 +8603,12 @@
                 font-size: 1.2rem !important;
             }
 
-            /* 游戏日记移动端适配 - 游戏信息在上，我的评价在下 */
+            /* 游戏日记移动端适配 - 游戏信息在上，我的评价在�?*/
             #diaryContent {
                 overflow-y: auto;
             }
 
-            /* 移动端：隐藏桌面端书签丝带，显示移动端书签按钮 */
+            /* 移动端：隐藏桌面端书签丝带，显示移动端书签按�?*/
             #diaryBookmarkRail {
                 display: none !important;
             }
@@ -8653,7 +8620,7 @@
                 flex-direction: column;
             }
 
-            /* 移动端：隐藏翻页特效相关元素（移动端无需翻页动效） */
+            /* 移动端：隐藏翻页特效相关元素（移动端无需翻页动效�?*/
             .diary-flip-sheet,
             .diary-cast-shadow,
             .diary-spine-highlight {
@@ -8671,7 +8638,7 @@
                 overflow: visible;
             }
 
-            /* 隐藏桌面端页面标题 - 移动端用紧凑版 */
+            /* 隐藏桌面端页面标�?- 移动端用紧凑�?*/
             .page-header {
                 text-align: center;
                 margin-bottom: 10px;
@@ -8741,7 +8708,7 @@
                 font-size: 0.7rem;
             }
 
-            /* 工具栏缩小 */
+            /* 工具栏缩�?*/
             .text-format-toolbar {
                 gap: 4px;
                 margin-bottom: 6px;
@@ -8808,7 +8775,7 @@
                 padding: 2px 6px;
             }
 
-            /* 游戏信息区 */
+            /* 游戏信息�?*/
             .game-cover {
                 max-width: 100%;
                 border-radius: 10px;
@@ -8835,7 +8802,7 @@
                 font-size: 0.65rem;
             }
 
-            /* 游戏信息 - 2列网格 */
+            /* 游戏信息 - 2列网�?*/
             .game-info {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -8959,7 +8926,7 @@
                 font-size: 1.1rem;
             }
 
-            /* 收起日记按钮移动端 */
+            /* 收起日记按钮移动�?*/
             .diary-close-btn {
                 bottom: 15px;
                 left: 15px;
@@ -8967,7 +8934,7 @@
                 font-size: 0.85rem;
             }
 
-            /* 底部操作栏 */
+            /* 底部操作�?*/
             .diary-bottom-bar {
                 flex-direction: column;
                 gap: 0;
@@ -9025,7 +8992,7 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
-            /* 移动端：系列作品卡片按钮同行排列，按钮文字更小 */
+            /* 移动端：系列作品卡片按钮同行排列，按钮文字更�?*/
             .series-group-cards .gallery-card .card-user-actions {
                 flex-wrap: nowrap;
                 padding: 3px 4px 5px;
@@ -9046,7 +9013,7 @@
             .series-group-cards .gallery-card .card-user-actions .action-btn .icon {
                 font-size: .66rem;
             }
-            /* 移动端：未发售游戏卡片，单个愿望单按钮靠右对齐 */
+            /* 移动端：未发售游戏卡片，单个愿望单按钮靠右对�?*/
             .gallery-card .card-user-actions.only-wish {
                 justify-content: flex-end;
             }
@@ -9089,10 +9056,6 @@
 
             .toolbar-left {
                 gap: 4px;
-            }
-
-            .btn-random .dice-icon {
-                font-size: 0.9rem;
             }
 
             .gallery-card {
@@ -9395,14 +9358,14 @@
             }
 
             .detail-series-item {
-                /* 手机端：改为主画廊同风格的 16:9 横版卡片，保持封面完整 */
+                /* 手机端：改为主画廊同风格�?16:9 横版卡片，保持封面完�?*/
                 width: 180px;
                 display: flex;
                 flex-direction: column;
             }
 
             .detail-series-item-cover {
-                /* 主画廊卡片同款：16:9 横版比例，object-fit: cover 保证封面等比例不被裁切 */
+                /* 主画廊卡片同款：16:9 横版比例，object-fit: cover 保证封面等比例不被裁�?*/
                 width: 100%;
                 height: auto;
                 aspect-ratio: 16 / 9;
@@ -9436,7 +9399,7 @@
                 padding-top: 10px;
             }
 
-            /* 评分条移动端适配：5 个评分项不再强制 min-width，避免最后一项溢出被裁切 */
+            /* 评分条移动端适配�? 个评分项不再强制 min-width，避免最后一项溢出被裁切 */
             .verdict-strip {
                 gap: 4px;
             }
@@ -9575,7 +9538,7 @@
             }
 
             .detail-series-item-cover {
-                /* 16:9 横版比例，object-fit: cover 保证封面等比例不被裁切 */
+                /* 16:9 横版比例，object-fit: cover 保证封面等比例不被裁�?*/
                 width: 100%;
                 height: auto;
                 aspect-ratio: 16 / 9;
@@ -9970,7 +9933,7 @@
             }
         }
 
-        /* ===== 快捷键提示 ===== */
+        /* ===== 快捷键提�?===== */
         .shortcut-hint {
             position: fixed;
             bottom: 30px;
@@ -10005,7 +9968,7 @@
             margin: 0 2px;
         }
 
-        /* ===== 空状态引导 ===== */
+        /* ===== 空状态引�?===== */
         .empty-state-guide {
             text-align: center;
             padding: 40px 20px;
@@ -10051,7 +10014,7 @@
             color: #fff;
         }
 
-        /* ===== 移动端长按优化 ===== */
+        /* ===== 移动端长按优�?===== */
         .share-image-container img {
             -webkit-touch-callout: none;
             touch-action: manipulation;
@@ -10165,7 +10128,7 @@
             background: rgba(231, 76, 60, 0.12);
         }
 
-        /* ===== 回复输入框样式 ===== */
+        /* ===== 回复输入框样�?===== */
         .reply-compose {
             margin-top: 10px;
             padding: 10px;
@@ -10309,8 +10272,7 @@
         }
 
         /* ================================================================
-   ★★★ 下拉菜单 ★★★
-   ================================================================ */
+   ★★�?下拉菜单 ★★�?   ================================================================ */
         .header-dropdown {
             position: relative;
             display: inline-block;
@@ -10395,8 +10357,7 @@
         }
 
         /* ================================================================
-   ★★★ 公告板块 ★★★
-   ================================================================ */
+   ★★�?公告板块 ★★�?   ================================================================ */
         .announcements-section {
             display: none;
             max-width: 760px;
@@ -10408,6 +10369,123 @@
 
         .announcements-section.show {
             display: block;
+        }
+
+        /* ================================================================
+           ★★�?游玩测试大厅 ★★�?           ================================================================ */
+        .test-hub-section {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .test-hub-section.show {
+            display: block;
+        }
+
+        .test-hub-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .test-hub-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text, #3d3546);
+            margin-bottom: 8px;
+        }
+
+        .test-hub-subtitle {
+            font-size: 0.92rem;
+            color: var(--text2, #665c72);
+        }
+
+        .test-hub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .test-hub-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .test-hub-card {
+            background: var(--surface, rgba(250, 247, 253, 0.55));
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border, rgba(213, 207, 224, 0.35));
+            border-radius: 16px;
+            padding: 28px 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-hub-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(60, 30, 80, 0.12);
+            border-color: var(--accent, #9b8acd);
+        }
+
+        .test-hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #9b8acd, #e0a87e);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .test-hub-card:hover::before {
+            opacity: 1;
+        }
+
+        .test-hub-icon {
+            font-size: 2.8rem;
+            margin-bottom: 12px;
+        }
+
+        .test-hub-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text, #3d3546);
+            margin-bottom: 8px;
+        }
+
+        .test-hub-desc {
+            font-size: 0.82rem;
+            color: var(--text3, #8c8099);
+            margin-bottom: 6px;
+            font-family: "JetBrains Mono", monospace;
+        }
+
+        .test-hub-tag {
+            font-size: 0.88rem;
+            color: var(--text2, #665c72);
+            margin-bottom: 16px;
+        }
+
+        .test-hub-btn {
+            display: inline-block;
+            padding: 10px 28px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #9b8acd, #7e6fa0);
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        .test-hub-card:hover .test-hub-btn {
+            background: linear-gradient(135deg, #9b8acd, #e0a87e);
         }
 
         .announcements-header {
@@ -10725,8 +10803,7 @@
         }
 
         /* ================================================================
-   ★★★ MOD 板块 ★★★
-   ================================================================ */
+   ★★�?MOD 板块 ★★�?   ================================================================ */
         .mod-section {
             display: none;
             max-width: 800px;
@@ -10809,7 +10886,7 @@
             color: var(--accent);
         }
 
-        /* 发布区 */
+        /* 发布�?*/
         .mod-compose-trigger-btn {
             display: inline-flex;
             align-items: center;
@@ -11767,7 +11844,7 @@
             background: rgba(192, 57, 43, 0.08);
         }
 
-        /* ===== MOD评论回复和点赞样式 ===== */
+        /* ===== MOD评论回复和点赞样�?===== */
         .mod-comment-actions {
             display: flex;
             align-items: center;
@@ -12045,10 +12122,9 @@
         }
 
         /* ================================================================
-           ★ 新功能整合样式
-           ================================================================ */
+           �?新功能整合样�?           ================================================================ */
 
-        /* —— 书签拖拽排序 —— */
+        /* —�?书签拖拽排序 —�?*/
         .diary-ribbon .ribbon-drag-handle {
             cursor: grab;
             margin-right: 6px;
@@ -12063,7 +12139,7 @@
         }
         .diary-ribbon.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; }
 
-        /* —— 翻页进度条 —— */
+        /* —�?翻页进度�?—�?*/
         .diary-progress-bar-wrap {
             display: flex;
             align-items: center;
@@ -12098,7 +12174,7 @@
         }
         .diary-progress-text strong { color: var(--accent); font-weight: 700; }
 
-        /* —— 分享按钮 —— */
+        /* —�?分享按钮 —�?*/
         .diary-share-btn {
             padding: 5px 12px;
             border-radius: 14px;
@@ -12115,7 +12191,7 @@
             color: #fff;
         }
 
-        /* —— 草稿自动保存提示 —— */
+        /* —�?草稿自动保存提示 —�?*/
         .draft-save-tip {
             position: absolute;
             bottom: 4px;
@@ -12137,7 +12213,7 @@
             background: var(--success);
         }
 
-        /* —— 骨架屏 —— */
+        /* —�?骨架�?—�?*/
         .diary-skeleton {
             display: flex;
             gap: 12px;
@@ -12179,7 +12255,7 @@
             100% { background-position: -200% 0; }
         }
 
-        /* —— 日记空状态美化 —— */
+        /* —�?日记空状态美�?—�?*/
         .diary-empty-fancy {
             text-align: center;
             padding: 70px 20px;
@@ -12226,7 +12302,7 @@
             box-shadow: 0 10px 28px rgba(155,138,189,0.45);
         }
 
-        /* —— 封面统计饼图 —— */
+        /* —�?封面统计饼图 —�?*/
         .diary-cover-stats-block {
             display: flex;
             gap: 24px;
@@ -12303,7 +12379,7 @@
             color: var(--text);
         }
 
-        /* —— 移动端滑动指示 —— */
+        /* —�?移动端滑动指�?—�?*/
         .swipe-hint-indicator {
             position: absolute;
             top: 50%;
@@ -12319,7 +12395,7 @@
         .swipe-hint-indicator.right { right: 16px; }
         .swipe-hint-indicator.show { opacity: 0.5; }
 
-        /* —— 下拉刷新指示 —— */
+        /* —�?下拉刷新指示 —�?*/
         .diary-pull-refresh {
             position: absolute;
             top: 0;
@@ -12342,7 +12418,7 @@
         .diary-pull-refresh .pr-icon { transition: transform 0.25s; }
         .diary-pull-refresh.flip .pr-icon { transform: rotate(180deg); }
 
-        /* —— 游戏时长字段 —— */
+        /* —�?游戏时长字段 —�?*/
         .playtime-input-row {
             display: flex;
             align-items: center;
@@ -12374,7 +12450,7 @@
             font-weight: 600;
         }
 
-        /* —— 工具栏响应式 —— */
+        /* —�?工具栏响应式 —�?*/
         .diary-toolbar {
             gap: 8px;
             flex-wrap: wrap;
@@ -12400,3 +12476,31 @@
             .diary-pie-legend { font-size: 0.62rem; }
             .compare-games-row { flex-direction: column; }
         }
+
+        /* ================================================================
+           抽卡功能样式
+           ================================================================ */
+
+        /* ===== 入口按钮 ===== */
+        .btn-gacha {
+            background: linear-gradient(135deg, #f5b342, #f5a623);
+            color: #fff;
+            border-color: #f5b342;
+            font-weight: 600;
+            box-shadow: 0 2px 12px rgba(245, 179, 66, 0.20);
+            transition: all 0.3s ease;
+        }
+        .btn-gacha:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 4px 24px rgba(245, 179, 66, 0.35);
+            border-color: #f5a623;
+            color: #fff;
+        }
+        .btn-gacha .dice-icon {
+            display: inline-block;
+            transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .btn-gacha:active .dice-icon {
+            transform: rotate(360deg) scale(1.2);
+        }
+
