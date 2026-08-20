@@ -496,7 +496,7 @@
                     document.addEventListener('click', track, { once: true });
                     document.addEventListener('touchstart', track, { once: true });
                     document.addEventListener('mousemove', trackMouse, { once: true });
-                    document.addEventListener('scroll', trackScroll, { once: true });
+                    document.addEventListener('scroll', trackScroll, { once: true, passive: true });
                     document.addEventListener('keydown', trackKey, { once: true });
                 },
                 // 检查是否有足够的人机交互迹象
@@ -904,23 +904,43 @@
             }
 
             function showTitleToast(title) {
-                let toast = document.getElementById('toast-notification');
-                if (!toast) {
-                    toast = document.createElement('div');
-                    toast.id = 'toast-notification';
-                    toast.className = 'toast-notification';
-                    document.body.appendChild(toast);
-                }
-                toast.className = 'toast-notification title-toast show';
-                toast.innerHTML =
-                    `<div style="text-align:center;">` +
-                    `<span class="toast-title-icon">🎖️</span>` +
-                    `<div style="font-size:0.92rem;font-weight:700;margin-bottom:4px;">解锁新头衔</div>` +
-                    `<div class="toast-title-badge">${renderTitleBadge(title)}</div>` +
-                    `<div class="toast-title-subtitle">${escapeHTML(title.desc || '')}</div>` +
-                    `</div>`;
-                clearTimeout(toast._timer);
-                toast._timer = setTimeout(() => { toast.classList.remove('show'); }, 2800);
+                // 全屏高光时刻取代角落 toast
+                showSpotlight({
+                    type: 'title',
+                    label: '解锁新头衔',
+                    icon: title.icon || '🎖️',
+                    name: title.name || '',
+                    desc: title.desc || ''
+                });
+            }
+
+            // 全屏高光时刻覆盖层
+            function showSpotlight(opts) {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+                // 移除已有的
+                var existing = document.querySelector('.spotlight-overlay');
+                if (existing) existing.remove();
+
+                var overlay = document.createElement('div');
+                overlay.className = 'spotlight-overlay' + (opts.type === 'title' ? ' type-title' : '');
+                overlay.innerHTML =
+                    '<div class="spotlight-glow"></div>' +
+                    '<div class="spotlight-content">' +
+                    '<div class="spotlight-label">' + escapeHTML(opts.label || '') + '</div>' +
+                    '<span class="spotlight-icon">' + (opts.icon || '') + '</span>' +
+                    '<div class="spotlight-name">' + escapeHTML(opts.name || '') + '</div>' +
+                    (opts.desc ? '<div class="spotlight-desc">' + escapeHTML(opts.desc) + '</div>' : '') +
+                    '</div>';
+                document.body.appendChild(overlay);
+
+                requestAnimationFrame(function () { overlay.classList.add('show'); });
+
+                // 2秒后淡出移除
+                setTimeout(function () {
+                    overlay.classList.remove('show');
+                    setTimeout(function () { if (overlay.parentNode) overlay.remove(); }, 400);
+                }, 2000);
             }
 
             function sanitizeCommentHTML(html) {
@@ -1532,18 +1552,17 @@
             }
 
             function showAchievementToast(ach) {
-                const existing = document.querySelector('.toast-notification');
-                if (existing) existing.remove();
-                const toast = document.createElement('div');
-                toast.className = 'toast-notification achievement-toast';
-                toast.innerHTML = `🎉 成就解锁：${ach.icon} <strong>${ach.name}</strong> — ${ach.desc}`;
-                document.body.appendChild(toast);
-                requestAnimationFrame(() => { toast.classList.add('show'); });
+                // 全屏高光时刻取代角落 toast
+                showSpotlight({
+                    type: 'achievement',
+                    label: '成就解锁',
+                    icon: ach.icon || '🎉',
+                    name: ach.name || '',
+                    desc: ach.desc || ''
+                });
+
+                // 保留 confetti 撒花和音效
                 celebrate();
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 500);
-                }, 4000);
             }
 
             // ================================================================
@@ -2888,15 +2907,34 @@
                 const order = ['light', 'dark', 'system'];
                 const idx = order.indexOf(currentTheme);
                 currentTheme = order[(idx + 1) % order.length];
+                // 主题切换流畅过渡：临时给所有元素挂上 0.4s 过渡，完成后移除
+                var root = document.documentElement;
+                var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (!reducedMotion) {
+                    root.classList.add('theme-transitioning');
+                }
                 applyTheme();
                 saveSettings();
+                if (!reducedMotion) {
+                    setTimeout(function () {
+                        root.classList.remove('theme-transitioning');
+                    }, 450);
+                }
                 const labels = { light: '浅色模式', dark: '深色模式', system: '跟随系统' };
                 showToast('🎨 ' + labels[currentTheme], 1500);
             }
 
             function initSystemThemeListener() {
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-                    if (currentTheme === 'system') applyTheme();
+                    if (currentTheme === 'system') {
+                        var root = document.documentElement;
+                        var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        if (!reducedMotion) root.classList.add('theme-transitioning');
+                        applyTheme();
+                        if (!reducedMotion) {
+                            setTimeout(function () { root.classList.remove('theme-transitioning'); }, 450);
+                        }
+                    }
                 });
             }
 
@@ -3266,6 +3304,7 @@
                         const inPlay = isPlayed(g.id);
                         return `
                             <div class="gallery-card visible" data-game-id="${g.id}" onclick="openSeriesGameDetail(${g.id})">
+                                <div class="card-parallax-bg"></div>
                                 <div class="card-cover-wrap">
                                     ${coverHtml}
                                     ${placeholderHtml}
@@ -3292,6 +3331,11 @@
 
                 grid.innerHTML = html;
                 loadCardRatingStats();
+
+                // 为系列卡片也绑定 3D 交互
+                if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
+                    grid.querySelectorAll('.gallery-card').forEach(card => setupCard3D(card));
+                }
             }
 
             window.openSeriesGameDetail = function(gameId) {
@@ -3491,34 +3535,38 @@
                 }
 
                 const cards = grid.querySelectorAll('.gallery-card');
-                cards.forEach((card) => {
-                    const rect = card.getBoundingClientRect();
-                    const winHeight = window.innerHeight || document.documentElement.clientHeight;
-                    if (rect.top < winHeight - 40) {
-                        card.classList.add('visible');
-                        const img = card.querySelector('.card-cover');
-                        if (img && !img.dataset.loaded) {
-                            img.dataset.loaded = '1';
-                            if (img.complete) {
-                                img.classList.add('loaded');
-                                const ph = card.querySelector('.card-cover-placeholder');
-                                if (ph) ph.classList.add('hidden');
-                            } else {
-                                img.onload = function () {
-                                    this.classList.add('loaded');
-                                    const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                // 一次性读取视口高度，避免循环中重复读取
+                const winHeight = window.innerHeight || document.documentElement.clientHeight;
+                // 用 requestAnimationFrame 批量处理可见性检测，避免强制 reflow
+                requestAnimationFrame(() => {
+                    cards.forEach((card) => {
+                        const rect = card.getBoundingClientRect();
+                        if (rect.top < winHeight - 40) {
+                            card.classList.add('visible');
+                            const img = card.querySelector('.card-cover');
+                            if (img && !img.dataset.loaded) {
+                                img.dataset.loaded = '1';
+                                if (img.complete) {
+                                    img.classList.add('loaded');
+                                    const ph = card.querySelector('.card-cover-placeholder');
                                     if (ph) ph.classList.add('hidden');
-                                };
-                                img.onerror = function () {
-                                    const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
-                                    if (ph) ph.classList.remove('hidden');
-                                };
+                                } else {
+                                    img.onload = function () {
+                                        this.classList.add('loaded');
+                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                                        if (ph) ph.classList.add('hidden');
+                                    };
+                                    img.onerror = function () {
+                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                                        if (ph) ph.classList.remove('hidden');
+                                    };
+                                }
                             }
+                        } else { cardObserver.observe(card); }
+                        if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
+                            setupCard3D(card);
                         }
-                    } else { cardObserver.observe(card); }
-                    if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
-                        setupCard3D(card);
-                    }
+                    });
                 });
 
                 cards.forEach(card => {
@@ -8673,7 +8721,7 @@
                 const filterOptionsPanel = document.getElementById('filterOptionsPanel');
                 const activeFiltersBar = document.getElementById('activeFiltersBar');
 
-                // 先全部隐藏
+                // 先全部隐藏（批量 DOM 操作集中在一起，减少重排次数）
                 if (galleryContainer) galleryContainer.style.display = 'none';
                 if (modSection) modSection.classList.remove('show');
                 if (announcementsSection) announcementsSection.classList.remove('show');
@@ -8688,33 +8736,36 @@
                 if (noResults) noResults.style.display = 'none';
                 if (filterSticky) filterSticky.style.display = '';
 
-                if (view === 'games') {
-                    if (galleryContainer) { galleryContainer.style.display = ''; galleryContainer.classList.remove('show'); }
-                    if (viewTabs) viewTabs.style.display = '';
-                    if (searchRow) searchRow.style.display = '';
-                    if (filterCategoryRow) filterCategoryRow.style.display = '';
-                    if (filterOptionsPanel) filterOptionsPanel.style.display = '';
-                    if (activeFiltersBar) activeFiltersBar.style.display = '';
-                    if (toolbar) toolbar.style.display = '';
-                    document.title = 'Her Lens · 女性主角游戏';
-                    renderGallery();
-                    window.scrollTo(0, 0);
-                } else if (view === 'mods') {
-                    if (modSection) modSection.classList.add('show');
-                    document.title = 'Her Lens · MOD分享区';
-                    renderModSection();
-                    window.scrollTo(0, 0);
-                } else if (view === 'announcements') {
-                    if (announcementsSection) announcementsSection.classList.add('show');
-                    document.title = 'Her Lens · 网站公告';
-                    loadAnnouncements();
-                    window.scrollTo(0, 0);
-                } else if (view === 'test') {
-                    const testHubSection = document.getElementById('testHubSection');
-                    if (testHubSection) testHubSection.classList.add('show');
-                    document.title = 'Her Lens · 游玩测试';
-                    window.scrollTo(0, 0);
-                }
+                // 用 requestAnimationFrame 延迟显示目标视图，让隐藏先完成重排
+                requestAnimationFrame(() => {
+                    if (view === 'games') {
+                        if (galleryContainer) { galleryContainer.style.display = ''; galleryContainer.classList.remove('show'); }
+                        if (viewTabs) viewTabs.style.display = '';
+                        if (searchRow) searchRow.style.display = '';
+                        if (filterCategoryRow) filterCategoryRow.style.display = '';
+                        if (filterOptionsPanel) filterOptionsPanel.style.display = '';
+                        if (activeFiltersBar) activeFiltersBar.style.display = '';
+                        if (toolbar) toolbar.style.display = '';
+                        document.title = 'Her Lens · 女性主角游戏';
+                        renderGallery();
+                        window.scrollTo(0, 0);
+                    } else if (view === 'mods') {
+                        if (modSection) modSection.classList.add('show');
+                        document.title = 'Her Lens · MOD分享区';
+                        renderModSection();
+                        window.scrollTo(0, 0);
+                    } else if (view === 'announcements') {
+                        if (announcementsSection) announcementsSection.classList.add('show');
+                        document.title = 'Her Lens · 网站公告';
+                        loadAnnouncements();
+                        window.scrollTo(0, 0);
+                    } else if (view === 'test') {
+                        const testHubSection = document.getElementById('testHubSection');
+                        if (testHubSection) testHubSection.classList.add('show');
+                        document.title = 'Her Lens · 游玩测试';
+                        window.scrollTo(0, 0);
+                    }
+                });
             }
 
             function initTopNavEvents() {
@@ -8724,7 +8775,7 @@
                         e.stopPropagation();
                         const nav = this.dataset.nav;
                         if (nav === 'test') {
-                            switchMainView('test');
+                            window.open('taste-test-scenario.html', '_blank');
                             return;
                         }
                         switchMainView(nav);
@@ -12863,12 +12914,16 @@
                 _confettiCanvas = document.getElementById('confettiCanvas');
                 if (!_confettiCanvas) return;
                 _confettiCtx = _confettiCanvas.getContext('2d');
+                var _confettiResizeTimer = null;
                 function resize() {
                     _confettiCanvas.width = window.innerWidth;
                     _confettiCanvas.height = window.innerHeight;
                 }
                 resize();
-                window.addEventListener('resize', resize, { passive: true });
+                window.addEventListener('resize', function () {
+                    if (_confettiResizeTimer) clearTimeout(_confettiResizeTimer);
+                    _confettiResizeTimer = setTimeout(resize, 200);
+                }, { passive: true });
             }
 
             function fireConfetti(count) {
@@ -13028,6 +13083,59 @@
                 initSystemThemeListener();
                 initConfetti();
                 initTopNavEvents();
+
+                // 全局点击波纹（事件委托，覆盖所有 .gallery-card，桌面+触屏）
+                function _spawnRipple(card, clientX, clientY) {
+                    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                    var rect = card.getBoundingClientRect();
+                    var size = Math.max(rect.width, rect.height) * 0.4;
+                    var ripple = document.createElement('span');
+                    ripple.className = 'ripple';
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = (clientX - rect.left - size / 2) + 'px';
+                    ripple.style.top = (clientY - rect.top - size / 2) + 'px';
+                    card.appendChild(ripple);
+                    setTimeout(function () { if (ripple.parentNode) ripple.remove(); }, 600);
+                }
+
+                document.addEventListener('click', function (e) {
+                    var card = e.target.closest && e.target.closest('.gallery-card');
+                    if (!card) return;
+                    if (e.target.closest('.action-btn, .btn-edit-card, .btn-del-card, .card-admin-actions')) return;
+                    _spawnRipple(card, e.clientX, e.clientY);
+                });
+
+                // 触屏设备：按下时加 .touched 类触发封面缩放，抬手后移除
+                if (window.matchMedia('(hover: none)').matches) {
+                    var _touchedCard = null;
+                    document.addEventListener('touchstart', function (e) {
+                        var card = e.target.closest && e.target.closest('.gallery-card');
+                        if (!card) return;
+                        if (e.target.closest('.action-btn, .btn-edit-card, .btn-del-card, .card-admin-actions')) return;
+                        if (_touchedCard && _touchedCard !== card) _touchedCard.classList.remove('touched');
+                        _touchedCard = card;
+                        card.classList.add('touched');
+                    }, { passive: true });
+                    var _clearTouched = function () {
+                        if (_touchedCard) { _touchedCard.classList.remove('touched'); _touchedCard = null; }
+                    };
+                    document.addEventListener('touchend', _clearTouched, { passive: true });
+                    document.addEventListener('touchcancel', _clearTouched, { passive: true });
+                }
+
+                // 暴露全局导航函数供开机屏幕调用
+                window.herlensBootNavigate = function (target) {
+                    if (target === 'mods') {
+                        switchMainView('mods');
+                    } else if (target === 'test') {
+                        window.open('taste-test-scenario.html', '_blank');
+                    } else if (target === 'diary') {
+                        if (typeof openDiaryModal === 'function') openDiaryModal();
+                    } else if (target === 'tip') {
+                        if (typeof openTipModal === 'function') openTipModal();
+                    }
+                };
+
                 initAnnouncementEvents();
                 initModLoadMoreEvent();
                 initContentProtection();

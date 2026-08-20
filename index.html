@@ -77,6 +77,326 @@
 
 <body data-theme="light">
 
+    <!-- ================================================================
+    ★ 开机屏幕：仿操作系统桌面（每日首次显示）
+    ================================================================ -->
+    <div id="bootScreen" class="boot-screen" style="display:none;" aria-hidden="true">
+        <!-- 阶段 1：BIOS 启动 -->
+        <div class="boot-phase boot-phase--bios" id="bootBios">
+            <div class="boot-bios-inner">
+                <div class="boot-logo">
+                    <span class="boot-logo-mark">◐</span>
+                    <span class="boot-logo-text">Her Lens</span>
+                </div>
+                <div class="boot-progress" aria-hidden="true">
+                    <div class="boot-progress-bar" id="bootProgressBar"></div>
+                </div>
+                <div class="boot-status" id="bootStatus">正在启动系统…</div>
+            </div>
+        </div>
+
+        <!-- 阶段 2：桌面（包裹在显示器外观内） -->
+        <div class="boot-phase boot-phase--desktop" id="bootDesktop" style="display:none;">
+            <div class="monitor-stage">
+                <div class="monitor-frame">
+                    <div class="monitor-camera" aria-hidden="true"></div>
+                    <div class="monitor-screen">
+                        <div class="desktop-bg" aria-hidden="true">
+                            <div class="desktop-bg-glow g1"></div>
+                            <div class="desktop-bg-glow g2"></div>
+                        </div>
+
+                        <div class="desktop-icons" role="toolbar" aria-label="桌面应用">
+                            <button type="button" class="desktop-icon" data-app="herlens" id="desktopIconMain" aria-label="Her Lens 主程序，点击进入">
+                                <span class="desktop-icon-img">⚔️</span>
+                                <span class="desktop-icon-label">Her Lens</span>
+                                <span class="desktop-icon-badge">主程序</span>
+                            </button>
+                            <button type="button" class="desktop-icon" data-app="diary" aria-label="游戏日记">
+                                <span class="desktop-icon-img">📖</span>
+                                <span class="desktop-icon-label">游戏日记</span>
+                            </button>
+                            <button type="button" class="desktop-icon" data-app="mods" aria-label="MOD 分享">
+                                <span class="desktop-icon-img">🔧</span>
+                                <span class="desktop-icon-label">MOD 分享</span>
+                            </button>
+                            <button type="button" class="desktop-icon" data-app="test" aria-label="游玩测试">
+                                <span class="desktop-icon-img">🔮</span>
+                                <span class="desktop-icon-label">游玩测试</span>
+                            </button>
+                            <button type="button" class="desktop-icon" data-app="tip" aria-label="打赏支持创作">
+                                <span class="desktop-icon-img">🐕</span>
+                                <span class="desktop-icon-label">投喂比格</span>
+                            </button>
+                        </div>
+
+                        <div class="desktop-welcome">
+                            <div class="desktop-clock" id="desktopClock">
+                                <span class="desktop-clock-date" id="desktopClockDate">--</span>
+                                <span class="desktop-clock-time" id="desktopClockTime">--:--</span>
+                            </div>
+                            <div class="desktop-welcome-title">欢迎回来，姊妹</div>
+                            <div class="desktop-welcome-sub" id="desktopWelcomeSub">今天想看哪一场冒险？</div>
+                        </div>
+
+                        <div class="desktop-hint" id="desktopHint">
+                            <span class="desktop-hint-icon">⏎</span>
+                            <span>点击 <strong>Her Lens</strong> 进入主站</span>
+                        </div>
+
+                        <div class="taskbar">
+                            <div class="taskbar-left">
+                                <span class="taskbar-logo">⚔️</span>
+                                <span class="taskbar-name">Her Lens OS</span>
+                            </div>
+                            <div class="taskbar-center" id="taskbarCenter">
+                                <span class="taskbar-app" id="taskbarSelectedName">桌面</span>
+                            </div>
+                            <div class="taskbar-right">
+                                <span class="taskbar-time" id="taskbarTime">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="monitor-power-led" aria-hidden="true"></div>
+                    <div class="monitor-brand" aria-hidden="true">Her Lens</div>
+                </div>
+                <div class="monitor-stand" aria-hidden="true">
+                    <div class="monitor-stand-neck"></div>
+                    <div class="monitor-stand-base"></div>
+                </div>
+            </div>
+
+            <button type="button" class="boot-skip" id="bootSkip" aria-label="跳过开机动画直接进入主站">跳过 ›</button>
+        </div>
+    </div>
+
+    <script>
+        // 开机屏幕控制器（独立于 app.js，先执行以保证开机屏先显示）
+        (function () {
+            var STORAGE_KEY = 'herlens_boot_shown_date';
+            var today = new Date().toISOString().slice(0, 10);
+            var boot = document.getElementById('bootScreen');
+            if (!boot) return;
+
+            // 判断是否需要显示
+            var shouldShow = true;
+            try {
+                if (localStorage.getItem(STORAGE_KEY) === today) shouldShow = false;
+            } catch (e) { shouldShow = false; }
+
+            // 尊重 prefers-reduced-motion：直接跳过（除非 URL 强制 resetboot）
+            var isForceReset = new URLSearchParams(window.location.search).get('resetboot') === '1';
+            if (!isForceReset && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                shouldShow = false;
+            }
+
+            // URL 含 ?skipboot=1 也跳过（用于调试或定向链接）
+            if (new URLSearchParams(window.location.search).get('skipboot') === '1') {
+                shouldShow = false;
+            }
+
+            // URL 含 ?resetboot=1 时清除今日已显示标记，强制再次显示（用于预览/调试）
+            if (isForceReset) {
+                try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+                shouldShow = true;
+            }
+
+            if (!shouldShow) {
+                boot.remove();
+                document.documentElement.classList.add('boot-done');
+                return;
+            }
+
+            // 显示开机屏幕
+            boot.style.display = 'flex';
+            boot.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            // 提前应用主题（app.js 尚未加载，手动从 localStorage 读取）
+            try {
+                var s = localStorage.getItem('heroineGamesSettingsV2');
+                if (s) {
+                    var d = JSON.parse(s);
+                    var t = d.theme || 'system';
+                    if (!['light', 'dark', 'system'].includes(t)) t = 'system';
+                    var isDark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                }
+            } catch (e) {}
+
+            var bios = document.getElementById('bootBios');
+            var desktop = document.getElementById('bootDesktop');
+            var skipBtn = document.getElementById('bootSkip');
+            var mainIcon = document.getElementById('desktopIconMain');
+            var hint = document.getElementById('desktopHint');
+            var timeEl = document.getElementById('taskbarTime');
+            var progress = document.getElementById('bootProgressBar');
+            var statusEl = document.getElementById('bootStatus');
+            var welcomeSub = document.getElementById('desktopWelcomeSub');
+            var taskbarSelected = document.getElementById('taskbarSelectedName');
+            var ICON_LABELS = {
+                'herlens': 'Her Lens 主程序',
+                'diary': '游戏日记',
+                'mods': 'MOD 分享',
+                'test': '游玩测试',
+                'tip': '投喂比格'
+            };
+
+            // 实时时间（任务栏 + 桌面时钟）
+            var clockDateEl = document.getElementById('desktopClockDate');
+            var clockTimeEl = document.getElementById('desktopClockTime');
+            var weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            function updateTime() {
+                var d = new Date();
+                var h = String(d.getHours()).padStart(2, '0');
+                var m = String(d.getMinutes()).padStart(2, '0');
+                timeEl.textContent = h + ':' + m;
+                if (clockDateEl) {
+                    var mo = d.getMonth() + 1;
+                    var da = d.getDate();
+                    clockDateEl.textContent = mo + '月' + da + '日 ' + weekdays[d.getDay()];
+                }
+                if (clockTimeEl) {
+                    clockTimeEl.textContent = h + ':' + m;
+                }
+            }
+            updateTime();
+            var timeInterval = setInterval(updateTime, 1000);
+
+            // 欢迎语随时间变化
+            var hour = new Date().getHours();
+            var greet = '今天想看哪一场冒险？';
+            if (hour < 6) greet = '夜深了，来挑一款沉浸式冒险吧';
+            else if (hour < 11) greet = '早上好，清晨的第一场冒险从何开始？';
+            else if (hour < 14) greet = '午间小憩，阳光正好翻翻新作';
+            else if (hour < 18) greet = '下午好，午后闲暇正好探索新世界';
+            else if (hour < 22) greet = '夜晚来临，夜色温柔是沉浸的好时候';
+            else greet = '深夜好，万籁俱寂挑一款慢慢品';
+
+            var entered = false;
+            function enterSite(target) {
+                if (entered) return;
+                entered = true;
+                clearInterval(timeInterval);
+
+                try { localStorage.setItem(STORAGE_KEY, today); } catch (e) {}
+
+                // 桌面整体淡出 + 微缩放
+                desktop.style.transition = 'opacity 0.55s ease, transform 0.55s ease';
+                desktop.style.opacity = '0';
+                desktop.style.transform = 'scale(1.03)';
+
+                setTimeout(function () {
+                    boot.style.transition = 'opacity 0.35s ease';
+                    boot.style.opacity = '0';
+                    setTimeout(function () {
+                        boot.remove();
+                        document.body.style.overflow = '';
+                        document.documentElement.classList.add('boot-done');
+                        // boot 移除后，直接调用 app.js 的全局导航函数
+                        if (target && target !== 'herlens') {
+                            setTimeout(function () {
+                                if (typeof window.herlensBootNavigate === 'function') {
+                                    window.herlensBootNavigate(target);
+                                }
+                            }, 100);
+                        }
+                    }, 350);
+                }, 550);
+            }
+
+            skipBtn.addEventListener('click', function () { enterSite(); });
+
+            // 所有桌面图标：单击 → 高亮选中 → 0.4 秒后进入对应功能
+            Array.prototype.forEach.call(document.querySelectorAll('.desktop-icon'), function (icon) {
+                icon.addEventListener('click', function () {
+                    if (icon.classList.contains('selected') || entered) return;
+                    Array.prototype.forEach.call(document.querySelectorAll('.desktop-icon'), function (i) { i.classList.remove('selected'); });
+                    icon.classList.add('selected');
+                    var k = icon.getAttribute('data-app');
+                    taskbarSelected.textContent = ICON_LABELS[k] || '桌面';
+                    setTimeout(function () { enterSite(k); }, 400);
+                });
+            });
+
+            // 进度条动画 + 阶段切换
+            // BIOS 阶段持续约 1.3 秒
+            var pStart = Date.now();
+            var pDuration = 1300;
+            function tickProgress() {
+                var elapsed = Date.now() - pStart;
+                var pct = Math.min(100, Math.round((elapsed / pDuration) * 100));
+                if (progress) progress.style.width = pct + '%';
+                if (statusEl) {
+                    if (pct < 30) statusEl.textContent = '正在加载游戏数据…';
+                    else if (pct < 70) statusEl.textContent = '正在唤醒女主档案…';
+                    else if (pct < 100) statusEl.textContent = '即将就绪…';
+                    else statusEl.textContent = '欢迎';
+                }
+                if (pct < 100 && !entered) {
+                    requestAnimationFrame(tickProgress);
+                }
+            }
+            requestAnimationFrame(tickProgress);
+
+            // 1.4 秒后切换到桌面（或手机端直接进入主站）
+            setTimeout(function () {
+                if (entered) return;
+
+                // 手机端：BIOS 结束后直接进入主站，跳过桌面阶段
+                var isMobile = window.matchMedia('(max-width: 767px)').matches;
+                if (isMobile) {
+                    enterSite();
+                    return;
+                }
+
+                // 平板端：加 .tablet-mode 类切换为平板样式
+                var isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1024px)').matches;
+                if (isTablet) {
+                    desktop.classList.add('tablet-mode');
+                }
+
+                bios.style.transition = 'opacity 0.45s ease';
+                bios.style.opacity = '0';
+                setTimeout(function () {
+                    bios.style.display = 'none';
+                    desktop.style.display = 'flex';
+                    desktop.style.opacity = '0';
+                    requestAnimationFrame(function () {
+                        desktop.style.transition = 'opacity 0.7s ease';
+                        desktop.style.opacity = '1';
+                    });
+                }, 450);
+            }, 1400);
+
+            // 桌面阶段：3.5 秒后高亮提示
+            setTimeout(function () {
+                if (entered) return;
+                hint.classList.add('pulse');
+            }, 1400 + 3500);
+
+            // 桌面阶段：7 秒后提示闪烁更强
+            setTimeout(function () {
+                if (entered) return;
+                mainIcon.classList.add('hint-glow');
+            }, 1400 + 5000);
+
+            // 桌面阶段：12 秒后强制自动进入（兜底，避免用户卡住）
+            setTimeout(function () {
+                if (!entered) enterSite();
+            }, 1400 + 12000);
+
+            // 键盘：Enter / Space 进入
+            document.addEventListener('keydown', function (e) {
+                if (entered) return;
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                    e.preventDefault();
+                    enterSite();
+                }
+            }, { once: true });
+        })();
+    </script>
+
     <!-- 背景光晕 -->
     <div class="bg-glow-container" aria-hidden="true">
         <div class="bg-glow g1"></div>
@@ -291,27 +611,14 @@
         </div>
     </div>
 
-    <!-- ===== 游玩测试大厅 ===== -->
-    <div class="test-hub-section" id="testHubSection" style="display:none;">
-        <div class="test-hub-header">
-            <div class="test-hub-title">🎮 游玩测试</div>
-            <div class="test-hub-subtitle">选择一项测试开始，每一次探索都是了解自己的旅程</div>
-        </div>
-        <div class="test-hub-grid">
-            <div class="test-hub-card" onclick="window.open('taste-test-scenario.html','_blank')">
-                <div class="test-hub-icon">🔮</div>
-                <div class="test-hub-name">游戏人格测试</div>
-                <div class="test-hub-desc">39 道场景题 · 6 章叙事 · 16 种职业</div>
-                <div class="test-hub-tag">你在游戏世界中是什么职业？</div>
-                <div class="test-hub-btn">开始 →</div>
-            </div>
-            <div class="test-hub-card" onclick="window.open('monster-test-scenario.html','_blank')">
-                <div class="test-hub-icon">🐉</div>
-                <div class="test-hub-name">魔物觉醒测试</div>
-                <div class="test-hub-desc">36 道场景题 · 6 章成长 · 16 种魔物</div>
-                <div class="test-hub-tag">从魔素开始，你将觉醒为何物？</div>
-                <div class="test-hub-btn">开始 →</div>
-            </div>
+    <!-- ===== 游玩测试 ===== -->
+    <div class="test-hub-section" id="testHubSection">
+        <div class="test-hub-card" id="testHubCardTaste">
+            <div class="test-hub-icon">🔮</div>
+            <div class="test-hub-name">游戏人格测试</div>
+            <div class="test-hub-desc">39 道场景题 · 6 章叙事 · 16 种职业</div>
+            <div class="test-hub-tag">你在游戏世界中是什么职业？</div>
+            <div class="test-hub-btn">开始 →</div>
         </div>
     </div>
 
@@ -883,8 +1190,8 @@
         制作者 by Mega比格犬
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-    <script src="js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js" defer></script>
+    <script src="js/app.js" defer></script>
 
     </body>
 
