@@ -100,6 +100,11 @@
             <div class="monitor-stage">
                 <div class="monitor-frame">
                     <div class="monitor-camera" aria-hidden="true"></div>
+                    <div class="desktop-sticky-note" id="desktopStickyNote" title="点击展开">
+                        <div class="sticky-note-head">💡 今日她健康</div>
+                        <div class="sticky-note-text" id="stickyNoteText"></div>
+                        <div class="sticky-note-foot">科普 · 非医疗建议</div>
+                    </div>
                     <div class="monitor-screen">
                         <div class="desktop-bg" aria-hidden="true">
                             <div class="desktop-bg-glow g1"></div>
@@ -123,6 +128,10 @@
                             <button type="button" class="desktop-icon" data-app="test" aria-label="游玩测试">
                                 <span class="desktop-icon-img">🔮</span>
                                 <span class="desktop-icon-label">游玩测试</span>
+                            </button>
+                            <button type="button" class="desktop-icon" data-app="creators" aria-label="她们：游戏博主与星探连线机">
+                                <span class="desktop-icon-img">🎬</span>
+                                <span class="desktop-icon-label">她们</span>
                             </button>
                             <button type="button" class="desktop-icon" data-app="tip" aria-label="打赏支持创作">
                                 <span class="desktop-icon-img">🐕</span>
@@ -239,6 +248,7 @@
                 'diary': '游戏日记',
                 'mods': 'MOD 分享',
                 'test': '游玩测试',
+                'creators': '她们 · 创作者',
                 'tip': '投喂比格'
             };
 
@@ -339,7 +349,7 @@
             }
             requestAnimationFrame(tickProgress);
 
-            // 1.4 秒后切换到桌面（或手机端直接进入主站）
+            // 1.4 秒后切换到桌面（手机端仍直接进入主站）
             setTimeout(function () {
                 if (entered) return;
 
@@ -366,6 +376,27 @@
                         desktop.style.transition = 'opacity 0.7s ease';
                         desktop.style.opacity = '1';
                     });
+
+                    // 桌面便签：填充今日健康贴士
+                    try {
+                        var noteText = document.getElementById('stickyNoteText');
+                        var noteEl = document.getElementById('desktopStickyNote');
+                        if (noteText && noteEl && window.HerlensDailyTip) {
+                            var tipObj = window.HerlensDailyTip.getToday();
+                            noteText.textContent = tipObj.t;
+                            noteEl.addEventListener('click', function () {
+                                noteEl.classList.toggle('expanded');
+                            });
+                            // 跨天自动更新便签内容
+                            document.addEventListener('herlens:dailytip-newday', function (ev) {
+                                if (ev.detail && ev.detail.tip && noteText) {
+                                    noteText.textContent = ev.detail.tip.t;
+                                }
+                            });
+                        } else if (noteEl) {
+                            noteEl.style.display = 'none';
+                        }
+                    } catch (e) {}
                 }, 450);
             }, 1400);
 
@@ -380,11 +411,6 @@
                 if (entered) return;
                 mainIcon.classList.add('hint-glow');
             }, 1400 + 5000);
-
-            // 桌面阶段：12 秒后强制自动进入（兜底，避免用户卡住）
-            setTimeout(function () {
-                if (!entered) enterSite();
-            }, 1400 + 12000);
 
             // 键盘：Enter / Space 进入
             document.addEventListener('keydown', function (e) {
@@ -423,6 +449,15 @@
                 <button class="top-nav-item active" data-nav="games">游戏总览</button>
                 <button class="top-nav-item" data-nav="mods">MOD总览</button>
                 <button class="top-nav-item" data-nav="test" id="navPersonalityTest">游玩测试</button>
+
+                <div class="nav-dropdown-wrap" id="creatorsNavWrap">
+                    <button class="top-nav-item" id="navCreatorsBtn">她们 <span class="nav-caret">▾</span></button>
+                    <div class="nav-dropdown-menu" id="creatorsNavMenu">
+                        <a href="bloggers.html" class="nav-dropdown-link"><span class="nav-dropdown-icon">📹</span> 游戏博主</a>
+                        <a href="claw.html" class="nav-dropdown-link"><span class="nav-dropdown-icon">💞</span> 星探连线机</a>
+                    </div>
+                </div>
+
                 <button class="top-nav-item" data-nav="announcements">网站公告</button>
 
                 <button class="top-nav-item" id="navTip" title="打赏网页，支持创作">打赏网页</button>
@@ -851,6 +886,27 @@
         </div>
     </div>
 
+    <!-- ===== 「她们」选择弹层（开机桌面入口） ===== -->
+    <div class="modal-overlay" id="creatorsPickerOverlay">
+        <div class="modal" style="max-width:560px;">
+            <button class="modal-close" id="creatorsPickerClose">✕</button>
+            <h2 style="text-align:center;margin-bottom:4px;">🎬 她们</h2>
+            <p style="text-align:center;color:var(--text2);font-size:0.85rem;margin-bottom:18px;">看见游戏行业里的她们</p>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+                <a href="bloggers.html" class="creators-pick-card">
+                    <span class="creators-pick-icon">📹</span>
+                    <span class="creators-pick-name">游戏博主</span>
+                    <span class="creators-pick-desc">听见她们的声音 · 看见她们的游戏世界</span>
+                </a>
+                <a href="claw.html" class="creators-pick-card">
+                    <span class="creators-pick-icon">💞</span>
+                    <span class="creators-pick-name">星探连线机</span>
+                    <span class="creators-pick-desc">下爪连线，随机遇见一位姊妹</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== 登录/注册弹窗 ===== -->
     <div class="modal-overlay" id="authModalOverlay">
         <div class="modal" id="authModal">
@@ -906,6 +962,10 @@
                 <div style="font-size:3rem;">📨</div>
                 <h3>验证邮件已发送</h3>
                 <p style="color:var(--text2);">请查收你的邮箱，点击验证链接完成注册。</p>
+                <p style="color:var(--text3); font-size:0.82rem; margin-top:8px; line-height:1.6;">
+                    ✦ 若未收到，请先检查<b>垃圾箱 / 广告邮件 / 促销邮件</b>文件夹<br>
+                    ✦ 部分邮箱（如学校/企业邮箱）可能拦截，请换 QQ / Gmail / Outlook 重试
+                </p>
                 <button class="btn" id="resendConfirmBtn" style="margin-top:12px;">重新发送验证邮件</button>
             </div>
 
@@ -926,6 +986,11 @@
                     <div style="font-size:3rem;">📨</div>
                     <h3>重置链接已发送</h3>
                     <p style="color:var(--text2);">请查收你的邮箱，点击链接设置新密码。</p>
+                    <p style="color:var(--text3); font-size:0.82rem; margin-top:8px; line-height:1.6;">
+                        ✦ 若 5 分钟内未收到，请先检查<b>垃圾箱 / 广告邮件 / 促销邮件</b>文件夹<br>
+                        ✦ 部分邮箱（如学校/企业邮箱）可能拦截，请换 QQ / Gmail / Outlook 重试<br>
+                        ✦ 同一邮箱请勿短时间内重复点击，否则会被限流
+                    </p>
                 </div>
             </div>
 
@@ -969,6 +1034,11 @@
                         <button class="btn btn-sm" id="profileCheckIdBtn" style="white-space:nowrap; padding:6px 12px; font-size:0.8rem;">检查可用</button>
                     </div>
                     <div id="profileCustomIdMsg" style="font-size:0.78rem; margin-top:4px; min-height:16px;"></div>
+                </div>
+
+                <div class="form-group" style="width:100%;">
+                    <label>个性签名 <span style="font-size:0.75rem; color:var(--text3); font-weight:normal;">（展示在主页）</span></label>
+                    <textarea id="profileBio" placeholder="用一句话介绍你自己…" maxlength="80" rows="2" style="width:100%; resize:vertical; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg2); color:var(--text); font-size:0.9rem; font-family:inherit;"></textarea>
                 </div>
 
                 <div class="form-group" style="width:100%;">
@@ -1022,6 +1092,72 @@
         </div>
     </div>
 
+    <!-- ================================================================
+    ★ 设置页面
+    ================================================================ -->
+    <div id="settingsPage" class="profile-page" style="display:none;">
+        <div class="settings-banner"></div>
+        <div class="profile-main">
+            <div class="profile-back-bar">
+                <button class="profile-back-btn" id="settingsCloseBtn">← 返回</button>
+            </div>
+
+            <div class="profile-header-card" style="padding:24px 28px;">
+                <div class="settings-page-title">⚙️ 设置</div>
+                <div class="settings-page-subtitle">管理你的账户偏好与隐私设置</div>
+            </div>
+
+            <!-- 游戏币 -->
+            <div class="profile-header-card settings-section-card">
+                <div class="settings-section-title">🪙 游戏币</div>
+                <div class="settings-coin-row">
+                    <span class="settings-coin-item">🕹️ 娃娃机币 <b id="settingsClawCoin">0</b></span>
+                    <span class="settings-coin-item">🌙 抽卡币 <b id="settingsGachaCoin">0</b></span>
+                </div>
+                <p class="settings-coin-hint">每日登录各 +1，评论游戏各 +1（每日前 3 条）</p>
+            </div>
+
+            <!-- 每日健康贴士开关 -->
+            <div class="profile-header-card settings-section-card">
+                <div class="settings-section-title">💡 每日健康贴士</div>
+                <div class="settings-toggle-row">
+                    <span>开屏时显示每日健康科普贴士</span>
+                    <div id="settingsTipToggle" class="settings-toggle-switch"></div>
+                </div>
+            </div>
+
+            <!-- 屏蔽内容管理 -->
+            <div class="profile-header-card settings-section-card">
+                <div class="settings-section-title">🚫 屏蔽内容管理</div>
+
+                <!-- 恶俗内容开关 -->
+                <div class="settings-block-row">
+                    <div style="flex:1;">
+                        <div style="font-size:0.88rem; font-weight:600; color:var(--text); margin-bottom:2px;">🔞 显示含恶俗设计的游戏</div>
+                        <div style="font-size:0.72rem; color:var(--text3);">关闭后自动隐藏服设分类为「含恶俗设计」的游戏</div>
+                    </div>
+                    <div id="spBlockAdultToggle" class="settings-toggle-switch"></div>
+                </div>
+
+                <!-- 排除标签管理 -->
+                <div style="margin-top:16px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                        <div>
+                            <span style="font-size:0.88rem; font-weight:700; color:var(--text);">🚫 排除标签</span>
+                            <span id="spBlockExcludeCount" style="font-size:0.74rem; color:var(--text3);"></span>
+                        </div>
+                        <button type="button" class="btn btn-sm" id="spBlockClearAll" style="font-size:0.72rem; padding:4px 12px; border-radius:10px; color:var(--danger); opacity:0.4; cursor:not-allowed;" disabled>清空全部</button>
+                    </div>
+                    <input type="text" id="spBlockTagSearch" class="form-control" placeholder="搜索标签…" style="width:100%; padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.82rem; margin-bottom:10px; outline:none; transition:border-color 0.2s; font-family:inherit;" />
+                    <div id="spBlockDimContainer"></div>
+                </div>
+
+                <button class="btn btn-accent" id="spBlockSaveBtn" style="width:100%; padding:10px; margin-top:16px;">💾 保存屏蔽设置</button>
+            </div>
+
+        </div>
+    </div>
+
 
     <!-- ================================================================
     ★ 游戏日记 - 独立子页面
@@ -1031,14 +1167,29 @@
         <div id="diaryCoverView">
             <div class="diary-cover">
                 <button class="diary-close-btn" id="diaryCloseCoverBtn">收起日记</button>
+
+                <!-- 封面图标 -->
                 <div class="diary-cover-icon">📖</div>
-                <div class="diary-cover-title">游戏日记</div>
+                <h1 class="diary-cover-title">游戏日记</h1>
+
+                <!-- 顶部:头像+基本信息（居中纵向布局） -->
                 <div class="diary-cover-user">
                     <div class="diary-cover-avatar" id="diaryCoverAvatar">👤</div>
-                    <div class="diary-cover-username" id="diaryCoverUsername">用户</div>
+                    <div class="dc-user-info">
+                        <div class="dc-username-row" style="justify-content:center;">
+                            <span class="diary-cover-username" id="diaryCoverUsername">用户</span>
+                            <span class="dc-custom-id" id="diaryCoverCustomId">@</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="diary-cover-stats" id="diaryCoverStats">已记录 0 款游戏 · 标记玩过 0 款 · 成就 0/0</div>
-                <div class="diary-cover-achievement" id="diaryCoverAchievement">🎯 暂无成就</div>
+
+                <!-- 统计数据行 -->
+                <div class="diary-cover-stats" id="diaryCoverStats">
+                    已记录 <span id="dcWishlistCount">0</span> 款游戏 · 标记玩过 <span id="dcPlayedCount">0</span> 款 · 成就 <span id="dcTitleCount">0</span>/<span id="dcTitleTotal">0</span>
+                </div>
+
+                <!-- 成就标题行 -->
+                <div class="diary-cover-achievement" id="diaryCoverAchievement">🏆 电子游戏活化石</div>
                 <div class="diary-cover-slogan">记录我的游戏成长史</div>
 
                 <!-- 封面统计饼图 -->
@@ -1080,6 +1231,91 @@
                 <div id="diaryBookmarkRailWrap">
                     <div id="diaryBookmarkRail"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+    ★ 个人主页 - 全屏页面视图(社交平台风格)
+    ================================================================ -->
+    <div id="profilePage" class="profile-page" style="display:none;">
+        <div class="profile-banner" id="profileBanner"></div>
+        <div class="profile-main">
+            <div class="profile-back-bar">
+                <button class="profile-back-btn" id="profileCloseBtn">← 返回</button>
+            </div>
+
+            <div class="profile-header-card">
+                <div class="profile-avatar-wrap">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <label class="profile-avatar-upload-overlay" id="profileAvatarUploadLabel" for="profileAvatarFileInput" title="点击上传头像（≤2MB）" style="display:none;">
+                        <span>📸</span>
+                    </label>
+                    <input type="file" id="profileAvatarFileInput" accept="image/png, image/jpeg, image/webp, image/gif" style="display:none;" />
+                </div>
+                <div class="profile-info-block">
+                    <div class="profile-name-line" id="profileNameLine">
+                        <span class="profile-username" id="profileUsername">用户</span>
+                        <input type="text" class="profile-username-input" id="profileUsernameInput" maxlength="30" placeholder="昵称（不可重复）" style="display:none;" />
+                        <span class="p-custom-id" id="profileCustomIdDisplay">@</span>
+                        <input type="text" class="p-custom-id-input" id="profileCustomIdInput" maxlength="16" placeholder="专属ID" style="display:none;" />
+                    </div>
+                    <div class="p-edit-msg" id="profileEditMsg" style="display:none;"></div>
+                    <div class="p-title-row" id="profileTitleRow"></div>
+                    <div class="p-bio-row" id="profileBioRow">
+                        <textarea class="p-bio-input" id="profileBioInput" maxlength="80" rows="2" placeholder="写点什么介绍自己吧…"></textarea>
+                        <button class="p-bio-save-btn" id="profileBioSaveBtn" title="保存">💾</button>
+                    </div>
+                    <div class="p-bio-status" id="profileBioStatus"></div>
+                    <div class="p-register-time" id="profileRegTime">注册于 —</div>
+                </div>
+                <div class="profile-edit-btn-wrap" id="profileEditBtnWrap">
+                    <button class="edit-btn" id="profileEditBtn">✏️ 编辑资料</button>
+                    <button class="edit-btn" id="profileSaveBtn" style="display:none;">💾 保存</button>
+                    <button class="edit-btn" id="profileCancelBtn" style="display:none;">✕ 取消</button>
+                </div>
+            </div>
+
+            <div class="profile-stats-bar">
+                <div class="ps-item" id="statWishlist">
+                    <div class="ps-num" id="profileWishlistCount">0</div>
+                    <div class="ps-label">心愿单</div>
+                </div>
+                <div class="ps-divider"></div>
+                <div class="ps-item" id="statPlayed">
+                    <div class="ps-num" id="profilePlayedCount">0</div>
+                    <div class="ps-label">已玩过</div>
+                </div>
+                <div class="ps-divider"></div>
+                <div class="ps-item">
+                    <div class="ps-num" id="profileReviewCount">0</div>
+                    <div class="ps-label">评论</div>
+                </div>
+                <div class="ps-divider"></div>
+                <div class="ps-item" id="statTitleCount">
+                    <div class="ps-num" id="profileTitleCount">0</div>
+                    <div class="ps-label">头衔</div>
+                </div>
+            </div>
+
+            <div class="profile-tabs">
+                <button class="profile-tab" data-tab="wishlist" id="tabWishlist">💜 心愿单</button>
+                <button class="profile-tab" data-tab="played" id="tabPlayed">✅ 已玩过</button>
+                <button class="profile-tab active" data-tab="reviews">📝 评论</button>
+                <button class="profile-tab" data-tab="achievements" id="tabAchievements">🏆 成就</button>
+            </div>
+
+            <div class="profile-tab-content" id="profileWishlistTab" style="display:none;">
+                <div class="p-game-grid" id="profileWishlistGrid"></div>
+            </div>
+            <div class="profile-tab-content" id="profilePlayedTab" style="display:none;">
+                <div class="p-game-grid" id="profilePlayedGrid"></div>
+            </div>
+            <div class="profile-tab-content" id="profileReviewsTab">
+                <div class="p-reviews-list" id="profileReviewsList"></div>
+            </div>
+            <div class="profile-tab-content" id="profileAchievementTab" style="display:none;">
+                <div id="profileAchievementContent"></div>
             </div>
         </div>
     </div>
@@ -1191,6 +1427,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js" defer></script>
+    <script src="js/wallet.js" defer></script>
+    <script src="js/daily-tip.js" defer></script>
+    <script src="js/herlens-extensions.js" defer></script>
     <script src="js/app.js" defer></script>
 
     </body>
