@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>她们 · 游戏博主 | Her Lens</title>
+    <meta name="robots" content="index, follow" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script>
+        document.documentElement.setAttribute('data-theme-applied', 'light');
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg, #f4f1f8);
+            color: var(--text);
+            transition: background 0.3s ease;
+        }
+        html[data-theme-applied="dark"] body { background: var(--bg); }
+
+        .page-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 20px;
+            background: color-mix(in srgb, var(--bg, #f4f1f8) 82%, transparent);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text2);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .topbar-link:hover { color: var(--accent); border-color: var(--accent); }
+        .topbar-link.switch:hover { transform: translateX(2px); }
+
+        .page-header { text-align: center; padding: 34px 20px 8px; }
+        .page-header .icon {
+            width: 48px; height: 48px;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            margin-bottom: 10px;
+            padding: 6px;
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+            color: var(--accent);
+        }
+        .page-header .icon svg { width: 100%; height: 100%; }
+        /* 通用链接 & 提示图标内联 SVG 容器 */
+        .icon-svg {
+            width: 1em; height: 1em;
+            display: inline-block;
+            vertical-align: -0.12em;
+        }
+        .icon-svg svg { width: 100%; height: 100%; }
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            letter-spacing: 0.08em;
+            background: linear-gradient(135deg, var(--accent) 0%, #c9b8e8 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header .sub { margin-top: 6px; font-size: 0.84rem; color: var(--text3); }
+
+        .sample-notice {
+            max-width: 960px;
+            margin: 18px auto 0;
+            padding: 9px 16px;
+            width: calc(100% - 40px);
+            background: color-mix(in srgb, #e8a33d 12%, transparent);
+            border: 1px dashed #d09a3e;
+            border-radius: 10px;
+            color: #a4741f;
+            font-size: 0.76rem;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sample-notice::before {
+            content: '';
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 2px;
+            background: #d09a3e;
+            transform: rotate(45deg);
+            flex-shrink: 0;
+        }
+        html[data-theme-applied="dark"] .sample-notice { color: #e0b45c; }
+
+        .filter-row {
+            max-width: 960px;
+            margin: 20px auto 0;
+            padding: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-chip {
+            padding: 5px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text2);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .filter-search {
+            flex: 1;
+            min-width: 160px;
+            max-width: 260px;
+            margin-left: auto;
+            padding: 7px 14px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.8rem;
+            outline: none;
+            font-family: inherit;
+        }
+        .filter-search:focus { border-color: var(--accent); }
+
+        .diary-container {
+            max-width: 1100px;
+            margin: 24px auto 0;
+            padding: 0 20px 30px;
+            display: flex;
+            gap: 0;
+            min-height: 500px;
+        }
+
+        .diary-page-left {
+            flex: 0 0 380px;
+            background: var(--modal-bg, rgba(250, 247, 253, 0.82));
+            border-radius: 20px 0 0 20px;
+            border: 1px solid var(--border);
+            border-right: none;
+            padding: 25px;
+            position: relative;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb, #d0c4d8) transparent;
+        }
+        html[data-theme-applied="dark"] .diary-page-left { background: var(--modal-bg); }
+
+        .diary-page-left::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(90deg, var(--glow-color, rgba(155, 138, 189, 0.12)) 0%, transparent 100%);
+            border-radius: 20px 0 0 20px;
+        }
+
+        .diary-page-right {
+            flex: 1;
+            background: var(--modal-bg, rgba(250, 247, 253, 0.82));
+            border-radius: 0 20px 20px 0;
+            border: 1px solid var(--border);
+            padding: 25px;
+            position: relative;
+            overflow-y: auto;
+        }
+        html[data-theme-applied="dark"] .diary-page-right { background: var(--modal-bg); }
+
+        .diary-page-right::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(270deg, var(--glow-color, rgba(155, 138, 189, 0.12)) 0%, transparent 100%);
+            border-radius: 0 20px 20px 0;
+        }
+
+        /* 详情区头：头像 + 名称 + 平台徽章 + 分类/内容形式标签 全部收纳在同一 flex 头部 */
+        .blogger-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            background: var(--bg-soft, color-mix(in srgb, var(--accent) 5%, transparent));
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+        .blogger-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 4px 14px var(--shadow, rgba(60, 30, 80, 0.18));
+        }
+        .blogger-avatar img { display: block; border-radius: inherit; width: 100%; height: 100%; object-fit: cover; }
+        .blogger-header .blogger-info { flex: 1; min-width: 0; }
+        .blogger-header .blogger-info h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.25rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .platform-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .platform-badge {
+            font-size: 0.7rem;
+            padding: 2px 9px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .section-title {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin: 18px 0 10px;
+            padding-left: 14px;
+            letter-spacing: 0.02em;
+        }
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 4px;
+            height: 16px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 60%, transparent));
+            transform: translateY(-50%);
+        }
+
+        .blogger-bio { font-size: 0.88rem; line-height: 1.8; color: var(--text2); }
+
+        .quote-block {
+            padding: 14px 18px;
+            border-left: 3px solid var(--accent);
+            background: var(--input-bg);
+            border-radius: 0 12px 12px 0;
+            font-size: 0.86rem;
+            color: var(--text2);
+            font-style: italic;
+            line-height: 1.7;
+            margin: 12px 0;
+        }
+
+        .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .mini-tag {
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: var(--text3);
+            transition: all 0.2s;
+        }
+        .mini-tag:hover { border-color: var(--accent); color: var(--accent); }
+        .mini-tag-main {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        .mini-tag-kw {
+            background: var(--bg-hover);
+            font-style: italic;
+        }
+
+        /* 内容形式 chip（只剩 直播/视频/图文 三色，无emoji） */
+        .content-type-meta { --bg: var(--accent-light); --bd: var(--border); --tx: var(--accent); }
+        .content-type-meta.ct-直播   { --bg:rgba(201,90,140,0.15);  --bd:rgba(201,90,140,0.36); --tx:#c95a8c; }
+        .content-type-meta.ct-视频   { --bg:rgba(144,123,189,0.18); --bd:rgba(144,123,189,0.40); --tx:#7d65b3; }
+        .content-type-meta.ct-图文   { --bg:rgba(108,122,184,0.14); --bd:rgba(108,122,184,0.38); --tx:#6c7ab8; }
+        .mini-tag.ct {
+            padding: 4px 10px;
+            background: var(--bg);
+            border-color: var(--bd);
+            color: var(--tx);
+            font-weight: 600;
+        }
+        .bc-tag.ct-chip {
+            padding: 2px 8px;
+            font-size: 0.64rem;
+            border-radius: 10px;
+            background: var(--bg);
+            border: 1px solid var(--bd);
+            color: var(--tx);
+            font-weight: 600;
+        }
+        /* 已删除的旧形式（切片/评测/杂谈）若老数据有，不再显示任何样式 */
+        .content-type-meta.ct-切片,
+        .content-type-meta.ct-评测,
+        .content-type-meta.ct-杂谈 { display: none !important; }
+
+        .link-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .link-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-size: 0.78rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .link-btn:hover { background: var(--accent); color: #fff; }
+
+        .videos-section { display: flex; flex-direction: column; gap: 10px; }
+        .blogger-card {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start; /* 头像顶对齐，不再跟随内容居中 */
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--input-bg);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            animation: fadeInUp 0.4s ease forwards;
+            opacity: 0;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+        .blogger-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            box-shadow: 0 6px 18px var(--glow-color, rgba(155, 138, 189, 0.15));
+        }
+        .blogger-card.selected {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 6%, var(--input-bg));
+        }
+        .bc-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(60, 30, 80, 0.12);
+            margin-top: 2px; /* 微调与名字首行顶部对齐 */
+        }
+        .bc-avatar img { display: block; border-radius: inherit; width: 100%; height: 100%; object-fit: cover; }
+        .bc-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .bc-name {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin: 0;
+        }
+        .bc-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            overflow: hidden;
+        }
+        /* 收录卡片标签层级：主分类（大）> 副分类（中）> 内容形式（小） */
+        .bc-tag {
+            font-size: 0.66rem;
+            padding: 2px 8px;
+            border-radius: 9px;
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+            color: var(--accent);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .bc-tag-main {
+            background: var(--accent);
+            color: #fff;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+        }
+        .bc-tag-sub {
+            padding: 2px 9px;
+        }
+        .bc-tag.ct-chip {
+            padding: 1px 7px;
+            font-size: 0.6rem;
+            opacity: 0.9;
+        }
+        .bc-work {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            margin-top: 2px;
+            background: var(--modal-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            text-decoration: none;
+            color: var(--text2);
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+            max-width: 100%;
+            align-self: flex-start;
+        }
+        .bc-work:hover {
+            background: color-mix(in srgb, var(--accent) 8%, var(--modal-bg));
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateX(2px);
+        }
+        /* 用内联 SVG 方块代替 emoji：播放按钮样的小三角 + 占位图标 */
+        .bc-work-icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bc-work-icon svg { width: 100%; height: 100%; }
+        .bc-work-title {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 160px;
+        }
+        .bc-work-note {
+            font-size: 0.6rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .bc-work-empty {
+            cursor: default;
+            opacity: 0.55;
+            border-left-style: dashed;
+        }
+        .bc-work-empty:hover {
+            background: var(--modal-bg);
+            border-color: var(--border);
+            color: var(--text2);
+            transform: none;
+        }
+        .bc-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 4px;
+        }
+        .bc-kw {
+            font-size: 0.58rem;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: var(--bg-hover);
+            color: var(--text3);
+            line-height: 1.4;
+        }
+
+        .no-videos { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 0.88rem; }
+        .no-results { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 0.88rem; }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 0 4px;
+            flex-shrink: 0;
+        }
+        .pg-btn {
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text3);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pg-btn:hover:not(:disabled):not(.active) {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .pg-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .pg-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+        .pg-ellipsis {
+            color: var(--text3);
+            font-size: 0.78rem;
+            padding: 0 2px;
+        }
+        .pg-info {
+            font-size: 0.72rem;
+            color: var(--text3);
+            margin-left: 6px;
+        }
+        .page-footer { text-align: center; padding: 10px 20px 44px; font-size: 0.72rem; color: var(--text3); opacity: 0.75; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 1.35rem; }
+            .diary-container { flex-direction: column; min-height: auto; }
+            .diary-page-left {
+                flex: none;
+                border-radius: 20px 20px 0 0;
+                border-right: 1px solid var(--border);
+                border-bottom: none;
+                max-height: 450px;
+            }
+            .diary-page-left::before { display: none; }
+            .diary-page-right { border-radius: 0 0 20px 20px; min-height: 300px; }
+            .diary-page-right::before { display: none; }
+            .filter-search { max-width: none; width: 100%; margin-left: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .blogger-header { gap: 10px; padding: 10px 12px; }
+            .blogger-avatar { width: 48px; height: 48px; font-size: 1.3rem; }
+            .blogger-header .blogger-info h2 { font-size: 1.05rem; }
+            .blogger-card { padding: 10px 12px; gap: 10px; }
+            .bc-avatar { width: 40px; height: 40px; font-size: 0.95rem; }
+            .bc-name { font-size: 0.86rem; }
+            .bc-work { padding: 4px 7px; font-size: 0.64rem; }
+            .bc-work-title { max-width: 120px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-topbar">
+        <a href="index.html" class="topbar-link"><span aria-hidden="true" class="icon-svg"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></span> 返回主页</a>
+        <a href="claw.html" class="topbar-link switch">星探连线机 <span aria-hidden="true" class="icon-svg"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg></span></a>
+    </div>
+
+    <div class="page-header">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4zM14 13h-3v3H9v-3H6v-2h3V8h2v3h3v2z"/></svg></span>
+        <h1>她们 · 游戏博主</h1>
+        <div class="sub">听见她们的声音 · 看见她们的游戏世界</div>
+    </div>
+
+    <div class="sample-notice" id="sampleNotice" style="display:none;">
+        当前为占位示例数据，正式收录内容正在整理中
+    </div>
+
+    <div class="filter-row">
+        <button class="filter-chip active" data-tag="全部">全部</button>
+        <div id="tagChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <input type="text" class="filter-search" id="searchInput" placeholder="搜索博主…" />
+    </div>
+
+    <div class="diary-container" id="diaryContainer">
+        <div class="diary-page-left" id="pageLeft">
+            <div id="bloggerInfoContent">
+                <div class="no-results">← 点击右侧视频卡片查看详情</div>
+            </div>
+        </div>
+        <div class="diary-page-right" id="pageRight">
+            <div class="section-title">
+                <span class="icon-svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3L19 5a2 2 0 0 0-2-2H5c-1.11 0-2 .9-2 2v10a2 2 0 0 0 2 2h10v-6h2.17l-1.58 1.59L17 16l4-4-4-4-1.41 1.41L18.17 11H16zm-6 7H5V5h10v6h-5l-1 1v6z"/></svg></span>
+                <span id="bloggerCount">共收录 0 位博主</span>
+            </div>
+            <div class="videos-section" id="videosContent">
+                <div class="no-videos">暂无视频数据</div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <div class="no-results" id="noResults" style="display:none;">没有找到匹配的博主，换个关键词试试？</div>
+
+    <div class="page-footer">收录说明：信息来自公开渠道 · 如需补充或移除请联系站长</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script src="js/creators-data.js"></script>
+    <script>
+        (function () {
+            var SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
+            var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
+            var SUPABASE_ENABLED = SUPABASE_URL.indexOf('supabase.co') >= 0 && SUPABASE_ANON_KEY.length > 10;
+            var supabaseClient = null;
+            // 初始化 supabaseClient：CDN 偶发加载慢时轮询重试最多 10 次
+            function initSupabase(tries) {
+                if (!SUPABASE_ENABLED) return;
+                if (typeof supabase !== 'undefined') {
+                    try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+                    catch (e) { console.warn('[Supabase] createClient 失败:', e); supabaseClient = null; }
+                    return;
+                }
+                var t = tries || 0;
+                if (t < 10) { setTimeout(function () { initSupabase(t + 1); }, 100); }
+                else { console.warn('[Supabase] CDN 超时未加载，supabase 对象不存在'); }
+            }
+            initSupabase();
+
+            var DATA = window.HerlensCreators || { bloggers: [], meta: {} };
+            var bloggers = (DATA.bloggers || []).slice();
+            var activeTag = '全部';
+            var keyword = '';
+            var pageSize = 5;
+            var currentPage = 1;
+
+            function esc(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            function hue(name) {
+                var h = 0;
+                for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+                return h;
+            }
+            function avatarStyle(b) {
+                return 'background:linear-gradient(135deg,hsl(' + hue(b.name) + ',50%,60%),hsl(' + ((hue(b.name) + 45) % 360) + ',55%,48%))';
+            }
+            function avatarHtml(b, className) {
+                var cls = className || 'bc-avatar';
+                if (b.avatarUrl) {
+                    return '<div class="' + cls + '" style="background:' + (b.avatarUrl.indexOf('data:') === 0 ? 'transparent' : avatarStyle(b)) + ';padding:0;"><img src="' + esc(b.avatarUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" loading="lazy" onerror="this.style.display=\'none\';var p=this.parentNode;p.style.background=\'' + avatarStyle(b) + '\';p.innerHTML=\'' + esc(b.avatarText || b.name.charAt(0)) + '\'"></div>';
+                }
+                return '<div class="' + cls + '" style="' + avatarStyle(b) + '">' + esc(b.avatarText || b.name.charAt(0)) + '</div>';
+            }
+            function videoIconStyle(title) {
+                return 'background:linear-gradient(135deg,hsl(' + hue(title) + ',35%,55%),hsl(' + ((hue(title) + 25) % 360) + ',40%,48%))';
+            }
+
+            function normalizeBlogger(b) {
+                if (!b) return null;
+                var name = String(b.name || '').trim();
+                if (!name) return null;
+                var id = String(b.id || '').trim();
+                var bio = String(b.bioShort || b.bioLong || '').trim();
+                var works = Array.isArray(b.featuredWorks) ? b.featuredWorks.filter(function (w) {
+                    return w && ((w.title || '') + (w.url || '') + (w.note || '')).trim();
+                }) : [];
+                var primary = b.primaryWork && (b.primaryWork.title || b.primaryWork.url || b.primaryWork.note)
+                    ? { title: b.primaryWork.title || '', url: b.primaryWork.url || '', note: b.primaryWork.note || '' }
+                    : (works.length ? { title: works[0].title || '', url: works[0].url || '', note: works[0].note || '' } : null);
+                var rest = primary && b.primaryWork && (b.primaryWork.title || b.primaryWork.url || b.primaryWork.note)
+                    ? works : works.slice(1);
+                var allowedCat = { '实况':1,'攻略':1,'评测':1,'剧情解说':1,'游戏史':1,'角色分析':1,'资讯':1,'游戏日常':1,'剧情杂谈':1,'游戏杂谈':1 };
+                var subList = (Array.isArray(b.subCategories) ? b.subCategories : []).filter(function (t) { return allowedCat[t]; });
+                var tagsList = (Array.isArray(b.tags) ? b.tags : []).filter(function (t) { return allowedCat[t]; });
+                tagsList.forEach(function (t) { if (subList.indexOf(t) < 0) subList.push(t); });
+                subList = subList.map(function (t) { return t === '剧情杂谈' ? '剧情解说' : t; });
+                var mainCat = allowedCat[b.mainCategory] ? (b.mainCategory === '剧情杂谈' ? '剧情解说' : b.mainCategory) : (subList[0] || '');
+                var contentTypes = (Array.isArray(b.contentTypes) ? b.contentTypes : []).filter(function (t) {
+                    return t === '直播' || t === '视频' || t === '图文';
+                });
+                return {
+                    id: id, name: name,
+                    avatarUrl: String(b.avatarUrl || '').trim(),
+                    avatarText: String(b.avatarText || '').trim() || name.charAt(0),
+                    bioShort: bio, bioLong: bio,
+                    platforms: Array.isArray(b.platforms) ? b.platforms.filter(function (p) { return p && p.label; }).map(function (p) {
+                        return { label: String(p.label || ''), url: String(p.url || '') };
+                    }) : [],
+                    tags: subList.slice(),
+                    mainCategory: mainCat,
+                    subCategories: subList.slice(),
+                    keywords: Array.isArray(b.keywords) ? b.keywords.filter(Boolean) : [],
+                    contentTypes: contentTypes,
+                    primaryWork: primary,
+                    featuredWorks: rest.map(function (w) {
+                        return { title: w.title || '', url: w.url || '', note: w.note || '' };
+                    }),
+                    quote: String(b.quote || '').trim()
+                };
+            }
+
+            async function loadFromCloud() {
+                if (!supabaseClient) return;
+                try {
+                    var { data, error } = await supabaseClient
+                        .from('bloggers')
+                        .select('id, data')
+                        .order('updated_at', { ascending: false });
+                    if (error) throw error;
+                    if (!data || !data.length) return;
+                    var cloudBloggers = data.map(function (row) {
+                        var b = row.data || {};
+                        if (!b.id) b.id = row.id;
+                        return normalizeBlogger(b);
+                    }).filter(Boolean);
+                    var localIds = {};
+                    bloggers.forEach(function (b) { localIds[b.id] = true; });
+                    cloudBloggers.forEach(function (b) {
+                        if (!localIds[b.id]) bloggers.push(b);
+                    });
+                    // 本地 sample 数据也统一规范化，避免格式不一致
+                    bloggers = bloggers.map(function (b) { return normalizeBlogger(b); }).filter(Boolean);
+                    bloggers.sort(function (a, b) { return (a.name || '').localeCompare(b.name || '', 'zh'); });
+                } catch (e) {
+                    console.warn('[Cloud] 读取博主失败:', e);
+                }
+            }
+
+            if (DATA.meta && DATA.meta.sample) {
+                document.getElementById('sampleNotice').style.display = '';
+            }
+
+            var FILTER_CATEGORIES = ['实况', '剧情解说', '评测', '攻略', '角色分析', '游戏史', '资讯', '游戏日常', '游戏杂谈'];
+
+            var chipWrap = document.getElementById('tagChips');
+            FILTER_CATEGORIES.forEach(function (tag) {
+                var btn = document.createElement('button');
+                btn.className = 'filter-chip';
+                btn.setAttribute('data-tag', tag);
+                btn.textContent = tag;
+                btn.addEventListener('click', function () {
+                    activeTag = tag;
+                    currentPage = 1;
+                    document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+                    btn.classList.add('active');
+                    renderVideosList();
+                });
+                chipWrap.appendChild(btn);
+            });
+            document.querySelector('.filter-chip[data-tag="全部"]').addEventListener('click', function () {
+                activeTag = '全部';
+                currentPage = 1;
+                document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+                this.classList.add('active');
+                renderVideosList();
+            });
+
+            document.getElementById('searchInput').addEventListener('input', function () {
+                keyword = this.value.trim().toLowerCase();
+                currentPage = 1;
+                renderVideosList();
+            });
+
+            function matchBlogger(b) {
+                if (keyword) {
+                    var hay = (b.name + (b.bioShort || '') + (b.bioLong || '') + (b.keywords || []).join(' ') + (b.mainCategory || '') + ' ' + (b.subCategories || []).join(' ') + ' ' + (b.tags || []).join(' ') + (b.primaryWork ? b.primaryWork.title + ' ' + (b.primaryWork.note || '') : '') + (b.featuredWorks || []).map(function (w) { return w.title + ' ' + (w.note || ''); }).join(' ')).toLowerCase();
+                    if (hay.indexOf(keyword) < 0) return false;
+                }
+                if (activeTag !== '全部') {
+                    var isMain = (b.mainCategory === activeTag);
+                    var isSub = (b.subCategories || []).indexOf(activeTag) >= 0;
+                    var isTag = (b.tags || []).indexOf(activeTag) >= 0; // 兜底：老数据/导入数据的 tags
+                    if (!isMain && !isSub && !isTag) return false;
+                }
+                return true;
+            }
+
+            function filterAndSortBloggers() {
+                var filtered = bloggers.filter(matchBlogger);
+                if (activeTag === '全部') return filtered;
+                var mainMatch = filtered.filter(function (b) { return b.mainCategory === activeTag; });
+                var subMatch = filtered.filter(function (b) {
+                    if (b.mainCategory === activeTag) return false;
+                    var inSub = (b.subCategories || []).indexOf(activeTag) >= 0;
+                    var inTag = (b.tags || []).indexOf(activeTag) >= 0;
+                    return inSub || inTag;
+                });
+                return mainMatch.concat(subMatch);
+            }
+
+            function renderVideosList() {
+                var list = filterAndSortBloggers();
+                document.getElementById('noResults').style.display = list.length ? 'none' : '';
+                document.getElementById('bloggerCount').textContent = '共收录 ' + list.length + ' 位博主';
+
+                var totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+                var start = (currentPage - 1) * pageSize;
+                var pageList = list.slice(start, start + pageSize);
+
+                var html = '';
+                pageList.forEach(function (b, idx) {
+                    var catHtml = '';
+                    // 1) 内容分类（前置，优先级更高）
+                    if (b.mainCategory) {
+                        catHtml += '<span class="bc-tag bc-tag-main">' + esc(b.mainCategory) + '</span>';
+                    }
+                    (b.subCategories || []).slice(0, 2).forEach(function (t) {
+                        catHtml += '<span class="bc-tag bc-tag-sub">' + esc(t) + '</span>';
+                    });
+                    // 2) 内容形式 chip（后置，略小层级）
+                    var ALLOWED_CT = { '直播': 1, '视频': 1, '图文': 1 };
+                    (b.contentTypes || []).filter(function (t) { return ALLOWED_CT[t]; }).slice(0, 2).forEach(function (t) {
+                        catHtml += '<span class="bc-tag ct-chip content-type-meta ct-' + esc(t) + '">' + esc(t) + '</span>';
+                    });
+
+                    var kwHtml = '';
+                    (b.keywords || []).slice(0, 3).forEach(function (k) {
+                        kwHtml += '<span class="bc-kw">' + esc(k) + '</span>';
+                    });
+
+                    // 收录卡片只保留：头像、名字、分类/形式标签、关键词（不再显示代表作）
+                    html += '<div class="blogger-card" data-blogger-id="' + esc(b.id) + '" style="animation-delay:' + (idx * 0.05) + 's">' +
+                        avatarHtml(b, 'bc-avatar') +
+                        '<div class="bc-body">' +
+                            '<div class="bc-name">' + esc(b.name) + '</div>' +
+                            (catHtml ? '<div class="bc-tags">' + catHtml + '</div>' : '') +
+                            (kwHtml ? '<div class="bc-keywords">' + kwHtml + '</div>' : '') +
+                        '</div>' +
+                    '</div>';
+                });
+
+                if (!html) {
+                    html = '<div class="no-videos">暂无匹配的博主</div>';
+                }
+
+                document.getElementById('videosContent').innerHTML = html;
+
+                renderPagination(totalPages, list.length);
+
+                document.querySelectorAll('.blogger-card').forEach(function (card) {
+                    card.addEventListener('click', function (e) {
+                        if (e.target.tagName === 'A') return;
+                        var bloggerId = card.getAttribute('data-blogger-id');
+                        var blogger = bloggers.find(function (b) { return b.id === bloggerId; });
+                        if (blogger) {
+                            selectBlogger(blogger);
+                            document.querySelectorAll('.blogger-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+                            card.classList.add('selected');
+                        }
+                    });
+                });
+            }
+
+            function renderPagination(totalPages, totalItems) {
+                var container = document.getElementById('pagination');
+                if (totalItems <= pageSize) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                var html = '';
+                html += '<button class="pg-btn" data-pg="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹</button>';
+
+                var pages = [];
+                if (totalPages <= 7) {
+                    for (var i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    var left = Math.max(2, currentPage - 1);
+                    var right = Math.min(totalPages - 1, currentPage + 1);
+                    if (left > 2) pages.push('...');
+                    for (var j = left; j <= right; j++) pages.push(j);
+                    if (right < totalPages - 1) pages.push('...');
+                    pages.push(totalPages);
+                }
+
+                pages.forEach(function (p) {
+                    if (p === '...') {
+                        html += '<span class="pg-ellipsis">…</span>';
+                    } else {
+                        html += '<button class="pg-btn' + (p === currentPage ? ' active' : '') + '" data-pg="' + p + '">' + p + '</button>';
+                    }
+                });
+
+                html += '<button class="pg-btn" data-pg="next"' + (currentPage === totalPages ? ' disabled' : '') + '>›</button>';
+                html += '<span class="pg-info">' + currentPage + '/' + totalPages + '页</span>';
+
+                container.innerHTML = html;
+
+                container.querySelectorAll('.pg-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var target = btn.getAttribute('data-pg');
+                        if (target === 'prev') currentPage = Math.max(1, currentPage - 1);
+                        else if (target === 'next') currentPage = Math.min(totalPages, currentPage + 1);
+                        else currentPage = parseInt(target, 10);
+                        renderVideosList();
+                    });
+                });
+            }
+
+            function selectBlogger(b) {
+                var platformsHtml = (b.platforms || []).map(function (p) {
+                    var url = p.url === '#' ? 'javascript:void(0)' : p.url;
+                    return '<a class="link-btn" href="' + esc(url) + '"' + (p.url === '#' ? '' : ' target="_blank" rel="noopener noreferrer"') + '>' + esc(p.label) + ' 主页 ↗</a>';
+                }).join('');
+
+                var tagsHtml = '';
+                if (b.mainCategory) {
+                    tagsHtml += '<span class="mini-tag mini-tag-main">' + esc(b.mainCategory) + '</span>';
+                }
+                (b.subCategories || []).forEach(function (t) {
+                    tagsHtml += '<span class="mini-tag">' + esc(t) + '</span>';
+                });
+
+                var ALLOWED_CT = { '直播': 1, '视频': 1, '图文': 1 };
+                var contentTypesHtml = (b.contentTypes || []).filter(function (t) { return ALLOWED_CT[t]; }).map(function (t) {
+                    return '<span class="mini-tag ct content-type-meta ct-' + esc(t) + '">' + esc(t) + '</span>';
+                }).join('');
+
+                var kwHtml = '';
+                (b.keywords || []).forEach(function (k) {
+                    kwHtml += '<span class="mini-tag mini-tag-kw">' + esc(k) + '</span>';
+                });
+
+                // 详情页：头像 + 用户名放在同一行（同一圆角区），平台徽章在名下；
+                // 内容形式 / 内容分类 / 关键词恢复为独立 section 排版（用户要求撤回头部紧凑版）
+                document.getElementById('bloggerInfoContent').innerHTML =
+                    '<div class="blogger-header">' +
+                        avatarHtml(b, 'blogger-avatar') +
+                        '<div class="blogger-info">' +
+                            '<h2>' + esc(b.name) + '</h2>' +
+                            '<div class="platform-badges">' +
+                                (b.platforms || []).map(function (p) { return '<span class="platform-badge">' + esc(p.label) + '</span>'; }).join('') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    (b.quote ? '<div class="quote-block">「' + esc(b.quote) + '」</div>' : '') +
+                    '<div class="section-title">关于她</div>' +
+                    '<div class="blogger-bio">' + esc(b.bioLong || b.bioShort) + '</div>' +
+                    (tagsHtml ? '<div class="section-title">内容分类</div>' + '<div class="tag-row">' + tagsHtml + '</div>' : '') +
+                    (contentTypesHtml ? '<div class="section-title">内容形式</div>' + '<div class="tag-row">' + contentTypesHtml + '</div>' : '') +
+                    (kwHtml ? '<div class="section-title">关键词</div>' + '<div class="tag-row">' + kwHtml + '</div>' : '') +
+                    '<div class="section-title">去看她的频道</div>' +
+                    '<div class="link-btns">' + platformsHtml + '</div>';
+
+                document.getElementById('bloggerInfoContent').style.animation = 'none';
+                document.getElementById('bloggerInfoContent').offsetHeight;
+                document.getElementById('bloggerInfoContent').style.animation = 'fadeInUp 0.4s ease forwards';
+            }
+
+            renderVideosList();
+
+            /* 通过 hash 深链定位到具体博主：bloggers.html#b=<id> */
+            function selectBloggerById(id) {
+                var b = bloggers.find(function (x) { return x.id === id; });
+                if (!b) return false;
+                /* 若当前筛选条件下不可见，先重置筛选 */
+                var visible = filterAndSortBloggers().indexOf(b) >= 0;
+                if (!visible) {
+                    activeTag = '全部';
+                    keyword = '';
+                    currentPage = 1;
+                    document.getElementById('searchInput').value = '';
+                    document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+                    var allChip = document.querySelector('.filter-chip[data-tag="全部"]');
+                    if (allChip) allChip.classList.add('active');
+                    renderVideosList();
+                }
+                /* 翻到该博主所在的页 */
+                var sorted = filterAndSortBloggers();
+                var pos = sorted.indexOf(b);
+                if (pos >= 0) {
+                    var targetPage = Math.floor(pos / pageSize) + 1;
+                    if (targetPage !== currentPage) {
+                        currentPage = targetPage;
+                        renderVideosList();
+                    }
+                }
+                selectBlogger(b);
+                document.querySelectorAll('.blogger-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+                var card = document.querySelector('.blogger-card[data-blogger-id="' + id + '"]');
+                if (card) {
+                    card.classList.add('selected');
+                    setTimeout(function () {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 80);
+                }
+                return true;
+            }
+
+            function applyHashAndSelect() {
+                var hash = window.location.hash || '';
+                var match = hash.match(/^#b=(.+)$/);
+                if (match) {
+                    var id = decodeURIComponent(match[1]);
+                    if (selectBloggerById(id)) return;
+                }
+                if (bloggers.length > 0) {
+                    var firstBlogger = bloggers[0];
+                    if (firstBlogger) {
+                        selectBlogger(firstBlogger);
+                        var firstCard = document.querySelector('.blogger-card');
+                        if (firstCard) firstCard.classList.add('selected');
+                    }
+                }
+            }
+
+            applyHashAndSelect();
+
+            window.addEventListener('hashchange', function () {
+                var hash = window.location.hash || '';
+                var match = hash.match(/^#b=(.+)$/);
+                if (match) {
+                    var id = decodeURIComponent(match[1]);
+                    selectBloggerById(id);
+                }
+            });
+
+            // 先基于本地 sample 渲染（目前 creators-data.js bloggers 为空），
+            // 再异步等 supabaseClient 就绪 → 云端加载 → 增量重绘。
+            function waitSupabaseReady(cb, tries) {
+                var t = tries || 0;
+                if (supabaseClient !== null || !SUPABASE_ENABLED || t >= 30) { cb(); return; }
+                setTimeout(function () { waitSupabaseReady(cb, t + 1); }, 100);
+            }
+            renderVideosList(); // 先立即渲染一次（可能为空），避免用户打开看到白屏
+            waitSupabaseReady(function () {
+                loadFromCloud().then(function () {
+                    renderVideosList();
+                    applyHashAndSelect();
+                    console.log('[Bloggers] 最终加载数量:', bloggers.length);
+                    if (bloggers.length === 0 && SUPABASE_ENABLED) {
+                        var status = document.createElement('div');
+                        status.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 16px;border-radius:10px;background:#fff4e5;color:#8a5a00;border:1px solid #e9c668;font-size:0.8rem;box-shadow:0 4px 12px rgba(0,0,0,0.08);';
+                        status.textContent = '云端博主数为 0，请先在录入页添加博主或检查 Supabase 权限（按 F12 查看 Console）';
+                        document.body.appendChild(status);
+                        setTimeout(function () { if (status.parentNode) status.parentNode.removeChild(status); }, 8000);
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

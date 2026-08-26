@@ -727,6 +727,7 @@
                     saveUserData();
                     refreshTitleDisplays();
                     syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
+                    _syncEquippedTitleToProfile(null);
                     return;
                 }
                 const title = TITLES.find(t => t.id === titleId);
@@ -739,6 +740,31 @@
                 saveUserData();
                 refreshTitleDisplays();
                 syncTitlesAndAchievementsToMetadata({ flushNow: true, silent: true });
+                _syncEquippedTitleToProfile(titleId);
+            }
+
+            // 将佩戴头衔同步到 user_profiles 表（供他人主页读取）
+            function _syncEquippedTitleToProfile(titleId) {
+                if (!currentUser || !supabaseClient) return;
+                var meta = currentUser.user_metadata || {};
+                var payload = {
+                    user_id: currentUser.id,
+                    equipped_title: titleId || null,
+                    updated_at: new Date().toISOString()
+                };
+                // 包含基本字段以便首次 INSERT 成功（仅写入非空值，避免覆盖已有数据）
+                if (meta.display_name) payload.display_name = meta.display_name;
+                if (meta.avatar_url) payload.avatar_url = meta.avatar_url;
+                if (meta.custom_id) payload.custom_id = meta.custom_id;
+                if (meta.bio) payload.bio = meta.bio;
+                try {
+                    supabaseClient
+                        .from('user_profiles')
+                        .upsert(payload, { onConflict: 'user_id' })
+                        .then(function (res) {
+                            if (res.error) console.warn('同步 equipped_title 到 user_profiles 失败:', res.error.message);
+                        });
+                } catch (e) { console.warn('同步 equipped_title 异常:', e); }
             }
 
             function refreshTitleDisplays() {
@@ -757,6 +783,27 @@
                     const titlesBtn = document.querySelector('.achievement-tab-btn[data-tab="titles"]');
                     if (titlesBtn && titlesBtn.classList.contains('active')) {
                         try { renderTitlesCabinet(); } catch (e) {}
+                    }
+                }
+                // 若个人主页已打开且在成就 tab，则实时刷新（佩戴立即看得到）
+                const profilePage = document.getElementById('profilePage');
+                if (profilePage && profilePage.style.display !== 'none') {
+                    const achTab = document.getElementById('tabAchievements');
+                    if (achTab && achTab.classList.contains('active')) {
+                        try { renderProfileAchievements(true); } catch (e) {}
+                    }
+                    // 同时刷新头部标题行
+                    var titleRowEl = document.getElementById('profileTitleRow');
+                    if (titleRowEl) {
+                        var equippedId = userData.equippedTitle;
+                        if (equippedId && typeof TITLES !== 'undefined') {
+                            var eq = TITLES.find(function (t) { return t.id === equippedId; });
+                            if (eq) {
+                                titleRowEl.innerHTML = '<span class="mini-tag" style="cursor:pointer;">' + escapeHTML(eq.icon + ' ' + eq.name) + '</span>';
+                            }
+                        } else {
+                            titleRowEl.textContent = '';
+                        }
                     }
                 }
             }
@@ -1359,6 +1406,8 @@
                             currentUser.user_metadata.achievements = achievements;
                             currentUser.user_metadata.equipped_title = equipped_title;
                         }
+                        // 同步 equipped_title 到 user_profiles 表（供他人主页读取）
+                        _syncEquippedTitleToProfile(equipped_title);
                         console.log(`✅ 头衔/成就同步完成：${titles.length} 个头衔，${achievements.length} 个成就，佩戴=${equipped_title || '无'}`);
                     }
                 } catch (e) {
@@ -1568,8 +1617,8 @@
             // ================================================================
             // 成就弹窗
             // ================================================================
-            function renderAchievementModal() {
-                const container = document.getElementById('achievementContent');
+            function renderAchievementModal(targetContainer) {
+                const container = targetContainer || document.getElementById('achievementContent');
                 if (!container) return;
                 const unlocked = getUnlockedAchievements();
                 const locked = getLockedAchievements();
@@ -1588,7 +1637,7 @@
                 });
                 html += `</div>`;
                 container.innerHTML = html;
-                renderPlayedGrid();
+                if (!targetContainer) renderPlayedGrid();
             }
 
             function renderPlayedGrid() {
@@ -1629,8 +1678,8 @@
                 });
             }
 
-            function renderTitlesCabinet() {
-                const container = document.getElementById('titlesContent');
+            function renderTitlesCabinet(targetContainer) {
+                const container = targetContainer || document.getElementById('titlesContent');
                 if (!container) return;
                 // 先刷新头衔解锁情况（但不弹 Toast，避免打开弹窗被打断）
                 const _prevToast = window.showTitleToast;
@@ -1756,6 +1805,43 @@
                 if (tabId === 'titles') renderTitlesCabinet();
                 const modal = document.querySelector('#achievementModalOverlay .modal');
                 if (modal) modal.scrollTop = 0;
+            }
+
+            // ================================================================
+            // 个人主页：成就 & 头衔渲染
+            // ================================================================
+            function renderProfileAchievements(isSelf) {
+                var container = document.getElementById('profileAchievementContent');
+                if (!container) return;
+                container.innerHTML = '';
+
+                if (isSelf) {
+                    // 成就区
+                    var achWrapper = document.createElement('div');
+                    achWrapper.style.marginBottom = '20px';
+                    container.appendChild(achWrapper);
+                    renderAchievementModal(achWrapper);
+
+                    // 头衔展示柜
+                    var titleDivider = document.createElement('div');
+                    titleDivider.className = 'profile-section-divider';
+                    titleDivider.innerHTML = '<span>🎖️ 头衔展示柜</span>';
+                    container.appendChild(titleDivider);
+
+                    var titleWrapper = document.createElement('div');
+                    container.appendChild(titleWrapper);
+                    renderTitlesCabinet(titleWrapper);
+                    // renderTitlesCabinet 内部已绑定事件委托处理佩戴/取消，
+                    // 不需要在此重复绑定（否则会导致双重触发：佩戴后立即被取消）
+                } else {
+                    // 他人主页：完整成就/头衔数据为私密信息，仅展示已佩戴头衔
+                    container.innerHTML =
+                        '<div style="text-align:center;padding:32px 16px;color:var(--text3);font-size:0.85rem;line-height:1.8;">' +
+                        '<div style="font-size:2rem;margin-bottom:10px;">🔒</div>' +
+                        '<div>完整成就与头衔数据为用户私密信息</div>' +
+                        '<div style="margin-top:4px;font-size:0.78rem;color:var(--text3);">仅展示对方已公开的佩戴头衔</div>' +
+                        '</div>';
+                }
             }
 
             // ================================================================
@@ -2171,6 +2257,10 @@
                 saveUserData();
                 // 评论保存后检测头衔解锁
                 setTimeout(() => { try { checkTitleUnlocks(); } catch (e) { console.warn('头衔检测异常:', e); } }, 60);
+                // 评论奖励：双钱包各 +1（每日前 3 条，见 wallet.js）
+                if (comment) {
+                    try { if (window.HerlensWallet) window.HerlensWallet.rewardComment(); } catch (e) {}
+                }
 
                 const detailOverlay = document.getElementById('detailModalOverlay');
                 if (detailOverlay && detailOverlay.classList.contains('show')) {
@@ -2322,6 +2412,7 @@
                                 commentsList.appendChild(newEl);
                             }
                             bindReviewShareButtons(newEl);
+                            bindCommentUserClicks(newEl);
                             bindGameCommentReplyEvents(newEl);
                             setTimeout(function () { newEl.style.opacity = '1'; }, 50);
                         }
@@ -2366,6 +2457,12 @@
                 } catch (e) { console.error('❌ 删除评论异常:', e); }
             }
 
+            // ★ 缓存：评论区 user_profiles custom_id 批量查询结果（短期，避免重复打 Supabase）
+            //   key = user_id, value = custom_id 字符串或 null（命中过无值也要缓存）
+            var _customIdLookupCache = {};
+            var _CUSTOM_ID_CACHE_TTL = 30 * 60 * 1000; // 30 分钟
+            var _customIdLookupCacheTs = 0;
+
             async function fetchGameReviews(gameId, page) {
                 if (!supabaseClient) return [];
                 page = page || 0;
@@ -2398,12 +2495,15 @@
                                 if (myId && row.user_id === myId) {
                                     row.custom_id = currentUser.user_metadata?.custom_id || null;
                                 } else if (row.user_id) {
-                                    needLookupIds.push(row.user_id);
+                                    // ★ 不再为了回填其他评论人的 custom_id 打 user_profiles 查询
+                                    //   custom_id 只在有值时显示 @xxx，没有就省略，避免评论区加载时多一次 DB 往返
+                                    //   （如需重新启用，恢复下面 needLookupIds.push(row.user_id) 即可）
                                 }
                             }
                         });
                         // ② 其他历史评论用户：批量查 user_profiles 表拿到 custom_id 后回填
-                        if (needLookupIds.length) {
+                        //    （默认禁用 — 见上方说明）
+                        if (false && needLookupIds.length) {
                             const uniqueIds = [...new Set(needLookupIds)];
                             try {
                                 const { data: profiles } = await supabaseClient
@@ -2412,7 +2512,10 @@
                                     .in('id', uniqueIds);
                                 if (profiles) {
                                     const idToCid = {};
-                                    profiles.forEach(p => { if (p.custom_id) idToCid[p.id] = p.custom_id; });
+                                    profiles.forEach(p => {
+                                        if (p.custom_id) idToCid[p.id] = p.custom_id;
+                                        _customIdLookupCache[p.id] = p.custom_id || null;
+                                    });
                                     data.forEach(row => {
                                         if (!row.custom_id && row.user_id && idToCid[row.user_id]) {
                                             row.custom_id = idToCid[row.user_id];
@@ -5233,6 +5336,16 @@
                 const from = options && options.from ? options.from : 'gallery';
                 window._detailFrom = from;
 
+                // 个人主页是全屏覆盖层（z-index 100001），高于详情弹窗（z-index 100000），
+                // 原地展开详情会被主页盖住。改为在新标签页打开（页面加载时会通过 ?game=ID 自动展开详情），
+                // 这样主页与详情页都能同时保留可见。
+                if (from === 'profile') {
+                    const profileUrl = new URL(window.location.href);
+                    profileUrl.searchParams.set('game', game.id);
+                    window.open(profileUrl.toString(), '_blank');
+                    return;
+                }
+
                 const overlay = document.getElementById('detailModalOverlay');
                 const modal = document.getElementById('detailModal');
 
@@ -5681,6 +5794,16 @@
 
                 closeShareFloat();
 
+                if (window._detailFrom === 'profile') {
+                    window._detailFrom = 'gallery';
+                    const profilePage = document.getElementById('profilePage');
+                    if (profilePage) {
+                        profilePage.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    }
+                    return;
+                }
+
                 if (window._detailFrom === 'played') {
                     setTimeout(() => {
                         const overlayAch = document.getElementById('achievementModalOverlay');
@@ -5869,7 +5992,7 @@
 
             async function renderReviewItem(r, gameId, preloadedReplies) {
                 const avatar = r.avatar_url ?
-                    `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" />` :
+                    `<img src="${escapeHTML(r.avatar_url)}" class="comment-avatar" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';" />` :
                     `<span class="comment-avatar" style="display:inline-flex;align-items:center;justify-content:center;font-size:1rem;background:var(--tag-bg);">👤</span>`;
                 const verdictDisplay = r.verdict ? renderVerdictDisplay(r.verdict) : '';
                 const tagsDisplay = r.selected_tags && r.selected_tags.length > 0 ? renderTagsDisplay(r.selected_tags) : '';
@@ -5950,7 +6073,7 @@
                     <div class="comment-item" data-review-id="${reviewId}">
                         <div class="comment-header">
                             ${avatar}
-                            <span class="comment-name">${escapeHTML(safeDisplayName(r.display_name))}</span>
+                            <span class="comment-name" data-user-id="${r.user_id || ''}" data-display-name="${escapeHTML(safeDisplayName(r.display_name))}" data-custom-id="${escapeHTML(r.custom_id || '')}">${escapeHTML(safeDisplayName(r.display_name))}</span>
                             ${customIdHtml}
                             ${titleBadgesHtml}
                         </div>
@@ -6002,6 +6125,34 @@
                 });
             }
 
+            // ★ Document-level event delegation for comment user clicks
+            // More robust than binding to individual elements
+            document.addEventListener('click', function (e) {
+                var nameEl = e.target.classList && e.target.classList.contains('comment-name') ? e.target : (e.target.classList && e.target.classList.contains('mod-comment-name') ? e.target : null);
+                if (!nameEl) {
+                    var parent = e.target.closest ? e.target.closest('.comment-name, .mod-comment-name') : null;
+                    if (parent) nameEl = parent;
+                }
+                if (!nameEl || !nameEl.dataset.userId) return;
+                if (!nameEl.dataset.profileBound) {
+                    nameEl.dataset.profileBound = 'true';
+                    nameEl.style.cursor = 'pointer';
+                    nameEl.style.color = 'var(--accent, #9b8abd)';
+                    nameEl.title = '查看用户主页';
+                }
+                e.stopPropagation();
+                if (e.preventDefault) e.preventDefault();
+                openUserProfile(nameEl.dataset.userId, {
+                    displayName: nameEl.dataset.displayName || '',
+                    customId: nameEl.dataset.customId || ''
+                });
+            });
+
+            function bindCommentUserClicks(container) {
+                // No longer needed - handled by document-level delegate above
+                // Kept for backward compatibility
+            }
+
             // ★ 展开更多回复：增加该评论的根回复展示数并局部重渲染
             async function revealMoreReplies(btn) {
                 const reviewId = btn.dataset.reviewId;
@@ -6022,6 +6173,7 @@
                 if (!newItem) return;
                 itemEl.replaceWith(newItem);
                 bindReviewShareButtons(newItem);
+                bindCommentUserClicks(newItem);
                 bindGameCommentReplyEvents(newItem);
             }
 
@@ -6388,6 +6540,7 @@
 
                 commentsList.innerHTML = html;
                 bindReviewShareButtons(commentsList);
+                bindCommentUserClicks(commentsList);
                 bindGameCommentReplyEvents(commentsList);
 
                 const loadMoreBtn = commentsList.querySelector('#reviewLoadMoreBtn');
@@ -6446,6 +6599,7 @@
                                 commentsList.insertBefore(moreWrap.firstChild, existingLoadMore);
                             }
                             bindReviewShareButtons(commentsList);
+                            bindCommentUserClicks(commentsList);
                             bindGameCommentReplyEvents(commentsList);
                         }
                         if (moreReviews.length < REVIEW_PAGE_SIZE) {
@@ -6538,6 +6692,611 @@
                 if (mobileDropdown) mobileDropdown.style.display = 'none';
             }
 
+            // Build game info card for display below profile page comments
+            function buildGameInfoCard(gameId) {
+                var game = games.find(function (g) { return g.id === Number(gameId); });
+                if (!game) return '';
+                var coverHtml = '';
+                if (game.cover) {
+                    coverHtml = '<div class="p-comment-game-cover"><img src="' + escapeHTML(game.cover) + '" alt="" onerror="this.parentElement.textContent=\'🎮\'" /></div>';
+                } else {
+                    coverHtml = '<div class="p-comment-game-cover">🎮</div>';
+                }
+                var genre = game.genre ? escapeHTML(game.genre) : '';
+                var gameplay = game.gameplay ? escapeHTML(game.gameplay) : '';
+                var protagonist = game.protagonist ? escapeHTML(game.protagonist) : '';
+                var metaParts = [genre, gameplay, protagonist].filter(Boolean);
+                var metaHtml = metaParts.length > 0 ? '<div class="p-comment-game-meta">' + metaParts.join(' · ') + '</div>' : '';
+                return '<div class="p-comment-game-card" data-game-id="' + game.id + '">' +
+                    coverHtml +
+                    '<div class="p-comment-game-info">' +
+                        '<div class="p-comment-game-title">' + escapeHTML(game.title) + '</div>' +
+                        metaHtml +
+                    '</div>' +
+                    '<span class="p-comment-game-arrow">→</span>' +
+                '</div>';
+            }
+
+            // Build series-style game card for wishlist/played grids
+            function buildSeriesGameCard(gameId) {
+                var game = games.find(function (g) { return g.id === Number(gameId); });
+                if (!game) return '';
+                var coverHtml = '';
+                if (game.cover) {
+                    coverHtml = '<div class="p-series-card-cover"><img src="' + escapeHTML(game.cover) + '" alt="" onload="this.classList.add(\'loaded\')" onerror="this.style.display=\'none\'" /></div>';
+                } else {
+                    coverHtml = '<div class="p-series-card-cover"></div>';
+                }
+                var releaseDate = game.releaseDate ? escapeHTML(game.releaseDate) : '';
+                return '<div class="p-series-card" data-game-id="' + game.id + '">' +
+                    coverHtml +
+                    '<div class="p-series-card-body">' +
+                        '<div class="p-series-card-title">' + escapeHTML(game.title) + '</div>' +
+                        '<div class="p-series-card-date">' + releaseDate + '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            // Standalone functions for profile page (defined once, reused)
+            // Profile context: holds the wishlist/played game ids for the user currently being viewed (self or other)
+            var _profileWishlistIds = [];
+            var _profilePlayedIds = [];
+            // 主页是否已推入浏览器历史（pushState），用于后退键关闭 + 关闭时清理 URL
+            var _profileHistoryPushed = false;
+
+            function renderProfileWishlistGames() {
+                var ids = (_profileWishlistIds || []).slice();
+                renderSeriesGrid(ids, 'profileWishlistGrid', '心愿单');
+            }
+
+            function renderProfilePlayedGames() {
+                var ids = (_profilePlayedIds || []).slice();
+                renderSeriesGrid(ids, 'profilePlayedGrid', '已玩过');
+            }
+
+            function renderSeriesGrid(gameIds, gridId, emptyText) {
+                var grid = document.getElementById(gridId);
+                if (!grid) return;
+                if (!gameIds || gameIds.length === 0) {
+                    grid.innerHTML = '<div class="p-games-empty">' + emptyText + '还没有内容</div>';
+                    return;
+                }
+                var html = gameIds.map(function (gid) {
+                    return buildSeriesGameCard(gid);
+                }).join('');
+                grid.innerHTML = html;
+
+                grid.querySelectorAll('.p-series-card').forEach(function (el) {
+                    el.addEventListener('click', function () {
+                        var gid = Number(el.dataset.gameId);
+                        if (gid) {
+                            var game = games.find(function (g) { return g.id === gid; });
+                            if (game) showDetailModal(game, { from: 'profile' });
+                        }
+                    });
+                });
+            }
+
+            async function renderProfileReviewItem(r, gameId) {
+                var verdictDisplay = r.verdict ? renderVerdictDisplay(r.verdict) : '';
+                var tagsDisplay = r.selected_tags && r.selected_tags.length > 0 ? renderTagsDisplay(r.selected_tags) : '';
+                var time = r.created_at ? new Date(r.created_at).toLocaleDateString('zh-CN', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                }) : '';
+                var commentText = r.comment || '';
+                var reviewId = gameId + '_' + (r.user_id || '');
+                var reviewDbId = r.id;
+                var likeInfo = (reviewDbId && _reviewLikesCache[reviewDbId]) || { count: 0, liked: false };
+                var isLiked = likeInfo.liked || isReviewLikedLocal(reviewDbId);
+                var likeCount = likeInfo.count || 0;
+                var likeBtnHtml = (reviewDbId && currentUser) ?
+                    '<button class="comment-like-btn' + (isLiked ? ' liked' : '') + '" data-review-db-id="' + reviewDbId + '" data-review-id="' + reviewId + '">' + (isLiked ? '❤️' : '🤍') + ' <span class="like-count">' + (likeCount > 0 ? likeCount : '') + '</span></button>' : '';
+
+                // 游戏卡片作为整条评论的「头」内嵌在 comment-item 内，与评论内容融合为一个整体
+                var gameCardHtml = buildGameInfoCard(gameId);
+
+                return '' +
+                    '<div class="comment-item" data-review-id="' + reviewId + '">' +
+                        gameCardHtml +
+                        ((verdictDisplay || tagsDisplay) ? '' +
+                            '<div class="comment-verdict-tags-row">' +
+                                verdictDisplay + tagsDisplay +
+                            '</div>' +
+                        '' : '') +
+                        (commentText ? '<div class="comment-text">' + renderCommentWithSpoilers(stripCommentHTML(commentText)) + '</div>' : '') +
+                        '<div class="comment-actions">' +
+                            '<span class="comment-time">' + time + '</span>' +
+                            likeBtnHtml +
+                        '</div>' +
+                    '</div>';
+            }
+
+            function autoResizeBio(el) {
+                el.style.height = 'auto';
+                el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+            }
+
+            function bindReviewLikeButtons(container) {
+                container.querySelectorAll('.comment-like-btn').forEach(function (btn) {
+                    if (btn.dataset.bound === '1') return;
+                    btn.dataset.bound = '1';
+                    btn.addEventListener('click', async function () {
+                        if (!currentUser) { showToast('请先登录', 1500); return; }
+                        var reviewDbId = this.dataset.reviewDbId;
+                        if (!reviewDbId) return;
+                        if (this.dataset.submitting === 'true') return;
+                        this.dataset.submitting = 'true';
+                        var wasLiked = this.classList.contains('liked');
+                        var oldCount = Number((this.querySelector('.like-count') || {}).textContent || 0);
+                        this.classList.toggle('liked');
+                        var newCount = wasLiked ? (oldCount > 1 ? oldCount - 1 : 0) : oldCount + 1;
+                        this.innerHTML = (wasLiked ? '🤍' : '❤️') + ' <span class="like-count">' + (newCount > 0 ? newCount : '') + '</span>';
+                        try {
+                            await toggleReviewLike(reviewDbId);
+                        } finally {
+                            this.dataset.submitting = 'false';
+                        }
+                    });
+                });
+            }
+
+            async function openUserProfile(targetUserId, opts) {
+                opts = opts || {};
+                var displayName = opts.displayName || '';
+                var customId = opts.customId || '';
+                // ★ 若此评论人本身就是收录的博主 → 优先跳转到博主详情页（而不是普通用户个人中心）
+                //   判断依据：当前页面加载了 bloggers 全局数组（bloggers.html / claw.html），
+                //   且能通过 displayName 或 customId 匹配到博主名称
+                try {
+                    if (typeof bloggers !== 'undefined' && Array.isArray(bloggers) && bloggers.length > 0) {
+                        var matched = null;
+                        var dn = String(displayName || '').trim();
+                        var cid = String(customId || '').replace(/^@/, '').trim();
+                        for (var bi = 0; bi < bloggers.length; bi++) {
+                            var bn = String(bloggers[bi]?.name || '').trim();
+                            if (!bn) continue;
+                            if (dn && bn === dn) { matched = bloggers[bi]; break; }
+                            if (cid && (bn === cid || (bloggers[bi]?.customId && bloggers[bi].customId === cid))) { matched = bloggers[bi]; break; }
+                        }
+                        if (matched && matched.id) {
+                            var hash = '#b=' + encodeURIComponent(matched.id);
+                            // 同页（bloggers.html 本身）直接走 selectBloggerById
+                            if (typeof selectBloggerById === 'function' && !opts.forceOpen) {
+                                if (selectBloggerById(matched.id)) return;
+                            }
+                            // 跨页（index/claw 等页面）跳转到 bloggers 详情深链
+                            var dest = 'bloggers.html' + hash;
+                            if (window.location.pathname.indexOf('/bloggers.html') >= 0) dest = hash;
+                            window.location.href = dest;
+                            return;
+                        }
+                    }
+                } catch (e) { /* ignore */ }
+
+                if (!currentUser) {
+                    showToast('请先登录查看用户主页', 1500);
+                    return;
+                }
+                var profilePage = document.getElementById('profilePage');
+                if (!profilePage) {
+                    console.error('profilePage element not found!');
+                    return;
+                }
+                var isSelf = targetUserId === currentUser.id;
+
+                profilePage.classList.toggle('profile-other', !isSelf);
+                profilePage.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                // 推入浏览器历史，让键盘/鼠标后退键能关闭主页
+                if (!_profileHistoryPushed) {
+                    _profileHistoryPushed = true;
+                    try {
+                        var profileUrl = new URL(window.location.href);
+                        profileUrl.searchParams.set('profile', targetUserId);
+                        window.history.pushState({ profileUserId: targetUserId }, '', profileUrl.toString());
+                    } catch (e) { _profileHistoryPushed = false; }
+                }
+
+                var avatarEl = document.getElementById('profileAvatar');
+                var usernameEl = document.getElementById('profileUsername');
+                var customIdEl = document.getElementById('profileCustomIdDisplay');
+                var titleRowEl = document.getElementById('profileTitleRow');
+                var regTimeEl = document.getElementById('profileRegTime');
+                var wishlistCountEl = document.getElementById('profileWishlistCount');
+                var playedCountEl = document.getElementById('profilePlayedCount');
+                var reviewCountEl = document.getElementById('profileReviewCount');
+                var titleCountEl = document.getElementById('profileTitleCount');
+                var editBtnWrap = document.getElementById('profileEditBtnWrap');
+
+                // Tab switching
+                var tabs = document.querySelectorAll('.profile-tab');
+                var tabContents = {
+                    reviews: document.getElementById('profileReviewsTab'),
+                    wishlist: document.getElementById('profileWishlistTab'),
+                    played: document.getElementById('profilePlayedTab'),
+                    achievements: document.getElementById('profileAchievementTab')
+                };
+                function switchTab(tabName) {
+                    tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.tab === tabName); });
+                    Object.keys(tabContents).forEach(function (k) {
+                        if (tabContents[k]) tabContents[k].style.display = k === tabName ? '' : 'none';
+                    });
+                    if (tabName === 'wishlist') renderProfileWishlistGames();
+                    if (tabName === 'played') renderProfilePlayedGames();
+                }
+                tabs.forEach(function (t) {
+                    t.onclick = function () { switchTab(t.dataset.tab); };
+                });
+
+                    // Stat item click → switch tab (心愿单/已玩过已公开，他人也可查看)
+                    document.getElementById('statWishlist').onclick = function () { switchTab('wishlist'); };
+                    document.getElementById('statPlayed').onclick = function () { switchTab('played'); };
+                    document.getElementById('statTitleCount').onclick = function () { switchTab('achievements'); };
+
+                if (isSelf) {
+                    editBtnWrap.style.display = '';
+                    // 内联编辑模式
+                    var profileEditBtn = document.getElementById('profileEditBtn');
+                    var profileSaveBtn = document.getElementById('profileSaveBtn');
+                    var profileCancelBtn = document.getElementById('profileCancelBtn');
+                    var profileAvatarFileInput = document.getElementById('profileAvatarFileInput');
+                    if (profileEditBtn) profileEditBtn.onclick = function () { enterProfileEditMode(); };
+                    if (profileSaveBtn) profileSaveBtn.onclick = function () { saveProfileInline(); };
+                    if (profileCancelBtn) profileCancelBtn.onclick = function () { exitProfileEditMode(); };
+                    if (profileAvatarFileInput) profileAvatarFileInput.onchange = function (e) {
+                        if (!e.target.files || !e.target.files[0]) return;
+                        var file = e.target.files[0];
+                        if (file.size > 2 * 1024 * 1024) { showToast('图片大小不能超过 2MB', 1400); return; }
+                        _profileAvatarFile = file;
+                        if (_profileAvatarPreviewUrl) URL.revokeObjectURL(_profileAvatarPreviewUrl);
+                        _profileAvatarPreviewUrl = URL.createObjectURL(file);
+                        var avatarEl2 = document.getElementById('profileAvatar');
+                        if (avatarEl2) {
+                            avatarEl2.innerHTML = '<img src="' + _profileAvatarPreviewUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+                        }
+                    };
+
+                    var bioInput = document.getElementById('profileBioInput');
+                    var bioSaveBtn = document.getElementById('profileBioSaveBtn');
+                    var bioStatus = document.getElementById('profileBioStatus');
+                    bioInput.disabled = false;
+                    bioSaveBtn.style.display = '';
+
+                    var metadata = currentUser.user_metadata || {};
+                    if (metadata.avatar_url) {
+                        avatarEl.innerHTML = '<img src="' + escapeHTML(metadata.avatar_url) + '" style="width:100%;height:100%;object-fit:cover;" />';
+                    } else {
+                        avatarEl.textContent = '👤';
+                    }
+                    usernameEl.textContent = getDisplayName(currentUser);
+                    var customId = metadata.custom_id || '';
+                    customIdEl.textContent = customId ? '@' + escapeHTML(customId) : '';
+
+                    var bio = metadata.bio || '';
+                    bioInput.value = bio;
+
+                    var equippedTitle = userData.equippedTitle || metadata.equipped_title || null;
+                    if (equippedTitle && typeof TITLES !== 'undefined') {
+                        var eq = TITLES.find(function (t) { return t.id === equippedTitle; });
+                        if (eq) {
+                            titleRowEl.innerHTML = '<span class="mini-tag" style="cursor:pointer;">' + escapeHTML(eq.icon + ' ' + eq.name) + '</span>';
+                        } else {
+                            titleRowEl.textContent = '';
+                        }
+                    } else {
+                        titleRowEl.textContent = '';
+                    }
+
+                    titleRowEl.onclick = function () {
+                        switchTab('achievements');
+                    };
+
+                    if (currentUser.created_at) {
+                        var d = new Date(currentUser.created_at);
+                        regTimeEl.textContent = '注册于 ' + d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+                    } else {
+                        regTimeEl.textContent = '注册于 —';
+                    }
+
+                    var wishlistIds = userData.wishlist || [];
+                    var playedIds = userData.played || [];
+                    var reviewsData = userData.reviews || [];
+                    var titleIds = userData.titles || [];
+
+                    // 同步当前查看用户上下文（自己）
+                    _profileWishlistIds = wishlistIds.slice();
+                    _profilePlayedIds = playedIds.slice();
+
+                    wishlistCountEl.textContent = wishlistIds.length;
+                    playedCountEl.textContent = playedIds.length;
+                    reviewCountEl.textContent = reviewsData.length;
+                    titleCountEl.textContent = titleIds.length;
+
+                    // Inline bio save + auto-resize
+                    bioInput.onfocus = function () {
+                        bioSaveBtn.classList.add('visible');
+                        autoResizeBio(bioInput);
+                    };
+                    bioInput.oninput = function () {
+                        bioStatus.textContent = bioInput.value.length + '/80';
+                        bioStatus.className = 'p-bio-status';
+                        autoResizeBio(bioInput);
+                    };
+                    bioSaveBtn.onclick = function () {
+                        var newBio = bioInput.value.trim();
+                        bioSaveBtn.disabled = true;
+                        bioSaveBtn.textContent = '保存中...';
+                        bioStatus.textContent = '保存中...';
+                        bioStatus.className = 'p-bio-status';
+
+                        Promise.all([
+                            supabaseClient.auth.updateUser({
+                                data: { bio: newBio || null }
+                            }),
+                            supabaseClient.from('user_profiles').upsert({
+                                user_id: currentUser.id,
+                                bio: newBio || null,
+                                updated_at: new Date().toISOString()
+                            }, { onConflict: 'user_id' })
+                        ]).then(function (results) {
+                            var authResult = results[0];
+                            var profileResult = results[1];
+                            if (authResult.error || profileResult.error) {
+                                throw (authResult.error || profileResult.error);
+                            }
+                            if (authResult.data && authResult.data.user) {
+                                currentUser = authResult.data.user;
+                            }
+                            bioStatus.textContent = '✓ 已保存';
+                            bioStatus.className = 'p-bio-status success';
+                            showToast('个性签名已更新', 1500);
+                            setTimeout(function () {
+                                bioStatus.textContent = '';
+                                bioSaveBtn.classList.remove('visible');
+                            }, 2000);
+                        }).catch(function (err) {
+                            bioStatus.textContent = '保存失败: ' + (err.message || '未知错误');
+                            bioStatus.className = 'p-bio-status error';
+                        }).finally(function () {
+                            bioSaveBtn.disabled = false;
+                            bioSaveBtn.textContent = '💾';
+                        });
+                    };
+
+                    // Render reviews using profile-specific renderer
+                    var reviewsListEl = document.getElementById('profileReviewsList');
+                    reviewsListEl.innerHTML = '<div class="p-reviews-empty">加载评论中...</div>';
+                    if (reviewsData.length > 0) {
+                        try {
+                            var htmlParts = await Promise.all(
+                                reviewsData.map(function (r) {
+                                    var gid = Number(r.game_id);
+                                    if (!gid) return Promise.resolve('');
+                                    return renderProfileReviewItem(r, gid);
+                                })
+                            );
+                            var filteredHtml = htmlParts.filter(Boolean).join('');
+                            reviewsListEl.innerHTML = filteredHtml || '<div class="p-reviews-empty">暂无评论记录</div>';
+                            reviewsListEl.querySelectorAll('.p-comment-game-card').forEach(function (card) {
+                                card.addEventListener('click', function () {
+                                    var gid = Number(card.dataset.gameId);
+                                    if (gid) {
+                                        var game = games.find(function (g) { return g.id === gid; });
+                                        if (game) showDetailModal(game, { from: 'profile' });
+                                    }
+                                });
+                            });
+                            bindReviewLikeButtons(reviewsListEl);
+                        } catch (e) {
+                            console.warn('渲染评论失败:', e);
+                            reviewsListEl.innerHTML = '<div class="p-reviews-empty">评论加载失败</div>';
+                        }
+                    } else {
+                        reviewsListEl.innerHTML = '<div class="p-reviews-empty">暂无评论记录，快去写下你的第一条吧</div>';
+                    }
+
+                    // Render wishlist and played grids eagerly
+                    renderSeriesGrid(wishlistIds, 'profileWishlistGrid', '心愿单');
+                    renderSeriesGrid(playedIds, 'profilePlayedGrid', '已玩过');
+
+                    // 成就 & 头衔
+                    renderProfileAchievements(true);
+
+                    switchTab('reviews');
+                } else {
+                    editBtnWrap.style.display = 'none';
+                    avatarEl.textContent = '👤';
+                    usernameEl.textContent = '加载中...';
+                    customIdEl.textContent = '';
+                    titleRowEl.textContent = '';
+                    var bioInputOther = document.getElementById('profileBioInput');
+                    var bioSaveBtnOther = document.getElementById('profileBioSaveBtn');
+                    var bioStatusOther = document.getElementById('profileBioStatus');
+                    bioInputOther.disabled = true;
+                    bioSaveBtnOther.style.display = 'none';
+                    bioStatusOther.textContent = '';
+                    regTimeEl.textContent = '';
+                    reviewCountEl.textContent = '...';
+                    wishlistCountEl.textContent = '...';
+                    playedCountEl.textContent = '...';
+                    titleCountEl.textContent = '—';
+                    document.getElementById('profileReviewsList').innerHTML = '<div class="p-reviews-empty">加载中...</div>';
+
+                    // 心愿单/已玩过已对他人公开：恢复 tab 与统计项显示
+                    var wishlistTabOther = document.getElementById('tabWishlist');
+                    var playedTabOther = document.getElementById('tabPlayed');
+                    if (wishlistTabOther) wishlistTabOther.style.display = '';
+                    if (playedTabOther) playedTabOther.style.display = '';
+
+                    // 重置当前查看用户上下文（他人），并清空网格显示加载占位
+                    _profileWishlistIds = [];
+                    _profilePlayedIds = [];
+                    var otherWishlistGrid = document.getElementById('profileWishlistGrid');
+                    var otherPlayedGrid = document.getElementById('profilePlayedGrid');
+                    if (otherWishlistGrid) otherWishlistGrid.innerHTML = '<div class="p-games-empty">加载中...</div>';
+                    if (otherPlayedGrid) otherPlayedGrid.innerHTML = '<div class="p-games-empty">加载中...</div>';
+
+                    try {
+                        if (supabaseClient) {
+                            // 并行查询：用户资料、心愿单、已玩过、评论
+                            var results = await Promise.all([
+                                supabaseClient
+                                    .from('user_profiles')
+                                    .select('display_name, avatar_url, custom_id, bio, created_at, equipped_title')
+                                    .eq('user_id', targetUserId)
+                                    .maybeSingle(),
+                                supabaseClient
+                                    .from('user_wishlist')
+                                    .select('game_id')
+                                    .eq('user_id', targetUserId),
+                                supabaseClient
+                                    .from('user_played')
+                                    .select('game_id')
+                                    .eq('user_id', targetUserId),
+                                supabaseClient
+                                    .from('user_reviews')
+                                    .select('id, game_id, comment, selected_tags, verdict, created_at, updated_at, user_id, display_name, avatar_url, custom_id')
+                                    .eq('user_id', targetUserId)
+                                    .order('updated_at', { ascending: false })
+                                    .limit(30)
+                            ]);
+                            var profileRes = results[0] || {};
+                            var wishlistRes = results[1] || {};
+                            var playedRes = results[2] || {};
+                            var reviewsRes = results[3] || {};
+                            var profileData = profileRes.data;
+                            var reviewsData = (!reviewsRes.error && reviewsRes.data) ? reviewsRes.data : [];
+
+                            // 评论作为兜底来源：user_profiles 缺字段时，用最新一条评论里的 display_name/avatar_url/custom_id 补全
+                            var fallbackFromReview = reviewsData[0] || null;
+
+                            var avatarUrl = (profileData && profileData.avatar_url) || (fallbackFromReview && fallbackFromReview.avatar_url) || null;
+                            var displayName = (profileData && profileData.display_name) || (fallbackFromReview && fallbackFromReview.display_name) || null;
+                            var customId = (profileData && profileData.custom_id) || (fallbackFromReview && fallbackFromReview.custom_id) || null;
+                            var bio = (profileData && profileData.bio) || null;
+                            var createdAt = (profileData && profileData.created_at) || null;
+                            var equippedTitle = (profileData && profileData.equipped_title) || null;
+
+                            if (avatarUrl) {
+                                avatarEl.innerHTML = '<img src="' + escapeHTML(avatarUrl) + '" style="width:100%;height:100%;object-fit:cover;" />';
+                            }
+                            usernameEl.textContent = escapeHTML(displayName || '用户');
+                            customIdEl.textContent = customId ? '@' + escapeHTML(customId) : '';
+                            bioInputOther.value = bio || '';
+                            if (createdAt) {
+                                var ud = new Date(createdAt);
+                                regTimeEl.textContent = '注册于 ' + ud.getFullYear() + '.' + String(ud.getMonth() + 1).padStart(2, '0') + '.' + String(ud.getDate()).padStart(2, '0');
+                            } else {
+                                regTimeEl.textContent = '';
+                            }
+
+                            // 头衔（他人主页只读，不可点击切换）
+                            titleRowEl.textContent = '';
+                            if (equippedTitle && typeof TITLES !== 'undefined') {
+                                var eqFromProfile = TITLES.find(function (t) { return t.id === equippedTitle; });
+                                if (eqFromProfile) {
+                                    titleRowEl.innerHTML = '<span class="mini-tag">' + escapeHTML(eqFromProfile.icon + ' ' + eqFromProfile.name) + '</span>';
+                                }
+                            }
+
+                            // 心愿单/已玩过（使用目标用户数据，而非登录用户数据）
+                            if (wishlistRes.error) {
+                                console.warn('读取他人心愿单失败（可能是 RLS 未开放公开读）:', wishlistRes.error.message, 'user_id=', targetUserId);
+                            }
+                            if (playedRes.error) {
+                                console.warn('读取他人已玩过失败（可能是 RLS 未开放公开读）:', playedRes.error.message, 'user_id=', targetUserId);
+                            }
+                            if (profileRes.error) {
+                                console.warn('读取他人 user_profiles 失败（可能是 RLS 未开放公开读）:', profileRes.error.message, 'user_id=', targetUserId);
+                            }
+                            var otherWishlistIds = (!wishlistRes.error && wishlistRes.data)
+                                ? wishlistRes.data.map(function (item) { return Math.round(Number(item.game_id)); }).filter(Boolean)
+                                : [];
+                            var otherPlayedIds = (!playedRes.error && playedRes.data)
+                                ? playedRes.data.map(function (item) { return Math.round(Number(item.game_id)); }).filter(Boolean)
+                                : [];
+
+                            _profileWishlistIds = otherWishlistIds.slice();
+                            _profilePlayedIds = otherPlayedIds.slice();
+
+                            wishlistCountEl.textContent = String(otherWishlistIds.length);
+                            playedCountEl.textContent = String(otherPlayedIds.length);
+
+                            // 预渲染心愿单/已玩过网格（切到对应 tab 时会再次刷新）
+                            renderSeriesGrid(otherWishlistIds, 'profileWishlistGrid', '心愿单');
+                            renderSeriesGrid(otherPlayedIds, 'profilePlayedGrid', '已玩过');
+
+                            // 评论渲染
+                            reviewCountEl.textContent = String(reviewsData.length);
+                            var htmlParts2 = await Promise.all(
+                                reviewsData.map(function (r) {
+                                    var gid2 = Number(r.game_id);
+                                    if (!gid2) return Promise.resolve('');
+                                    return renderProfileReviewItem(r, gid2);
+                                })
+                            );
+                            var filteredHtml2 = htmlParts2.filter(Boolean).join('');
+                            var reviewsListEl2 = document.getElementById('profileReviewsList');
+                            reviewsListEl2.innerHTML = filteredHtml2 || '<div class="p-reviews-empty">这位用户还没有评论</div>';
+                            reviewsListEl2.querySelectorAll('.p-comment-game-card').forEach(function (card) {
+                                card.addEventListener('click', function () {
+                                    var gid = Number(card.dataset.gameId);
+                                    if (gid) {
+                                        var game = games.find(function (g) { return g.id === gid; });
+                                        if (game) showDetailModal(game, { from: 'profile' });
+                                    }
+                                });
+                            });
+                            bindReviewLikeButtons(reviewsListEl2);
+                        }
+                    } catch (e) {
+                        console.warn('加载用户资料失败:', e);
+                        usernameEl.textContent = '用户';
+                        reviewCountEl.textContent = '0';
+                        wishlistCountEl.textContent = '0';
+                        playedCountEl.textContent = '0';
+                        _profileWishlistIds = [];
+                        _profilePlayedIds = [];
+                        renderSeriesGrid([], 'profileWishlistGrid', '心愿单');
+                        renderSeriesGrid([], 'profilePlayedGrid', '已玩过');
+                        document.getElementById('profileReviewsList').innerHTML = '<div class="p-reviews-empty">加载失败</div>';
+                    }
+
+                    // 成就 & 头衔（他人主页：仅显示隐私提示）
+                    renderProfileAchievements(false);
+
+                    switchTab('reviews');
+                }
+
+                // Restore wishlist/played tabs when switching back to self
+                var tabsRestorer = document.querySelectorAll('.profile-tab');
+                tabsRestorer.forEach(function (t) {
+                    if (isSelf) {
+                        t.style.display = '';
+                    }
+                });
+            }
+
+            function closeUserProfile() {
+                var profilePage = document.getElementById('profilePage');
+                if (!profilePage || profilePage.style.display === 'none') return;
+                profilePage.style.display = 'none';
+                document.body.style.overflow = '';
+                // 清空当前查看用户上下文，避免下次进入他人主页时残留旧数据
+                _profileWishlistIds = [];
+                _profilePlayedIds = [];
+                // 清理 URL 中的 ?profile= 参数（replaceState 不触发 popstate）
+                if (_profileHistoryPushed) {
+                    _profileHistoryPushed = false;
+                    try {
+                        var cleanUrl = new URL(window.location.href);
+                        cleanUrl.searchParams.delete('profile');
+                        window.history.replaceState(null, '', cleanUrl.toString());
+                    } catch (e) {}
+                }
+            }
+
             function showDiaryCover() {
                 const coverView = document.getElementById('diaryCoverView');
                 const contentView = document.getElementById('diaryContentView');
@@ -6554,28 +7313,45 @@
                 
                 const reviews = userData.reviews || [];
                 const played = userData.played || [];
-                const unlockedAchievements = (userData.achievements || []);
+                const wishlist = userData.wishlist || [];
                 const totalAchievements = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.length : 0;
                 const avatar = document.getElementById('diaryCoverAvatar');
                 const username = document.getElementById('diaryCoverUsername');
-                const stats = document.getElementById('diaryCoverStats');
+                const customIdEl = document.getElementById('diaryCoverCustomId');
+                const wishlistCountEl = document.getElementById('dcWishlistCount');
+                const playedCountEl = document.getElementById('dcPlayedCount');
+                const titleCountEl = document.getElementById('dcTitleCount');
+                const titleTotalEl = document.getElementById('dcTitleTotal');
                 const achievementEl = document.getElementById('diaryCoverAchievement');
-                
+
                 if (currentUser) {
                     avatar.innerHTML = currentUser.user_metadata?.avatar_url ? 
                         `<img src="${escapeHTML(currentUser.user_metadata.avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : '👤';
                     username.textContent = getDisplayName(currentUser);
-                }
-                stats.innerHTML = `已记录 ${reviews.length} 款游戏 · 标记玩过 ${played.length} 款 · 成就 ${unlockedAchievements.length}/${totalAchievements}`;
-                
-                // 显示最高成就名称
-                if (unlockedAchievements.length > 0 && typeof ACHIEVEMENTS !== 'undefined') {
-                    const highestAchievement = ACHIEVEMENTS.filter(a => unlockedAchievements.includes(a.id)).pop();
-                    achievementEl.textContent = highestAchievement ? `🏆 ${highestAchievement.name}` : '';
-                    achievementEl.style.display = '';
+
+                    const customId = currentUser.user_metadata?.custom_id || '';
+                    customIdEl.textContent = customId ? '@' + escapeHTML(customId) : '';
                 } else {
-                    achievementEl.textContent = '🎯 暂无成就';
-                    achievementEl.style.display = '';
+                    customIdEl.textContent = '';
+                }
+
+                wishlistCountEl.textContent = wishlist.length;
+                playedCountEl.textContent = played.length;
+                const unlockedCount = (userData.titles || []).length;
+                titleCountEl.textContent = unlockedCount;
+                titleTotalEl.textContent = totalAchievements;
+
+                // 成就头衔显示
+                const equippedTitle = userData.equippedTitle || currentUser?.user_metadata?.equipped_title || null;
+                if (equippedTitle && typeof TITLES !== 'undefined') {
+                    const equipped = TITLES.find(t => t.id === equippedTitle);
+                    if (equipped) {
+                        achievementEl.innerHTML = equipped.icon + ' ' + escapeHTML(equipped.name);
+                    } else {
+                        achievementEl.textContent = '';
+                    }
+                } else {
+                    achievementEl.textContent = '';
                 }
 
                 // ★ 渲染封面统计饼图
@@ -7988,7 +8764,7 @@
                 nodes.forEach(reply => {
                     const isReplyOwn = currentUser && reply.user_id === currentUser.id;
                     const replyAvatar = reply.avatar_url ?
-                        `<img src="${escapeHTML(reply.avatar_url)}" class="comment-reply-item-avatar" referrerpolicy="no-referrer" />` :
+                        `<img src="${escapeHTML(reply.avatar_url)}" class="comment-reply-item-avatar" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';" />` :
                         `<div class="comment-reply-item-avatar" style="display:flex;align-items:center;justify-content:center;font-size:0.5rem;">👤</div>`;
                     const replyTime = formatGameCommentReplyTime(reply.created_at);
                     let replyToLabel = '';
@@ -8010,7 +8786,7 @@
                         <div class="comment-reply-item" data-reply-id="${reply.id}">
                             <div class="comment-reply-item-header">
                                 ${replyAvatar}
-                                <span class="comment-reply-item-name">${escapeHTML(safeDisplayName(reply.display_name))}</span>
+                                <span class="comment-reply-item-name comment-name" data-user-id="${reply.user_id || ''}" data-display-name="${escapeHTML(safeDisplayName(reply.display_name))}" data-custom-id="${escapeHTML(reply.custom_id || '')}">${escapeHTML(safeDisplayName(reply.display_name))}</span>
                                 ${replyCustomIdHtml}
                                 <span class="comment-reply-item-time">${replyTime}</span>
                             </div>
@@ -8307,7 +9083,7 @@
                         <div class="mod-reply-item" data-reply-id="${reply.id}">
                             <div class="mod-reply-item-header">
                                 ${replyAvatar}
-                                <span class="mod-reply-item-name">${escapeHTML(safeDisplayName(reply.display_name))}</span>
+                                <span class="mod-reply-item-name" data-user-id="${reply.user_id || ''}">${escapeHTML(safeDisplayName(reply.display_name))}</span>
                                 <span class="mod-reply-item-time">${replyTime}</span>
                             </div>
                             <div class="mod-reply-item-content">${replyToLabel}${escapeHTML(reply.content)}</div>
@@ -8795,6 +9571,31 @@
                         if (!navUserDropdown.contains(e.target) && !navUserBtn.contains(e.target)) {
                             navUserDropdown.classList.remove('show');
                         }
+                    });
+                }
+
+                // 「她们」下拉菜单：点击触发 + 按钮本身跳转到博主总览页
+                const creatorsNavWrap = document.getElementById('creatorsNavWrap');
+                const navCreatorsBtn = document.getElementById('navCreatorsBtn');
+                if (creatorsNavWrap && navCreatorsBtn) {
+                    navCreatorsBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        creatorsNavWrap.classList.toggle('open');
+                        // 点击顶栏「她们」按钮 → 直接进入博主页面（与下拉项「游戏博主」行为一致）
+                        try {
+                            window.location.href = 'bloggers.html';
+                        } catch (err) { /* ignore */ }
+                    });
+                    document.addEventListener('click', function (e) {
+                        if (!creatorsNavWrap.contains(e.target)) {
+                            creatorsNavWrap.classList.remove('open');
+                        }
+                    });
+                    // 点击菜单项后自动收起
+                    creatorsNavWrap.querySelectorAll('.nav-dropdown-link').forEach(function (link) {
+                        link.addEventListener('click', function () {
+                            creatorsNavWrap.classList.remove('open');
+                        });
                     });
                 }
             }
@@ -10031,7 +10832,7 @@
                             ${cAvatar}
                             <div class="mod-comment-body">
                                 <div class="mod-comment-header">
-                                    <span class="mod-comment-name">${escapeHTML(safeDisplayName(c.display_name))}</span>
+                                    <span class="mod-comment-name" data-user-id="${c.user_id || ''}">${escapeHTML(safeDisplayName(c.display_name))}</span>
                                     <span class="mod-comment-time">${formatModTime(c.created_at)}</span>
                                     ${deleteBtn}
                                 </div>
@@ -10654,6 +11455,68 @@
             // 认证相关
             // ================================================================
 
+            // Supabase 错误消息中文翻译（兼容 error.message + error.status 双重判断）
+            function translateSupabaseError(message, status) {
+                // 先按 HTTP 状态码判定（优先级高于 message 文本）
+                if (typeof status === 'number') {
+                    if (status === 429) return '操作过于频繁，请 1 分钟后再尝试';
+                    if (status === 422) return '请求参数异常，请刷新页面后重试';
+                    if (status === 401 || status === 403) return '权限不足或登录已过期，请重新登录';
+                    if (status >= 500) return '服务器暂时不可用，请稍后再试';
+                }
+                if (!message) return '操作失败，请重试';
+                const msg = String(message).toLowerCase().trim();
+                const map = {
+                    // 登录相关
+                    'invalid login credentials': '邮箱或密码错误，请重试',
+                    'invalid password': '密码错误',
+                    'invalid email': '邮箱格式不正确',
+                    'email not confirmed': '邮箱未验证，请先查收验证邮件',
+                    'email not confirmed.': '邮箱未验证，请先查收验证邮件',
+                    'user not found': '该账号不存在，请先注册',
+                    // 注册相关
+                    'user already registered': '该邮箱已注册，请直接登录',
+                    'user already registered.': '该邮箱已注册，请直接登录',
+                    'email already registered': '该邮箱已注册，请直接登录',
+                    'email already registered.': '该邮箱已注册，请直接登录',
+                    'password should be at least 6 characters': '密码至少需要 6 个字符',
+                    'password is too short': '密码太短，至少需要 6 个字符',
+                    // 邮件发送 / 重置密码 相关
+                    'error sending confirmation email': '邮件发送失败，请稍后重试或检查邮箱地址',
+                    'error sending password reset email': '重置邮件发送失败，请稍后重试或检查邮箱地址',
+                    'error sending email': '邮件发送失败，请稍后重试',
+                    'unable to send email': '邮件发送失败，请稍后重试',
+                    'smtp': '邮件服务暂时不可用，请稍后重试',
+                    'sendgrid': '邮件服务暂时不可用，请稍后重试',
+                    'mail': '邮件发送失败，请稍后重试',
+                    'rate limit exceeded': '操作过于频繁，请 1 分钟后再尝试',
+                    'too many requests': '请求过于频繁，请 1 分钟后再尝试',
+                    'email rate limit exceeded': '邮件发送过于频繁，请稍后再试',
+                    'to_email': '邮箱地址无效，请检查后重试',
+                    'recipient': '收件邮箱无效，请检查后重试',
+                    // Token / 会话相关
+                    'invalid refresh token': '登录已过期，请重新登录',
+                    'invalid token': '登录凭证已失效，请重新登录',
+                    'jwt expired': '登录已过期，请重新登录',
+                    'session not found': '会话不存在，请重新登录',
+                    // 其他
+                    'network request failed': '网络连接失败，请检查网络后重试',
+                    'failed to fetch': '网络连接失败，请检查网络后重试',
+                    'timeout': '请求超时，请检查网络后重试',
+                    'abort': '请求超时，请检查网络后重试'
+                };
+                // 精确匹配优先
+                for (const key in map) {
+                    if (msg === key) return map[key];
+                }
+                // 包含匹配
+                for (const key in map) {
+                    if (msg.includes(key)) return map[key];
+                }
+                // 兜底：返回原文
+                return message;
+            }
+
             function handleLogin() {
                 const email = document.getElementById('loginEmail').value.trim();
                 const password = document.getElementById('loginPassword').value;
@@ -10680,7 +11543,7 @@
                     loginBtn.disabled = false;
                     loginBtn.textContent = '登录';
                     if (error) {
-                        errorEl.textContent = error.message;
+                        errorEl.textContent = translateSupabaseError(error.message, error.status);
                     } else {
                         closeAuthModal();
                         showToast('👋 登录成功！', 2000);
@@ -10688,7 +11551,7 @@
                 }).catch(err => {
                     loginBtn.disabled = false;
                     loginBtn.textContent = '登录';
-                    errorEl.textContent = err.message || '登录失败，请重试';
+                    errorEl.textContent = translateSupabaseError(err.message || '登录失败，请重试');
                 });
             }
 
@@ -10756,7 +11619,7 @@
                         registerBtn.disabled = false;
                         registerBtn.textContent = '注册';
                         if (error) {
-                            errorEl.textContent = error.message;
+                            errorEl.textContent = translateSupabaseError(error.message, error.status);
                         } else {
                             document.getElementById('registerForm').style.display = 'none';
                             document.getElementById('loginForm').style.display = 'none';
@@ -10767,7 +11630,7 @@
                 }).catch(err => {
                     registerBtn.disabled = false;
                     registerBtn.textContent = '注册';
-                    errorEl.textContent = (err && err.message) || '注册失败，请重试';
+                    errorEl.textContent = translateSupabaseError((err && err.message) || '注册失败，请重试');
                 });
             }
 
@@ -10883,24 +11746,33 @@
                 btn.disabled = true;
                 btn.textContent = '发送中...';
 
+                const resetRedirectTo = window.location.origin + window.location.pathname;
                 supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + window.location.pathname
+                    redirectTo: resetRedirectTo
                 }).then(({ error }) => {
                     btn.disabled = false;
                     btn.textContent = '发送重置链接';
                     if (error) {
-                        errorEl.textContent = error.message;
-                    } else {
-                        const wrap = document.getElementById('forgotFormWrap');
-                        const sentMsg = document.getElementById('forgotSentMsg');
-                        if (wrap) wrap.style.display = 'none';
-                        if (sentMsg) sentMsg.style.display = 'block';
-                        showToast('📨 重置链接已发送，请查收邮箱', 3000);
+                        // 错误分支：必须中断，不显示成功态
+                        console.warn('[ResetPassword] 发送失败:', error.status, error.message, 'redirectTo=', resetRedirectTo);
+                        // 429 速率限制：toast + 错误提示双提醒
+                        if (error.status === 429) {
+                            showToast('⏱ 发送过于频繁，请稍后再试', 3000);
+                        }
+                        errorEl.textContent = translateSupabaseError(error.message, error.status);
+                        return; // 严格短路
                     }
+                    // 成功分支
+                    const wrap = document.getElementById('forgotFormWrap');
+                    const sentMsg = document.getElementById('forgotSentMsg');
+                    if (wrap) wrap.style.display = 'none';
+                    if (sentMsg) sentMsg.style.display = 'block';
+                    showToast('📨 重置链接已发送，请查收邮箱', 3000);
                 }).catch(err => {
                     btn.disabled = false;
                     btn.textContent = '发送重置链接';
-                    errorEl.textContent = err.message || '发送失败，请重试';
+                    console.warn('[ResetPassword] 异常:', err && err.message, 'redirectTo=', resetRedirectTo);
+                    errorEl.textContent = translateSupabaseError((err && err.message) || '发送失败，请重试', err && err.status);
                 });
             }
 
@@ -10939,7 +11811,7 @@
                     btn.disabled = false;
                     btn.textContent = '保存新密码';
                     if (error) {
-                        msg.textContent = error.message;
+                        msg.textContent = translateSupabaseError(error.message, error.status);
                     } else {
                         closeResetPwModal();
                         showToast('✅ 密码已更新', 2500);
@@ -10951,7 +11823,7 @@
                 }).catch(err => {
                     btn.disabled = false;
                     btn.textContent = '保存新密码';
-                    msg.textContent = err.message || '保存失败，请重试';
+                    msg.textContent = translateSupabaseError(err.message || '保存失败，请重试');
                 });
             }
 
@@ -10986,14 +11858,14 @@
                         { emailRedirectTo: window.location.origin }
                     );
                     if (error) {
-                        msg.textContent = error.message;
+                        msg.textContent = translateSupabaseError(error.message, error.status);
                         msg.style.color = 'var(--danger)';
                     } else {
                         msg.textContent = '📨 验证邮件已发送到新邮箱，请点击邮件中的链接完成更换（原邮箱也会收到通知）';
                         msg.style.color = 'var(--success, #4caf50)';
                     }
                 } catch (e) {
-                    msg.textContent = e.message || '发送失败，请重试';
+                    msg.textContent = translateSupabaseError(e.message || '发送失败，请重试');
                     msg.style.color = 'var(--danger)';
                 }
                 btn.disabled = false;
@@ -11063,12 +11935,14 @@
                 const nameInput = document.getElementById('profileDisplayName');
                 const avatarImg = document.getElementById('profileAvatarPreview');
                 const customIdInput = document.getElementById('profileCustomId');
+                const bioInput = document.getElementById('profileBio');
                 const customIdMsg = document.getElementById('profileCustomIdMsg');
                 const displayNameMsg = document.getElementById('profileDisplayNameMsg');
 
                 const metadata = currentUser.user_metadata || {};
                 nameInput.value = metadata.display_name || '';
                 customIdInput.value = metadata.custom_id || '';
+                bioInput.value = metadata.bio || '';
 
                 // 邮箱字段
                 const emailCurrent = document.getElementById('profileEmailCurrent');
@@ -11128,24 +12002,362 @@
                     showToast('请先登录', 1500);
                     return;
                 }
-                const overlay = document.getElementById('blockModalOverlay');
-                overlay.classList.add('show');
-                document.body.style.overflow = '';
-
-                // 回填恶俗开关
-                const toggle = document.getElementById('blockAdultToggle');
-                toggle.classList.toggle('on', showAdultContent);
-
-                // 重置搜索
-                blockSearchQuery = '';
-                document.getElementById('blockTagSearch').value = '';
-                blockOpenDims = new Set(['genre']);
-
-                renderBlockSettings();
+                // 直接打开设置页面（屏蔽内容管理已嵌入）
+                openSettingsPage();
             }
 
             function closeBlockModal() {
                 document.getElementById('blockModalOverlay').classList.remove('show');
+            }
+
+            // 初始化设置页面内的屏蔽设置
+            function initBlockSettingsOnPage() {
+                // 回填恶俗开关
+                var toggle = document.getElementById('spBlockAdultToggle');
+                if (toggle) toggle.classList.toggle('on', showAdultContent);
+                // 重置搜索
+                blockSearchQuery = '';
+                var searchInput = document.getElementById('spBlockTagSearch');
+                if (searchInput) searchInput.value = '';
+                blockOpenDims = new Set(['genre']);
+                // 用 sp 前缀的容器渲染
+                renderBlockSettingsForPage();
+            }
+
+            // 设置页面版本的 renderBlockSettings（使用 sp 前缀 ID）
+            function renderBlockSettingsForPage() {
+                var count = Object.values(excludedTags).reduce(function (s, arr) { return s + arr.length; }, 0);
+                var countEl = document.getElementById('spBlockExcludeCount');
+                if (countEl) countEl.textContent = count > 0 ? '（已排除 ' + count + ' 个）' : '';
+                var clearBtn = document.getElementById('spBlockClearAll');
+                if (clearBtn) {
+                    clearBtn.disabled = count === 0;
+                    clearBtn.style.opacity = count === 0 ? '0.4' : '1';
+                    clearBtn.style.cursor = count === 0 ? 'not-allowed' : 'pointer';
+                }
+
+                var dims = {
+                    genre: { label: '题材', icon: '📖', options: getAllGenres().sort(function (a, b) { return a.localeCompare(b, 'zh'); }) },
+                    gameplay: { label: '玩法', icon: '🎮', options: getAllGameplays().sort(function (a, b) { return a.localeCompare(b, 'zh'); }) },
+                    platforms: { label: '平台', icon: '💻', options: PLATFORM_OPTIONS.slice().sort(function (a, b) { return a.localeCompare(b, 'zh'); }) },
+                    heroineType: { label: '主角分类', icon: '👩', options: HEROINE_TYPE_OPTIONS.slice() },
+                    costumeType: { label: '服设分类', icon: '👗', options: COSTUME_TYPE_OPTIONS.slice() },
+                    perspective: { label: '视角', icon: '👁️', options: PERSPECTIVE_OPTIONS.slice() }
+                };
+
+                var container = document.getElementById('spBlockDimContainer');
+                if (!container) return;
+                var html = '';
+
+                for (var cat in dims) {
+                    var info = dims[cat];
+                    var excludedInCat = excludedTags[cat].length;
+                    var isOpen = blockOpenDims.has(cat);
+                    var filteredOpts = blockSearchQuery
+                        ? info.options.filter(function (o) { return o.toLowerCase().indexOf(blockSearchQuery.toLowerCase()) >= 0; })
+                        : info.options;
+                    if (blockSearchQuery && filteredOpts.length === 0) continue;
+
+                    html += '<div class="block-dim-group ' + (isOpen ? 'open' : '') + '" data-cat="' + cat + '">' +
+                        '<div class="block-dim-header">' +
+                            '<div class="block-dim-name">' +
+                                '<span>' + info.icon + '</span>' +
+                                '<span>' + info.label + '</span>' +
+                                (excludedInCat > 0 ? '<span class="block-dim-badge">' + excludedInCat + '</span>' : '') +
+                            '</div>' +
+                            '<span class="block-dim-arrow">▼</span>' +
+                        '</div>' +
+                        '<div class="block-dim-body">' +
+                            filteredOpts.map(function (opt) {
+                                var excluded = excludedTags[cat].indexOf(opt) >= 0;
+                                return '<span class="block-tag-toggle ' + (excluded ? 'excluded' : '') + '" data-cat="' + cat + '" data-val="' + escapeHTML(opt) + '">' +
+                                    '<span class="check-dot"></span>' +
+                                    escapeHTML(opt) +
+                                '</span>';
+                            }).join('') +
+                        '</div>' +
+                    '</div>';
+                }
+
+                if (blockSearchQuery && html === '') {
+                    html = '<p style="text-align:center; color:var(--text3); font-size:0.82rem; padding:16px 0;">未找到匹配的标签</p>';
+                }
+                container.innerHTML = html;
+
+                // 绑定折叠
+                container.querySelectorAll('.block-dim-header').forEach(function (h) {
+                    h.addEventListener('click', function () {
+                        var cat = this.closest('.block-dim-group').dataset.cat;
+                        if (blockOpenDims.has(cat)) blockOpenDims.delete(cat);
+                        else blockOpenDims.add(cat);
+                        renderBlockSettingsForPage();
+                    });
+                });
+                // 绑定标签切换
+                container.querySelectorAll('.block-tag-toggle').forEach(function (t) {
+                    t.addEventListener('click', function () {
+                        var cat = this.dataset.cat;
+                        var val = this.dataset.val;
+                        var list = excludedTags[cat];
+                        var idx = list.indexOf(val);
+                        if (idx >= 0) {
+                            list.splice(idx, 1);
+                            showToast('已取消排除「' + val + '」', 1200);
+                        } else {
+                            list.push(val);
+                            showToast('已排除「' + val + '」', 1200);
+                        }
+                        saveSettings();
+                        renderBlockSettingsForPage();
+                        renderGallery();
+                        updateAdultContentBanner();
+                    });
+                });
+            }
+
+            // ================================================================
+            // 设置弹窗
+            // ================================================================
+            function openSettingsPage() {
+                var page = document.getElementById('settingsPage');
+                if (!page) return;
+                // 游戏币
+                var clawEl = document.getElementById('settingsClawCoin');
+                var gachaEl = document.getElementById('settingsGachaCoin');
+                if (window.HerlensWallet) {
+                    if (clawEl) clawEl.textContent = window.HerlensWallet.getBalance('claw');
+                    if (gachaEl) gachaEl.textContent = window.HerlensWallet.getBalance('gacha');
+                }
+                // 健康贴士开关
+                var tipToggle = document.getElementById('settingsTipToggle');
+                if (tipToggle && window.HerlensDailyTip) {
+                    var tipOn = !window.HerlensDailyTip.isPermanentOff();
+                    tipToggle.classList.toggle('on', tipOn);
+                }
+                // 屏蔽设置
+                if (typeof initBlockSettingsOnPage === 'function') {
+                    initBlockSettingsOnPage();
+                }
+                page.style.display = 'flex';
+                window.scrollTo(0, 0);
+            }
+
+            function closeSettingsPage() {
+                var page = document.getElementById('settingsPage');
+                if (page) page.style.display = 'none';
+            }
+
+            // 设置页面事件绑定（只绑定一次）
+            (function () {
+                function bindSettingsPage() {
+                    var closeBtn = document.getElementById('settingsCloseBtn');
+                    var tipToggle = document.getElementById('settingsTipToggle');
+                    var spAdultToggle = document.getElementById('spBlockAdultToggle');
+                    var spTagSearch = document.getElementById('spBlockTagSearch');
+                    var spClearAll = document.getElementById('spBlockClearAll');
+                    var spSaveBtn = document.getElementById('spBlockSaveBtn');
+
+                    if (closeBtn) closeBtn.onclick = closeSettingsPage;
+
+                    if (tipToggle) tipToggle.onclick = function () {
+                        if (!window.HerlensDailyTip) return;
+                        var isOff = window.HerlensDailyTip.isPermanentOff();
+                        window.HerlensDailyTip.setPermanentOff(!isOff);
+                        tipToggle.classList.toggle('on', isOff);
+                    };
+
+                    if (spAdultToggle) spAdultToggle.onclick = function () {
+                        showAdultContent = !showAdultContent;
+                        spAdultToggle.classList.toggle('on', showAdultContent);
+                        saveSettings();
+                        renderGallery();
+                        updateAdultContentBanner();
+                        showToast(showAdultContent ? '已开启恶俗内容显示' : '已屏蔽恶俗内容', 1200);
+                    };
+
+                    if (spTagSearch) spTagSearch.oninput = function () {
+                        blockSearchQuery = spTagSearch.value.trim();
+                        if (blockSearchQuery) {
+                            ['genre', 'gameplay', 'platforms', 'heroineType', 'costumeType', 'perspective'].forEach(function (c) {
+                                blockOpenDims.add(c);
+                            });
+                        }
+                        renderBlockSettingsForPage();
+                    };
+
+                    if (spClearAll) spClearAll.onclick = function () {
+                        if (spClearAll.disabled) return;
+                        excludedTags = { genre: [], gameplay: [], platforms: [], heroineType: [], costumeType: [], perspective: [] };
+                        saveSettings();
+                        renderBlockSettingsForPage();
+                        renderGallery();
+                        updateAdultContentBanner();
+                        showToast('已清空全部排除标签', 1200);
+                    };
+
+                    if (spSaveBtn) spSaveBtn.onclick = function () {
+                        saveSettings();
+                        renderGallery();
+                        updateAdultContentBanner();
+                        showToast('屏蔽设置已保存', 1200);
+                    };
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', bindSettingsPage);
+                } else {
+                    bindSettingsPage();
+                }
+            })();
+
+            // 游戏币变化时更新设置弹窗
+            document.addEventListener('herlens_wallet_change', function () {
+                var clawEl = document.getElementById('settingsClawCoin');
+                var gachaEl = document.getElementById('settingsGachaCoin');
+                if (window.HerlensWallet) {
+                    if (clawEl) clawEl.textContent = window.HerlensWallet.getBalance('claw');
+                    if (gachaEl) gachaEl.textContent = window.HerlensWallet.getBalance('gacha');
+                }
+            });
+
+            // ================================================================
+            // 个人主页内联编辑模式
+            // ================================================================
+            var _profileAvatarFile = null;
+            var _profileAvatarPreviewUrl = null;
+
+            function enterProfileEditMode() {
+                var usernameSpan = document.getElementById('profileUsername');
+                var usernameInput = document.getElementById('profileUsernameInput');
+                var customIdSpan = document.getElementById('profileCustomIdDisplay');
+                var customIdInput = document.getElementById('profileCustomIdInput');
+                var editBtn = document.getElementById('profileEditBtn');
+                var saveBtn = document.getElementById('profileSaveBtn');
+                var cancelBtn = document.getElementById('profileCancelBtn');
+                var avatarLabel = document.getElementById('profileAvatarUploadLabel');
+                var editMsg = document.getElementById('profileEditMsg');
+
+                var meta = (currentUser && currentUser.user_metadata) || {};
+                if (usernameInput) { usernameInput.value = meta.display_name || ''; usernameInput.style.display = ''; }
+                if (usernameSpan) usernameSpan.style.display = 'none';
+                if (customIdInput) { customIdInput.value = meta.custom_id || ''; customIdInput.style.display = ''; }
+                if (customIdSpan) customIdSpan.style.display = 'none';
+                if (avatarLabel) avatarLabel.style.display = '';
+                if (editBtn) editBtn.style.display = 'none';
+                if (saveBtn) saveBtn.style.display = '';
+                if (cancelBtn) cancelBtn.style.display = '';
+                if (editMsg) { editMsg.textContent = ''; editMsg.style.display = ''; }
+                _profileAvatarFile = null;
+                if (_profileAvatarPreviewUrl) { URL.revokeObjectURL(_profileAvatarPreviewUrl); _profileAvatarPreviewUrl = null; }
+            }
+
+            function exitProfileEditMode() {
+                var usernameSpan = document.getElementById('profileUsername');
+                var usernameInput = document.getElementById('profileUsernameInput');
+                var customIdSpan = document.getElementById('profileCustomIdDisplay');
+                var customIdInput = document.getElementById('profileCustomIdInput');
+                var editBtn = document.getElementById('profileEditBtn');
+                var saveBtn = document.getElementById('profileSaveBtn');
+                var cancelBtn = document.getElementById('profileCancelBtn');
+                var avatarLabel = document.getElementById('profileAvatarUploadLabel');
+                var editMsg = document.getElementById('profileEditMsg');
+
+                if (usernameInput) usernameInput.style.display = 'none';
+                if (usernameSpan) usernameSpan.style.display = '';
+                if (customIdInput) customIdInput.style.display = 'none';
+                if (customIdSpan) customIdSpan.style.display = '';
+                if (avatarLabel) avatarLabel.style.display = 'none';
+                if (editBtn) editBtn.style.display = '';
+                if (saveBtn) saveBtn.style.display = 'none';
+                if (cancelBtn) cancelBtn.style.display = 'none';
+                if (editMsg) editMsg.style.display = 'none';
+                if (_profileAvatarPreviewUrl) { URL.revokeObjectURL(_profileAvatarPreviewUrl); _profileAvatarPreviewUrl = null; }
+                _profileAvatarFile = null;
+                // 恢复头像
+                var avatarEl = document.getElementById('profileAvatar');
+                var meta = (currentUser && currentUser.user_metadata) || {};
+                if (avatarEl) {
+                    if (meta.avatar_url) {
+                        avatarEl.innerHTML = '<img src="' + meta.avatar_url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+                    } else {
+                        avatarEl.textContent = '👤';
+                    }
+                }
+            }
+
+            async function saveProfileInline() {
+                if (!currentUser) { showToast('请先登录', 1200); return; }
+                var editMsg = document.getElementById('profileEditMsg');
+                var newName = document.getElementById('profileUsernameInput').value.trim();
+                var newCustomId = document.getElementById('profileCustomIdInput').value.trim();
+                var newBio = document.getElementById('profileBioInput').value.trim();
+
+                if (!newName) { if (editMsg) { editMsg.textContent = '请填写显示名称'; editMsg.style.color = 'var(--danger)'; } return; }
+                if (newCustomId && !/^[a-z0-9_]{3,16}$/.test(newCustomId)) { if (editMsg) { editMsg.textContent = '专属ID需为 3-16 位小写字母/数字/下划线'; editMsg.style.color = 'var(--danger)'; } return; }
+
+                var metadata = currentUser.user_metadata || {};
+                // 检查显示名称是否变更
+                if (newName !== (metadata.display_name || '')) {
+                    if (!await checkDisplayNameAvailable(newName)) { if (editMsg) { editMsg.textContent = '该显示名称已被占用'; editMsg.style.color = 'var(--danger)'; } return; }
+                }
+                // 检查专属ID是否变更
+                if (newCustomId !== (metadata.custom_id || '')) {
+                    if (newCustomId && !await checkCustomIdAvailable(newCustomId)) { if (editMsg) { editMsg.textContent = '该专属ID已被占用'; editMsg.style.color = 'var(--danger)'; } return; }
+                }
+
+                var saveBtn = document.getElementById('profileSaveBtn');
+                if (saveBtn) saveBtn.disabled = true;
+
+                var avatarUrl = metadata.avatar_url || null;
+                // 上传新头像
+                if (_profileAvatarFile) {
+                    try {
+                        var ext = _profileAvatarFile.name.split('.').pop().toLowerCase();
+                        var path = currentUser.id + '/avatar.' + ext;
+                        var upRes = await supabaseClient.storage.from('avatars').upload(path, _profileAvatarFile, { upsert: true });
+                        if (upRes.error) throw upRes.error;
+                        var urlRes = supabaseClient.storage.from('avatars').getPublicUrl(path);
+                        avatarUrl = urlRes.data.publicURL;
+                    } catch (e) {
+                        if (editMsg) { editMsg.textContent = '头像上传失败: ' + (e.message || e); editMsg.style.color = 'var(--danger)'; }
+                        if (saveBtn) saveBtn.disabled = false;
+                        return;
+                    }
+                }
+
+                // 更新 user_metadata
+                var updateRes = await supabaseClient.auth.updateUser({
+                    data: {
+                        display_name: newName,
+                        custom_id: newCustomId || null,
+                        bio: newBio,
+                        avatar_url: avatarUrl
+                    }
+                });
+                if (updateRes.error) {
+                    if (editMsg) { editMsg.textContent = '保存失败: ' + updateRes.error.message; editMsg.style.color = 'var(--danger)'; }
+                    if (saveBtn) saveBtn.disabled = false;
+                    return;
+                }
+
+                currentUser = updateRes.user;
+                // 同步到 user_profiles 表
+                try {
+                    await supabaseClient.from('user_profiles').upsert({
+                        user_id: currentUser.id,
+                        display_name: newName,
+                        custom_id: newCustomId || null,
+                        bio: newBio,
+                        avatar_url: avatarUrl,
+                        equipped_title: metadata.equipped_title || null,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id' });
+                } catch (e) { console.warn('同步 user_profiles 失败:', e); }
+
+                if (saveBtn) saveBtn.disabled = false;
+                exitProfileEditMode();
+                // 刷新主页
+                openUserProfile(currentUser.id);
+                showToast('资料已保存', 1200);
             }
 
             // 主界面屏蔽提示条显示控制（恶俗屏蔽 + 用户排除标签 chips）
@@ -11479,6 +12691,8 @@
                 const displayName = document.getElementById('profileDisplayName').value.trim();
                 const customIdInput = document.getElementById('profileCustomId');
                 const customId = customIdInput.value.trim().toLowerCase();
+                const bioInput = document.getElementById('profileBio');
+                const bio = bioInput ? bioInput.value.trim() : '';
                 const customIdMsg = document.getElementById('profileCustomIdMsg');
 
                 if (!displayName) {
@@ -11550,11 +12764,13 @@
                         avatarUrl = urlData.publicUrl;
                     }
 
-                    // 保存资料到 user_profiles 表（同步 display_name 和 custom_id）
+                    // 保存资料到 user_profiles 表（同步 display_name, custom_id, bio, equipped_title）
                     const profileData = {
                         user_id: currentUser.id,
                         display_name: displayName,
                         avatar_url: avatarUrl,
+                        bio: bio || null,
+                        equipped_title: currentUser.user_metadata?.equipped_title || null,
                         updated_at: new Date().toISOString()
                     };
 
@@ -11590,6 +12806,7 @@
                             display_name: displayName,
                             avatar_url: avatarUrl,
                             custom_id: customId || null,
+                            bio: bio || null,
                         }
                     });
 
@@ -11681,17 +12898,14 @@
                             </div>
                             <div class="nav-user-dropdown-email">${escapeHTML(user.email || '')}</div>
                         </div>
-                        <div class="nav-user-dropdown-item" id="navProfileEditBtn">
-                            <span class="item-icon">✏️</span> 编辑资料
+                        <div class="nav-user-dropdown-item" id="navProfileHomeBtn">
+                            <span class="item-icon">🏠</span> 我的主页
                         </div>
                         <div class="nav-user-dropdown-item" id="navDiaryBtn">
                             <span class="item-icon">📖</span> 游戏日记
                         </div>
-                        <div class="nav-user-dropdown-item" id="navAchievementBtn">
-                            <span class="item-icon">🏆</span> 成就 / 头衔
-                        </div>
-                        <div class="nav-user-dropdown-item" id="navBlockManageBtn">
-                            <span class="item-icon">🚫</span> 屏蔽内容管理
+                        <div class="nav-user-dropdown-item" id="navSettingsBtn">
+                            <span class="item-icon">⚙️</span> 设置
                         </div>
                         <div class="nav-user-dropdown-divider"></div>
                         <div class="nav-user-dropdown-item danger" id="navLogoutBtn">
@@ -11699,10 +12913,10 @@
                         </div>
                     `;
 
-                    document.getElementById('navProfileEditBtn').addEventListener('click', function (e) {
+                    document.getElementById('navProfileHomeBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('navUserDropdown').classList.remove('show');
-                        openProfileModal();
+                        openUserProfile(currentUser.id);
                     });
 
                     document.getElementById('navDiaryBtn').addEventListener('click', function (e) {
@@ -11711,16 +12925,10 @@
                         openDiaryModal();
                     });
 
-                    document.getElementById('navAchievementBtn').addEventListener('click', function (e) {
+                    document.getElementById('navSettingsBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('navUserDropdown').classList.remove('show');
-                        openAchievementModal();
-                    });
-
-                    document.getElementById('navBlockManageBtn').addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        document.getElementById('navUserDropdown').classList.remove('show');
-                        openBlockModal();
+                        openSettingsPage();
                     });
 
                     document.getElementById('navLogoutBtn').addEventListener('click', function (e) {
@@ -11738,9 +12946,9 @@
                             <span class="user-name" title="${escapeHTML(displayName)}">${escapeHTML(displayName)}</span>
                             <span class="dropdown-arrow" id="dropdownArrow">▼</span>
                             <div id="userDropdownMenu">
-                                <button class="dropdown-item" id="profileEditBtn">✏️ 编辑资料</button>
+                                <button class="dropdown-item" id="profileHomeBtn">🏠 我的主页</button>
                                 <button class="dropdown-item" id="diaryBtn">📖 游戏日记</button>
-                                <button class="dropdown-item" id="blockManageBtn">🚫 屏蔽内容管理</button>
+                                <button class="dropdown-item" id="settingsBtn">⚙️ 设置</button>
                                 <hr class="divider" />
                                 <button class="dropdown-item danger" id="logoutBtn">🚪 登出</button>
                             </div>
@@ -11770,11 +12978,11 @@
                         document.addEventListener('click', _dropdownCloseHandler);
                     }
 
-                    document.getElementById('profileEditBtn').addEventListener('click', function (e) {
+                    document.getElementById('profileHomeBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('userDropdownMenu').classList.remove('show');
                         if (arrow) arrow.classList.remove('open');
-                        openProfileModal();
+                        openUserProfile(currentUser.id);
                     });
 
                     document.getElementById('diaryBtn').addEventListener('click', function (e) {
@@ -11784,11 +12992,11 @@
                         openDiaryModal();
                     });
 
-                    document.getElementById('blockManageBtn').addEventListener('click', function (e) {
+                    document.getElementById('settingsBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('userDropdownMenu').classList.remove('show');
                         if (arrow) arrow.classList.remove('open');
-                        openBlockModal();
+                        openSettingsPage();
                     });
 
                     document.getElementById('logoutBtn').addEventListener('click', function (e) {
@@ -11964,14 +13172,28 @@
                     const email = document.getElementById('registerEmail').value.trim();
                     if (!email) { showToast('请先输入邮箱地址', 2000); return; }
                     if (!supabaseClient) { showToast('Supabase 未初始化', 2000); return; }
+                    const btn = document.getElementById('resendConfirmBtn');
+                    if (btn) { btn.disabled = true; const old = btn.textContent; btn.textContent = '发送中...'; }
                     supabaseClient.auth.resend({
                         type: 'signup',
                         email: email,
                         options: { emailRedirectTo: window.location.origin }
-                    }).then(() => {
-                        showToast('验证邮件已重新发送，请查收', 2000);
+                    }).then(({ error }) => {
+                        if (btn) { btn.disabled = false; btn.textContent = '重新发送验证邮件'; }
+                        if (error) {
+                            console.warn('[ResendConfirm] 发送失败:', error.status, error.message);
+                            if (error.status === 429) {
+                                showToast('⏱ 发送过于频繁，请稍后再试', 3000);
+                            } else {
+                                showToast('发送失败：' + translateSupabaseError(error.message, error.status), 3500);
+                            }
+                            return;
+                        }
+                        showToast('📨 验证邮件已重新发送，请查收（记得检查垃圾箱）', 2500);
                     }).catch((err) => {
-                        showToast('发送失败：' + (err.message || '请稍后重试'), 2000);
+                        if (btn) { btn.disabled = false; btn.textContent = '重新发送验证邮件'; }
+                        console.warn('[ResendConfirm] 异常:', err && err.message);
+                        showToast('发送失败：' + translateSupabaseError((err && err.message) || '请稍后重试', err && err.status), 3000);
                     });
                 });
                 document.getElementById('loginPassword').addEventListener('keydown', (e) => {
@@ -12191,6 +13413,7 @@
                     showDiaryCover();
                 });
                 document.getElementById('diaryCloseCoverBtn').addEventListener('click', closeDiaryModal);
+                document.getElementById('profileCloseBtn').addEventListener('click', closeUserProfile);
                 document.getElementById('diarySortSelect').addEventListener('change', function() {
                     diaryCurrentPage = 0;
                     renderDiaryContent();
@@ -12254,6 +13477,17 @@
                 });
 
                 window.addEventListener('popstate', function (event) {
+                    // 主页（profile）优先处理：后退时关闭主页全屏覆盖层
+                    var profilePage = document.getElementById('profilePage');
+                    if (profilePage && profilePage.style.display !== 'none') {
+                        _profileHistoryPushed = false;
+                        profilePage.style.display = 'none';
+                        document.body.style.overflow = '';
+                        _profileWishlistIds = [];
+                        _profilePlayedIds = [];
+                        return;
+                    }
+
                     const overlay = document.getElementById('detailModalOverlay');
                     const isOpen = overlay.classList.contains('show');
 
@@ -13129,6 +14363,14 @@
                         switchMainView('mods');
                     } else if (target === 'test') {
                         window.open('taste-test-scenario.html', '_blank');
+                    } else if (target === 'creators') {
+                        // 开机桌面图标「她们」→ 直接跳转博主总览页（不再停留主页开选择弹层）
+                        try {
+                            window.location.href = 'bloggers.html';
+                        } catch (err) {
+                            // 兜底：若跳转失败，再回退到旧的选择弹层
+                            if (typeof window.openCreatorsPicker === 'function') window.openCreatorsPicker();
+                        }
                     } else if (target === 'diary') {
                         if (typeof openDiaryModal === 'function') openDiaryModal();
                     } else if (target === 'tip') {
