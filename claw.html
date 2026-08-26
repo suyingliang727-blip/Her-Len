@@ -842,7 +842,7 @@
                 });
                 // 本地 sample 数据也统一规范化，保证与云端数据格式一致
                 bloggers = bloggers.map(function (b) { return normalizeBlogger(b); }).filter(Boolean);
-                if (added > 0 || true) {
+                if (added > 0) {
                     bloggers.sort(function (a, b) { return (a.name || '').localeCompare(b.name || '', 'zh'); });
                     buildPile();
                     purgeInvalidCollection();
@@ -866,7 +866,7 @@
             try {
                 var raw = (JSON.parse(localStorage.getItem(COLLECTION_KEY)) || []).filter(function (x) { return x && typeof x === 'string'; });
                 /* 仅保留当前 bloggers 列表中存在的 id，避免删除示例数据后残留无效收藏 */
-                if (!bloggers.length) return [];
+                if (!bloggers.length) return raw;
                 var validIds = {};
                 bloggers.forEach(function (b) { validIds[b.id] = true; });
                 return raw.filter(function (id) { return validIds[id]; });
@@ -1113,13 +1113,15 @@
         bindHold(document.getElementById('btnRight'), 1);
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') holdingDir = -1;
-            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') holdingDir = 1;
+            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { holdingDir = -1; e.preventDefault(); }
+            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') { holdingDir = 1; e.preventDefault(); }
             if ((e.key === ' ' || e.key === 'Enter') && !busy && !document.querySelector('.overlay.show')) { e.preventDefault(); tryDrop(); }
         });
         document.addEventListener('keyup', function (e) {
             if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft' || e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') holdingDir = 0;
         });
+        window.addEventListener('blur', function () { holdingDir = 0; });
+        document.addEventListener('visibilitychange', function () { if (document.hidden) holdingDir = 0; });
 
         // 拖动机身瞄准（带物理惯性）
         var dragging = false;
@@ -1296,8 +1298,6 @@
                         capturedEl.style.transition = '';
                         capturedEl.style.opacity = '';
                         capturedEl.style.transform = 'translateX(-50%)';
-                        var idx = bloggers.indexOf(slot.blogger);
-                        if (idx >= 0) bloggers.splice(idx, 1);
                         setTimeout(function () { showResult(slot.blogger); finishRound(); }, 200);
                     }, 210);
                 }
@@ -1471,10 +1471,11 @@
             var html = bloggers.map(function (b, i) {
                 var got = col.indexOf(b.id) >= 0;
                 var avatarContent = got ? esc(b.avatarText || b.name.charAt(0)) : '?';
+                var avatarContentSafe = avatarContent.replace(/'/g, "\\'");
                 var avatarStyle = got ? avatarColor(b) : '';
                 if (got && b.avatarUrl) {
                     return '<div class="dex-cell' + (got ? ' got' : ' locked') + '"' + (got ? ' data-idx="' + i + '" title="点击查看档案"' : '') + '>' +
-                        '<div class="dex-avatar" style="background:' + (b.avatarUrl.indexOf('data:') === 0 ? 'transparent' : avatarColor(b)) + ';padding:0;"><img src="' + esc(b.avatarUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display=\'none\';this.parentNode.style.background=\'' + avatarColor(b) + '\';this.parentNode.innerHTML=\'' + avatarContent + '\'"></div>' + '</div>' +
+                        '<div class="dex-avatar" style="background:' + (b.avatarUrl.indexOf('data:') === 0 ? 'transparent' : avatarColor(b)) + ';padding:0;"><img src="' + esc(b.avatarUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display=\'none\';this.parentNode.style.background=\'' + avatarColor(b) + '\';this.parentNode.innerHTML=\'' + avatarContentSafe + '\'"></div>' +
                         '<div class="dex-name">' + esc(b.name) + '</div></div>';
                 }
                 return '<div class="dex-cell' + (got ? ' got' : ' locked') + '"' + (got ? ' data-idx="' + i + '" title="点击查看档案"' : '') + '>' +
@@ -1524,9 +1525,6 @@
         document.querySelectorAll('[data-close]').forEach(function (b) {
             b.addEventListener('click', hideOverlays);
         });
-        var btnDex = document.getElementById('btnDex');
-        if (btnDex) btnDex.addEventListener('click', function () { renderDex(); showOverlay('dexOverlay'); });
-
         document.getElementById('dexChip').addEventListener('click', function (e) {
             e.stopPropagation();
             toggleDexPopup();
@@ -1542,11 +1540,7 @@
         document.getElementById('btnBackToDex').addEventListener('click', function () {
             hideOverlays();
             setTimeout(function () {
-                if (window.innerWidth > 0) {
-                    toggleDexPopup(true);
-                } else {
-                    renderDex(); showOverlay('dexOverlay');
-                }
+                toggleDexPopup(true);
             }, 150);
         });
         function openDexCard(idx) {

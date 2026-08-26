@@ -198,6 +198,9 @@
             let _reviewPage = {};
             const REVIEW_PAGE_SIZE = 10;
             let _batchRpcBroken = false;
+            // ★ DOM 元素缓存：避免重复 getElementById
+            const $el = {};
+            function cacheEl(id) { if (!$el[id]) $el[id] = document.getElementById(id); return $el[id]; }
             // ★ 评论回复分页：每条评论默认只渲染前 REPLY_CHUNK 个根回复，超出显示"加载更多"
             const REPLY_CHUNK = 3;
             // ★ 记录每条评论当前已展开的根回复数：{ [reviewId]: number }
@@ -772,13 +775,13 @@
                 if (currentUser && typeof updateUIForLoggedIn === 'function') {
                     try { updateUIForLoggedIn(currentUser); } catch (e) {}
                 }
-                const activeMod = document.getElementById('detailModalOverlay');
+                const activeMod = cacheEl('detailModalOverlay');
                 if (activeMod && activeMod.classList.contains('show')) {
                     const gid = activeMod.getAttribute('data-game-id');
                     if (gid && typeof loadCommunityReviews === 'function') loadCommunityReviews(Number(gid));
                 }
                 // 若成就弹窗已打开且在头衔 tab，则实时刷新头衔展示柜（佩戴立即看得到）
-                const achvMod = document.getElementById('achievementModalOverlay');
+                const achvMod = cacheEl('achievementModalOverlay');
                 if (achvMod && achvMod.classList.contains('show')) {
                     const titlesBtn = document.querySelector('.achievement-tab-btn[data-tab="titles"]');
                     if (titlesBtn && titlesBtn.classList.contains('active')) {
@@ -1781,7 +1784,7 @@
             }
 
             function openAchievementModal() {
-                const overlay = document.getElementById('achievementModalOverlay');
+                const overlay = cacheEl('achievementModalOverlay');
                 renderAchievementModal();
                 renderTitlesCabinet();
                 switchAchievementTab('achievements');
@@ -1790,7 +1793,7 @@
             }
 
             function closeAchievementModal() {
-                document.getElementById('achievementModalOverlay').classList.remove('show');
+                cacheEl('achievementModalOverlay').classList.remove('show');
                 document.body.style.overflow = '';
             }
 
@@ -2262,7 +2265,7 @@
                     try { if (window.HerlensWallet) window.HerlensWallet.rewardComment(); } catch (e) {}
                 }
 
-                const detailOverlay = document.getElementById('detailModalOverlay');
+                const detailOverlay = cacheEl('detailModalOverlay');
                 if (detailOverlay && detailOverlay.classList.contains('show')) {
                     const currentGameId = detailOverlay.dataset.gameId;
                     if (currentGameId && Number(currentGameId) === Number(gameId)) {
@@ -2436,7 +2439,7 @@
                 saveUserData();
                 invalidateReviewCountCache();
                 invalidateReviewsListCache(gameId); // ★ 清除评论列表缓存
-                const detailOverlay = document.getElementById('detailModalOverlay');
+                const detailOverlay = cacheEl('detailModalOverlay');
                 if (detailOverlay && detailOverlay.classList.contains('show')) {
                     const currentGameId = detailOverlay.dataset.gameId;
                     if (currentGameId && Number(currentGameId) === Number(gameId)) {
@@ -2963,8 +2966,12 @@
             // ================================================================
             // 筛选分类
             // ================================================================
+            let _filterCatsCache = { released: null, unreleased: null, genresKey: '', gameplaysKey: '' };
             function getReleasedFilterCats() {
-                return {
+                const gk = customGenres.join(',');
+                const pk = customGameplays.join(',');
+                if (_filterCatsCache.released && _filterCatsCache.genresKey === gk && _filterCatsCache.gameplaysKey === pk) return _filterCatsCache.released;
+                _filterCatsCache.released = {
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
                     gameplay: { label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')), field: 'gameplay' },
                     platforms: { label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')), field: 'platforms' },
@@ -2974,10 +2981,16 @@
                     perspective: { label: '视角', options: PERSPECTIVE_OPTIONS, field: 'perspective' },
                     hasMacSupport: { label: 'Mac适配', options: ['支持Mac', '不支持Mac'], field: 'hasMacSupport' }
                 };
+                _filterCatsCache.genresKey = gk;
+                _filterCatsCache.gameplaysKey = pk;
+                return _filterCatsCache.released;
             }
 
             function getUnreleasedFilterCats() {
-                return {
+                const gk = customGenres.join(',');
+                const pk = customGameplays.join(',');
+                if (_filterCatsCache.unreleased && _filterCatsCache.genresKey === gk && _filterCatsCache.gameplaysKey === pk) return _filterCatsCache.unreleased;
+                _filterCatsCache.unreleased = {
                     genre: { label: '题材', options: getAllGenres().sort((a, b) => a.localeCompare(b, 'zh')), field: 'genre' },
                     gameplay: { label: '玩法', options: getAllGameplays().sort((a, b) => a.localeCompare(b, 'zh')), field: 'gameplay' },
                     platforms: { label: '平台', options: PLATFORM_OPTIONS.sort((a, b) => a.localeCompare(b, 'zh')), field: 'platforms' },
@@ -2986,6 +2999,7 @@
                     hasDemo: { label: 'Demo试玩', options: DEMO_OPTIONS, field: 'hasDemo' },
                     hasChinese: { label: '中文', options: CHINESE_OPTIONS, field: 'hasChinese' }
                 };
+                return _filterCatsCache.unreleased;
             }
 
             // ================================================================
@@ -3304,37 +3318,15 @@
                 }
                 if (chips.length > 0) chips.push('<span class="clear-all-filters" id="clearAllFilters">清除全部筛选</span>');
                 bar.innerHTML = chips.join('');
-
-                panel.querySelectorAll('.filter-option-tag').forEach(t =>
-                    t.addEventListener('click', function () {
-                        toggleFilterOption(this.dataset.cat, this.dataset.value);
-                    })
-                );
-                bar.querySelectorAll('.remove-chip').forEach(c =>
-                    c.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        removeFilter(this.dataset.cat, this.dataset.value);
-                    })
-                );
-                const clr = document.getElementById('clearAllFilters');
-                if (clr) clr.addEventListener('click', clearAllFilters);
-
-                row.querySelectorAll('.filter-cat-btn').forEach(b =>
-                    b.addEventListener('click', function () {
-                        const c = this.dataset.cat;
-                        activeFilterCat = activeFilterCat === c ? null : c;
-                        updateFilterUI();
-                    })
-                );
             }
 
             // ================================================================
             // 系列作品视图
             // ================================================================
             function renderSeriesView() {
-                const grid = document.getElementById('galleryGrid');
-                const no = document.getElementById('noResults');
-                const countNum = document.getElementById('countNumber');
+                const grid = cacheEl('galleryGrid');
+                const no = cacheEl('noResults');
+                const countNum = cacheEl('countNumber');
 
                 // 收集所有有系列的游戏（应用屏蔽内容过滤）
                 const seriesMap = {};
@@ -3529,14 +3521,13 @@
             function renderGallery() {
                 if (currentView === 'series') { renderSeriesView(); return; }
                 const filtered = getFilteredGames();
-                const grid = document.getElementById('galleryGrid');
-                const no = document.getElementById('noResults');
-                const countNum = document.getElementById('countNumber');
+                const grid = cacheEl('galleryGrid');
+                const no = cacheEl('noResults');
+                const countNum = cacheEl('countNumber');
 
                 countNum.textContent = filtered.length;
                 countNum.classList.remove('pop');
-                void countNum.offsetWidth;
-                countNum.classList.add('pop');
+                requestAnimationFrame(() => { countNum.classList.add('pop'); });
 
                 if (filtered.length === 0) {
                     grid.innerHTML = '';
@@ -3604,8 +3595,7 @@
                     }
                 }
 
-                grid.innerHTML = '';
-                grid.appendChild(frag);
+                grid.replaceChildren(frag);
 
                 if (cardObserver) { cardObserver.disconnect(); } else {
                     cardObserver = new IntersectionObserver((entries) => {
@@ -5346,7 +5336,7 @@
                     return;
                 }
 
-                const overlay = document.getElementById('detailModalOverlay');
+                const overlay = cacheEl('detailModalOverlay');
                 const modal = document.getElementById('detailModal');
 
                 const url = new URL(window.location);
@@ -5783,7 +5773,7 @@
             }
 
             function closeDetailModal() {
-                const overlay = document.getElementById('detailModalOverlay');
+                const overlay = cacheEl('detailModalOverlay');
                 overlay.classList.remove('show');
                 document.body.style.overflow = '';
 
@@ -5806,7 +5796,7 @@
 
                 if (window._detailFrom === 'played') {
                     setTimeout(() => {
-                        const overlayAch = document.getElementById('achievementModalOverlay');
+                        const overlayAch = cacheEl('achievementModalOverlay');
                         if (!overlayAch.classList.contains('show')) {
                             openAchievementModal();
                             switchAchievementTab('played');
@@ -6394,7 +6384,7 @@
                             const row = payload.new || {};
                             const gameId = row.game_id;
                             if (gameId == null) return;
-                            const overlay = document.getElementById('detailModalOverlay');
+                            const overlay = cacheEl('detailModalOverlay');
                             if (!overlay || !overlay.classList.contains('show')) return;
                             const openGameId = overlay.dataset.gameId;
                             if (openGameId && String(openGameId) === String(gameId)) {
@@ -7088,6 +7078,7 @@
                                 });
                             });
                             bindReviewLikeButtons(reviewsListEl);
+                            bindGameCommentReplyEvents(reviewsListEl);
                         } catch (e) {
                             console.warn('渲染评论失败:', e);
                             reviewsListEl.innerHTML = '<div class="p-reviews-empty">评论加载失败</div>';
@@ -7249,6 +7240,7 @@
                                 });
                             });
                             bindReviewLikeButtons(reviewsListEl2);
+                            bindGameCommentReplyEvents(reviewsListEl2);
                         }
                     } catch (e) {
                         console.warn('加载用户资料失败:', e);
@@ -9484,7 +9476,7 @@
                 const announcementsSection = document.getElementById('announcementsSection');
                 const filterSticky = document.getElementById('filterSticky');
                 const toolbar = document.getElementById('toolbar');
-                const noResults = document.getElementById('noResults');
+                const noResults = cacheEl('noResults');
 
                 // 更新顶部导航激活状态
                 document.querySelectorAll('.top-nav-item[data-nav]').forEach(item => {
@@ -13107,7 +13099,7 @@
                             closeModDetail();
                             return;
                         }
-                        if (document.getElementById('detailModalOverlay').classList.contains('show')) {
+                        if (cacheEl('detailModalOverlay').classList.contains('show')) {
                             closeDetailModal();
                             return;
                         }
@@ -13488,7 +13480,7 @@
                         return;
                     }
 
-                    const overlay = document.getElementById('detailModalOverlay');
+                    const overlay = cacheEl('detailModalOverlay');
                     const isOpen = overlay.classList.contains('show');
 
                     const gameId = event.state?.gameId || null;
@@ -13508,6 +13500,29 @@
                     if (isOpen) {
                         closeDetailModal();
                     }
+                });
+
+                // 筛选器事件委托（避免 updateFilterUI 每次重建时重复绑定）
+                const filterRow = document.getElementById('filterCategoryRow');
+                if (filterRow) filterRow.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.filter-cat-btn');
+                    if (btn) {
+                        const c = btn.dataset.cat;
+                        activeFilterCat = activeFilterCat === c ? null : c;
+                        updateFilterUI();
+                    }
+                });
+                const filterPanel = document.getElementById('filterOptionsPanel');
+                if (filterPanel) filterPanel.addEventListener('click', function (e) {
+                    const tag = e.target.closest('.filter-option-tag');
+                    if (tag) toggleFilterOption(tag.dataset.cat, tag.dataset.value);
+                });
+                const filterBar = document.getElementById('activeFiltersBar');
+                if (filterBar) filterBar.addEventListener('click', function (e) {
+                    const clr = e.target.closest('#clearAllFilters');
+                    if (clr) { clearAllFilters(); return; }
+                    const chip = e.target.closest('.remove-chip');
+                    if (chip) { e.stopPropagation(); removeFilter(chip.dataset.cat, chip.dataset.value); }
                 });
 
                 updateFilterUI();
@@ -14090,7 +14105,7 @@
             const SCROLL_POS_KEY = 'heroineScrollPos';
 
             function saveScrollPosition() {
-                if (!document.getElementById('detailModalOverlay').classList.contains('show')) {
+                if (!cacheEl('detailModalOverlay').classList.contains('show')) {
                     sessionStorage.setItem(SCROLL_POS_KEY, JSON.stringify({
                         view: currentView,
                         y: window.scrollY,
@@ -14286,7 +14301,7 @@
                     } catch (e) { /* 忽略 */ }
                 })();
 
-                const grid = document.getElementById('galleryGrid');
+                const grid = cacheEl('galleryGrid');
                 if (grid) {
                     grid.innerHTML = '<div class="loading-spinner"><span class="spinner-icon">🐕</span><div class="loading-dog-trail"><span></span><span></span><span></span></div><div class="spinner-text">正在加载游戏数据...</div></div>';
                 }

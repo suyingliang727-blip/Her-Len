@@ -5834,16 +5834,17 @@
 
         .comment-input {
             width: 100%;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 8px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
             color: var(--text);
             font-family: inherit;
             resize: vertical;
-            min-height: 60px;
+            min-height: 120px;
             transition: border-color 0.2s;
             font-size: 0.85rem;
+            line-height: 1.5;
         }
 
         .comment-input:focus {
@@ -10269,8 +10270,8 @@
 
             .comment-input {
                 font-size: 0.8rem;
-                min-height: 50px;
-                padding: 6px 10px;
+                min-height: 100px;
+                padding: 8px 10px;
             }
 
             .comment-char-count {
@@ -10829,8 +10830,8 @@
 
             .comment-input {
                 font-size: 0.75rem;
-                min-height: 44px;
-                padding: 5px 8px;
+                min-height: 80px;
+                padding: 6px 8px;
             }
 
             .comment-char-count {
@@ -11770,15 +11771,16 @@
 
         .comment-edit-area textarea {
             width: 100%;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 8px;
             border: 1.5px solid var(--border);
             background: var(--input-bg);
             color: var(--text);
             font-family: inherit;
             resize: vertical;
-            min-height: 50px;
+            min-height: 100px;
             font-size: 0.85rem;
+            line-height: 1.5;
             transition: border-color 0.2s;
         }
 

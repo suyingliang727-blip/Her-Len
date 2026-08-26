@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>她们 · 游戏博主 | Her Lens</title>
     <meta name="robots" content="index, follow" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="stylesheet" href="css/style.css" />
     <script>
         document.documentElement.setAttribute('data-theme-applied', 'light');
@@ -19,7 +20,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: var(--bg, #f4f1f8);
             color: var(--text);
-            transition: background 0.3s ease;
         }
         html[data-theme-applied="dark"] body { background: var(--bg); }
 
@@ -47,7 +47,7 @@
             color: var(--text2);
             font-size: 0.8rem;
             text-decoration: none;
-            transition: all 0.25s;
+            transition: color 0.25s, border-color 0.25s;
         }
         .topbar-link:hover { color: var(--accent); border-color: var(--accent); }
         .topbar-link.switch:hover { transform: translateX(2px); }
@@ -126,7 +126,7 @@
             color: var(--text2);
             font-size: 0.78rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
             font-family: inherit;
         }
         .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -297,7 +297,7 @@
             border-radius: 12px;
             border: 1px solid var(--border);
             color: var(--text3);
-            transition: all 0.2s;
+            transition: border-color 0.2s, color 0.2s;
         }
         .mini-tag:hover { border-color: var(--accent); color: var(--accent); }
         .mini-tag-main {
@@ -345,7 +345,7 @@
             color: var(--accent);
             font-size: 0.78rem;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
         }
         .link-btn:hover { background: var(--accent); color: #fff; }
 
@@ -353,16 +353,14 @@
         .blogger-card {
             display: flex;
             flex-direction: row;
-            align-items: flex-start; /* 头像顶对齐，不再跟随内容居中 */
+            align-items: flex-start;
             gap: 12px;
             padding: 12px 14px;
             border: 1px solid var(--border);
             border-radius: 12px;
             background: var(--input-bg);
-            transition: all 0.25s ease;
+            transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
             cursor: pointer;
-            animation: fadeInUp 0.4s ease forwards;
-            opacity: 0;
             text-decoration: none;
             color: inherit;
             position: relative;
@@ -534,7 +532,7 @@
             font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -564,25 +562,73 @@
         }
         .page-footer { text-align: center; padding: 10px 20px 44px; font-size: 0.72rem; color: var(--text3); opacity: 0.75; }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .mobile-close-btn {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 14px;
+            z-index: 210;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--modal-bg, rgba(250, 247, 253, 0.95));
+            color: var(--text2);
+            font-size: 1rem;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .mobile-close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
         @media (max-width: 768px) {
             .page-header h1 { font-size: 1.35rem; }
-            .diary-container { flex-direction: column; min-height: auto; }
-            .diary-page-left {
-                flex: none;
-                border-radius: 20px 20px 0 0;
-                border-right: 1px solid var(--border);
-                border-bottom: none;
-                max-height: 450px;
-            }
+            .diary-container { flex-direction: column; min-height: auto; position: relative; }
+            .diary-page-left { display: none; }
             .diary-page-left::before { display: none; }
-            .diary-page-right { border-radius: 0 0 20px 20px; min-height: 300px; }
+            .diary-page-right { border-radius: 20px; min-height: 300px; }
             .diary-page-right::before { display: none; }
             .filter-search { max-width: none; width: 100%; margin-left: 0; }
+
+            .mobile-close-btn { display: none; }
+
+            .diary-container.mobile-detail-active::after {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.35);
+                z-index: 199;
+                animation: fadeIn 0.25s ease;
+            }
+            .diary-container.mobile-detail-active .diary-page-left {
+                display: block;
+                position: fixed;
+                top: 50px;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 200;
+                border-radius: 16px 16px 0 0;
+                border: none;
+                overflow-y: auto;
+                padding: 20px 20px 30px;
+                animation: fadeInUp 0.3s ease;
+                background: var(--bg, #f4f1f8);
+            }
+            .diary-container.mobile-detail-active .mobile-close-btn {
+                display: flex;
+            }
         }
 
         @media (max-width: 480px) {
@@ -594,6 +640,7 @@
             .bc-name { font-size: 0.86rem; }
             .bc-work { padding: 4px 7px; font-size: 0.64rem; }
             .bc-work-title { max-width: 120px; }
+            .diary-container.mobile-detail-active .diary-page-left { padding: 16px 14px 24px; }
         }
     </style>
 </head>
@@ -642,8 +689,8 @@
 
     <div class="page-footer">收录说明：信息来自公开渠道 · 如需补充或移除请联系站长</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-    <script src="js/creators-data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js" defer></script>
+    <script src="js/creators-data.js" defer></script>
     <script>
         (function () {
             var SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
@@ -671,12 +718,53 @@
             var pageSize = 5;
             var currentPage = 1;
 
-            function esc(s) {
-                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            function isMobile() { return window.innerWidth <= 768; }
+
+            function debounce(fn, ms) {
+                var t;
+                return function () { clearTimeout(t); t = setTimeout(fn, ms); };
             }
+
+            function showMobileDetail() {
+                var c = document.getElementById('diaryContainer');
+                if (c) c.classList.add('mobile-detail-active');
+                window.scrollTo(0, 0);
+            }
+            function hideMobileDetail() {
+                var c = document.getElementById('diaryContainer');
+                if (c) c.classList.remove('mobile-detail-active');
+                document.querySelectorAll('.blogger-card.selected').forEach(function (el) { el.classList.remove('selected'); });
+            }
+
+            document.getElementById('diaryContainer').addEventListener('click', function (e) {
+                if (isMobile() && this.classList.contains('mobile-detail-active') && e.target === this) {
+                    hideMobileDetail();
+                }
+            });
+
+            document.getElementById('videosContent').addEventListener('click', function (e) {
+                var card = e.target.closest('.blogger-card');
+                if (!card) return;
+                if (e.target.tagName === 'A') return;
+                var bloggerId = card.getAttribute('data-blogger-id');
+                var blogger = bloggers.find(function (b) { return b.id === bloggerId; });
+                if (blogger) {
+                    selectBlogger(blogger);
+                    document.querySelectorAll('.blogger-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+                    card.classList.add('selected');
+                    if (isMobile()) showMobileDetail();
+                }
+            });
+
+            function esc(s) {
+                return String(s || '').replace(/\\/g, '&#92;').replace(/'/g, '&#39;').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            var hueCache = {};
             function hue(name) {
+                if (hueCache[name] !== undefined) return hueCache[name];
                 var h = 0;
                 for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+                hueCache[name] = h;
                 return h;
             }
             function avatarStyle(b) {
@@ -685,13 +773,16 @@
             function avatarHtml(b, className) {
                 var cls = className || 'bc-avatar';
                 if (b.avatarUrl) {
-                    return '<div class="' + cls + '" style="background:' + (b.avatarUrl.indexOf('data:') === 0 ? 'transparent' : avatarStyle(b)) + ';padding:0;"><img src="' + esc(b.avatarUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" loading="lazy" onerror="this.style.display=\'none\';var p=this.parentNode;p.style.background=\'' + avatarStyle(b) + '\';p.innerHTML=\'' + esc(b.avatarText || b.name.charAt(0)) + '\'"></div>';
+                    return '<div class="' + cls + '" style="background:' + (b.avatarUrl.indexOf('data:') === 0 ? 'transparent' : avatarStyle(b)) + ';padding:0;"><img src="' + esc(b.avatarUrl) + '" alt="' + esc(b.name) + '" width="64" height="64" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" loading="lazy" onerror="this.replaceChildren(document.createTextNode(\'' + esc(b.avatarText || b.name.charAt(0)) + '\'));this.style.display=\'flex\';this.parentNode.style.background=\'' + avatarStyle(b) + '\'"></div>';
                 }
                 return '<div class="' + cls + '" style="' + avatarStyle(b) + '">' + esc(b.avatarText || b.name.charAt(0)) + '</div>';
             }
             function videoIconStyle(title) {
                 return 'background:linear-gradient(135deg,hsl(' + hue(title) + ',35%,55%),hsl(' + ((hue(title) + 25) % 360) + ',40%,48%))';
             }
+
+            var ALLOWED_CT = { '直播': 1, '视频': 1, '图文': 1 };
+            var ALLOWED_CAT = { '实况':1,'攻略':1,'评测':1,'剧情解说':1,'游戏史':1,'角色分析':1,'资讯':1,'游戏日常':1,'剧情杂谈':1,'游戏杂谈':1 };
 
             function normalizeBlogger(b) {
                 if (!b) return null;
@@ -707,12 +798,11 @@
                     : (works.length ? { title: works[0].title || '', url: works[0].url || '', note: works[0].note || '' } : null);
                 var rest = primary && b.primaryWork && (b.primaryWork.title || b.primaryWork.url || b.primaryWork.note)
                     ? works : works.slice(1);
-                var allowedCat = { '实况':1,'攻略':1,'评测':1,'剧情解说':1,'游戏史':1,'角色分析':1,'资讯':1,'游戏日常':1,'剧情杂谈':1,'游戏杂谈':1 };
-                var subList = (Array.isArray(b.subCategories) ? b.subCategories : []).filter(function (t) { return allowedCat[t]; });
-                var tagsList = (Array.isArray(b.tags) ? b.tags : []).filter(function (t) { return allowedCat[t]; });
+                var subList = (Array.isArray(b.subCategories) ? b.subCategories : []).filter(function (t) { return ALLOWED_CAT[t]; });
+                var tagsList = (Array.isArray(b.tags) ? b.tags : []).filter(function (t) { return ALLOWED_CAT[t]; });
                 tagsList.forEach(function (t) { if (subList.indexOf(t) < 0) subList.push(t); });
                 subList = subList.map(function (t) { return t === '剧情杂谈' ? '剧情解说' : t; });
-                var mainCat = allowedCat[b.mainCategory] ? (b.mainCategory === '剧情杂谈' ? '剧情解说' : b.mainCategory) : (subList[0] || '');
+                var mainCat = ALLOWED_CAT[b.mainCategory] ? (b.mainCategory === '剧情杂谈' ? '剧情解说' : b.mainCategory) : (subList[0] || '');
                 var contentTypes = (Array.isArray(b.contentTypes) ? b.contentTypes : []).filter(function (t) {
                     return t === '直播' || t === '视频' || t === '图文';
                 });
@@ -793,11 +883,12 @@
                 renderVideosList();
             });
 
-            document.getElementById('searchInput').addEventListener('input', function () {
-                keyword = this.value.trim().toLowerCase();
+            var searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce(function () {
+                keyword = searchInput.value.trim().toLowerCase();
                 currentPage = 1;
                 renderVideosList();
-            });
+            }, 200));
 
             function matchBlogger(b) {
                 if (keyword) {
@@ -848,7 +939,6 @@
                         catHtml += '<span class="bc-tag bc-tag-sub">' + esc(t) + '</span>';
                     });
                     // 2) 内容形式 chip（后置，略小层级）
-                    var ALLOWED_CT = { '直播': 1, '视频': 1, '图文': 1 };
                     (b.contentTypes || []).filter(function (t) { return ALLOWED_CT[t]; }).slice(0, 2).forEach(function (t) {
                         catHtml += '<span class="bc-tag ct-chip content-type-meta ct-' + esc(t) + '">' + esc(t) + '</span>';
                     });
@@ -859,7 +949,7 @@
                     });
 
                     // 收录卡片只保留：头像、名字、分类/形式标签、关键词（不再显示代表作）
-                    html += '<div class="blogger-card" data-blogger-id="' + esc(b.id) + '" style="animation-delay:' + (idx * 0.05) + 's">' +
+                    html += '<div class="blogger-card" data-blogger-id="' + esc(b.id) + '">' +
                         avatarHtml(b, 'bc-avatar') +
                         '<div class="bc-body">' +
                             '<div class="bc-name">' + esc(b.name) + '</div>' +
@@ -876,19 +966,6 @@
                 document.getElementById('videosContent').innerHTML = html;
 
                 renderPagination(totalPages, list.length);
-
-                document.querySelectorAll('.blogger-card').forEach(function (card) {
-                    card.addEventListener('click', function (e) {
-                        if (e.target.tagName === 'A') return;
-                        var bloggerId = card.getAttribute('data-blogger-id');
-                        var blogger = bloggers.find(function (b) { return b.id === bloggerId; });
-                        if (blogger) {
-                            selectBlogger(blogger);
-                            document.querySelectorAll('.blogger-card.selected').forEach(function (c) { c.classList.remove('selected'); });
-                            card.classList.add('selected');
-                        }
-                    });
-                });
             }
 
             function renderPagination(totalPages, totalItems) {
@@ -952,7 +1029,6 @@
                     tagsHtml += '<span class="mini-tag">' + esc(t) + '</span>';
                 });
 
-                var ALLOWED_CT = { '直播': 1, '视频': 1, '图文': 1 };
                 var contentTypesHtml = (b.contentTypes || []).filter(function (t) { return ALLOWED_CT[t]; }).map(function (t) {
                     return '<span class="mini-tag ct content-type-meta ct-' + esc(t) + '">' + esc(t) + '</span>';
                 }).join('');
@@ -965,6 +1041,7 @@
                 // 详情页：头像 + 用户名放在同一行（同一圆角区），平台徽章在名下；
                 // 内容形式 / 内容分类 / 关键词恢复为独立 section 排版（用户要求撤回头部紧凑版）
                 document.getElementById('bloggerInfoContent').innerHTML =
+                    '<button class="mobile-close-btn" id="mobileCloseBtn">✕</button>' +
                     '<div class="blogger-header">' +
                         avatarHtml(b, 'blogger-avatar') +
                         '<div class="blogger-info">' +
@@ -983,9 +1060,16 @@
                     '<div class="section-title">去看她的频道</div>' +
                     '<div class="link-btns">' + platformsHtml + '</div>';
 
-                document.getElementById('bloggerInfoContent').style.animation = 'none';
-                document.getElementById('bloggerInfoContent').offsetHeight;
-                document.getElementById('bloggerInfoContent').style.animation = 'fadeInUp 0.4s ease forwards';
+                var infoEl = document.getElementById('bloggerInfoContent');
+                infoEl.style.animation = 'none';
+                requestAnimationFrame(function () {
+                    infoEl.style.animation = 'fadeInUp 0.4s ease forwards';
+                });
+
+                var closeBtn = document.getElementById('mobileCloseBtn');
+                if (closeBtn) {
+                    closeBtn.onclick = function () { hideMobileDetail(); };
+                }
             }
 
             renderVideosList();
@@ -995,19 +1079,20 @@
                 var b = bloggers.find(function (x) { return x.id === id; });
                 if (!b) return false;
                 /* 若当前筛选条件下不可见，先重置筛选 */
-                var visible = filterAndSortBloggers().indexOf(b) >= 0;
+                var sorted = filterAndSortBloggers();
+                var visible = sorted.indexOf(b) >= 0;
                 if (!visible) {
                     activeTag = '全部';
                     keyword = '';
                     currentPage = 1;
                     document.getElementById('searchInput').value = '';
-                    document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+                    document.querySelector('.filter-chip.active') && document.querySelector('.filter-chip.active').classList.remove('active');
                     var allChip = document.querySelector('.filter-chip[data-tag="全部"]');
                     if (allChip) allChip.classList.add('active');
                     renderVideosList();
+                    sorted = filterAndSortBloggers();
                 }
                 /* 翻到该博主所在的页 */
-                var sorted = filterAndSortBloggers();
                 var pos = sorted.indexOf(b);
                 if (pos >= 0) {
                     var targetPage = Math.floor(pos / pageSize) + 1;
@@ -1021,9 +1106,13 @@
                 var card = document.querySelector('.blogger-card[data-blogger-id="' + id + '"]');
                 if (card) {
                     card.classList.add('selected');
-                    setTimeout(function () {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 80);
+                    if (isMobile()) {
+                        showMobileDetail();
+                    } else {
+                        setTimeout(function () {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 80);
+                    }
                 }
                 return true;
             }
@@ -1035,7 +1124,7 @@
                     var id = decodeURIComponent(match[1]);
                     if (selectBloggerById(id)) return;
                 }
-                if (bloggers.length > 0) {
+                if (!isMobile() && bloggers.length > 0) {
                     var firstBlogger = bloggers[0];
                     if (firstBlogger) {
                         selectBlogger(firstBlogger);
@@ -1053,6 +1142,8 @@
                 if (match) {
                     var id = decodeURIComponent(match[1]);
                     selectBloggerById(id);
+                } else {
+                    hideMobileDetail();
                 }
             });
 
@@ -1063,12 +1154,10 @@
                 if (supabaseClient !== null || !SUPABASE_ENABLED || t >= 30) { cb(); return; }
                 setTimeout(function () { waitSupabaseReady(cb, t + 1); }, 100);
             }
-            renderVideosList(); // 先立即渲染一次（可能为空），避免用户打开看到白屏
             waitSupabaseReady(function () {
                 loadFromCloud().then(function () {
                     renderVideosList();
                     applyHashAndSelect();
-                    console.log('[Bloggers] 最终加载数量:', bloggers.length);
                     if (bloggers.length === 0 && SUPABASE_ENABLED) {
                         var status = document.createElement('div');
                         status.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 16px;border-radius:10px;background:#fff4e5;color:#8a5a00;border:1px solid #e9c668;font-size:0.8rem;box-shadow:0 4px 12px rgba(0,0,0,0.08);';
