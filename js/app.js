@@ -7,10 +7,10 @@
             const SUPABASE_URL = 'https://tydbvpmigvzsnlmsjuby.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZGJ2cG1pZ3Z6c25sbXNqdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjkwMTIsImV4cCI6MjA5NzMwNTAxMn0.AyMX8M24S3biHmmE2DMEPk9Ti93w0VHooQl5ox5YL2g';
             const SUPABASE_ENABLED = SUPABASE_URL.includes('supabase.co') && SUPABASE_ANON_KEY.length > 10;
-            const DEFAULT_GENRE_OPTIONS = ['丧尸', '悬疑/推理', '恐怖/生存恐怖', '乙女/女性向', '后末日', '百合', '权谋', '魔法', '偶像/娱乐圈',
+            const DEFAULT_GENRE_OPTIONS = ['丧尸', '悬疑/推理', '恐怖/生存恐怖', '乙女/女性向', '后末日', 'GL', '权谋', '魔法', '偶像/娱乐圈',
                 '日常/生活', '校园', '职场', '战争/军事', '犯罪/黑帮', '体育', '艺术/音乐', '烹饪', '动物', '童话/寓言', '神话', '机械生物',
                 '蒸汽朋克', '赛博朋克', '奇幻', '古代', '现代', '黑暗', '超现实', '自然环境', '民间传说', '寻宝', '西幻', '科幻', '宗教',
-                '和风', '复仇', '侠盗', '心理', '狩猎', '惊悚', '中世纪', '医疗模拟', '历史', '钓鱼', '西部', '心理恐怖', '唯美', '克苏鲁',
+                '和风', '复仇', '侠盗', '心理', '狩猎', '惊悚', '中世纪', '医疗模拟', '历史', '钓鱼', '西部', '心理恐怖', '唯美',
                 '治愈', '氛围', '古希腊', '喜剧', '洛夫克拉夫特式', '密室逃脱', '探险', '黑色幽默', '公路', 'LGBTQ+', '灵异', '机甲',
                 '吸血鬼', '青春', '医院', '超英', '反乌托邦', '龙', '手绘风', '经营', '迷幻'
             ];
@@ -87,10 +87,10 @@
                 { id: 'soc_reply_200',   category: '社交互动', name: '社区之心', tier: 'diamond', icon: '🫂', cond: { type: 'repliesSent', value: 200 },  desc: '发送 200 条回复' },
 
                 // ========== 四、游戏类型头衔（6 类 × 3 = 18）==========
-                // 百合题材
-                { id: 'type_yuri_5',    category: '游戏类型', name: '初识百合', tier: 'bronze', icon: '🌸', cond: { type: 'genreReviews', genre: '百合', value: 5 },   desc: '5 条百合题材评论' },
-                { id: 'type_yuri_20',   category: '游戏类型', name: '百合园丁', tier: 'silver', icon: '💕', cond: { type: 'genreReviews', genre: '百合', value: 20 },  desc: '20 条百合题材评论' },
-                { id: 'type_yuri_50',   category: '游戏类型', name: '百合知音', tier: 'gold',   icon: '🐡', cond: { type: 'genreReviews', genre: '百合', value: 50 },  desc: '50 条百合题材评论' },
+                // GL题材（头衔显示文字保留「百合」，仅解锁条件 genre 使用新分类名 GL）
+                { id: 'type_yuri_5',    category: '游戏类型', name: '初识百合', tier: 'bronze', icon: '🌸', cond: { type: 'genreReviews', genre: 'GL', value: 5 },   desc: '5 条百合题材评论' },
+                { id: 'type_yuri_20',   category: '游戏类型', name: '百合园丁', tier: 'silver', icon: '💕', cond: { type: 'genreReviews', genre: 'GL', value: 20 },  desc: '20 条百合题材评论' },
+                { id: 'type_yuri_50',   category: '游戏类型', name: '百合知音', tier: 'gold',   icon: '🐡', cond: { type: 'genreReviews', genre: 'GL', value: 50 },  desc: '50 条百合题材评论' },
                 // 动作玩法
                 { id: 'type_action_5',  category: '游戏类型', name: '初执利刃', tier: 'bronze', icon: '⚔️', cond: { type: 'gameplayReviews', gameplay: '动作', value: 5 },   desc: '5 条动作玩法评论' },
                 { id: 'type_action_20', category: '游戏类型', name: '动作好手', tier: 'silver', icon: '🔥', cond: { type: 'gameplayReviews', gameplay: '动作', value: 20 },  desc: '20 条动作玩法评论' },
@@ -163,6 +163,8 @@
                 } catch (e) { supabaseClient = null; }
                 // 后台静默迁移本地回复数据到云端（仅执行一次）；延迟执行，避免与首屏数据加载竞争网络
                 setTimeout(() => migrateLocalRepliesToCloud().catch(e => console.warn('[Migration] 异常:', e)), 3000);
+                // 分类名迁移：百合 -> GL（同步 games 表 genre 数组中的旧值，以及自定义标签）
+                setTimeout(() => migrateGenreLilyToGL().catch(e => console.warn('[Migration Lily→GL] 异常:', e)), 4000);
             }
 
             let games = [];
@@ -698,6 +700,24 @@
                 return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/`/g, '&#96;');
             }
 
+            // 分类名归一化：把旧分类「百合」统一转为新分类名「GL」
+            //   作用范围：游戏 genre 数组、自定义标签缓存、用户筛选条件等所有进入前端内存的"百合"标签
+            function normalizeGenreLily(list) {
+                if (!Array.isArray(list)) return list;
+                return list.map(function (t) { return t === '百合' ? 'GL' : t; });
+            }
+            // 对整个 games 数组做一次性归一化（百合→GL、id 类型等）
+            function normalizeGamesArray(arr) {
+                if (!Array.isArray(arr)) return [];
+                return arr.map(function (g) {
+                    const ng = Object.assign({}, g);
+                    ng.id = Number(ng.id);
+                    if (Array.isArray(ng.genre)) ng.genre = normalizeGenreLily(ng.genre);
+                    if (ng.heroineType === '无性别默认女') ng.heroineType = '无明确性别默认女';
+                    return ng;
+                });
+            }
+
             // ========== 头衔系统工具函数 ==========
             function renderTitleBadge(title, opts) {
                 opts = opts || {};
@@ -1112,16 +1132,22 @@
                     const s = localStorage.getItem('heroineCustomTags');
                     if (s) {
                         const d = JSON.parse(s);
-                        if (d.genres && Array.isArray(d.genres) && d.genres.length) fallbackGenres = d.genres;
+                        if (d.genres && Array.isArray(d.genres) && d.genres.length) fallbackGenres = normalizeGenreLily(d.genres);
                         if (d.gameplays && Array.isArray(d.gameplays) && d.gameplays.length) fallbackGameplays = d.gameplays;
                     }
                 } catch (_) { }
 
                 // 立即使用本地缓存/默认值（不阻塞初始化）
-                customGenres = fallbackGenres.length > 0 ? fallbackGenres : defaultFallbackGenres;
+                customGenres = normalizeGenreLily(fallbackGenres.length > 0 ? fallbackGenres : defaultFallbackGenres);
                 customGameplays = fallbackGameplays.length > 0 ? fallbackGameplays : defaultFallbackGameplays;
                 try {
                     if (!localStorage.getItem('heroineCustomTags')) {
+                        localStorage.setItem('heroineCustomTags', JSON.stringify({
+                            genres: customGenres,
+                            gameplays: customGameplays
+                        }));
+                    } else {
+                        // 已存在的旧缓存：同步把「百合」→「GL」归一化写回
                         localStorage.setItem('heroineCustomTags', JSON.stringify({
                             genres: customGenres,
                             gameplays: customGameplays
@@ -1175,7 +1201,7 @@
                     const genreRecord = data.find(r => r.id === 1);
                     const gameplayRecord = data.find(r => r.id === 2);
                     if (genreRecord && genreRecord.genre && Array.isArray(genreRecord.genre) && genreRecord.genre.length > 0) {
-                        customGenres = genreRecord.genre; changed = true;
+                        customGenres = normalizeGenreLily(genreRecord.genre); changed = true;
                     } else {
                         console.warn('⚠️ 自定义题材标签记录(id=1)缺失或格式异常，使用缓存/默认值');
                     }
@@ -1184,6 +1210,8 @@
                     } else {
                         console.warn('⚠️ 自定义玩法标签记录(id=2)缺失或格式异常，使用缓存/默认值');
                     }
+                    // 从云端读完后也归一化（确保即使数据库仍有旧值，前端内存显示也已是 GL）
+                    customGenres = normalizeGenreLily(customGenres);
                     try {
                         localStorage.setItem('heroineCustomTags', JSON.stringify({
                             genres: customGenres,
@@ -1206,7 +1234,7 @@
             function saveCustomTagsToStorage() {
                 customGenres = customGenres.filter(tag => !DEFAULT_GENRE_OPTIONS.includes(tag));
                 customGameplays = customGameplays.filter(tag => !DEFAULT_GAMEPLAY_OPTIONS.includes(tag));
-                customGenres = [...new Set(customGenres)];
+                customGenres = normalizeGenreLily([...new Set(customGenres)]);
                 customGameplays = [...new Set(customGameplays)];
                 localStorage.setItem('heroineCustomTags', JSON.stringify({ genres: customGenres, gameplays: customGameplays }));
                 if (supabaseClient) {
@@ -2876,11 +2904,7 @@
                 if (local) {
                     try {
                         const parsed = JSON.parse(local);
-                        games = parsed.map(g => ({
-                            ...g,
-                            id: Number(g.id),
-                            heroineType: g.heroineType === '无性别默认女' ? '无明确性别默认女' : (g.heroineType || '')
-                        }));
+                        games = normalizeGamesArray(parsed);
                         games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
                         if (currentView === 'series') renderSeriesView(); else renderGallery(); // 立即渲染缓存数据
                     } catch (_) { games = []; }
@@ -2906,7 +2930,8 @@
             async function refreshGamesFromCloud() {
                 const freshData = await loadFromSupabase();
                 if (freshData && freshData.length > 0) {
-                    games = freshData;
+                    games = normalizeGamesArray(freshData);
+                    games = games.filter(g => Number(g.id) !== 1 && Number(g.id) !== 2);
                     try {
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
                         localStorage.setItem(SYNC_META_KEY, String(Date.now()));
@@ -2935,7 +2960,7 @@
                         showAdultContent = d.contentSettings?.showAdultContent === true;
                         const savedExcluded = d.contentSettings?.excludedTags || {};
                         excludedTags = {
-                            genre: Array.isArray(savedExcluded.genre) ? savedExcluded.genre : [],
+                            genre: normalizeGenreLily(Array.isArray(savedExcluded.genre) ? savedExcluded.genre : []),
                             gameplay: Array.isArray(savedExcluded.gameplay) ? savedExcluded.gameplay : [],
                             platforms: Array.isArray(savedExcluded.platforms) ? savedExcluded.platforms : [],
                             heroineType: Array.isArray(savedExcluded.heroineType) ? savedExcluded.heroineType : [],
@@ -5149,6 +5174,47 @@
                         `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
                 }
 
+                // —— 图片 CORS 兜底：尝试将 wrapper 内所有跨域 <img> 转成 dataURL ——
+                //   成功则 html2canvas 能直接渲染（同源 dataURL）
+                //   失败则保留原节点，后续 captureShareCard 会进一步降级为同尺寸占位色块
+                try {
+                    const imgList = wrapper.querySelectorAll('img');
+                    const convertTasks = [];
+                    imgList.forEach(function (imgEl) {
+                        const rawSrc = imgEl.getAttribute('src') || '';
+                        if (!rawSrc || rawSrc.startsWith('data:') || rawSrc.startsWith('blob:')) return;
+                        let isCrossOrigin = true;
+                        try {
+                            const u = new URL(rawSrc, window.location.href);
+                            if (u.origin === window.location.origin) isCrossOrigin = false;
+                        } catch (_) { /* ignore */ }
+                        if (!isCrossOrigin) return;
+                        convertTasks.push((async function () {
+                            try {
+                                const resp = await fetch(rawSrc, {
+                                    mode: 'cors',
+                                    credentials: 'omit',
+                                    cache: 'no-store',
+                                    redirect: 'follow'
+                                });
+                                if (!resp.ok) return;
+                                const blob = await resp.blob();
+                                const dataUrl = await new Promise(function (resolve, reject) {
+                                    const reader = new FileReader();
+                                    reader.onload = function () { resolve(reader.result); };
+                                    reader.onerror = function () { reject(reader.error); };
+                                    reader.readAsDataURL(blob);
+                                });
+                                imgEl.removeAttribute('crossOrigin');
+                                imgEl.src = dataUrl;
+                            } catch (_) { /* 失败不中断流程，交给后续兜底 */ }
+                        })());
+                    });
+                    if (convertTasks.length > 0) {
+                        await Promise.all(convertTasks);
+                    }
+                } catch (_) { /* 整体异常忽略，不影响分享主流程 */ }
+
                 return wrapper;
             }
 
@@ -5169,17 +5235,76 @@
                     const html2canvasLib = await window._loadHtml2Canvas();
                     const actualWidth = wrapper.offsetWidth || 400;
                     const isMobile = window.innerWidth <= 768 || isTouchDevice;
-                    const renderPromise = html2canvasLib(wrapper, {
+
+                    // 分享卡 DOM 预处理：移除/降级所有可能导致 canvas 跨域污染的 <img>
+                    //   html2canvas useCORS=true 要求图片服务端返回 CORS 头，Steam CDN 等场景经常不支持
+                    //   allowTaint=true 虽能"画上去"但会污染 canvas，导致 toDataURL() 抛 SecurityError
+                    wrapper.querySelectorAll('img').forEach(function (imgEl) {
+                        const src = (imgEl.src || '').toLowerCase();
+                        if (!src) return;
+                        // 1. data/blob 协议图片：安全，无需处理
+                        if (src.startsWith('data:') || src.startsWith('blob:')) return;
+                        // 2. 同源图片：安全，无需处理
+                        try {
+                            const u = new URL(imgEl.src, window.location.href);
+                            if (u.origin === window.location.origin) return;
+                        } catch (_) { /* ignore */ }
+                        // 3. 跨域图片：替换为占位背景色，保留尺寸信息，避免 canvas 污染
+                        const pw = imgEl.offsetWidth || imgEl.width || 100;
+                        const ph = imgEl.offsetHeight || imgEl.height || 100;
+                        const bgColor = window.getComputedStyle(imgEl.parentNode || imgEl).backgroundColor || '#e8e2ee';
+                        const phNode = document.createElement('div');
+                        phNode.style.cssText =
+                            `width:${pw}px;height:${ph}px;background:${bgColor};display:${imgEl.style.display === 'none' ? 'none' : 'block'};flex-shrink:0;object-fit:cover;box-sizing:border-box;`;
+                        if (imgEl.parentNode) imgEl.parentNode.replaceChild(phNode, imgEl);
+                    });
+
+                    const html2canvasOpts = {
                         scale: isMobile ? 2 : 2.5,
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff',
-                        allowTaint: true,
+                        allowTaint: false,
                         foreignObjectRendering: false,
                         width: actualWidth,
-                        height: wrapper.scrollHeight,
-                    });
-                    const canvas = await Promise.race([renderPromise, timeoutPromise]);
+                        height: wrapper.scrollHeight || wrapper.offsetHeight,
+                        windowWidth: actualWidth + 200,
+                        windowHeight: (wrapper.scrollHeight || wrapper.offsetHeight) + 200,
+                        ignoreElements: function (el) {
+                            // 忽略隐藏元素，减少渲染异常
+                            const style = window.getComputedStyle(el);
+                            return style && (style.display === 'none' || style.visibility === 'hidden');
+                        }
+                    };
+
+                    let canvas;
+                    try {
+                        // 首次尝试：严格 CORS 模式
+                        const renderPromise = html2canvasLib(wrapper, html2canvasOpts);
+                        canvas = await Promise.race([renderPromise, timeoutPromise]);
+                    } catch (firstErr) {
+                        clearTimeout(timeoutId);
+                        console.warn('[Share] 首次截图失败（CORS），使用宽松配置重试:', firstErr.message);
+                        // 重试：放宽选项，移除剩余可能出问题的 img / canvas 元素
+                        wrapper.querySelectorAll('img, canvas, svg image').forEach(function (el) {
+                            if (el.parentNode) {
+                                const phNode = document.createElement('div');
+                                phNode.style.cssText =
+                                    `width:${el.offsetWidth || 100}px;height:${el.offsetHeight || 100}px;background:#e8e2ee;display:block;flex-shrink:0;`;
+                                el.parentNode.replaceChild(phNode, el);
+                            }
+                        });
+                        const retryTimeoutPromise = new Promise(function (_, reject) {
+                            timeoutId = setTimeout(function () { reject(new Error('重试截图生成超时')); }, timeoutMs);
+                        });
+                        const retryOpts = Object.assign({}, html2canvasOpts, {
+                            useCORS: false,
+                            allowTaint: false,
+                            backgroundColor: '#ffffff'
+                        });
+                        const retryPromise = html2canvasLib(wrapper, retryOpts);
+                        canvas = await Promise.race([retryPromise, retryTimeoutPromise]);
+                    }
                     clearTimeout(timeoutId);
                     return canvas.toDataURL('image/png');
                 } catch (err) {
@@ -8892,6 +9017,88 @@
                 // 标记迁移完成（即使部分失败也标记，避免重复尝试导致冲突）
                 localStorage.setItem(MIGRATION_FLAG_KEY, 'done');
                 console.log('[Migration] 迁移流程结束');
+            }
+
+            // ===== 分类名迁移：百合 → GL =====
+            // 更新 Supabase games 表中所有 genre 数组含「百合」的行 → 替换为「GL」
+            // 同时同步自定义标签缓存行 (id=1) 和 localStorage
+            async function migrateGenreLilyToGL() {
+                if (!supabaseClient) return;
+                const MIGRATION_FLAG_KEY = 'heroine_genre_lily_to_gl_v1';
+                if (localStorage.getItem(MIGRATION_FLAG_KEY)) return;
+
+                console.log('[Migration Lily→GL] 开始迁移分类名「百合」→「GL」...');
+                let updatedCount = 0;
+
+                try {
+                    // 1. 查找所有 genre 包含「百合」的游戏（不排除 id=1,2 因为也要同步自定义标签缓存）
+                    //   Supabase 数组包含查询：genre @> ARRAY['百合']::text[]
+                    const PAGE_SIZE = 100;
+                    let offset = 0;
+                    let hasMore = true;
+                    const rowsToUpdate = [];
+
+                    while (hasMore) {
+                        const { data, error } = await supabaseClient
+                            .from('games')
+                            .select('id, genre, gameplay, selected_tags')
+                            .contains('genre', ['百合'])
+                            .order('id', { ascending: true })
+                            .range(offset, offset + PAGE_SIZE - 1);
+                        if (error) throw error;
+                        if (data && data.length > 0) {
+                            rowsToUpdate.push(...data);
+                            offset += PAGE_SIZE;
+                        } else {
+                            hasMore = false;
+                        }
+                        if (!data || data.length < PAGE_SIZE) hasMore = false;
+                    }
+
+                    console.log(`[Migration Lily→GL] 找到 ${rowsToUpdate.length} 条含「百合」分类的记录`);
+
+                    // 2. 逐条更新 genre 数组（Supabase 对 text[] 没有 in-place 替换 API，用 upsert 逐行写入）
+                    for (const row of rowsToUpdate) {
+                        const newGenre = (row.genre || []).map(t => t === '百合' ? 'GL' : t);
+                        const payload = { genre: newGenre };
+                        const { error } = await supabaseClient
+                            .from('games')
+                            .update(payload)
+                            .eq('id', row.id);
+                        if (error) {
+                            console.warn(`[Migration Lily→GL] 更新失败 id=${row.id}:`, error.message);
+                        } else {
+                            updatedCount++;
+                        }
+                    }
+
+                    // 3. 同步 localStorage 自定义标签
+                    try {
+                        const raw = localStorage.getItem('heroineCustomTags');
+                        if (raw) {
+                            const obj = JSON.parse(raw);
+                            if (Array.isArray(obj.genres)) {
+                                obj.genres = obj.genres.map(t => t === '百合' ? 'GL' : t);
+                            }
+                            localStorage.setItem('heroineCustomTags', JSON.stringify(obj));
+                        }
+                    } catch (_) { /* ignore */ }
+
+                    // 4. 同步内存中的 customGenres 和 games
+                    customGenres = customGenres.map(t => t === '百合' ? 'GL' : t);
+                    games.forEach(g => {
+                        if (Array.isArray(g.genre)) {
+                            g.genre = g.genre.map(t => t === '百合' ? 'GL' : t);
+                        }
+                    });
+
+                    console.log(`[Migration Lily→GL] 完成，成功更新 ${updatedCount} 条记录`);
+                } catch (e) {
+                    console.warn('[Migration Lily→GL] 异常:', e.message || e);
+                } finally {
+                    // 标记迁移完成（即使部分失败也标记，避免每次打开都反复查库）
+                    localStorage.setItem(MIGRATION_FLAG_KEY, 'done');
+                }
             }
 
             // ===== MOD评论回复和点赞功能（本地存储） =====
