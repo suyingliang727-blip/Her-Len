@@ -4645,7 +4645,8 @@
         #shareFloatOverlay {
             position: fixed;
             inset: 0;
-            z-index: 2200;
+            /* 详情页 .modal-overlay 为 100000；分享浮层必须盖住它才能看到图 */
+            z-index: 200000;
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
