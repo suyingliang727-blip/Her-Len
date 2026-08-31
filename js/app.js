@@ -4969,6 +4969,10 @@
                             avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;';
                             avImg.crossOrigin = 'anonymous';
                             avImg.referrerPolicy = 'no-referrer';
+                            // ⚠️ 给头像 img 打角色标签，便于后续 CORS 转换失败后做「设计级占位」替换
+                            //   data-owner: 用户名（字符串 hash 出稳定 Pastel 配色 + 取首字母）
+                            avImg.setAttribute('data-role', 'avatar');
+                            avImg.setAttribute('data-owner', safeDisplayName(reviewer.displayName));
                             avImg.onerror = function () { this.style.display = 'none'; };
                             avatarWrap.appendChild(avImg);
                         } else {
@@ -5026,6 +5030,10 @@
                     img.src = game.cover;
                     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
                     img.crossOrigin = 'anonymous';
+                    // ⚠️ 打角色标签：封面转换失败时按女主类型做渐变+大字标题占位
+                    img.setAttribute('data-role', 'cover');
+                    img.setAttribute('data-game-title', game && game.title || '');
+                    img.setAttribute('data-heroine-type', game && game.heroineType || '');
                     coverWrap.appendChild(img);
                 } else {
                     const ph = document.createElement('div');
@@ -5149,8 +5157,9 @@
 
                 wrapper.appendChild(footer);
 
-                // 生成二维码
-                const shareUrl = window.location.origin + window.location.pathname + '?game=' + game.id;
+                // 生成二维码（兼容 file:// 协议：location.origin 在 file:// 下返回 'null'，改用 href 纯拼接）
+                const shareUrlBase = window.location.href.split('#')[0].split('?')[0];
+                const shareUrl = shareUrlBase + '?game=' + (game && game.id || '');
                 const qrEl = qrContainer;
                 try {
                     const QRCodeLib = await window._loadQRCode();
@@ -5174,11 +5183,13 @@
                         `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
                 }
 
-                // —— 图片 CORS 兜底：尝试将 wrapper 内所有跨域 <img> 转成 dataURL ——
-                //   成功则 html2canvas 能直接渲染（同源 dataURL）
-                //   失败则保留原节点，后续 captureShareCard 会进一步降级为同尺寸占位色块
+            // —— 图片 CORS 兜底：尝试将 wrapper 内所有跨域 <img> 转成 dataURL ——
+                //   三级策略：1) 直连 CORS fetch → 2) corsproxy.io 代理 → 3) 保留原节点给后续 onclone/native canvas 兜底
+                console.info('[Share Step 2/6] buildShareCardDOM：跨域图片转 dataURL（含代理兜底）...');
                 try {
                     const imgList = wrapper.querySelectorAll('img');
+                    const PROXY = 'https://corsproxy.io/?';
+                    const CONVERT_TIMEOUT_MS = 9000;
                     const convertTasks = [];
                     imgList.forEach(function (imgEl) {
                         const rawSrc = imgEl.getAttribute('src') || '';
@@ -5191,132 +5202,1095 @@
                         if (!isCrossOrigin) return;
                         convertTasks.push((async function () {
                             try {
-                                const resp = await fetch(rawSrc, {
-                                    mode: 'cors',
-                                    credentials: 'omit',
-                                    cache: 'no-store',
-                                    redirect: 'follow'
-                                });
-                                if (!resp.ok) return;
-                                const blob = await resp.blob();
-                                const dataUrl = await new Promise(function (resolve, reject) {
-                                    const reader = new FileReader();
-                                    reader.onload = function () { resolve(reader.result); };
-                                    reader.onerror = function () { reject(reader.error); };
-                                    reader.readAsDataURL(blob);
-                                });
-                                imgEl.removeAttribute('crossOrigin');
-                                imgEl.src = dataUrl;
-                            } catch (_) { /* 失败不中断流程，交给后续兜底 */ }
+                                // ---- Level 1：直连 CORS fetch ----
+                                let dataUrl = null;
+                                try {
+                                    const t1 = new Promise(function (_, rj) { setTimeout(() => rj(new Error('timeout-l1')), CONVERT_TIMEOUT_MS); });
+                                    const f1 = (async function () {
+                                        const resp = await fetch(rawSrc, { mode: 'cors', credentials: 'omit', cache: 'no-store', redirect: 'follow' });
+                                        if (!resp.ok) throw new Error('http-' + resp.status);
+                                        const blob = await resp.blob();
+                                        return await new Promise(function (res, rej) {
+                                            const rd = new FileReader();
+                                            rd.onload = function () { res(rd.result); };
+                                            rd.onerror = function () { rej(rd.error); };
+                                            rd.readAsDataURL(blob);
+                                        });
+                                    })();
+                                    dataUrl = await Promise.race([f1, t1]);
+                                } catch (_l1err) {
+                                    // ---- Level 2：corsproxy.io 代理兜底（仅 http(s) 外链适用）----
+                                    try {
+                                        if (!/^https?:/i.test(rawSrc)) throw new Error('not-http-url');
+                                        const proxied = PROXY + encodeURIComponent(rawSrc);
+                                        const t2 = new Promise(function (_, rj) { setTimeout(() => rj(new Error('timeout-l2')), CONVERT_TIMEOUT_MS); });
+                                        const f2 = (async function () {
+                                            const resp = await fetch(proxied, { mode: 'cors', credentials: 'omit', cache: 'no-store', redirect: 'follow' });
+                                            if (!resp.ok) throw new Error('http-' + resp.status);
+                                            const blob = await resp.blob();
+                                            return await new Promise(function (res, rej) {
+                                                const rd = new FileReader();
+                                                rd.onload = function () { res(rd.result); };
+                                                rd.onerror = function () { rej(rd.error); };
+                                                rd.readAsDataURL(blob);
+                                            });
+                                        })();
+                                        dataUrl = await Promise.race([f2, t2]);
+                                    } catch (_l2err) { /* 代理也失败，交给后续占位降级 */ }
+                                }
+                                if (dataUrl) {
+                                    imgEl.removeAttribute('crossOrigin');
+                                    imgEl.src = dataUrl;
+                                }
+                            } catch (_) { /* 整体异常不中断 */ }
                         })());
                     });
-                    if (convertTasks.length > 0) {
-                        await Promise.all(convertTasks);
-                    }
+                    if (convertTasks.length > 0) await Promise.all(convertTasks);
                 } catch (_) { /* 整体异常忽略，不影响分享主流程 */ }
 
+                // —— 第三遍：CORS + 代理双失败仍然残留的跨域 <img>
+                //   ⚠️ 这一步是解决「真实头像/封面依然不显示」的核心：
+                //     如果走到这里（仍然有外链 img），说明：
+                //       ① Steam CDN 没有 CORS 响应头 + corsproxy.io 也失败
+                //       ② Supabase 存储 public bucket 在某些环境/协议下被浏览器判定跨域且 fetch 失败
+                //       ③ file:// 协议跨域 fetch 被 CSP 拦截
+                //   以前的代码：html2canvas 的 onclone 会把这些 img「直接替换为 #e8e2ee 平色块」→ 用户看到「头像/封面没显示」
+                //   现在的修复：按 data-role 做「设计级 DOM 占位」，和 Native Canvas 视觉 100% 拉齐。
+                try {
+                    const leftoverImgs = wrapper.querySelectorAll('img[src]');
+                    leftoverImgs.forEach(function (imgEl) {
+                        const src = imgEl.getAttribute('src') || '';
+                        if (!src || src.startsWith('data:') || src.startsWith('blob:')) return;
+                        let isCrossOrigin = true;
+                        try { const u = new URL(src, window.location.href); if (u.origin === window.location.origin) isCrossOrigin = false; } catch (_) { /* ignore */ }
+                        if (!isCrossOrigin) return; // 同源 img：交给浏览器自己渲染（404 只算浏览器端问题）
+
+                        const parent = imgEl.parentNode;
+                        const role = imgEl.getAttribute('data-role') || '';
+                        // 尺寸优先取图片实际 offset，否则取父容器宽高（头像圆/封面 wrap 一定有尺寸）
+                        const w = Math.round(imgEl.offsetWidth || imgEl.clientWidth || (parent && parent.clientWidth) || 120);
+                        const h = Math.round(imgEl.offsetHeight || imgEl.clientHeight || (parent && parent.clientHeight) || 60);
+                        const placeholder = document.createElement('div');
+
+                        if (role === 'avatar') {
+                            // —— A 评论者头像：Gmail 默认头像风格（Pastel 圆 + 首字母粗字） ——
+                            const ownerName = (imgEl.getAttribute('data-owner') || '?').trim();
+                            const first = ownerName.charAt(0) || '?';
+                            // 字符串稳定 hash → 8 套 Pastel 配色（与 native canvas pastelColorFromText 一致）
+                            const pals = [
+                                { bg: '#ffe0ec', fg: '#a83a6e' }, { bg: '#e0f0ff', fg: '#2e5fa8' },
+                                { bg: '#e6f9e3', fg: '#2c8047' }, { bg: '#fff1da', fg: '#a4661a' },
+                                { bg: '#f1e3ff', fg: '#6b3eaa' }, { bg: '#ffe7d1', fg: '#b5591a' },
+                                { bg: '#dff5f5', fg: '#1f7a7a' }, { bg: '#fbe1e1', fg: '#a93838' }
+                            ];
+                            let hh = 0;
+                            for (let i = 0; i < ownerName.length; i++) hh = (((hh << 5) - hh) + ownerName.charCodeAt(i)) | 0;
+                            hh = Math.abs(hh);
+                            const pal = pals[hh % pals.length];
+                            const fs = Math.max(10, Math.round(Math.min(w, h) * 0.47));
+                            placeholder.style.cssText = [
+                                `width:${w}px;height:${h}px;border-radius:50%`,
+                                `background:${pal.bg}`,
+                                `color:${pal.fg}`,
+                                `font:700 ${fs}px "PingFang SC","Microsoft YaHei","Segoe UI",sans-serif`,
+                                `display:flex;align-items:center;justify-content:center`,
+                                `letter-spacing:0;text-align:center;flex-shrink:0`,
+                                `box-sizing:border-box;line-height:1`
+                            ].join(';');
+                            placeholder.textContent = first;
+                        } else if (role === 'cover') {
+                            // —— B 游戏封面：女主色系渐变 + GL 水印 + 斜条装饰 + 大字游戏标题 ——
+                            const title = imgEl.getAttribute('data-game-title') || '';
+                            const hType = imgEl.getAttribute('data-heroine-type') || '';
+                            const gradPresets = {
+                                '固定女主': ['#e5d4f5', '#b69bd9'], '可选女主': ['#dfe9f8', '#9cb7df'],
+                                '无明确性别默认女': ['#e2eee0', '#9cc09b'], '机械生物': ['#e0e8f0', '#93a7bf'],
+                                '魔物': ['#f3e1d2', '#c99a75'], '女儿': ['#ffe1e9', '#d98ea3'],
+                                '无主角': ['#eceff4', '#b8bfcb']
+                            };
+                            let c1 = '#efe7f7', c2 = '#b7a2d5'; // 通用 fallback：紫 → 深紫（默认女主游戏配色）
+                            const keyHit = Object.keys(gradPresets).find(k => hType.includes(k));
+                            if (keyHit) { c1 = gradPresets[keyHit][0]; c2 = gradPresets[keyHit][1]; }
+                            placeholder.style.cssText = [
+                                `width:${w}px;height:${h}px`,
+                                `background:linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
+                                `position:relative;overflow:hidden`
+                            ].join(';');
+
+                            // 右上「GL」大水印（和 native canvas 完全相同的视觉风格）
+                            const glFont = Math.max(14, Math.round(h * 0.42));
+                            const deco1 = document.createElement('div');
+                            deco1.style.cssText = `position:absolute;right:0;bottom:0;width:140px;height:60%;background:rgba(255,255,255,0.25);transform:skewY(-18deg);transform-origin:bottom right;pointer-events:none;`;
+                            const deco2 = document.createElement('div');
+                            deco2.style.cssText = `position:absolute;right:18px;top:6px;font:800 ${glFont}px "PingFang SC","Microsoft YaHei",sans-serif;color:rgba(255,255,255,0.18);letter-spacing:0;pointer-events:none;`;
+                            deco2.textContent = 'GL';
+                            placeholder.appendChild(deco1);
+                            placeholder.appendChild(deco2);
+
+                            if (title) {
+                                const titleFont = Math.max(14, Math.round(h * 0.33));
+                                const tDiv = document.createElement('div');
+                                tDiv.style.cssText = [
+                                    `position:absolute;left:28px;bottom:20px;right:28px`,
+                                    `color:#ffffff`,
+                                    `font:800 ${titleFont}px/${Math.round(titleFont * 1.05)}px "PingFang SC","Microsoft YaHei",sans-serif`,
+                                    `letter-spacing:0.01em;word-break:break-word`,
+                                    `text-shadow:0 2px 8px rgba(0,0,0,0.35),0 0 1px rgba(0,0,0,0.6)`,
+                                    // 2 行截断 + 省略号（现代浏览器）
+                                    `display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden`,
+                                    `max-height:${Math.round(titleFont * 1.05 * 2)}px`
+                                ].join(';');
+                                tDiv.textContent = title;
+                                placeholder.appendChild(tDiv);
+                            } else {
+                                const fSize = Math.max(12, Math.round(h * 0.13));
+                                const cDiv = document.createElement('div');
+                                cDiv.style.cssText = `position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.78);font:600 ${fSize}px "PingFang SC","Microsoft YaHei",sans-serif;`;
+                                cDiv.textContent = 'Her Lens · 游戏封面';
+                                placeholder.appendChild(cDiv);
+                            }
+                        } else {
+                            // —— 杂项图：平色占位（保持兼容，如二维码容器里的小装饰图等） ——
+                            placeholder.style.cssText = `width:${w}px;height:${h}px;background:#e8e2ee;display:block;box-sizing:border-box;flex-shrink:0;`;
+                        }
+                        if (parent) parent.replaceChild(placeholder, imgEl);
+                    });
+                } catch (_cleanupErr) {
+                    // 降级处理失败不中断分享主流程；最坏情况由 html2canvas onclone 再兜底为平色块
+                    console.warn('[Share] leftover-img 占位清理小异常（不致命）:', _cleanupErr && _cleanupErr.message);
+                }
+
+                // 把已加载的评分信息挂到 wrapper 上，供原生 Canvas fallback 模式复用
+                wrapper.__shareRatingInfo = ratingInfo || null;
                 return wrapper;
             }
 
-            // 快速截图（带超时保护）
-            async function captureShareCard(wrapper) {
-                await new Promise(r => requestAnimationFrame(r));
-                await new Promise(r => setTimeout(r, 50));
+            // =========================================================
+            // 原生 Canvas 2D 直接绘制分享卡片（零 iframe、零 html2canvas 依赖）
+            // 适用场景：file:// 协议打开（html2canvas iframe 被 CSP/unique-origin 拦截）
+            //           或 html2canvas 抛错（Unable to find element in cloned iframe）时 fallback
+            // 视觉与 DOM 版一致：圆角白卡 + 评论区 + 封面占位 + 标题/描述 + 标签 + 评分 + 二维码+品牌
+            // =========================================================
+            async function renderShareCardNativeCanvas(game, extraComment, ratingInfo) {
+                const CARD_W = 400;
+                const SCALE = 2; // @2x 高清导出
+                const FONT_FAMILY = '"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif';
+                const COLOR_BG = '#ffffff';
+                const COLOR_CARD = '#ffffff';
+                const COLOR_COMMENT_BG = '#f8f5fc';
+                const COLOR_COMMENT_BORDER = '#f0ebf5';
+                const COLOR_PRIMARY = '#1e1822';
+                const COLOR_SECONDARY = '#665c72';
+                const COLOR_TERTIARY = '#8c8099';
+                const COLOR_ACCENT = '#9b8abd';
+                const COLOR_ACCENT_DARK = '#4a3a66';
+                const COLOR_PLACEHOLDER = '#e8e2ee';
+                const COLOR_TAG_BG = '#f0ebf5';
+                const COLOR_TAG_TEXT = '#5a4e66';
+                const COLOR_FOOTER_BG = '#faf7fd';
+                const COLOR_FOOTER_BORDER = '#f0ebf5';
+                const COLOR_STAR = '#f5a623';
+                const PAD_X = 16;
 
-                const timeoutMs = 20000;
-                let timeoutId;
-                const timeoutPromise = new Promise(function (_, reject) {
-                    timeoutId = setTimeout(function () {
-                        reject(new Error('截图生成超时'));
-                    }, timeoutMs);
-                });
+                // --------- 绘制工具函数 ---------
+                function roundRectPath(ctx, x, y, w, h, r) {
+                    r = Math.min(r, w / 2, h / 2);
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + w - r, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                    ctx.lineTo(x + w, y + h - r);
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    ctx.lineTo(x + r, y + h);
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                    ctx.lineTo(x, y + r);
+                    ctx.quadraticCurveTo(x, y, x + r, y);
+                    ctx.closePath();
+                }
+                function drawPill(ctx, x, y, text, fontSize, colorBg, colorText, fontFallback) {
+                    ctx.save();
+                    ctx.font = `600 ${fontSize}px ${fontFallback || FONT_FAMILY}`;
+                    ctx.textBaseline = 'top';
+                    const metrics = ctx.measureText(text);
+                    const padLR = 10;
+                    const padTB = 3;
+                    const w = metrics.width + padLR * 2;
+                    const h = fontSize + padTB * 2;
+                    roundRectPath(ctx, x, y, w, h, h / 2);
+                    ctx.fillStyle = colorBg;
+                    ctx.fill();
+                    ctx.fillStyle = colorText;
+                    ctx.fillText(text, x + padLR, y + padTB + 0.5);
+                    ctx.restore();
+                    return { w: w, h: h };
+                }
+                // 多行文本 + 最多 maxLines 行溢出省略，返回总高
+                function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, fontSize, fontWeight, color, maxLines) {
+                    maxLines = maxLines || 99;
+                    const fullText = String(text || '');
+                    ctx.save();
+                    ctx.font = `${fontWeight || 400} ${fontSize}px ${FONT_FAMILY}`;
+                    ctx.textBaseline = 'top';
+                    ctx.fillStyle = color || COLOR_PRIMARY;
+                    const chars = fullText.split('');
+                    const lines = [];
+                    let cur = '';
+                    for (let i = 0; i < chars.length; i++) {
+                        const ch = chars[i];
+                        // 换行符强制换行
+                        if (ch === '\n') {
+                            lines.push(cur); cur = ''; continue;
+                        }
+                        const test = cur + ch;
+                        const w = ctx.measureText(test).width;
+                        if (w > maxWidth && cur) {
+                            lines.push(cur); cur = ch;
+                        } else {
+                            cur = test;
+                        }
+                    }
+                    if (cur) lines.push(cur);
+                    let rendered = lines.slice(0, maxLines);
+                    // 最后一行加省略号（当实际超 maxLines 时）
+                    if (lines.length > maxLines) {
+                        let last = rendered[rendered.length - 1] || '';
+                        while (last && ctx.measureText(last + '…').width > maxWidth) {
+                            last = last.slice(0, -1);
+                        }
+                        rendered[rendered.length - 1] = (last || '') + '…';
+                    }
+                    let yy = y;
+                    rendered.forEach(line => { ctx.fillText(line, x, yy); yy += lineHeight; });
+                    ctx.restore();
+                    return rendered.length * lineHeight;
+                }
+
+                // =========================================================
+                // 原生 Canvas 专用：图片加载 + 美化占位 工具（三级兜底）
+                // =========================================================
+                const PROXY = 'https://corsproxy.io/?';
+                const IMG_TIMEOUT = 7000;
+                // 通用：把 URL 转成可 drawImage 的 dataURL（含跨域代理兜底）
+                async function nativeFetchImageURL(url) {
+                    if (!url) return null;
+                    if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('blob:'))) return url;
+                    try {
+                        // Level 1: 直连 CORS
+                        const t1 = new Promise((_, rj) => setTimeout(() => rj(new Error('timeout-l1')), IMG_TIMEOUT));
+                        const f1 = (async () => {
+                            const resp = await fetch(url, { mode: 'cors', credentials: 'omit', cache: 'no-store', redirect: 'follow' });
+                            if (!resp.ok) throw new Error('http-' + resp.status);
+                            const blob = await resp.blob();
+                            return await new Promise((res, rej) => {
+                                const rd = new FileReader();
+                                rd.onload = () => res(rd.result);
+                                rd.onerror = () => rej(rd.error);
+                                rd.readAsDataURL(blob);
+                            });
+                        })();
+                        try { return await Promise.race([f1, t1]); } catch (_l1) {
+                            // Level 2: corsproxy.io 代理兜底
+                            if (!/^https?:/i.test(url)) throw new Error('not-http');
+                            const proxied = PROXY + encodeURIComponent(url);
+                            const t2 = new Promise((_, rj) => setTimeout(() => rj(new Error('timeout-l2')), IMG_TIMEOUT));
+                            const f2 = (async () => {
+                                const resp = await fetch(proxied, { mode: 'cors', credentials: 'omit', cache: 'no-store', redirect: 'follow' });
+                                if (!resp.ok) throw new Error('http-' + resp.status);
+                                const blob = await resp.blob();
+                                return await new Promise((res, rej) => {
+                                    const rd = new FileReader();
+                                    rd.onload = () => res(rd.result);
+                                    rd.onerror = () => rej(rd.error);
+                                    rd.readAsDataURL(blob);
+                                });
+                            })();
+                            return await Promise.race([f2, t2]);
+                        }
+                    } catch (e) { return null; }
+                }
+                function dataURLToImageEl(dataUrl) {
+                    return new Promise(function (res, rej) {
+                        const im = new Image();
+                        im.onload = () => res(im);
+                        im.onerror = rej;
+                        im.src = dataUrl;
+                    });
+                }
+                // 取字符串 hash 转成稳定的头像背景色（柔和 Pastel + 深色文字/白字）
+                function pastelColorFromText(txt) {
+                    const palettes = [
+                        { bg: '#ffe0ec', fg: '#a83a6e' }, // 樱粉
+                        { bg: '#e0f0ff', fg: '#2e5fa8' }, // 天蓝
+                        { bg: '#e6f9e3', fg: '#2c8047' }, // 薄荷
+                        { bg: '#fff1da', fg: '#a4661a' }, // 奶黄
+                        { bg: '#f1e3ff', fg: '#6b3eaa' }, // 薰衣草
+                        { bg: '#ffe7d1', fg: '#b5591a' }, // 杏
+                        { bg: '#dff5f5', fg: '#1f7a7a' }, // 青绿
+                        { bg: '#fbe1e1', fg: '#a93838' }, // 樱花粉
+                    ];
+                    let h = 0;
+                    const s = String(txt || '?').trim();
+                    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+                    h = Math.abs(h);
+                    return palettes[h % palettes.length];
+                }
+                // 女主角类型 → 封面渐变（美化占位）
+                function heroineGradient(type) {
+                    const t = (type || '').toUpperCase();
+                    const presets = {
+                        '固定女主': ['#e5d4f5', '#b69bd9'],
+                        '可选女主': ['#dfe9f8', '#9cb7df'],
+                        '无明确性别默认女': ['#e2eee0', '#9cc09b'],
+                        '机械生物': ['#e0e8f0', '#93a7bf'],
+                        '魔物': ['#f3e1d2', '#c99a75'],
+                        '女儿': ['#ffe1e9', '#d98ea3'],
+                        '无主角': ['#eceff4', '#b8bfcb'],
+                    };
+                    const key = Object.keys(presets).find(k => t.includes(k.toUpperCase()) || (type === k));
+                    if (key) return presets[key];
+                    // 通用 fallback：紫灰 → 深紫渐变（默认女主游戏色）
+                    return ['#efe7f7', '#b7a2d5'];
+                }
+                // drawImage 做 object-fit: cover（填满指定矩形）
+                function drawImageCover(ctx, img, x, y, w, h) {
+                    const iw = img.naturalWidth || img.width || 1;
+                    const ih = img.naturalHeight || img.height || 1;
+                    const scale = Math.max(w / iw, h / ih);
+                    const dw = iw * scale;
+                    const dh = ih * scale;
+                    const dx = x + (w - dw) / 2;
+                    const dy = y + (h - dh) / 2;
+                    ctx.drawImage(img, dx, dy, dw, dh);
+                }
+
+                // --------- 先「干跑」一遍布局，计算卡片总高度 ---------
+                let cursorY = 0;
+                // 预留 20px 圆角外间距：实际上整体 canvas 宽度就是 CARD_W，然后用 clip 裁圆角
+                cursorY += 0; // 卡片顶部从 0 开始
+
+                // ==== A. 评论区高度（若有 extraComment）====
+                const hasComment = !!extraComment;
+                let commentHeight = 0;
+                let commentLayout = null;
+                if (hasComment) {
+                    const isReviewObj = typeof extraComment === 'object' && extraComment.comment;
+                    const commentText = isReviewObj ? extraComment.comment : extraComment;
+                    const labelH = 8 + 12 + 8; // 上方 padding + 标题行高 + 下方 gap
+                    let reviewerH = 0;
+                    if (isReviewObj) reviewerH = 8 + 36 + 2; // padding-top + avatar row + gap
+                    const padTop = 16, padBottom = 12;
+                    const innerW = CARD_W - PAD_X * 2;
+                    const bodyFontSize = 15;
+                    const textLinesH = Math.max(bodyFontSize * 1.6 * 1, (function estimateLines() {
+                        const cv = document.createElement('canvas').getContext('2d');
+                        cv.font = `400 ${bodyFontSize}px ${FONT_FAMILY}`;
+                        let lines = 1, cur = '';
+                        for (const ch of String(commentText || '')) {
+                            if (ch === '\n') { lines++; cur = ''; continue; }
+                            const test = cur + ch;
+                            if (cv.measureText(test).width > innerW && cur) { lines++; cur = ch; } else cur = test;
+                        }
+                        return lines;
+                    })()) * bodyFontSize * 0.2 + bodyFontSize * 1.6 * 1;
+                    // 更准确：复用 drawWrappedText 前的计算
+                    const tmpCtx = document.createElement('canvas').getContext('2d');
+                    tmpCtx.font = `400 ${bodyFontSize}px ${FONT_FAMILY}`;
+                    const tmpLines = Math.max(1, (function () {
+                        let lines = 1, cur = '';
+                        for (const ch of String(commentText || '')) {
+                            if (ch === '\n') { lines++; cur = ''; continue; }
+                            const test = cur + ch;
+                            if (tmpCtx.measureText(test).width > innerW && cur) { lines++; cur = ch; } else cur = test;
+                        }
+                        return lines;
+                    })());
+                    commentHeight = padTop + labelH + reviewerH + tmpLines * (bodyFontSize * 1.6) + padBottom;
+                    commentLayout = { isReviewObj, commentText, lines: tmpLines };
+                }
+                cursorY += commentHeight;
+
+                // ==== B. 封面区高度（400 宽，按 460:215）====
+                const coverH = Math.round(CARD_W * 215 / 460); // 约 186
+                cursorY += coverH;
+
+                // ==== C. 信息区：标题 + 描述 + 标签组 + 评分 ====
+                cursorY += 14; // padding top
+                // 标题（粗体 1.15rem ≈ 18px）
+                const titleLinesEst = (function countTitleLines(){
+                    const cv = document.createElement('canvas').getContext('2d');
+                    cv.font = `700 18px ${FONT_FAMILY}`;
+                    let lines = 1, cur = '';
+                    for (const ch of String(game && game.title || '')) {
+                        const test = cur + ch;
+                        const max = CARD_W - PAD_X * 2;
+                        if (cv.measureText(test).width > max && cur) { lines++; cur = ch; } else cur = test;
+                    }
+                    return lines;
+                })();
+                cursorY += titleLinesEst * (18 * 1.3) + 2;
+                cursorY += 4; // gap
+                // 描述（2 行省略）
+                cursorY += Math.min(2, estimateLinesForText(game && game.description || '', 13, CARD_W - PAD_X * 2, FONT_FAMILY)) * (13 * 1.5) + 4;
+                // 标签行（wrap 多行）
+                cursorY += 4; // gap before tags
+                const tags = collectTagsForShare(game);
+                cursorY += estimateTagsRowsHeight(tags, 4, 11, CARD_W - PAD_X * 2, 18, FONT_FAMILY);
+                cursorY += 10; // info 区 padding bottom
+                // 评分（如果有）
+                if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
+                    cursorY += 8 + 20; // gap + row
+                }
+                cursorY += 4; // gap
+
+                // ==== D. 底部二维码+品牌区（固定高）====
+                const footerH = 14 + 72 + 14 + 1; // 内边距 + 二维码高 + 下边距 + border-top
+                const totalH = cursorY + footerH;
+
+                function estimateLinesForText(text, fontSize, maxW, font) {
+                    if (!text) return 0;
+                    const cv = document.createElement('canvas').getContext('2d');
+                    cv.font = `400 ${fontSize}px ${font}`;
+                    let lines = 1, cur = '';
+                    for (const ch of String(text)) {
+                        if (ch === '\n') { lines++; cur = ''; continue; }
+                        const test = cur + ch;
+                        if (cv.measureText(test).width > maxW && cur) { lines++; cur = ch; } else cur = test;
+                    }
+                    return lines;
+                }
+                function collectTagsForShare(g) {
+                    // 和 DOM 版 buildShareCardDOM 保持一致：中文/有Demo/genre前3/gameplay前2/releaseDate
+                    const t = [];
+                    if (g && g.hasChinese === '有中文') t.push({ text: '中文', primary: true });
+                    else if (g && g.hasChinese === '无中文') t.push({ text: '无中文', primary: true });
+                    if (!isGameReleased(g) && g && g.hasDemo) t.push({ text: '有Demo', primary: true });
+                    const genreList = (g && g.genre || []).slice(0, 3);
+                    genreList.forEach(tg => t.push({ text: tg }));
+                    const gpList = (g && g.gameplay || []).slice(0, 2);
+                    gpList.forEach(tg => t.push({ text: tg }));
+                    if (g && g.releaseDate) t.push({ text: g.releaseDate });
+                    return t;
+                }
+                function estimateTagsRowsHeight(tagsArr, gapX, fontSize, maxRowW, pillH, font) {
+                    if (!tagsArr || tagsArr.length === 0) return 0;
+                    const cv = document.createElement('canvas').getContext('2d');
+                    cv.font = `600 ${fontSize}px ${font}`;
+                    const pad = 20; // 左右内边 10
+                    let rowW = 0, rows = 1, maxRows = 99;
+                    tagsArr.forEach(tg => {
+                        const w = cv.measureText(tg.text).width + pad + gapX;
+                        if (rowW + w - gapX > maxRowW) {
+                            rows++; rowW = w;
+                        } else {
+                            rowW += w;
+                        }
+                    });
+                    return Math.min(rows, maxRows) * pillH + (rows > 0 ? 4 : 0);
+                }
+
+                // --------- 真正开画布 ---------
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(CARD_W * SCALE);
+                canvas.height = Math.round(totalH * SCALE);
+                const ctx = canvas.getContext('2d');
+                ctx.scale(SCALE, SCALE);
+
+                // ==== 预加载：封面 + 所有头像（并行 Promise.all，单项失败不阻断）====
+                const urlsToFetch = new Map();
+                urlsToFetch.set('cover', (game && game.cover) || null);
+                if (extraComment && extraComment.reviewer && extraComment.reviewer.avatarUrl) {
+                    urlsToFetch.set('avatar_comment', extraComment.reviewer.avatarUrl);
+                }
+                if (ratingInfo && Array.isArray(ratingInfo.reviewers)) {
+                    ratingInfo.reviewers.forEach((r, idx) => {
+                        if (r && r.avatarUrl) urlsToFetch.set('avatar_rating_' + idx, r.avatarUrl);
+                    });
+                }
+                const fetchedDataURLs = {};
+                await Promise.all(Array.from(urlsToFetch.entries()).map(async ([k, url]) => {
+                    if (!url) { fetchedDataURLs[k] = null; return; }
+                    fetchedDataURLs[k] = await nativeFetchImageURL(url);
+                }));
+                const preloadedImgEls = {};
+                await Promise.all(Object.keys(fetchedDataURLs).map(async (k) => {
+                    const du = fetchedDataURLs[k];
+                    if (!du) { preloadedImgEls[k] = null; return; }
+                    try { preloadedImgEls[k] = await dataURLToImageEl(du); } catch (_) { preloadedImgEls[k] = null; }
+                }));
+                const coverImgEl = preloadedImgEls['cover'] || null;
+                const commentAvatarImgEl = preloadedImgEls['avatar_comment'] || null;
+                const ratingAvatarImgEls = {};
+                if (ratingInfo && Array.isArray(ratingInfo.reviewers)) {
+                    ratingInfo.reviewers.forEach((_r, idx) => {
+                        ratingAvatarImgEls[idx] = preloadedImgEls['avatar_rating_' + idx] || null;
+                    });
+                }
+
+                // 0. 整个卡片：白底 + 外圆角 20 裁剪
+                ctx.save();
+                roundRectPath(ctx, 0, 0, CARD_W, totalH, 20);
+                ctx.clip();
+                ctx.fillStyle = COLOR_CARD;
+                ctx.fillRect(0, 0, CARD_W, totalH);
+
+                let yCursor = 0;
+
+                // -------- A. 评论区绘制 --------
+                if (hasComment && commentLayout) {
+                    ctx.fillStyle = COLOR_COMMENT_BG;
+                    ctx.fillRect(0, yCursor, CARD_W, commentHeight);
+                    // 底部 border
+                    ctx.fillStyle = COLOR_COMMENT_BORDER;
+                    ctx.fillRect(0, yCursor + commentHeight - 2, CARD_W, 2);
+
+                    let yy = yCursor + 16;
+                    // 标签：💬 评论分享
+                    ctx.fillStyle = COLOR_ACCENT;
+                    ctx.font = '600 11px ' + FONT_FAMILY;
+                    ctx.textBaseline = 'top';
+                    ctx.letterSpacing = '0.04em';
+                    ctx.fillText('💬 评论分享', PAD_X, yy);
+                    yy += 12 + 8;
+
+                    // 评论者行（如果是对象结构）
+                    if (commentLayout.isReviewObj) {
+                        const r = extraComment;
+                        // 头像圆（36×36，三级策略：CORS图 → 代理图 → Pastel+首字母）
+                        const avaSize = 36;
+                        const avaName = safeDisplayName((r && r.displayName) || '用户');
+                        const firstLetter = String(avaName).trim().charAt(0) || '?';
+                        const palette = pastelColorFromText(avaName); // 稳定配色
+
+                        ctx.save();
+                        // 圆裁剪
+                        roundRectPath(ctx, PAD_X, yy, avaSize, avaSize, avaSize / 2);
+                        ctx.clip();
+
+                        if (commentAvatarImgEl) {
+                            // 有真图 → object-fit: cover 填满
+                            drawImageCover(ctx, commentAvatarImgEl, PAD_X, yy, avaSize, avaSize);
+                        } else {
+                            // 真图不可得 →  Pastel 背景 + 深色首字母（Gmail 默认头像风格）
+                            ctx.fillStyle = palette.bg;
+                            ctx.fillRect(PAD_X, yy, avaSize, avaSize);
+                            // 首字母居中
+                            ctx.fillStyle = palette.fg;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = '700 17px ' + FONT_FAMILY;
+                            ctx.fillText(firstLetter, PAD_X + avaSize / 2, yy + avaSize / 2 + 1);
+                            ctx.textAlign = 'start';
+                            ctx.textBaseline = 'alphabetic';
+                        }
+                        ctx.restore();
+
+                        // 用户名（粗体）
+                        ctx.fillStyle = COLOR_PRIMARY;
+                        ctx.font = '600 14px ' + FONT_FAMILY;
+                        ctx.textBaseline = 'top';
+                        ctx.fillText(safeDisplayName(r.displayName || '用户'), PAD_X + avaSize + 10, yy + 3);
+
+                        // 次行：表态 emoji+标签 + 日期
+                        let mx = PAD_X + avaSize + 10;
+                        const my = yy + 3 + 14 + 2;
+                        if (r && r.verdict) {
+                            const vInfo = getVerdictInfo(r.verdict);
+                            if (vInfo) {
+                                ctx.fillStyle = vInfo.color || COLOR_PRIMARY;
+                                ctx.font = '600 13px ' + FONT_FAMILY;
+                                const vTxt = vInfo.emoji + ' ' + vInfo.label;
+                                ctx.fillText(vTxt, mx, my);
+                                mx += ctx.measureText(vTxt).width + 8;
+                            }
+                        }
+                        if (r && r.createdAt) {
+                            ctx.fillStyle = COLOR_TERTIARY;
+                            ctx.font = '400 12px ' + FONT_FAMILY;
+                            const d = new Date(r.createdAt);
+                            const dTxt = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                            ctx.fillText(dTxt, mx, my + 1);
+                        }
+                        yy += avaSize + 10;
+                    }
+
+                    // 评论正文（15px × 1.6 行高，不设最大行，全部显示，评论长度受数据库限制）
+                    ctx.fillStyle = COLOR_PRIMARY;
+                    drawWrappedText(ctx, commentLayout.commentText, PAD_X, yy, CARD_W - PAD_X * 2, 15 * 1.6, 15, '400', COLOR_PRIMARY, 99);
+                    yCursor += commentHeight;
+                } else {
+                    yCursor += 0;
+                }
+
+                // -------- B. 封面区 --------
+                // 三级策略：CORS 真图 → 代理真图 → 女主色渐变 + 大字游戏标题（设计级美化占位）
+                // 先做封面容器裁剪（和底部 hero 区贴合）
+                const coverRectX = 0, coverRectY = yCursor, coverRectW = CARD_W, coverRectH = coverH;
+                ctx.save();
+                // 封面底部做内凹曲线的「视觉收边」：直接画矩形；tag 会画在左上角顶部
+                ctx.beginPath();
+                ctx.rect(coverRectX, coverRectY, coverRectW, coverRectH);
+                ctx.closePath();
+                ctx.clip();
+
+                if (coverImgEl) {
+                    // —— 真图封面（object-fit: cover 填满）——
+                    drawImageCover(ctx, coverImgEl, coverRectX, coverRectY, coverRectW, coverRectH);
+                    // 底部轻微渐变遮罩，保证 heroType 胶囊和大字标题（如有）有可读性
+                    const bottomFade = ctx.createLinearGradient(0, coverRectY + coverRectH - 80, 0, coverRectY + coverRectH);
+                    bottomFade.addColorStop(0, 'rgba(0,0,0,0)');
+                    bottomFade.addColorStop(1, 'rgba(0,0,0,0.35)');
+                    ctx.fillStyle = bottomFade;
+                    ctx.fillRect(coverRectX, coverRectY, coverRectW, coverRectH);
+                } else {
+                    // —— 美化占位封面：女主类型色系渐变 + 大字游戏标题 ——
+                    const heroGradColors = heroineGradient(game && game.heroineType || '');
+                    const lg = ctx.createLinearGradient(coverRectX, coverRectY, coverRectX + coverRectW, coverRectY + coverRectH);
+                    lg.addColorStop(0, heroGradColors[0]);
+                    lg.addColorStop(1, heroGradColors[1]);
+                    ctx.fillStyle = lg;
+                    ctx.fillRect(coverRectX, coverRectY, coverRectW, coverRectH);
+
+                    // 轻微「斜向装饰条」增加设计感
+                    ctx.save();
+                    ctx.globalAlpha = 0.25;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(coverRectX + coverRectW, coverRectY + coverRectH * 0.4);
+                    ctx.lineTo(coverRectX + coverRectW, coverRectY + coverRectH);
+                    ctx.lineTo(coverRectX + coverRectW - 140, coverRectY + coverRectH);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 超大「GL」水印（右上角，低透明度）
+                    ctx.save();
+                    ctx.globalAlpha = 0.18;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '800 96px ' + FONT_FAMILY;
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText('GL', coverRectX + coverRectW - 18, coverRectY + 18);
+                    ctx.restore();
+
+                    // 游戏标题大字（左下角，最大 2 行，白字加粗 + 柔和外发光）
+                    const gTitle = (game && game.title) ? String(game.title).trim() : '';
+                    if (gTitle) {
+                        const maxTitleW = coverRectW - 28 * 2; // 左右各 28 留白
+                        const titleFontSize = 30;
+                        const titleLineH = Math.round(titleFontSize * 1.1);
+                        ctx.save();
+                        ctx.font = `800 ${titleFontSize}px ${FONT_FAMILY}`;
+                        // 大字外发光/描边（保证渐变背景上清晰可读）
+                        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                        ctx.shadowBlur = 6;
+                        ctx.lineJoin = 'round';
+                        ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+                        ctx.lineWidth = 3;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'start';
+                        ctx.textBaseline = 'bottom';
+                        // 拆 2 行
+                        const titleLines = [];
+                        let cur = '';
+                        for (const ch of gTitle) {
+                            if (ch === '\n') { titleLines.push(cur); cur = ''; continue; }
+                            const test = cur + ch;
+                            if (ctx.measureText(test).width > maxTitleW && cur) {
+                                titleLines.push(cur); cur = ch;
+                            } else cur = test;
+                        }
+                        if (cur) titleLines.push(cur);
+                        const maxT = Math.min(2, titleLines.length);
+                        let ty = coverRectY + coverRectH - 20;
+                        for (let i = maxT - 1; i >= 0; i--) {
+                            const line = titleLines[i];
+                            // 2-line 时，底部一行截断显示省略号
+                            let show = line;
+                            if (i === maxT - 1 && maxT === 2 && titleLines.length > 2) {
+                                let t = show;
+                                while (t && ctx.measureText(t + '…').width > maxTitleW) t = t.slice(0, -1);
+                                show = t + '…';
+                            }
+                            ctx.strokeText(show, coverRectX + 28, ty);
+                            ctx.fillText(show, coverRectX + 28, ty);
+                            ty -= titleLineH;
+                        }
+                        ctx.restore();
+                    } else {
+                        // 无标题 → 中央提示
+                        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+                        ctx.font = '600 15px ' + FONT_FAMILY;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('Her Lens · 游戏封面', coverRectX + coverRectW / 2, coverRectY + coverRectH / 2);
+                        ctx.textAlign = 'start';
+                        ctx.textBaseline = 'alphabetic';
+                    }
+                }
+                ctx.restore(); // clip restore（后续 tag 直接画在封面之上）
+
+                // 左上角 heroineType 渐变圆角 tag（悬浮在封面左上角，不参与 clip）
+                if (game && game.heroineType) {
+                    ctx.save();
+                    // 画渐变背景
+                    const grad = ctx.createLinearGradient(PAD_X, yCursor + 8, PAD_X + 120, yCursor + 8 + 24);
+                    grad.addColorStop(0, '#6b5a8a');
+                    grad.addColorStop(1, '#4a3a66');
+                    const pillFontSize = 11;
+                    ctx.font = `700 ${pillFontSize}px ${FONT_FAMILY}, sans-serif`;
+                    const txt = String(game.heroineType).toUpperCase();
+                    const padLR = 12, padTB = 2;
+                    const pw = ctx.measureText(txt).width + padLR * 2;
+                    const ph = pillFontSize + padTB * 2 + 2;
+                    const px = PAD_X, py = yCursor + 8;
+                    roundRectPath(ctx, px, py, pw, ph, ph / 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(txt, px + padLR, py + padTB + 1);
+                    // 高光描边（仿 DOM 版）
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                yCursor += coverH;
+
+                // -------- C. 信息区 --------
+                // C.1 标题
+                yCursor += 14;
+                drawWrappedText(ctx, game && game.title || '', PAD_X, yCursor, CARD_W - PAD_X * 2, 18 * 1.3, 18, '700', COLOR_PRIMARY, 3);
+                const titleRows = estimateLinesForText(game && game.title || '', 18, CARD_W - PAD_X * 2, FONT_FAMILY);
+                yCursor += Math.max(1, Math.min(3, titleRows)) * (18 * 1.3);
+                yCursor += 4;
+
+                // C.2 描述（2 行省略）
+                drawWrappedText(ctx, game && game.description || '', PAD_X, yCursor, CARD_W - PAD_X * 2, 13 * 1.5, 13, '400', COLOR_SECONDARY, 2);
+                yCursor += 2 * (13 * 1.5) + 4;
+
+                // C.3 标签组（wrap 布局，最多显示两行，其余截断）
+                yCursor += 4;
+                const allTags = collectTagsForShare(game);
+                if (allTags.length > 0) {
+                    const gapX = 4, gapY = 4;
+                    const pillFontSize = 11, padLR = 8, padTB = 1;
+                    const rowMaxW = CARD_W - PAD_X * 2;
+                    let rx = PAD_X, ry = yCursor, row = 0, maxRows = 2;
+                    ctx.font = `600 ${pillFontSize}px ${FONT_FAMILY}`;
+                    ctx.textBaseline = 'top';
+                    for (let i = 0; i < allTags.length; i++) {
+                        const tg = allTags[i];
+                        const txt = tg.text;
+                        const w = ctx.measureText(txt).width + padLR * 2;
+                        const h = pillFontSize + padTB * 2 + 4;
+                        if (rx + w - PAD_X > rowMaxW) {
+                            row++; if (row >= maxRows) break;
+                            rx = PAD_X; ry += h + gapY;
+                        }
+                        if (row >= maxRows) break;
+                        const bg = tg.primary ? COLOR_ACCENT : COLOR_TAG_BG;
+                        const fg = tg.primary ? '#ffffff' : COLOR_TAG_TEXT;
+                        roundRectPath(ctx, rx, ry, w, h, h / 2);
+                        ctx.fillStyle = bg; ctx.fill();
+                        ctx.fillStyle = fg;
+                        ctx.fillText(txt, rx + padLR, ry + padTB + 2);
+                        rx += w + gapX;
+                    }
+                    const pillH = pillFontSize + padTB * 2 + 4;
+                    yCursor = ry + pillH;
+                }
+                yCursor += 10;
+
+                // C.4 评分
+                if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
+                    yCursor += 8;
+                    ctx.font = '400 14px ' + FONT_FAMILY;
+                    ctx.fillStyle = COLOR_STAR;
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('⭐', PAD_X, yCursor);
+                    ctx.fillStyle = COLOR_SECONDARY;
+                    ctx.fillText(`${Number(ratingInfo.average).toFixed(1)}/5（${ratingInfo.count}人评价）`, PAD_X + 22, yCursor + 0.5);
+                    ctx.textBaseline = 'alphabetic';
+                    yCursor += 10;
+                }
+                yCursor += 4;
+
+                // -------- D. 底部二维码+品牌 --------
+                const footerStartY = yCursor;
+                ctx.fillStyle = COLOR_FOOTER_BG;
+                ctx.fillRect(0, footerStartY, CARD_W, footerH + 1);
+                ctx.fillStyle = COLOR_FOOTER_BORDER;
+                ctx.fillRect(0, footerStartY, CARD_W, 1);
+
+                const qrSize = 72;
+                const qrX = PAD_X;
+                const qrY = footerStartY + 14;
+                // 二维码容器边框背景
+                ctx.fillStyle = '#ffffff';
+                roundRectPath(ctx, qrX, qrY, qrSize, qrSize, 8);
+                ctx.fill();
+                ctx.strokeStyle = '#ddd6e4'; ctx.lineWidth = 1;
+                roundRectPath(ctx, qrX + 0.5, qrY + 0.5, qrSize - 1, qrSize - 1, 8);
+                ctx.stroke();
+
+                // 渲染二维码到画布（QRCode.js → 离屏 canvas → drawImage）
+                try {
+                    const qrLib = await window._loadQRCode();
+                    const qrOffCanvas = document.createElement('canvas');
+                    qrOffCanvas.width = qrSize;
+                    qrOffCanvas.height = qrSize;
+                    // QRCode.js 要求 DOM 中存在一个容器节点用于挂载渲染
+                    const qrTmpDiv = document.createElement('div');
+                    qrTmpDiv.style.cssText = 'position:absolute;left:-99999px;top:0;width:72px;height:72px;';
+                    document.body.appendChild(qrTmpDiv);
+                    new qrLib(qrTmpDiv, {
+                        // 兼容 file:// 协议：location.origin 在 file:// 下返回 'null'，改用 href 纯拼接
+                        text: (window.location.href.split('#')[0].split('?')[0]) + '?game=' + (game && game.id || ''),
+                        width: qrSize,
+                        height: qrSize,
+                        colorDark: COLOR_PRIMARY,
+                        colorLight: '#ffffff',
+                        correctLevel: qrLib.CorrectLevel.H
+                    });
+                    // 等一帧让 QRCode.js 写入子 canvas/img
+                    await new Promise(r => setTimeout(r, 80));
+                    const childCanvas = qrTmpDiv.querySelector('canvas');
+                    const childImg = qrTmpDiv.querySelector('img');
+                    if (childCanvas) {
+                        ctx.drawImage(childCanvas, qrX, qrY, qrSize, qrSize);
+                    } else if (childImg) {
+                        try {
+                            const decodedImg = await new Promise(function (res, rej) {
+                                const im = new Image();
+                                im.onload = function () { res(im); };
+                                im.onerror = rej;
+                                im.src = childImg.src;
+                            });
+                            ctx.drawImage(decodedImg, qrX, qrY, qrSize, qrSize);
+                        } catch (_) { drawQRPlaceholder(); }
+                    } else { drawQRPlaceholder(); }
+                    qrTmpDiv.remove();
+                } catch (qrErr) { drawQRPlaceholder(); }
+
+                function drawQRPlaceholder() {
+                    ctx.fillStyle = '#f5f0f8';
+                    roundRectPath(ctx, qrX + 1, qrY + 1, qrSize - 2, qrSize - 2, 8);
+                    ctx.fill();
+                    ctx.fillStyle = '#999';
+                    ctx.font = '500 10px ' + FONT_FAMILY;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('二维码', qrX + qrSize / 2, qrY + qrSize / 2 - 8);
+                    ctx.fillText('加载失败', qrX + qrSize / 2, qrY + qrSize / 2 + 8);
+                    ctx.textAlign = 'start';
+                    ctx.textBaseline = 'alphabetic';
+                }
+
+                // 右侧标签文字「扫码查看\n游戏详情」
+                ctx.fillStyle = COLOR_TERTIARY;
+                ctx.font = '500 11px ' + FONT_FAMILY;
+                ctx.textBaseline = 'top';
+                const labelX = qrX + qrSize + 10;
+                const labelY = qrY + (qrSize - 26) / 2;
+                ctx.fillText('扫码查看', labelX, labelY);
+                ctx.fillText('游戏详情', labelX, labelY + 14);
+
+                // 右下品牌文字
+                ctx.fillStyle = COLOR_ACCENT;
+                ctx.font = '600 11px ' + FONT_FAMILY;
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Her-Lens · 女性主角游戏', CARD_W - PAD_X, qrY + qrSize / 2 + 2);
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+
+                ctx.restore(); // 裁圆角 save
+
+                return canvas.toDataURL('image/png');
+            }
+
+            // =========================================================
+            // 分享截图（重写 v2，file:// 协议直接走原生 Canvas；
+            //   http/https 先用 html2canvas；失败则 fallback 到原生 Canvas）
+            // =========================================================
+            async function captureShareCard(wrapper, game, extraComment) {
+                const isFileProtocol = location.protocol === 'file:';
+                const ratingInfo = wrapper && wrapper.__shareRatingInfo ? wrapper.__shareRatingInfo : null;
+
+                // ====== 捷径：file:// 协议下 html2canvas 的 iframe 一定会被浏览器当 unique origin 拦截 ======
+                //   → 直接走「原生 Canvas 2D 手绘」模式，零 iframe 依赖，file:// 下 100% 可用
+                if (isFileProtocol) {
+                    console.warn(
+                        '%c[Share] 检测到 file:// 协议打开：html2canvas 的 iframe 克隆机制会被浏览器 file-unique-origin 策略拦截（错误：Unable to find element in cloned iframe）。\n' +
+                        '→ 自动切换到【原生 Canvas 2D 手绘分享卡片】模式（零 iframe 依赖，file:// 下可用）。\n' +
+                        '建议后续改用 HTTP 服务器打开（如 VS Code Live Server、Python -m http.server）可获得带封面图的版本。',
+                        'color:#d9480f;font-weight:600;'
+                    );
+                    try {
+                        console.info('[Share Step 4/6 (Native)] captureShareCard：开始原生 Canvas 2D 手绘');
+                        const dataUrl = await renderShareCardNativeCanvas(game, extraComment, ratingInfo);
+                        console.info('[Share Step 5/6 (Native)] 原生 Canvas 导出 PNG 成功（base64 长度：' + (dataUrl && dataUrl.length || 0) + '）');
+                        return dataUrl;
+                    } catch (nativeErr) {
+                        console.error('[Share] 原生 Canvas 模式也失败:', nativeErr && nativeErr.stack ? nativeErr.stack : nativeErr);
+                        showToast('⚠️ 生成图片失败（原生模式）：' + (nativeErr && nativeErr.message || nativeErr), 4000);
+                        return null;
+                    }
+                }
+
+                // ====== http/https 协议：优先 html2canvas，失败再 fallback 到原生 Canvas ======
+                await new Promise(r => requestAnimationFrame(r));
+                await new Promise(r => setTimeout(r, 80));
+                console.info('[Share Step 4/6] captureShareCard：开始 html2canvas 渲染');
+
+                let timeoutId = null;
+                const makeTimeoutPromise = function (ms) {
+                    return new Promise(function (_, reject) {
+                        timeoutId = setTimeout(function () {
+                            reject(new Error('截图生成超时 (' + (ms / 1000 | 0) + 's)'));
+                        }, ms);
+                    });
+                };
+                const clearShareTimeout = function () { if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; } };
 
                 try {
                     const html2canvasLib = await window._loadHtml2Canvas();
-                    const actualWidth = wrapper.offsetWidth || 400;
-                    const isMobile = window.innerWidth <= 768 || isTouchDevice;
+                    console.info('[Share Step 4.1] html2canvas 库已就绪');
 
-                    // 分享卡 DOM 预处理：移除/降级所有可能导致 canvas 跨域污染的 <img>
-                    //   html2canvas useCORS=true 要求图片服务端返回 CORS 头，Steam CDN 等场景经常不支持
-                    //   allowTaint=true 虽能"画上去"但会污染 canvas，导致 toDataURL() 抛 SecurityError
-                    wrapper.querySelectorAll('img').forEach(function (imgEl) {
-                        const src = (imgEl.src || '').toLowerCase();
-                        if (!src) return;
-                        // 1. data/blob 协议图片：安全，无需处理
-                        if (src.startsWith('data:') || src.startsWith('blob:')) return;
-                        // 2. 同源图片：安全，无需处理
+                    function sanitizeClonedDoc(clonedDoc) {
                         try {
-                            const u = new URL(imgEl.src, window.location.href);
-                            if (u.origin === window.location.origin) return;
-                        } catch (_) { /* ignore */ }
-                        // 3. 跨域图片：替换为占位背景色，保留尺寸信息，避免 canvas 污染
-                        const pw = imgEl.offsetWidth || imgEl.width || 100;
-                        const ph = imgEl.offsetHeight || imgEl.height || 100;
-                        const bgColor = window.getComputedStyle(imgEl.parentNode || imgEl).backgroundColor || '#e8e2ee';
-                        const phNode = document.createElement('div');
-                        phNode.style.cssText =
-                            `width:${pw}px;height:${ph}px;background:${bgColor};display:${imgEl.style.display === 'none' ? 'none' : 'block'};flex-shrink:0;object-fit:cover;box-sizing:border-box;`;
-                        if (imgEl.parentNode) imgEl.parentNode.replaceChild(phNode, imgEl);
-                    });
-
-                    const html2canvasOpts = {
-                        scale: isMobile ? 2 : 2.5,
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#ffffff',
-                        allowTaint: false,
-                        foreignObjectRendering: false,
-                        width: actualWidth,
-                        height: wrapper.scrollHeight || wrapper.offsetHeight,
-                        windowWidth: actualWidth + 200,
-                        windowHeight: (wrapper.scrollHeight || wrapper.offsetHeight) + 200,
-                        ignoreElements: function (el) {
-                            // 忽略隐藏元素，减少渲染异常
-                            const style = window.getComputedStyle(el);
-                            return style && (style.display === 'none' || style.visibility === 'hidden');
+                            const candidates = clonedDoc.querySelectorAll('img, canvas, svg image');
+                            candidates.forEach(function (el) {
+                                const tagName = el.tagName && el.tagName.toLowerCase();
+                                if (tagName === 'link' || tagName === 'style') return;
+                                const src = (el.getAttribute && el.getAttribute('src')) || '';
+                                if (src && (src.startsWith('data:') || src.startsWith('blob:'))) return;
+                                try {
+                                    const u = new URL(src, window.location.href);
+                                    if (u.origin === window.location.origin) return;
+                                } catch (_) { /* ignore */ }
+                                const w = el.offsetWidth || el.width || 120;
+                                const h = el.offsetHeight || el.height || 60;
+                                const ph = clonedDoc.createElement('div');
+                                ph.style.cssText =
+                                    `width:${w}px;height:${h}px;display:block;background:#e8e2ee;box-sizing:border-box;flex-shrink:0;object-fit:cover;`;
+                                if (el.parentNode) el.parentNode.replaceChild(ph, el);
+                            });
+                        } catch (sanErr) {
+                            console.warn('[Share] onclone sanitize 小异常（不致命）:', sanErr.message);
                         }
+                    }
+
+                    // 2. 渲染配置：不传 width/height，交给 html2canvas 按元素实际尺寸测量
+                    //   windowWidth/windowHeight：使用真实文档滚动尺寸，避免 iframe 内部裁出的视口太小
+                    //     → 这是 html2canvas 报 "Unable to find element" 的常见触发点
+                    const docW = Math.max(
+                        document.documentElement.scrollWidth,
+                        document.body.scrollWidth,
+                        document.documentElement.clientWidth,
+                        wrapper.offsetWidth + 500,
+                        1400
+                    );
+                    const docH = Math.max(
+                        document.documentElement.scrollHeight,
+                        document.body.scrollHeight,
+                        document.documentElement.clientHeight,
+                        wrapper.offsetHeight + 200,
+                        2000
+                    );
+                    const renderOpts = {
+                        scale: isTouchDevice ? 2 : 2.5,
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor: '#ffffff',
+                        foreignObjectRendering: false,
+                        windowWidth: docW,
+                        windowHeight: docH,
+                        scrollX: 0,
+                        scrollY: 0,
+                        logging: false,
+                        ignoreElements: function (el) {
+                            const style = el && window.getComputedStyle(el);
+                            return !!(style && (style.display === 'none' || parseFloat(style.opacity) === 0));
+                        },
+                        onclone: function (clonedDoc) { sanitizeClonedDoc(clonedDoc); }
                     };
 
-                    let canvas;
+                    const TIMEOUT_MS = 25000;
+                    const renderPromise = html2canvasLib(wrapper, renderOpts);
+                    const canvas = await Promise.race([renderPromise, makeTimeoutPromise(TIMEOUT_MS)]);
+                    clearShareTimeout();
+
+                    console.info('[Share Step 4.2] html2canvas 渲染完成，canvas:', (canvas && canvas.width || 0) + 'x' + (canvas && canvas.height || 0));
+
+                    let dataUrl;
                     try {
-                        // 首次尝试：严格 CORS 模式
-                        const renderPromise = html2canvasLib(wrapper, html2canvasOpts);
-                        canvas = await Promise.race([renderPromise, timeoutPromise]);
-                    } catch (firstErr) {
-                        clearTimeout(timeoutId);
-                        console.warn('[Share] 首次截图失败（CORS），使用宽松配置重试:', firstErr.message);
-                        // 重试：放宽选项，移除剩余可能出问题的 img / canvas 元素
-                        wrapper.querySelectorAll('img, canvas, svg image').forEach(function (el) {
+                        dataUrl = canvas.toDataURL('image/png');
+                    } catch (exportErr) {
+                        console.warn('[Share] toDataURL 导出失败（canvas 疑似被污染），使用完全无图片模式重试:', exportErr.message);
+                        clearShareTimeout();
+                        wrapper.querySelectorAll('img, canvas, svg').forEach(function (el) {
                             if (el.parentNode) {
-                                const phNode = document.createElement('div');
-                                phNode.style.cssText =
-                                    `width:${el.offsetWidth || 100}px;height:${el.offsetHeight || 100}px;background:#e8e2ee;display:block;flex-shrink:0;`;
-                                el.parentNode.replaceChild(phNode, el);
+                                const w = el.offsetWidth || 120;
+                                const h = el.offsetHeight || 60;
+                                const ph = document.createElement('div');
+                                ph.style.cssText = `width:${w}px;height:${h}px;background:#e8e2ee;display:block;`;
+                                el.parentNode.replaceChild(ph, el);
                             }
                         });
-                        const retryTimeoutPromise = new Promise(function (_, reject) {
-                            timeoutId = setTimeout(function () { reject(new Error('重试截图生成超时')); }, timeoutMs);
-                        });
-                        const retryOpts = Object.assign({}, html2canvasOpts, {
-                            useCORS: false,
-                            allowTaint: false,
-                            backgroundColor: '#ffffff'
-                        });
+                        const retryOpts = Object.assign({}, renderOpts, { useCORS: false, allowTaint: false });
                         const retryPromise = html2canvasLib(wrapper, retryOpts);
-                        canvas = await Promise.race([retryPromise, retryTimeoutPromise]);
+                        const canvas2 = await Promise.race([retryPromise, makeTimeoutPromise(TIMEOUT_MS)]);
+                        clearShareTimeout();
+                        dataUrl = canvas2.toDataURL('image/png');
                     }
-                    clearTimeout(timeoutId);
-                    return canvas.toDataURL('image/png');
+                    console.info('[Share Step 5/6] PNG 导出成功（base64 长度：' + (dataUrl && dataUrl.length || 0) + '）');
+                    return dataUrl;
                 } catch (err) {
-                    clearTimeout(timeoutId);
-                    console.error('生成分享图片失败:', err);
-                    showToast('⚠️ 生成图片失败: ' + (err.message || '未知错误'), 3000);
-                    return null;
+                    clearShareTimeout();
+                    const errMsg = err && err.message || String(err);
+                    console.warn('[Share] html2canvas 路径失败：' + errMsg + ' → 自动 fallback 到原生 Canvas 2D 模式');
+                    try {
+                        console.info('[Share Step 4/6 (Native-Fallback)] captureShareCard：原生 Canvas 2D 手绘 fallback');
+                        const dataUrl = await renderShareCardNativeCanvas(game, extraComment, ratingInfo);
+                        console.info('[Share Step 5/6 (Native-Fallback)] 原生 Canvas fallback 导出成功（base64 长度：' + (dataUrl && dataUrl.length || 0) + '）');
+                        return dataUrl;
+                    } catch (nativeErr) {
+                        console.error('[Share] captureShareCard 双路径均失败：html2canvas=', err && err.stack ? err.stack : err, '；native=', nativeErr && nativeErr.stack ? nativeErr.stack : nativeErr);
+                        showToast('⚠️ 生成图片失败: ' + (nativeErr && nativeErr.message || errMsg), 4000);
+                        return null;
+                    }
                 }
             }
 
-            // 显示分享浮层
+            // 确保页面中有稳定的「沙箱容器」用于放待截图的分享卡片
+            //   不使用 left:-9999px 技巧，避免 html2canvas 测量错位
+            function _getShareSandbox() {
+                var sb = document.getElementById('__share_sandbox__');
+                if (sb) return sb;
+                sb = document.createElement('div');
+                sb.id = '__share_sandbox__';
+                sb.setAttribute('aria-hidden', 'true');
+                sb.style.cssText = [
+                    'position:absolute;',
+                    'top:0;left:0;',
+                    'width:520px;max-width:520px;',
+                    'min-height:100px;',
+                    'overflow:visible;',
+                    'visibility:hidden;',
+                    'pointer-events:none;',
+                    'z-index:-9999;',
+                    'background:transparent;',
+                    'padding:0;margin:0;border:0;'
+                ].join('');
+                document.body.appendChild(sb);
+                return sb;
+            }
+
+            // 显示分享浮层 v2（分步日志）
             async function buildShareFloat(game, extraComment) {
+                console.info('[Share Step 1/6] buildShareFloat 启动：gameId=' + (game && game.id) + ', title=' + (game && game.title));
                 currentShareGame = game;
                 const overlay = document.getElementById('shareFloatOverlay');
                 const container = document.getElementById('shareImageContainer');
@@ -5341,30 +6315,48 @@
 
                 const progressText = document.getElementById('shareProgressText');
                 const progressBar = document.getElementById('shareProgressBar');
+                let wrapper = null;
 
                 try {
-                    if (progressText) progressText.textContent = '⏳ 正在加载二维码库...';
-                    if (progressBar) progressBar.style.width = '20%';
-                    const wrapper = await buildShareCardDOM(game, extraComment);
+                    // 预加载 html2canvas（提前，避免后面在截图里才加载导致进度条不动）
+                    if (progressText) progressText.textContent = '⏳ 正在加载截图依赖库...';
+                    if (progressBar) progressBar.style.width = '10%';
+                    try {
+                        await window._loadHtml2Canvas();
+                        console.info('[Share Step 1.1] html2canvas 库预加载成功');
+                    } catch (libErr) {
+                        throw new Error('截图依赖库加载失败：' + (libErr.message || libErr));
+                    }
 
-                    if (progressText) progressText.textContent = '⏳ 正在渲染分享卡片...';
-                    if (progressBar) progressBar.style.width = '50%';
-                    wrapper.style.position = 'fixed';
-                    wrapper.style.left = '-9999px';
-                    wrapper.style.top = '0';
-                    wrapper.style.zIndex = '-1';
-                    wrapper.style.pointerEvents = 'none';
-                    wrapper.style.width = 'min(400px, calc(100vw - 40px))';
+                    if (progressText) progressText.textContent = '⏳ 正在构建分享卡片...';
+                    if (progressBar) progressBar.style.width = '25%';
+                    wrapper = await buildShareCardDOM(game, extraComment);
+
+                    // ⚠️ 关键点：直接挂载到 body，用「位置偏移」隐藏，不用 visibility:hidden / display:none
+                    //   → visibility:hidden 会被 html2canvas 克隆后引发 "Unable to find element in cloned iframe"
+                    //   → 直接定位到屏幕左外，布局与样式 100% 保留，DOM 树浅（索引对齐匹配率高）
+                    wrapper.style.cssText += ';position:fixed !important;top:0 !important;left:-12000px !important;width:400px !important;max-width:400px !important;margin:0 !important;padding:0 !important;z-index:-9999 !important;pointer-events:none !important;visibility:visible !important;display:block !important;transform:none !important;opacity:1 !important;';
                     document.body.appendChild(wrapper);
 
-                    if (progressText) progressText.textContent = '⏳ 正在生成图片...';
-                    if (progressBar) progressBar.style.width = '75%';
-                    const dataUrl = await captureShareCard(wrapper);
-                    wrapper.remove();
+                    // 等待 wrapper 完成双帧布局回流
+                    if (progressText) progressText.textContent = '⏳ 正在渲染分享卡片...';
+                    if (progressBar) progressBar.style.width = '55%';
+                    await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+                    await new Promise(function (r) { setTimeout(r, 120); });
+                    console.info('[Share Step 3/6] 分享卡片已挂载到 body，尺寸：' + wrapper.offsetWidth + 'x' + wrapper.offsetHeight);
+
+                    if (progressText) progressText.textContent = '⏳ 正在生成分享图片...';
+                    if (progressBar) progressBar.style.width = '80%';
+                    const dataUrl = await captureShareCard(wrapper, game, extraComment);
 
                     if (!dataUrl) {
+                        // captureShareCard 内部已经 showToast 了
                         container.innerHTML =
-                            '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div><div style="text-align:center;margin-top:12px;"><button class="btn" onclick="closeShareFloat()" style="padding:8px 24px;">关闭</button></div>';
+                            '<div style="padding:32px 24px;text-align:center;color:var(--danger);line-height:1.7;">' +
+                            '<div style="font-size:1rem;margin-bottom:8px;">⚠️ 分享图片生成失败</div>' +
+                            '<div style="font-size:0.72rem;color:var(--text2);">请打开浏览器控制台（F12 → Console），<br/>将标有 [Share Step X] 及红色报错信息截图反馈</div>' +
+                            '</div>' +
+                            '<div style="text-align:center;margin-top:8px;"><button class="btn" onclick="closeShareFloat()" style="padding:8px 24px;">关闭</button></div>';
                         return;
                     }
 
@@ -5373,15 +6365,27 @@
                     shareImageDataURL = dataUrl;
                     const img = document.createElement('img');
                     img.src = dataUrl;
-                    img.alt = `${game.title} 分享图片`;
+                    img.alt = (game && game.title ? game.title : 'Her Lens') + ' 分享图片';
                     img.style.cssText = 'width:100%;height:auto;display:block;border-radius:16px;';
                     img.setAttribute('draggable', 'false');
                     container.innerHTML = '';
                     container.appendChild(img);
+                    console.info('[Share Step 6/6] 分享图片展示完毕 ✅');
                 } catch (err) {
-                    console.error('分享浮层构建失败:', err);
-                    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger);">⚠️ 生成失败，请重试</div><div style="text-align:center;margin-top:12px;"><button class="btn" onclick="closeShareFloat()" style="padding:8px 24px;">关闭</button></div>';
+                    console.error('[Share] buildShareFloat 顶层异常:', err && err.stack ? err.stack : err);
+                    container.innerHTML =
+                        '<div style="padding:32px 24px;text-align:center;color:var(--danger);line-height:1.7;">' +
+                        '<div style="font-size:1rem;margin-bottom:8px;">⚠️ 分享图片生成失败</div>' +
+                        '<div style="font-size:0.78rem;color:var(--text2);word-break:break-all;">错误：' +
+                        escapeHTML(err && err.message ? err.message : String(err)) +
+                        '</div><div style="font-size:0.72rem;color:var(--text3);margin-top:10px;">请打开浏览器控制台（F12 → Console），<br/>将标有 [Share Step X] 及红色报错信息截图反馈</div>' +
+                        '</div>' +
+                        '<div style="text-align:center;margin-top:8px;"><button class="btn" onclick="closeShareFloat()" style="padding:8px 24px;">关闭</button></div>';
                     return;
+                } finally {
+                    // 清理 wrapper（从 body 移除，避免残留节点）
+                    if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+                    try { const sb = document.getElementById('__share_sandbox__'); if (sb) sb.innerHTML = ''; } catch (_) {}
                 }
 
                 const downloadBtn = document.getElementById('shareFloatDownloadBtn');
