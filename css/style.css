@@ -338,7 +338,25 @@
             --muted-tag-bg: rgba(78, 72, 90, 0.65);    /* 灰紫 L≈45%，没中文那么显眼但能看清 */
             --muted-tag-text: #b9adc9;
             --muted-tag-border: rgba(255, 255, 255, 0.10);
+
+            /* === 视频链接胶囊 · 暗色模式：所有渐变亮度再锚定 L≈42%，玻璃半透明 α≈0.80，避免在 #1e1822 上"发光" === */
+            --video-glass: 0.80;
         }
+
+        /* 暗色模式下的 detail-video-link（覆盖：亮度统一压暗 10-12%，全部玻璃半透质感，与暗色卡片纹理融） */
+        [data-theme="dark"] .detail-video-link {
+            background: linear-gradient(135deg, rgba(150, 128, 115, var(--video-glass,0.80)) 0%, rgba(110, 96, 120, var(--video-glass,0.80)) 100%);
+            border-color: rgba(255,255,255,0.14);
+            color: #efebf6;
+        }
+        [data-theme="dark"] .detail-video-link[data-vtype="bilibili"] { background: linear-gradient(135deg, rgba(195,145,160,0.78) 0%, rgba(140,165,200,0.78) 100%); }
+        [data-theme="dark"] .detail-video-link[data-vtype="youtube"]  { background: linear-gradient(135deg, rgba(185,135,120,0.78) 0%, rgba(165,110,95,0.78) 100%); }
+        [data-theme="dark"] .detail-video-link[data-vtype="niconico"] { background: linear-gradient(135deg, rgba(120,118,135,0.72) 0%, rgba(95,90,110,0.78) 100%); color:#e6e0f0;}
+        [data-theme="dark"] .detail-video-link[data-vtype="vimeo"]    { background: linear-gradient(135deg, rgba(135,175,200,0.76) 0%, rgba(105,155,185,0.76) 100%); }
+        [data-theme="dark"] .detail-video-link[data-vtype="dailymotion"],
+        [data-theme="dark"] .detail-video-link[data-vtype="twitch"]   { background: linear-gradient(135deg, rgba(155,135,190,0.74) 0%, rgba(125,105,165,0.78) 100%); }
+        [data-theme="dark"] .detail-video-link[data-vtype="social"]   { background: linear-gradient(135deg, rgba(135,158,180,0.74) 0%, rgba(115,155,170,0.74) 100%); }
+        [data-theme="dark"] .detail-video-link[data-vtype="shop"]     { background: linear-gradient(135deg, rgba(140,175,155,0.74) 0%, rgba(120,150,140,0.74) 100%); }
 
         [data-theme="dark"] .header-dropdown-menu {
             background: #2a2330;
@@ -3679,6 +3697,62 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 16px rgba(155, 138, 189, 0.25);
         }
+
+        /* ===== 视频链接胶囊：替换默认蓝色下划线超链接，保持与中文胶囊/detail-link-btn 同风格（方案 A） ===== */
+        .detail-video-link,
+        a.detail-video-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 5px 15px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            line-height: 1.5;
+            letter-spacing: 0.02em;
+            border-radius: 999px;
+            color: #ffffff;
+            text-decoration: none !important;
+            background: linear-gradient(135deg, #b09a8f 0%, #887a95 100%); /* 琥珀暖紫渐变（S≈28%，视频/胶片暖调联想，不抢Steam紫色） */
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 2px 10px rgba(140, 120, 115, 0.18);
+            cursor: pointer;
+            transition: all 0.22s ease;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .detail-video-link:hover {
+            transform: translateY(-1.5px);
+            filter: brightness(1.05);
+            box-shadow: 0 4px 16px rgba(140, 120, 115, 0.24);
+        }
+        .detail-video-link .vlink-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-style: normal;
+            font-size: 0.92em;
+            line-height: 1;
+            width: 1em;
+            height: 1em;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.18));
+            flex-shrink: 0;
+        }
+        .detail-video-link .vlink-text {
+            display: inline-block;
+            line-height: 1.4;
+        }
+        /* ——— 各平台专属渐变（低饱和版品牌色相，绝不跳） ——— */
+        .detail-video-link[data-vtype="bilibili"]    { background: linear-gradient(135deg, #e7b3c0 0%, #a9c4eb 100%); border-color: rgba(255,255,255,0.22); box-shadow: 0 2px 10px rgba(220,170,190,0.20); }
+        .detail-video-link[data-vtype="youtube"]     { background: linear-gradient(135deg, #e2a697 0%, #c48876 100%); border-color: rgba(255,255,255,0.20); box-shadow: 0 2px 10px rgba(210,150,135,0.20); }
+        .detail-video-link[data-vtype="niconico"]    { background: linear-gradient(135deg, #908e9c 0%, #6e6b7e 100%); border-color: rgba(255,255,255,0.16); box-shadow: 0 2px 10px rgba(110,105,120,0.20); color:#f0edf6;}
+        .detail-video-link[data-vtype="vimeo"]       { background: linear-gradient(135deg, #9cc5dd 0%, #79b0cc 100%); border-color: rgba(255,255,255,0.20); box-shadow: 0 2px 10px rgba(130,180,210,0.20); }
+        .detail-video-link[data-vtype="dailymotion"],
+        .detail-video-link[data-vtype="twitch"]      { background: linear-gradient(135deg, #b49cd4 0%, #9379bb 100%); border-color: rgba(255,255,255,0.20); box-shadow: 0 2px 10px rgba(160,135,200,0.22); }
+        .detail-video-link[data-vtype="social"]      { background: linear-gradient(135deg, #9cb6ce 0%, #87b4be 100%); border-color: rgba(255,255,255,0.20); box-shadow: 0 2px 10px rgba(150,170,190,0.20); }
+        .detail-video-link[data-vtype="shop"]        { background: linear-gradient(135deg, #9dc7b1 0%, #88a89b 100%); border-color: rgba(255,255,255,0.20); box-shadow: 0 2px 10px rgba(150,185,165,0.20); }
+        .detail-video-link[data-vtype="video"]       { /* 默认琥珀暖紫，上方基础块已定义 */ }
+        .detail-video-link[data-vtype="common"]      { background: linear-gradient(135deg, #b09a8f 0%, #887a95 100%); }
 
         /* ---------- 截图区域：根据张数自适应 ---------- */
         .detail-screenshots {
@@ -11182,6 +11256,14 @@
                 padding: 4px 14px;
             }
 
+            /* 视频链接胶囊 · 移动端（与 Steam 按钮等比缩放） */
+            .detail-video-link {
+                font-size: 0.76rem;
+                padding: 4px 13px;
+                gap: 4px;
+            }
+            .detail-video-link .vlink-icon { font-size: 0.88em; }
+
             .review-section {
                 margin-top: 0;
                 padding-top: 10px;
@@ -11295,6 +11377,14 @@
                 font-size: 0.8rem;
                 padding: 3px 12px;
             }
+
+            /* 视频链接胶囊 · 小屏手机（< 420px 或对应媒体块）进一步收紧 */
+            .detail-video-link {
+                font-size: 0.72rem;
+                padding: 3px 11px;
+                gap: 3px;
+            }
+            .detail-video-link .vlink-icon { font-size: 0.84em; }
 
             .detail-screenshots-grid img {
                 max-height: 120px;

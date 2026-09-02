@@ -6651,7 +6651,10 @@
 
             function buildDetailVideosHTML(videos) {
                 if (!videos || videos.length === 0) return '';
-                return `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${videos.map(url => `<a class="detail-video-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">▶️ ${extractVideoTitle(url)}</a>`).join('')}</div>`;
+                return `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${videos.map(url => {
+                    const { vtype, icon, title } = parseVideoMeta(url);
+                    return `<a class="detail-video-link" data-vtype="${escapeHTML(vtype)}" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer"><i class="vlink-icon">${escapeHTML(icon)}</i><span class="vlink-text">${escapeHTML(title)}</span></a>`;
+                }).join('')}</div>`;
             }
 
             async function showDetailModal(game, options) {
@@ -7990,6 +7993,104 @@
                     if (url.includes('x.com') || url.includes('twitter')) return '🐦 X / Twitter';
                     return '🔗 视频链接';
                 }
+            }
+
+            // ================================================================
+            // ★ 视频链接解析（方案 A：视频胶囊用）→ 返回 { vtype, icon, title }
+            //   vtype 决定 CSS [data-vtype=...] 的专属渐变配色
+            //   icon  放在 <i class="vlink-icon"> 里，由 CSS 统一控制颜色大小
+            //   title 纯文字（已剥离 emoji 前缀），放在 <span class="vlink-text"> 里
+            // 注意：extractVideoTitle 不动，零副作用兼容其他调用点
+            // ================================================================
+            function parseVideoMeta(url) {
+                let vtype = 'common';
+                let icon  = '🔗';
+                const strURL = String(url || '').trim();
+                try {
+                    const u = new URL(strURL);
+                    const host = u.hostname.toLowerCase();
+                    const pathname = u.pathname || '';
+
+                    // ① 直链视频（mp4/webm/m3u8/mov/…）→ vtype=video · 默认琥珀暖紫 · 图标 ▷ 小播字
+                    if (/\.(mp4|webm|m3u8|mov|mkv|avi|flv|ts|m4v)(\?|#|$)/i.test(pathname + (u.search || ''))) {
+                        vtype = 'video'; icon = '▷';
+                    }
+                    // ② 头部视频平台（各专属低饱和渐变）
+                    else if (host.includes('bilibili.com') || host.includes('b23.tv')) { vtype = 'bilibili'; icon = '📺'; }
+                    else if (host.includes('youtube.com') || host.includes('youtu.be'))   { vtype = 'youtube';  icon = '▶'; }
+                    else if (host.includes('nicovideo.jp') || host.includes('niconico'))  { vtype = 'niconico'; icon = '🎌'; }
+                    else if (host.includes('vimeo.com'))        { vtype = 'vimeo';       icon = '🎬'; }
+                    else if (host.includes('dailymotion.com'))  { vtype = 'dailymotion'; icon = '🎥'; }
+                    else if (host.includes('twitch.tv'))        { vtype = 'twitch';      icon = '🎮'; }
+                    // ③ 社交平台 → vtype=social 冷靛青
+                    else if (host.includes('douyin.com') || host.includes('kuaishou.com') ||
+                             host.includes('weibo.com')  || host.includes('weibo.cn')    ||
+                             host.includes('xiaohongshu.com') || host.includes('xhslink.com') ||
+                             host.includes('zhihu.com')  ||
+                             host.includes('tiktok.com') || host.includes('instagram.com') ||
+                             host.includes('x.com')      || host.includes('twitter.com')   ||
+                             host.includes('reddit.com') || host.includes('discord.com')   || host.includes('discord.gg') ||
+                             host.includes('telegram.org') || host.includes('t.me')        ||
+                             host.includes('mastodon')   || host.includes('threads.net')   ||
+                             host.includes('bluesky')    || host.includes('facebook.com')  || host.includes('fb.watch')) {
+                        vtype = 'social';
+                        if      (host.includes('douyin'))                      icon = '🎵';
+                        else if (host.includes('weibo'))                       icon = '📱';
+                        else if (host.includes('xiaohongshu') || host.includes('xhslink')) icon = '📕';
+                        else if (host.includes('zhihu'))                       icon = '📘';
+                        else if (host.includes('tiktok'))                      icon = '🎵';
+                        else if (host.includes('instagram'))                   icon = '📷';
+                        else if (host.includes('x.com') || host.includes('twitter')) icon = '🐦';
+                        else if (host.includes('facebook') || host.includes('fb.watch')) icon = '📘';
+                        else if (host.includes('kuaishou'))                    icon = '📱';
+                        else if (host.includes('threads'))                     icon = '🧵';
+                        else if (host.includes('bluesky'))                     icon = '🦋';
+                        else if (host.includes('reddit'))                      icon = '🤖';
+                        else if (host.includes('discord'))                     icon = '💬';
+                        else if (host.includes('telegram') || host === 't.me') icon = '✈️';
+                        else if (host.includes('mastodon'))                    icon = '🐘';
+                        else                                                   icon = '🔗';
+                    }
+                    // ④ 商店平台 → vtype=shop 柔绿
+                    else if (host.includes('steampowered.com') || host.includes('steamcommunity.com') ||
+                             host.includes('epicgames.com')   || host.includes('gog.com')             ||
+                             host.includes('itch.io')         || host.includes('indienova.com')       ||
+                             host.includes('gamejolt.com')) {
+                        vtype = 'shop';
+                        if      (host.includes('epic'))         icon = '🛒';
+                        else if (host.includes('gog'))          icon = '🛒';
+                        else if (host.includes('itch'))         icon = '🎮';
+                        else if (host.includes('indienova'))    icon = '🎮';
+                        else if (host.includes('gamejolt'))     icon = '🎮';
+                        else                                    icon = '🎮';
+                    }
+                    // ⑤ 其他常见工具/社区
+                    else {
+                        vtype = 'common';
+                        if      (host.includes('github.com'))   icon = '🐙';
+                        else if (host.includes('notion'))       icon = '📝';
+                        else if (host.includes('feishu') || host.includes('larksuite')) icon = '📝';
+                        else                                    icon = '🔗';
+                    }
+                } catch (_) {
+                    // URL parse 失败 → 软回退（按字符串 contains 判断 vtype/icon，避免完全 fallback 成灰）
+                    vtype = 'common'; icon = '🔗';
+                    const s = strURL.toLowerCase();
+                    if      (/\.(mp4|webm|m3u8|mov|mkv|avi|flv|ts|m4v)(\?|#|$)/i.test(s)) { vtype = 'video';    icon = '▷'; }
+                    else if (s.includes('bilibili') || s.includes('b23.tv'))              { vtype = 'bilibili'; icon = '📺'; }
+                    else if (s.includes('youtube')  || s.includes('youtu.be'))            { vtype = 'youtube';  icon = '▶'; }
+                    else if (s.includes('vimeo'))                                          { vtype = 'vimeo';    icon = '🎬'; }
+                    else if (s.includes('douyin'))                                         { vtype = 'social';   icon = '🎵'; }
+                    else if (s.includes('weibo'))                                          { vtype = 'social';   icon = '📱'; }
+                    else if (s.includes('x.com') || s.includes('twitter'))                 { vtype = 'social';   icon = '🐦'; }
+                }
+
+                // ⑥ title：复用 extractVideoTitle，然后剥离开头 emoji 前缀（只保留正文）
+                let raw = extractVideoTitle(strURL) || '视频链接';
+                // 去掉开头 1~N 个 emoji / 特殊符号字符（覆盖原 extractVideoTitle 的全部前缀符号）
+                let title = raw.replace(/^(?:\s|[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{00A9}\u{00AE}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}\u{21AA}\u{231A}\u{231B}\u{2328}\u{23CF}\u{23E9}-\u{23F3}\u{23F8}-\u{23FA}\u{24C2}\u{25AA}\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2934}\u{2935}\u{2B05}-\u{2B07}\u{2B1B}\u{2B1C}\u{2B50}\u{2B55}\u{23EE}\u{23EF}\u{23F0}\u{25FD}\u{1F004}\u{1F0CF}\u{1F170}\u{1F171}\u{1F17E}\u{1F17F}\u{1F18E}\u{1F191}-\u{1F19A}\u{1F201}-\u{1F202}\u{1F21A}\u{1F22F}\u{1F232}-\u{1F23A}\u{1F250}\u{1F251}]|▶️|▷|▶)+/u, '').trim();
+                if (!title) title = '视频链接';
+                return { vtype, icon, title };
             }
 
             // ================================================================
