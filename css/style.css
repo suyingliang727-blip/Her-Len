@@ -71,6 +71,14 @@
             --tier-diamond: #8a82a8;
             --tier-diamond-light: #7eb0ac;
             --tier-diamond-bg: linear-gradient(135deg, #8a82a8, #7ea8a4);
+
+            /* === 中文/主色胶囊（accent-tag / muted-tag）亮暗主题变量 === */
+            --accent-tag-bg: #9b8abd;
+            --accent-tag-text: #ffffff;
+            --accent-tag-border: rgba(255, 255, 255, 0.08);
+            --muted-tag-bg: #8c8099;
+            --muted-tag-text: #ffffff;
+            --muted-tag-border: rgba(255, 255, 255, 0.08);
         }
 
         @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -322,6 +330,14 @@
             --iridescent-opacity: 0.08;
             --silver-sweep-color: rgba(255,255,255,0.25);
             --accent-light: rgba(184, 162, 214, 0.15);
+
+            /* === 中文/主色胶囊 · 暗色调和版：降饱和(S≤25%) + 降亮度(L≤40%) + 玻璃半透明，避免极暗背景下"亮紫膏药" === */
+            --accent-tag-bg: rgba(98, 82, 128, 0.68);  /* H265° S24% L41% + 68%alpha → 低饱和深紫，嵌在暗色卡片里像玻璃层不跳 */
+            --accent-tag-text: #d8cff0;                /* L≈85% 淡紫白，比纯白与背景对比度更和谐 (≈5.3:1 WCAG) */
+            --accent-tag-border: rgba(255, 255, 255, 0.12);
+            --muted-tag-bg: rgba(78, 72, 90, 0.65);    /* 灰紫 L≈45%，没中文那么显眼但能看清 */
+            --muted-tag-text: #b9adc9;
+            --muted-tag-border: rgba(255, 255, 255, 0.10);
         }
 
         [data-theme="dark"] .header-dropdown-menu {
@@ -1103,6 +1119,11 @@
             white-space: nowrap;
             font-family: inherit;
             position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            line-height: 1;
         }
 
         .top-nav-item:hover {
@@ -2726,15 +2747,59 @@
             white-space: nowrap;
         }
 
+        /* ===== 中文/主色胶囊（全局基础块：gallery-card / 详情页 / 其他页面通用）===== */
+        .accent-tag,
+        span.accent-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .72rem;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--accent-tag-bg);
+            color: var(--accent-tag-text);
+            border: 1px solid var(--accent-tag-border);
+            font-weight: 500;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .tag-muted,
+        span.tag-muted {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .72rem;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--muted-tag-bg);
+            color: var(--muted-tag-text);
+            border: 1px solid var(--muted-tag-border);
+            font-weight: 500;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
         .gallery-card .card-meta span.accent-tag {
-            background: var(--accent);
-            color: #fff;
+            font-size: .68rem;
+            padding: 2px 8px;
+            /* 背景/文字/边框 → 统一走 var(--accent-tag-*)，暗色下不再是 L=74% 炸眼亮紫 */
+            background: var(--accent-tag-bg);
+            color: var(--accent-tag-text);
+            border: 1px solid var(--accent-tag-border);
             font-weight: 500;
         }
 
         .gallery-card .card-meta span.tag-muted {
-            background: var(--text3);
-            color: #fff;
+            font-size: .68rem;
+            padding: 2px 8px;
+            background: var(--muted-tag-bg);
+            color: var(--muted-tag-text);
+            border: 1px solid var(--muted-tag-border);
             font-weight: 500;
         }
 
@@ -9904,6 +9969,11 @@
             .top-nav-item {
                 padding: 5px 10px;
                 font-size: 0.78rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                vertical-align: middle;
+                line-height: 1;
             }
 
             .header-right {
@@ -15072,7 +15142,7 @@
    ★ 导航「她们」下拉
    ================================================================ */
 .nav-dropdown-wrap { position: relative; display: inline-block; }
-.nav-dropdown-wrap .nav-caret { font-size: 0.7em; opacity: 0.7; transition: transform 0.25s; display: inline-block; }
+.nav-dropdown-wrap .nav-caret { font-size: 0.7em; opacity: 0.7; transition: transform 0.25s; display: inline-block; vertical-align: middle; margin-left: 3px; line-height: 1; margin-top: -1px; }
 .nav-dropdown-wrap.open .nav-caret { transform: rotate(180deg); }
 .nav-dropdown-menu {
     position: absolute;

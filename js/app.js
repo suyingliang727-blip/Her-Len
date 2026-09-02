@@ -4924,6 +4924,190 @@
             }
 
             // ================================================================
+            // ★ 分享卡片 · 女主胶囊吸色工具（方案A：封面自适应主题色渐变胶囊）
+            //   共用纯函数：DOM 路径 / Canvas 原生路径 两边一致调用，保证颜色 1:1
+            //   失败（跨域、图片未加载）全部回退到默认紫渐变
+            // ================================================================
+            function _pillRgbToHsl(r, g, b) {
+                r /= 255; g /= 255; b /= 255;
+                const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+                if (max === min) { h = s = 0; }
+                else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                        case g: h = ((b - r) / d + 2) / 6; break;
+                        case b: h = ((r - g) / d + 4) / 6; break;
+                    }
+                }
+                return [h * 360, s, l];
+            }
+            function _pillHslToRgb(h, s, l) {
+                h /= 360; let r, g, b;
+                if (s === 0) { r = g = b = l; }
+                else {
+                    function hue2rgb(p, q, t) {
+                        if (t < 0) t += 1; if (t > 1) t -= 1;
+                        if (t < 1 / 6) return p + (q - p) * 6 * t;
+                        if (t < 1 / 2) return q;
+                        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                        return p;
+                    }
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1 / 3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1 / 3);
+                }
+                return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+            }
+            function _pillToHex(rgb) {
+                return '#' + rgb.map(function (v) {
+                    const h = (v | 0).toString(16);
+                    return h.length < 2 ? '0' + h : h;
+                }).join('');
+            }
+            function _pillSampleCoverPixels(sourceEl, sw, sh) {
+                if (!sourceEl) return [];
+                // 缩放到 200px 宽再采样，性能与精度平衡
+                const scale = Math.min(200 / Math.max(1, sw), 1);
+                const tw = Math.max(10, Math.round(sw * scale));
+                const th = Math.max(10, Math.round(sh * scale));
+                const off = document.createElement('canvas');
+                off.width = tw; off.height = th;
+                const octx = off.getContext('2d', { willReadFrequently: true });
+                // drawImage 参数兼容：HTMLImageElement / HTMLCanvasElement
+                if (sourceEl instanceof ImageData) {
+                    octx.putImageData(sourceEl, 0, 0);
+                } else {
+                    octx.drawImage(sourceEl, 0, 0, tw, th);
+                }
+                // 5 个采样区域：左上(胶囊本身)/ 右上 / 左下 / 右下 / 底部宽条（避开女主脸）
+                const regions = [
+                    [0, 0, 32, Math.min(32, th)],
+                    [tw - 32, 0, 32, Math.min(32, th)],
+                    [0, th - 32, 32, 32],
+                    [tw - 32, th - 32, 32, 32],
+                    [Math.round(tw * 0.1), th - Math.min(60, Math.round(th * 0.18)), Math.round(tw * 0.8), Math.min(60, Math.round(th * 0.18))]
+                ];
+                const pixels = [];
+                for (let k = 0; k < regions.length; k++) {
+                    const [rx, ry, rw, rh] = regions[k];
+                    const x = Math.max(0, Math.min(tw - 1, rx | 0));
+                    const y = Math.max(0, Math.min(th - 1, ry | 0));
+                    const w = Math.max(1, Math.min(tw - x, rw | 0));
+                    const h = Math.max(1, Math.min(th - y, rh | 0));
+                    try {
+                        const d = octx.getImageData(x, y, w, h).data;
+                        // 每 4 个像素采一个（性能）
+                        for (let i = 0; i < d.length; i += 16) {
+                            if (d[i + 3] < 125) continue;
+                            pixels.push([d[i], d[i + 1], d[i + 2]]);
+                        }
+                    } catch (e) { /* tainted canvas → 调用方回退紫色 */ }
+                }
+                return pixels;
+            }
+            function _pillKmeans4(pixels) {
+                if (pixels.length < 4) return pixels.length ? _pillRgbToHsl(pixels[0][0], pixels[0][1], pixels[0][2]) : [270, 0.35, 0.42];
+                const n = pixels.length;
+                // 初始化 4 个中心：从像素分布的 10% / 38% / 65% / 88% 位置拿，避免扎堆
+                let cents = [
+                    [pixels[Math.floor(n * 0.1)][0], pixels[Math.floor(n * 0.1)][1], pixels[Math.floor(n * 0.1)][2]],
+                    [pixels[Math.floor(n * 0.38)][0], pixels[Math.floor(n * 0.38)][1], pixels[Math.floor(n * 0.38)][2]],
+                    [pixels[Math.floor(n * 0.65)][0], pixels[Math.floor(n * 0.65)][1], pixels[Math.floor(n * 0.65)][2]],
+                    [pixels[Math.floor(n * 0.88)][0], pixels[Math.floor(n * 0.88)][1], pixels[Math.floor(n * 0.88)][2]]
+                ];
+                const asg = new Array(n);
+                for (let iter = 0; iter < 5; iter++) {
+                    for (let i = 0; i < n; i++) {
+                        const p = pixels[i]; let best = 0, bd = Infinity;
+                        for (let c = 0; c < 4; c++) {
+                            const dr = p[0] - cents[c][0], dg = p[1] - cents[c][1], db = p[2] - cents[c][2];
+                            const d = dr * dr + dg * dg + db * db;
+                            if (d < bd) { bd = d; best = c; }
+                        }
+                        asg[i] = best;
+                    }
+                    const sums = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+                    for (let i = 0; i < n; i++) {
+                        const c = asg[i], p = pixels[i];
+                        sums[c][0] += p[0]; sums[c][1] += p[1]; sums[c][2] += p[2]; sums[c][3]++;
+                    }
+                    for (let c = 0; c < 4; c++) if (sums[c][3] > 0) {
+                        cents[c][0] = sums[c][0] / sums[c][3];
+                        cents[c][1] = sums[c][1] / sums[c][3];
+                        cents[c][2] = sums[c][2] / sums[c][3];
+                    }
+                }
+                // 最终统计各簇大小与 HSL
+                const counts = [0, 0, 0, 0];
+                for (let i = 0; i < n; i++) counts[asg[i]]++;
+                const data = cents.map((rgb, i) => ({
+                    count: counts[i],
+                    hsl: _pillRgbToHsl(rgb[0] | 0, rgb[1] | 0, rgb[2] | 0)
+                }));
+                data.sort((a, b) => b.count - a.count);
+                // 选主色：排除占比最大的簇（通常是纯色背景天空/墙面/肉色），在剩下的里挑饱和度最高的
+                let pool = data.slice(1).filter(c => c.count > 0);
+                if (!pool.length) pool = data; // 全是同一个颜色只能将就
+                pool.sort((a, b) => b.hsl[1] - a.hsl[1]);
+                return pool[0].hsl; // [h, s, l]
+            }
+            const PILL_HUE_BLACKLIST = [[18, 8], [38, 6], [285, 10]]; // 肉色/屎黄/脏青紫（中心 ± 容差）
+            function _pillNormalizeHSL(hsl) {
+                let [h, s, l] = hsl;
+                if (h < 0) h += 360; if (h >= 360) h -= 360;
+                for (let k = 0; k < PILL_HUE_BLACKLIST.length; k++) {
+                    const [hc, ht] = PILL_HUE_BLACKLIST[k];
+                    let dh = Math.abs(h - hc); if (dh > 180) dh = 360 - dh;
+                    if (dh < ht) { h = (h + 30) % 360; s = Math.max(0.4, s * 0.9); }
+                }
+                if (s < 0.35) s = 0.35; if (s > 0.92) s = 0.92;
+                l = 0.42; // 亮度锚定 42%：白字永远可读
+                return [h, s, l];
+            }
+            const DEFAULT_PILL_PALETTE = {
+                ok: false,
+                gradStart: '#6b5a8a', gradEnd: '#4a3a66',
+                stroke: 'rgba(255,255,255,0.32)',
+                textShadow: 'rgba(0,0,0,0.28)',
+                shadow: 'rgba(60,40,80,0.35)',
+                gradCSS: 'linear-gradient(135deg,#6b5a8a,#4a3a66)'
+            };
+            function extractPillPalette(sourceEl) {
+                try {
+                    if (!sourceEl) return DEFAULT_PILL_PALETTE;
+                    // 尝试拿原始尺寸：HTMLImageElement / HTMLCanvasElement
+                    let w = 0, h = 0;
+                    if ('naturalWidth' in sourceEl) { w = sourceEl.naturalWidth | 0; h = sourceEl.naturalHeight | 0; }
+                    if (!w && sourceEl.width) { w = sourceEl.width | 0; h = sourceEl.height | 0; }
+                    if (!w) { w = 460; h = 215; } // fallback Steam 旧尺寸兜底
+                    const px = _pillSampleCoverPixels(sourceEl, w, h);
+                    if (px.length < 16) return DEFAULT_PILL_PALETTE;
+                    const rawHSL = _pillKmeans4(px);
+                    if (!rawHSL || rawHSL.length < 3) return DEFAULT_PILL_PALETTE;
+                    const [hN, sN, lN] = _pillNormalizeHSL(rawHSL);
+                    const main = _pillHslToRgb(hN, sN, lN);
+                    const deep = _pillHslToRgb(hN, Math.min(0.96, sN + 0.08), 0.28);
+                    const stroke = _pillHslToRgb(hN, sN, 0.70);
+                    const ts = _pillHslToRgb(hN, Math.min(1, sN + 0.05), 0.15);
+                    const bs = _pillHslToRgb(hN, sN, 0.20);
+                    return {
+                        ok: true,
+                        gradStart: _pillToHex(main), gradEnd: _pillToHex(deep),
+                        stroke: `rgba(${stroke[0]},${stroke[1]},${stroke[2]},0.42)`,
+                        textShadow: `0 1px 3px rgba(${ts[0]},${ts[1]},${ts[2]},0.65)`,
+                        shadow: `0 4px 18px rgba(${bs[0]},${bs[1]},${bs[2]},0.38)`,
+                        gradCSS: `linear-gradient(135deg, ${_pillToHex(main)}, ${_pillToHex(deep)})`,
+                        h: hN, s: sN, l: lN,
+                    };
+                } catch (e) { return DEFAULT_PILL_PALETTE; }
+            }
+
+            // ================================================================
             // ★ 分享功能 — 生成图片，显示在浮层中 (移动端长按保存)
             // ★ 优化速度：使用更简洁的 DOM，减少等待时间
             // ★ 新增评论分享：生成带评论内容的图片
@@ -4937,7 +5121,7 @@
             async function buildShareCardDOM(game, extraComment) {
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText =
-                    'width:100%;max-width:400px;background:#ffffff;border-radius:20px;overflow:hidden;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1e1822;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:0;box-sizing:border-box;';
+                    'width:100%;max-width:540px;background:#ffffff;border-radius:24px;overflow:hidden;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1e1822;box-shadow:0 12px 40px rgba(30,20,50,0.10);padding:0;box-sizing:border-box;';
 
                 // 获取评分信息
                 let ratingInfo = null;
@@ -4950,10 +5134,15 @@
                     const isReviewObj = typeof extraComment === 'object' && extraComment.comment;
                     const commentArea = document.createElement('div');
                     commentArea.style.cssText =
-                        'padding:16px 16px 12px;background:#f8f5fc;border-bottom:2px solid #f0ebf5;';
+                        'padding:20px 24px 16px;background:linear-gradient(180deg, #fbf9fd 0%, #ffffff 100%);border-bottom:1px solid #f0ebf5;position:relative;';
+                    // 顶部装饰短线（替代大面积色块厚重感）
+                    const deco = document.createElement('div');
+                    deco.style.cssText =
+                        'position:absolute;top:0;left:24px;width:42px;height:3px;border-radius:0 0 3px 3px;background:linear-gradient(90deg,#9b8abd,#c9a8d9);';
+                    commentArea.appendChild(deco);
                     const commentLabel = document.createElement('div');
                     commentLabel.style.cssText =
-                        'font-size:0.7rem;font-weight:600;color:#9b8abd;letter-spacing:0.04em;margin-bottom:8px;';
+                        'font-size:0.68rem;font-weight:600;color:#9b8abd;letter-spacing:0.08em;margin-bottom:10px;text-transform:uppercase;';
                     commentLabel.textContent = '💬 评论分享';
                     commentArea.appendChild(commentLabel);
 
@@ -5016,7 +5205,7 @@
 
                     const commentText = document.createElement('div');
                     commentText.style.cssText =
-                        'font-size:0.9rem;color:#1e1822;line-height:1.6;word-break:break-word;white-space:pre-wrap;';
+                        'font-size:0.92rem;color:#2a2030;line-height:1.75;word-break:break-word;white-space:pre-wrap;letter-spacing:0.01em;';
                     commentText.textContent = isReviewObj ? extraComment.comment : extraComment;
                     commentArea.appendChild(commentText);
                     wrapper.appendChild(commentArea);
@@ -5024,7 +5213,7 @@
 
                 // 封面
                 const coverWrap = document.createElement('div');
-                coverWrap.style.cssText = 'width:100%;aspect-ratio:460/215;background:#e8e2ee;position:relative;';
+                coverWrap.style.cssText = 'width:100%;aspect-ratio:3/2;background:#e8e2ee;position:relative;';
                 if (game.cover) {
                     const img = document.createElement('img');
                     img.src = game.cover;
@@ -5044,8 +5233,9 @@
                 }
                 if (game.heroineType) {
                     const tag = document.createElement('div');
+                    tag.setAttribute('data-role', 'pill');
                     tag.style.cssText =
-                        'position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#6b5a8a,#4a3a66);color:#fff;padding:2px 12px;border-radius:20px;font-size:0.65rem;font-weight:700;letter-spacing:0.04em;border:1px solid rgba(255,255,255,0.2);box-shadow:0 2px 14px rgba(60,40,80,0.45);text-shadow:0 1px 3px rgba(0,0,0,0.25);text-transform:uppercase;';
+                        'position:absolute;top:20px;left:24px;background:linear-gradient(135deg,#6b5a8a,#4a3a66);color:#fff;padding:6px 18px;border-radius:999px;font-size:0.8rem;font-weight:700;letter-spacing:0.1em;border:1.5px solid rgba(255,255,255,0.3);box-shadow:0 4px 18px rgba(60,40,80,0.35);text-shadow:0 1px 3px rgba(0,0,0,0.28);text-transform:uppercase;white-space:nowrap;';
                     tag.textContent = game.heroineType;
                     coverWrap.appendChild(tag);
                 }
@@ -5053,68 +5243,84 @@
 
                 // 信息区
                 const body = document.createElement('div');
-                body.style.cssText = 'padding:14px 16px 10px;';
+                body.style.cssText = 'padding:20px 24px 18px;';
+                // 标题：左侧渐变竖条 + 标题文字（符合站内 section title 左渐变条视觉规范）
+                const titleRow = document.createElement('div');
+                titleRow.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;';
+                const titleBar = document.createElement('div');
+                titleBar.style.cssText =
+                    'width:3px;flex-shrink:0;border-radius:2px;min-height:1.25rem;margin-top:5px;background:linear-gradient(180deg,#9b8abd,#c9a8d9);';
                 const title = document.createElement('div');
-                title.style.cssText = 'font-size:1.15rem;font-weight:700;color:#1e1822;line-height:1.3;margin-bottom:2px;';
+                title.style.cssText = 'font-size:1.25rem;font-weight:700;color:#1e1822;line-height:1.35;letter-spacing:0.01em;flex:1;';
                 title.textContent = game.title || '';
-                body.appendChild(title);
+                titleRow.appendChild(titleBar);
+                titleRow.appendChild(title);
+                body.appendChild(titleRow);
 
                 const desc = document.createElement('div');
                 desc.style.cssText =
-                    'font-size:0.78rem;color:#665c72;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px;';
+                    'font-size:0.82rem;color:#5a4e66;line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;padding-left:13px;';
                 desc.textContent = game.description || '';
                 body.appendChild(desc);
 
                 const meta = document.createElement('div');
-                meta.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+                meta.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding-left:13px;';
+
+                // ========== 分享卡片：标签胶囊颜色按当前主题调色 ==========
+                // 亮色主题：沿用原亮紫（和页面旧视觉一致）
+                // 暗色主题：在亮白底基础上整体压暗一档（填充 alpha ↓、边框 alpha ↓、文字 ↓一档紫）→ 符合暗模式整体氛围
+                const _dark = document.documentElement && document.documentElement.getAttribute('data-theme') === 'dark';
+                const TAG_P_BG = _dark ? 'rgba(145,128,180,0.14)' : 'rgba(155,138,189,0.18)';
+                const TAG_P_BORDER = _dark ? 'rgba(145,128,180,0.22)' : 'rgba(155,138,189,0.28)';
+                const TAG_P_TEXT = _dark ? '#5a4e72' : '#6b5a8a';
+                const TAG_MU_BG = _dark ? 'rgba(130,118,145,0.14)' : 'rgba(140,128,153,0.16)';
+                const TAG_MU_BORDER = _dark ? 'rgba(130,118,145,0.20)' : 'rgba(140,128,153,0.25)';
+                const TAG_S_BG = _dark ? 'rgba(145,128,180,0.06)' : 'rgba(155,138,189,0.08)';
+                const TAG_S_BORDER = _dark ? 'rgba(145,128,180,0.12)' : 'rgba(155,138,189,0.16)';
+                const TAG_S_TEXT = '#5a4e66';
+                const _tagBase = 'font-size:0.62rem;padding:2px 10px;border-radius:9px;font-weight:';
+
                 if (game.hasChinese === '有中文') {
                     const sp = document.createElement('span');
-                    sp.style.cssText =
-                        'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#9b8abd;color:#fff;font-weight:500;';
+                    sp.style.cssText = _tagBase + '500;' + 'background:' + TAG_P_BG + ';color:' + TAG_P_TEXT + ';border:1px solid ' + TAG_P_BORDER + ';';
                     sp.textContent = '中文';
                     meta.appendChild(sp);
                 } else if (game.hasChinese === '无中文') {
                     const sp = document.createElement('span');
-                    sp.style.cssText =
-                        'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#8c8099;color:#fff;font-weight:500;';
+                    sp.style.cssText = _tagBase + '500;' + 'background:' + TAG_MU_BG + ';color:' + TAG_S_TEXT + ';border:1px solid ' + TAG_MU_BORDER + ';';
                     sp.textContent = '无中文';
                     meta.appendChild(sp);
                 }
                 if (isGameReleased(game)) {
                     (game.genre || []).slice(0, 3).forEach(t => {
                         const sp = document.createElement('span');
-                        sp.style.cssText =
-                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                        sp.style.cssText = _tagBase + '400;' + 'background:' + TAG_S_BG + ';color:' + TAG_S_TEXT + ';border:1px solid ' + TAG_S_BORDER + ';';
                         sp.textContent = t;
                         meta.appendChild(sp);
                     });
                     (game.gameplay || []).slice(0, 2).forEach(t => {
                         const sp = document.createElement('span');
-                        sp.style.cssText =
-                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                        sp.style.cssText = _tagBase + '400;' + 'background:' + TAG_S_BG + ';color:' + TAG_S_TEXT + ';border:1px solid ' + TAG_S_BORDER + ';';
                         sp.textContent = t;
                         meta.appendChild(sp);
                     });
                 } else {
                     if (game.hasDemo) {
                         const sp = document.createElement('span');
-                        sp.style.cssText =
-                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#9b8abd;color:#fff;font-weight:500;';
+                        sp.style.cssText = _tagBase + '500;' + 'background:' + TAG_P_BG + ';color:' + TAG_P_TEXT + ';border:1px solid ' + TAG_P_BORDER + ';';
                         sp.textContent = '有Demo';
                         meta.appendChild(sp);
                     }
                     (game.genre || []).slice(0, 3).forEach(t => {
                         const sp = document.createElement('span');
-                        sp.style.cssText =
-                            'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                        sp.style.cssText = _tagBase + '400;' + 'background:' + TAG_S_BG + ';color:' + TAG_S_TEXT + ';border:1px solid ' + TAG_S_BORDER + ';';
                         sp.textContent = t;
                         meta.appendChild(sp);
                     });
                 }
                 if (game.releaseDate) {
                     const sp = document.createElement('span');
-                    sp.style.cssText =
-                        'font-size:0.6rem;padding:1px 8px;border-radius:10px;background:#f0ebf5;color:#5a4e66;';
+                    sp.style.cssText = _tagBase + '400;' + 'background:' + TAG_S_BG + ';color:' + TAG_S_TEXT + ';border:1px solid ' + TAG_S_BORDER + ';';
                     sp.textContent = game.releaseDate;
                     meta.appendChild(sp);
                 }
@@ -5123,65 +5329,29 @@
                 // 社区评分
                 if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
                     const ratingRow = document.createElement('div');
-                    ratingRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;';
-                    ratingRow.innerHTML = '<span style="font-size:0.9rem;color:#f5a623;">⭐</span><span style="font-size:0.75rem;color:#665c72;">' + ratingInfo.average.toFixed(1) + '/5（' + ratingInfo.count + '人评价）</span>';
+                    ratingRow.style.cssText = 'margin-top:10px;display:flex;align-items:center;gap:8px;padding-left:13px;';
+                    ratingRow.innerHTML = '<span style="font-size:0.95rem;color:#f5a623;">⭐</span><span style="font-size:0.78rem;color:#5a4e66;font-weight:500;">' + ratingInfo.average.toFixed(1) + '</span><span style="width:1px;height:12px;background:rgba(155,138,189,0.3);margin:0 2px;display:inline-block;"></span><span style="font-size:0.72rem;color:#8c8099;">' + ratingInfo.count + ' 人评价</span>';
                     body.appendChild(ratingRow);
                 }
 
                 wrapper.appendChild(body);
 
-                // 底部：二维码 + 品牌
+                // 底部：极简品牌落款（无二维码、无导流意图 → 避免社交平台限流）
                 const footer = document.createElement('div');
                 footer.style.cssText =
-                    'display:flex;align-items:center;justify-content:space-between;padding:10px 16px 14px;border-top:1px solid #f0ebf5;gap:12px;background:#faf7fd;';
-
-                const qrWrap = document.createElement('div');
-                qrWrap.style.cssText = 'display:flex;align-items:center;gap:10px;';
-                const qrContainer = document.createElement('div');
-                qrContainer.id = 'shareCardQRContainer';
-                qrContainer.style.cssText = 'width:72px;height:72px;border-radius:8px;background:#fff;border:1px solid #ddd6e4;flex-shrink:0;overflow:hidden;line-height:0;';
-                qrWrap.appendChild(qrContainer);
-
-                const qrLabel = document.createElement('span');
-                qrLabel.style.cssText =
-                    'font-size:0.6rem;color:#8c8099;line-height:1.3;max-width:80px;text-align:left;';
-                qrLabel.textContent = '扫码查看\n游戏详情';
-                qrWrap.appendChild(qrLabel);
-                footer.appendChild(qrWrap);
-
-                const brand = document.createElement('span');
+                    'padding:14px 24px 22px;text-align:center;';
+                // 细 0.5px 分隔线
+                const footerLine = document.createElement('div');
+                footerLine.style.cssText =
+                    'width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(155,138,189,0.35),transparent);margin:0 auto 12px;';
+                footer.appendChild(footerLine);
+                // 落款（整串单元素输出，几何居中零误差，· 替代原 ◐）
+                const brand = document.createElement('div');
                 brand.style.cssText =
-                    'font-size:0.65rem;color:#9b8abd;font-weight:600;letter-spacing:0.04em;text-align:right;flex-shrink:0;';
-                brand.textContent = 'Her-Lens · 女性主角游戏';
+                    'font-size:0.62rem;color:rgba(155,138,189,0.85);font-weight:500;letter-spacing:0.12em;display:inline-block;text-align:center;';
+                brand.textContent = '·  HER LENS · 女性主角游戏收录';
                 footer.appendChild(brand);
-
                 wrapper.appendChild(footer);
-
-                // 生成二维码（兼容 file:// 协议：location.origin 在 file:// 下返回 'null'，改用 href 纯拼接）
-                const shareUrlBase = window.location.href.split('#')[0].split('?')[0];
-                const shareUrl = shareUrlBase + '?game=' + (game && game.id || '');
-                const qrEl = qrContainer;
-                try {
-                    const QRCodeLib = await window._loadQRCode();
-                    new QRCodeLib(qrEl, {
-                        text: shareUrl,
-                        width: 72,
-                        height: 72,
-                        colorDark: '#1e1822',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCodeLib.CorrectLevel.H
-                    });
-                    // 强制清除 QRCode.js 添加的内联 margin/padding
-                    qrEl.querySelectorAll('img, canvas').forEach(function (el) {
-                        el.style.margin = '0';
-                        el.style.padding = '0';
-                        el.style.maxWidth = '100%';
-                        el.style.maxHeight = '100%';
-                    });
-                } catch (e) {
-                    qrEl.innerHTML =
-                        `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#999;background:#f5f0f8;border-radius:8px;">二维码<br/>加载失败</div>`;
-                }
 
             // —— 图片 CORS 兜底：尝试将 wrapper 内所有跨域 <img> 转成 dataURL ——
                 //   三级策略：1) 直连 CORS fetch → 2) corsproxy.io 代理 → 3) 保留原节点给后续 onclone/native canvas 兜底
@@ -5360,6 +5530,25 @@
                     console.warn('[Share] leftover-img 占位清理小异常（不致命）:', _cleanupErr && _cleanupErr.message);
                 }
 
+                // —— Step 2.5/6：女主胶囊吸色（封面 → 主题色渐变，方案 A）
+                //   运行时机：CORS 三级转换已完成，所有可读封面 img.src = dataURL，此时 getImageData 不会抛 tainted canvas
+                //   回退：任何异常/跨域/占位 → 保持初始紫色渐变，视觉稳定
+                try {
+                    const pillEl = wrapper.querySelector('[data-role="pill"]');
+                    const coverImgEl = wrapper.querySelector('img[data-role="cover"]');
+                    if (pillEl && coverImgEl) {
+                        const pal = extractPillPalette(coverImgEl);
+                        if (pal && pal.ok) {
+                            pillEl.style.background = pal.gradCSS;
+                            pillEl.style.borderColor = pal.stroke;
+                            pillEl.style.boxShadow = pal.shadow;
+                            pillEl.style.textShadow = pal.textShadow;
+                        }
+                    }
+                } catch (_pillErr) {
+                    console.warn('[Share Step 2.5] pill 吸色异常（回退默认紫）:', _pillErr && _pillErr.message);
+                }
+
                 // 把已加载的评分信息挂到 wrapper 上，供原生 Canvas fallback 模式复用
                 wrapper.__shareRatingInfo = ratingInfo || null;
                 return wrapper;
@@ -5369,28 +5558,39 @@
             // 原生 Canvas 2D 直接绘制分享卡片（零 iframe、零 html2canvas 依赖）
             // 适用场景：file:// 协议打开（html2canvas iframe 被 CSP/unique-origin 拦截）
             //           或 html2canvas 抛错（Unable to find element in cloned iframe）时 fallback
-            // 视觉与 DOM 版一致：圆角白卡 + 评论区 + 封面占位 + 标题/描述 + 标签 + 评分 + 二维码+品牌
+            // 视觉与 DOM 版一致：圆角白卡 + 评论区 + 封面占位 + 标题/描述 + 标签 + 评分 + 极简品牌落款（无二维码）
             // =========================================================
             async function renderShareCardNativeCanvas(game, extraComment, ratingInfo) {
-                const CARD_W = 400;
-                const SCALE = 2; // @2x 高清导出
+                const CARD_W = 540;
+                const SCALE = 2; // @2x 高清导出 → 1080px 宽，全平台清晰
                 const FONT_FAMILY = '"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif';
                 const COLOR_BG = '#ffffff';
                 const COLOR_CARD = '#ffffff';
-                const COLOR_COMMENT_BG = '#f8f5fc';
+                const COLOR_COMMENT_BG_TOP = '#fbf9fd';
+                const COLOR_COMMENT_BG_BOTTOM = '#ffffff';
                 const COLOR_COMMENT_BORDER = '#f0ebf5';
                 const COLOR_PRIMARY = '#1e1822';
-                const COLOR_SECONDARY = '#665c72';
+                const COLOR_SECONDARY = '#5a4e66';
                 const COLOR_TERTIARY = '#8c8099';
                 const COLOR_ACCENT = '#9b8abd';
-                const COLOR_ACCENT_DARK = '#4a3a66';
+                const COLOR_ACCENT_DARK = '#6b5a8a';
                 const COLOR_PLACEHOLDER = '#e8e2ee';
-                const COLOR_TAG_BG = '#f0ebf5';
+
+                // 标签颜色：暗色主题下，亮白卡片里的胶囊整体沉一档（与暗模式氛围更协调；亮色下与原视觉一致）
+                const _darkShare = document.documentElement && document.documentElement.getAttribute('data-theme') === 'dark';
+                const COLOR_TAG_BG_PRIMARY = _darkShare ? 'rgba(145,128,180,0.14)' : 'rgba(155,138,189,0.18)';
+                const COLOR_TAG_BORDER_PRIMARY = _darkShare ? 'rgba(145,128,180,0.22)' : 'rgba(155,138,189,0.28)';
+                const COLOR_TAG_TEXT_PRIMARY = _darkShare ? '#5a4e72' : '#6b5a8a';
+                const COLOR_TAG_MUTED_BG = _darkShare ? 'rgba(130,118,145,0.14)' : 'rgba(140,128,153,0.16)';
+                const COLOR_TAG_MUTED_BORDER = _darkShare ? 'rgba(130,118,145,0.20)' : 'rgba(140,128,153,0.25)';
+                const COLOR_TAG_BG = _darkShare ? 'rgba(145,128,180,0.06)' : 'rgba(155,138,189,0.08)';
+                const COLOR_TAG_BORDER = _darkShare ? 'rgba(145,128,180,0.12)' : 'rgba(155,138,189,0.16)';
                 const COLOR_TAG_TEXT = '#5a4e66';
-                const COLOR_FOOTER_BG = '#faf7fd';
-                const COLOR_FOOTER_BORDER = '#f0ebf5';
+
                 const COLOR_STAR = '#f5a623';
-                const PAD_X = 16;
+                const PAD_X = 24;
+                const CONTENT_LEFT = PAD_X + 3 + 10; // 24 边距 + 3 标题竖条 + 10 gap → 描述/标签/评分对齐到标题文字起始 X
+                const CONTENT_LEFT_BODY = PAD_X; // 评论/封面等非标题区块使用完整边距
 
                 // --------- 绘制工具函数 ---------
                 function roundRectPath(ctx, x, y, w, h, r) {
@@ -5575,23 +5775,13 @@
                 if (hasComment) {
                     const isReviewObj = typeof extraComment === 'object' && extraComment.comment;
                     const commentText = isReviewObj ? extraComment.comment : extraComment;
-                    const labelH = 8 + 12 + 8; // 上方 padding + 标题行高 + 下方 gap
+                    const labelH = 10 + 12 + 10; // 上方 padding + 标签行高 + 下方 gap
                     let reviewerH = 0;
-                    if (isReviewObj) reviewerH = 8 + 36 + 2; // padding-top + avatar row + gap
-                    const padTop = 16, padBottom = 12;
+                    if (isReviewObj) reviewerH = 10 + 36 + 2; // padding-top + avatar row + gap
+                    const padTop = 20, padBottom = 16;
                     const innerW = CARD_W - PAD_X * 2;
                     const bodyFontSize = 15;
-                    const textLinesH = Math.max(bodyFontSize * 1.6 * 1, (function estimateLines() {
-                        const cv = document.createElement('canvas').getContext('2d');
-                        cv.font = `400 ${bodyFontSize}px ${FONT_FAMILY}`;
-                        let lines = 1, cur = '';
-                        for (const ch of String(commentText || '')) {
-                            if (ch === '\n') { lines++; cur = ''; continue; }
-                            const test = cur + ch;
-                            if (cv.measureText(test).width > innerW && cur) { lines++; cur = ch; } else cur = test;
-                        }
-                        return lines;
-                    })()) * bodyFontSize * 0.2 + bodyFontSize * 1.6 * 1;
+                    const commentLineH = bodyFontSize * 1.75;
                     // 更准确：复用 drawWrappedText 前的计算
                     const tmpCtx = document.createElement('canvas').getContext('2d');
                     tmpCtx.font = `400 ${bodyFontSize}px ${FONT_FAMILY}`;
@@ -5604,46 +5794,48 @@
                         }
                         return lines;
                     })());
-                    commentHeight = padTop + labelH + reviewerH + tmpLines * (bodyFontSize * 1.6) + padBottom;
+                    commentHeight = padTop + labelH + reviewerH + tmpLines * commentLineH + padBottom;
                     commentLayout = { isReviewObj, commentText, lines: tmpLines };
                 }
                 cursorY += commentHeight;
 
-                // ==== B. 封面区高度（400 宽，按 460:215）====
-                const coverH = Math.round(CARD_W * 215 / 460); // 约 186
+                // ==== B. 封面区高度（3:2 杂志封面比）====
+                const coverH = Math.round(CARD_W * 2 / 3); // 540 × 360
                 cursorY += coverH;
 
-                // ==== C. 信息区：标题 + 描述 + 标签组 + 评分 ====
-                cursorY += 14; // padding top
-                // 标题（粗体 1.15rem ≈ 18px）
+                // ==== C. 信息区：标题（含左侧竖条占位）+ 描述 + 标签组 + 评分 ====
+                cursorY += 20; // 信息区 padding-top
+                // 标题（粗体 1.25rem ≈ 20px，考虑 CONTENT_LEFT 缩进导致有效宽度减少）
+                const TITLE_W_EFF = CARD_W - CONTENT_LEFT - PAD_X; // 标题文字区有效宽度
                 const titleLinesEst = (function countTitleLines(){
                     const cv = document.createElement('canvas').getContext('2d');
-                    cv.font = `700 18px ${FONT_FAMILY}`;
+                    cv.font = `700 20px ${FONT_FAMILY}`;
                     let lines = 1, cur = '';
                     for (const ch of String(game && game.title || '')) {
                         const test = cur + ch;
-                        const max = CARD_W - PAD_X * 2;
-                        if (cv.measureText(test).width > max && cur) { lines++; cur = ch; } else cur = test;
+                        if (cv.measureText(test).width > TITLE_W_EFF && cur) { lines++; cur = ch; } else cur = test;
                     }
                     return lines;
                 })();
-                cursorY += titleLinesEst * (18 * 1.3) + 2;
-                cursorY += 4; // gap
+                const titleLineH = Math.round(20 * 1.35);
+                cursorY += titleLinesEst * titleLineH + 6;
+                cursorY += 8; // gap after title
                 // 描述（2 行省略）
-                cursorY += Math.min(2, estimateLinesForText(game && game.description || '', 13, CARD_W - PAD_X * 2, FONT_FAMILY)) * (13 * 1.5) + 4;
+                cursorY += 2 * (13 * 1.7) + 8;
                 // 标签行（wrap 多行）
                 cursorY += 4; // gap before tags
                 const tags = collectTagsForShare(game);
-                cursorY += estimateTagsRowsHeight(tags, 4, 11, CARD_W - PAD_X * 2, 18, FONT_FAMILY);
-                cursorY += 10; // info 区 padding bottom
+                cursorY += estimateTagsRowsHeight(tags, 6, 11, CARD_W - CONTENT_LEFT - PAD_X, 19, FONT_FAMILY);
+                cursorY += 12; // tags bottom gap
                 // 评分（如果有）
                 if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
-                    cursorY += 8 + 20; // gap + row
+                    cursorY += 10 + 20; // gap + row height
                 }
-                cursorY += 4; // gap
+                cursorY += 2; // info 区 gap before footer
 
-                // ==== D. 底部二维码+品牌区（固定高）====
-                const footerH = 14 + 72 + 14 + 1; // 内边距 + 二维码高 + 下边距 + border-top
+                // ==== D. 底部极简品牌落款（无二维码，超薄收边）====
+                // 14 上边距 + 1px 分隔线 + 12 gap + 14 落款行 + 22 下边距
+                const footerH = 14 + 1 + 12 + 14 + 22;
                 const totalH = cursorY + footerH;
 
                 function estimateLinesForText(text, fontSize, maxW, font) {
@@ -5726,9 +5918,9 @@
                     });
                 }
 
-                // 0. 整个卡片：白底 + 外圆角 20 裁剪
+                // 0. 整个卡片：白底 + 外圆角 24 裁剪
                 ctx.save();
-                roundRectPath(ctx, 0, 0, CARD_W, totalH, 20);
+                roundRectPath(ctx, 0, 0, CARD_W, totalH, 24);
                 ctx.clip();
                 ctx.fillStyle = COLOR_CARD;
                 ctx.fillRect(0, 0, CARD_W, totalH);
@@ -5737,20 +5929,32 @@
 
                 // -------- A. 评论区绘制 --------
                 if (hasComment && commentLayout) {
-                    ctx.fillStyle = COLOR_COMMENT_BG;
+                    // 渐变浅色背景（替代块状厚重色 + 顶部紫粉短装饰条）
+                    const commentGrad = ctx.createLinearGradient(0, yCursor, 0, yCursor + commentHeight);
+                    commentGrad.addColorStop(0, COLOR_COMMENT_BG_TOP);
+                    commentGrad.addColorStop(1, COLOR_COMMENT_BG_BOTTOM);
+                    ctx.fillStyle = commentGrad;
                     ctx.fillRect(0, yCursor, CARD_W, commentHeight);
-                    // 底部 border
+                    // 顶部装饰短线
+                    ctx.fillStyle = COLOR_ACCENT;
+                    const decoGrad = ctx.createLinearGradient(PAD_X, 0, PAD_X + 42, 0);
+                    decoGrad.addColorStop(0, '#9b8abd');
+                    decoGrad.addColorStop(1, '#c9a8d9');
+                    ctx.fillStyle = decoGrad;
+                    roundRectPath(ctx, PAD_X, yCursor, 42, 3, 2);
+                    ctx.fill();
+                    // 底部 1px 纤细分隔
                     ctx.fillStyle = COLOR_COMMENT_BORDER;
-                    ctx.fillRect(0, yCursor + commentHeight - 2, CARD_W, 2);
+                    ctx.fillRect(0, yCursor + commentHeight - 1, CARD_W, 1);
 
-                    let yy = yCursor + 16;
+                    let yy = yCursor + 20;
                     // 标签：💬 评论分享
                     ctx.fillStyle = COLOR_ACCENT;
                     ctx.font = '600 11px ' + FONT_FAMILY;
                     ctx.textBaseline = 'top';
-                    ctx.letterSpacing = '0.04em';
+                    ctx.letterSpacing = '0.08em';
                     ctx.fillText('💬 评论分享', PAD_X, yy);
-                    yy += 12 + 8;
+                    yy += 12 + 10;
 
                     // 评论者行（如果是对象结构）
                     if (commentLayout.isReviewObj) {
@@ -5813,9 +6017,9 @@
                         yy += avaSize + 10;
                     }
 
-                    // 评论正文（15px × 1.6 行高，不设最大行，全部显示，评论长度受数据库限制）
-                    ctx.fillStyle = COLOR_PRIMARY;
-                    drawWrappedText(ctx, commentLayout.commentText, PAD_X, yy, CARD_W - PAD_X * 2, 15 * 1.6, 15, '400', COLOR_PRIMARY, 99);
+                    // 评论正文（15px × 1.75 行高，深色字 + 极细字间距）
+                    ctx.fillStyle = '#2a2030';
+                    drawWrappedText(ctx, commentLayout.commentText, PAD_X, yy, CARD_W - PAD_X * 2, 15 * 1.75, 15, '400', '#2a2030', 99);
                     yCursor += commentHeight;
                 } else {
                     yCursor += 0;
@@ -5929,70 +6133,123 @@
                 }
                 ctx.restore(); // clip restore（后续 tag 直接画在封面之上）
 
-                // 左上角 heroineType 渐变圆角 tag（悬浮在封面左上角，不参与 clip）
+                // 女主胶囊吸色：真图封面走共用 extractPillPalette；美化占位封面直接复用同色系女主渐变 → 100% 视觉融合
+                let pillPal = DEFAULT_PILL_PALETTE;
+                try {
+                    if (coverImgEl) {
+                        const p = extractPillPalette(coverImgEl);
+                        if (p && p.ok) pillPal = p;
+                    } else if (game && game.heroineType) {
+                        // 占位封面已经画成女主色系渐变 → 取渐变深色端，经 K-means/HSL 相同规范化后作胶囊色（和真图吸色通路完全一致）
+                        const hc = heroineGradient(game.heroineType);
+                        const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hc[1] || '#9b8abd');
+                        if (m) {
+                            const rr = [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+                            const norm = _pillNormalizeHSL(_pillRgbToHsl(rr[0], rr[1], rr[2]));
+                            const [hN, sN] = norm;
+                            const main = _pillHslToRgb(hN, sN, 0.42);
+                            const deep = _pillHslToRgb(hN, Math.min(0.96, sN + 0.08), 0.28);
+                            const stroke = _pillHslToRgb(hN, sN, 0.70);
+                            const ts = _pillHslToRgb(hN, Math.min(1, sN + 0.05), 0.15);
+                            const bs = _pillHslToRgb(hN, sN, 0.20);
+                            pillPal = {
+                                ok: true,
+                                gradStart: _pillToHex(main), gradEnd: _pillToHex(deep),
+                                stroke: `rgba(${stroke[0]},${stroke[1]},${stroke[2]},0.52)`,
+                                textShadowColor: `rgba(${ts[0]},${ts[1]},${ts[2]},0.65)`,
+                                shadowColor: `rgba(${bs[0]},${bs[1]},${bs[2]},0.48)`,
+                            };
+                        }
+                    }
+                } catch (_ppErr) { pillPal = DEFAULT_PILL_PALETTE; }
+
+                // 左上角 heroineType 渐变圆角胶囊（颜色用 pillPal 封面吸色，位置/大小保持不变）
                 if (game && game.heroineType) {
                     ctx.save();
-                    // 画渐变背景
-                    const grad = ctx.createLinearGradient(PAD_X, yCursor + 8, PAD_X + 120, yCursor + 8 + 24);
-                    grad.addColorStop(0, '#6b5a8a');
-                    grad.addColorStop(1, '#4a3a66');
-                    const pillFontSize = 11;
+                    const py = yCursor + 20;
+                    const grad = ctx.createLinearGradient(PAD_X, py, PAD_X + 180, py + 28);
+                    grad.addColorStop(0, pillPal.gradStart);
+                    grad.addColorStop(1, pillPal.gradEnd);
+                    const pillFontSize = 14;
                     ctx.font = `700 ${pillFontSize}px ${FONT_FAMILY}, sans-serif`;
                     const txt = String(game.heroineType).toUpperCase();
-                    const padLR = 12, padTB = 2;
+                    const padLR = 18, padTB = 6;
                     const pw = ctx.measureText(txt).width + padLR * 2;
                     const ph = pillFontSize + padTB * 2 + 2;
-                    const px = PAD_X, py = yCursor + 8;
+                    const px = PAD_X;
+                    // 胶囊绘制（背景渐变 + 吸色派生描边）
                     roundRectPath(ctx, px, py, pw, ph, ph / 2);
                     ctx.fillStyle = grad;
                     ctx.fill();
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = pillPal.stroke;
+                    ctx.stroke();
+                    // 文字（白色 + 吸色派生文字阴影，可读性永远在线）
                     ctx.fillStyle = '#ffffff';
                     ctx.textBaseline = 'top';
+                    ctx.shadowColor = pillPal.textShadowColor || 'rgba(0,0,0,0.28)';
+                    ctx.shadowBlur = 4;
+                    ctx.letterSpacing = '0.1em';
                     ctx.fillText(txt, px + padLR, py + padTB + 1);
-                    // 高光描边（仿 DOM 版）
-                    ctx.lineWidth = 1;
-                    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    ctx.letterSpacing = '0';
+                    // 吸色派生外阴影（胶囊自身的投影，用 blur 外描边近似实现，不需要 offscreen canvas）
                     ctx.restore();
                 }
                 yCursor += coverH;
 
                 // -------- C. 信息区 --------
-                // C.1 标题
-                yCursor += 14;
-                drawWrappedText(ctx, game && game.title || '', PAD_X, yCursor, CARD_W - PAD_X * 2, 18 * 1.3, 18, '700', COLOR_PRIMARY, 3);
-                const titleRows = estimateLinesForText(game && game.title || '', 18, CARD_W - PAD_X * 2, FONT_FAMILY);
-                yCursor += Math.max(1, Math.min(3, titleRows)) * (18 * 1.3);
-                yCursor += 4;
+                // C.1 标题：左侧 3px 渐变竖条装饰 + 标题文字（20px bold, 与DOM版统一）
+                yCursor += 20;
+                // 左竖条：3px 宽，和首行标题垂直居中对齐的最小高度
+                const firstTitleH = titleLineH;
+                const barX = PAD_X, barW = 3, barH = Math.max(firstTitleH - 4, 20);
+                const barGrad = ctx.createLinearGradient(barX, yCursor + 5, barX, yCursor + 5 + barH);
+                barGrad.addColorStop(0, '#9b8abd');
+                barGrad.addColorStop(1, '#c9a8d9');
+                ctx.fillStyle = barGrad;
+                roundRectPath(ctx, barX, yCursor + 5, barW, barH, 2);
+                ctx.fill();
+                // 标题文字，从 CONTENT_LEFT（= PAD_X + 3 + 10）开始
+                drawWrappedText(ctx, game && game.title || '', CONTENT_LEFT, yCursor, CARD_W - CONTENT_LEFT - PAD_X, titleLineH, 20, '700', COLOR_PRIMARY, 3);
+                const titleRows = estimateLinesForText(game && game.title || '', 20, CARD_W - CONTENT_LEFT - PAD_X, FONT_FAMILY);
+                yCursor += Math.max(1, Math.min(3, titleRows)) * titleLineH + 6;
+                yCursor += 8;
 
-                // C.2 描述（2 行省略）
-                drawWrappedText(ctx, game && game.description || '', PAD_X, yCursor, CARD_W - PAD_X * 2, 13 * 1.5, 13, '400', COLOR_SECONDARY, 2);
-                yCursor += 2 * (13 * 1.5) + 4;
+                // C.2 描述（2 行省略，深一度字色，行高 1.7，与标题文字左对齐）
+                drawWrappedText(ctx, game && game.description || '', CONTENT_LEFT, yCursor, CARD_W - CONTENT_LEFT - PAD_X, 13 * 1.7, 13, '400', COLOR_SECONDARY, 2);
+                yCursor += 2 * (13 * 1.7) + 8;
 
-                // C.3 标签组（wrap 布局，最多显示两行，其余截断）
+                // C.3 标签组（低饱和胶囊 + 细边，最多两行，与标题文字左对齐）
                 yCursor += 4;
                 const allTags = collectTagsForShare(game);
                 if (allTags.length > 0) {
-                    const gapX = 4, gapY = 4;
-                    const pillFontSize = 11, padLR = 8, padTB = 1;
-                    const rowMaxW = CARD_W - PAD_X * 2;
-                    let rx = PAD_X, ry = yCursor, row = 0, maxRows = 2;
-                    ctx.font = `600 ${pillFontSize}px ${FONT_FAMILY}`;
+                    const gapX = 6, gapY = 6;
+                    const pillFontSize = 11, padLR = 10, padTB = 2;
+                    const rowMaxW = CARD_W - CONTENT_LEFT - PAD_X;
+                    let rx = CONTENT_LEFT, ry = yCursor, row = 0, maxRows = 2;
                     ctx.textBaseline = 'top';
                     for (let i = 0; i < allTags.length; i++) {
                         const tg = allTags[i];
                         const txt = tg.text;
+                        ctx.font = (tg.primary ? '500 ' : '400 ') + pillFontSize + 'px ' + FONT_FAMILY;
                         const w = ctx.measureText(txt).width + padLR * 2;
                         const h = pillFontSize + padTB * 2 + 4;
-                        if (rx + w - PAD_X > rowMaxW) {
+                        if (rx + w - CONTENT_LEFT > rowMaxW) {
                             row++; if (row >= maxRows) break;
-                            rx = PAD_X; ry += h + gapY;
+                            rx = CONTENT_LEFT; ry += h + gapY;
                         }
                         if (row >= maxRows) break;
-                        const bg = tg.primary ? COLOR_ACCENT : COLOR_TAG_BG;
-                        const fg = tg.primary ? '#ffffff' : COLOR_TAG_TEXT;
-                        roundRectPath(ctx, rx, ry, w, h, h / 2);
+                        // 低饱和填充 + 细边（和 DOM 版完全一致）
+                        //   └ 分类：普通 secondary / primary 紫 / muted-primary（无中文 灰胶囊）
+                        const isMutedPrimary = (tg.primary && (tg.text === '无中文'));
+                        let bg, border, fg;
+                        if (isMutedPrimary) { bg = COLOR_TAG_MUTED_BG; border = COLOR_TAG_MUTED_BORDER; fg = COLOR_TAG_TEXT; }
+                        else if (tg.primary) { bg = COLOR_TAG_BG_PRIMARY; border = COLOR_TAG_BORDER_PRIMARY; fg = COLOR_TAG_TEXT_PRIMARY; }
+                        else { bg = COLOR_TAG_BG; border = COLOR_TAG_BORDER; fg = COLOR_TAG_TEXT; }
+                        roundRectPath(ctx, rx, ry, w, h, 9);
                         ctx.fillStyle = bg; ctx.fill();
+                        ctx.lineWidth = 1; ctx.strokeStyle = border; ctx.stroke();
                         ctx.fillStyle = fg;
                         ctx.fillText(txt, rx + padLR, ry + padTB + 2);
                         rx += w + gapX;
@@ -6000,108 +6257,55 @@
                     const pillH = pillFontSize + padTB * 2 + 4;
                     yCursor = ry + pillH;
                 }
-                yCursor += 10;
+                yCursor += 12;
 
-                // C.4 评分
+                // C.4 评分（左侧和标题文字对齐，⭐ + 粗体分数 + 细竖线分隔 + 评价人数灰字）
                 if (ratingInfo && ratingInfo.average !== null && ratingInfo.count > 0) {
-                    yCursor += 8;
-                    ctx.font = '400 14px ' + FONT_FAMILY;
+                    yCursor += 10;
+                    ctx.font = '400 15px ' + FONT_FAMILY;
                     ctx.fillStyle = COLOR_STAR;
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('⭐', PAD_X, yCursor);
+                    let mx = CONTENT_LEFT;
+                    ctx.fillText('⭐', mx, yCursor);
+                    mx += 19;
                     ctx.fillStyle = COLOR_SECONDARY;
-                    ctx.fillText(`${Number(ratingInfo.average).toFixed(1)}/5（${ratingInfo.count}人评价）`, PAD_X + 22, yCursor + 0.5);
+                    ctx.font = '600 14px ' + FONT_FAMILY;
+                    const avgTxt = Number(ratingInfo.average).toFixed(1);
+                    ctx.fillText(avgTxt, mx, yCursor + 0.5);
+                    mx += ctx.measureText(avgTxt).width + 8;
+                    // 1px 竖线分隔
+                    ctx.fillStyle = 'rgba(155,138,189,0.35)';
+                    ctx.fillRect(mx, yCursor - 7, 1, 14);
+                    mx += 8;
+                    ctx.fillStyle = COLOR_TERTIARY;
+                    ctx.font = '400 12px ' + FONT_FAMILY;
+                    ctx.fillText(ratingInfo.count + ' 人评价', mx, yCursor + 0.5);
                     ctx.textBaseline = 'alphabetic';
                     yCursor += 10;
                 }
-                yCursor += 4;
+                yCursor += 2;
 
-                // -------- D. 底部二维码+品牌 --------
-                const footerStartY = yCursor;
-                ctx.fillStyle = COLOR_FOOTER_BG;
-                ctx.fillRect(0, footerStartY, CARD_W, footerH + 1);
-                ctx.fillStyle = COLOR_FOOTER_BORDER;
-                ctx.fillRect(0, footerStartY, CARD_W, 1);
-
-                const qrSize = 72;
-                const qrX = PAD_X;
-                const qrY = footerStartY + 14;
-                // 二维码容器边框背景
-                ctx.fillStyle = '#ffffff';
-                roundRectPath(ctx, qrX, qrY, qrSize, qrSize, 8);
-                ctx.fill();
-                ctx.strokeStyle = '#ddd6e4'; ctx.lineWidth = 1;
-                roundRectPath(ctx, qrX + 0.5, qrY + 0.5, qrSize - 1, qrSize - 1, 8);
-                ctx.stroke();
-
-                // 渲染二维码到画布（QRCode.js → 离屏 canvas → drawImage）
-                try {
-                    const qrLib = await window._loadQRCode();
-                    const qrOffCanvas = document.createElement('canvas');
-                    qrOffCanvas.width = qrSize;
-                    qrOffCanvas.height = qrSize;
-                    // QRCode.js 要求 DOM 中存在一个容器节点用于挂载渲染
-                    const qrTmpDiv = document.createElement('div');
-                    qrTmpDiv.style.cssText = 'position:absolute;left:-99999px;top:0;width:72px;height:72px;';
-                    document.body.appendChild(qrTmpDiv);
-                    new qrLib(qrTmpDiv, {
-                        // 兼容 file:// 协议：location.origin 在 file:// 下返回 'null'，改用 href 纯拼接
-                        text: (window.location.href.split('#')[0].split('?')[0]) + '?game=' + (game && game.id || ''),
-                        width: qrSize,
-                        height: qrSize,
-                        colorDark: COLOR_PRIMARY,
-                        colorLight: '#ffffff',
-                        correctLevel: qrLib.CorrectLevel.H
-                    });
-                    // 等一帧让 QRCode.js 写入子 canvas/img
-                    await new Promise(r => setTimeout(r, 80));
-                    const childCanvas = qrTmpDiv.querySelector('canvas');
-                    const childImg = qrTmpDiv.querySelector('img');
-                    if (childCanvas) {
-                        ctx.drawImage(childCanvas, qrX, qrY, qrSize, qrSize);
-                    } else if (childImg) {
-                        try {
-                            const decodedImg = await new Promise(function (res, rej) {
-                                const im = new Image();
-                                im.onload = function () { res(im); };
-                                im.onerror = rej;
-                                im.src = childImg.src;
-                            });
-                            ctx.drawImage(decodedImg, qrX, qrY, qrSize, qrSize);
-                        } catch (_) { drawQRPlaceholder(); }
-                    } else { drawQRPlaceholder(); }
-                    qrTmpDiv.remove();
-                } catch (qrErr) { drawQRPlaceholder(); }
-
-                function drawQRPlaceholder() {
-                    ctx.fillStyle = '#f5f0f8';
-                    roundRectPath(ctx, qrX + 1, qrY + 1, qrSize - 2, qrSize - 2, 8);
-                    ctx.fill();
-                    ctx.fillStyle = '#999';
-                    ctx.font = '500 10px ' + FONT_FAMILY;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('二维码', qrX + qrSize / 2, qrY + qrSize / 2 - 8);
-                    ctx.fillText('加载失败', qrX + qrSize / 2, qrY + qrSize / 2 + 8);
-                    ctx.textAlign = 'start';
-                    ctx.textBaseline = 'alphabetic';
-                }
-
-                // 右侧标签文字「扫码查看\n游戏详情」
-                ctx.fillStyle = COLOR_TERTIARY;
-                ctx.font = '500 11px ' + FONT_FAMILY;
+                // -------- D. 底部极简品牌落款（无二维码！居中纤细分隔线 + 小字 logo）--------
+                const footerStartY = yCursor + 14;
+                // 60% 宽度细渐变分隔线（两端透明）
+                const lineW = CARD_W * 0.6;
+                const lineX = (CARD_W - lineW) / 2;
+                const lineGrad = ctx.createLinearGradient(lineX, 0, lineX + lineW, 0);
+                lineGrad.addColorStop(0, 'rgba(155,138,189,0)');
+                lineGrad.addColorStop(0.5, 'rgba(155,138,189,0.4)');
+                lineGrad.addColorStop(1, 'rgba(155,138,189,0)');
+                ctx.fillStyle = lineGrad;
+                ctx.fillRect(lineX, footerStartY, lineW, 1);
+                // 落款：整串文字整体居中（◐ 改为·，减少不对称视觉重量，整体单串 render 确保几何居中无误差）
+                ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
-                const labelX = qrX + qrSize + 10;
-                const labelY = qrY + (qrSize - 26) / 2;
-                ctx.fillText('扫码查看', labelX, labelY);
-                ctx.fillText('游戏详情', labelX, labelY + 14);
-
-                // 右下品牌文字
-                ctx.fillStyle = COLOR_ACCENT;
-                ctx.font = '600 11px ' + FONT_FAMILY;
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('Her-Lens · 女性主角游戏', CARD_W - PAD_X, qrY + qrSize / 2 + 2);
+                const brandY = footerStartY + 12;
+                const brandFull = '·  HER LENS · 女性主角游戏收录';
+                ctx.fillStyle = 'rgba(155,138,189,0.85)';
+                ctx.font = '500 11px ' + FONT_FAMILY;
+                ctx.letterSpacing = '0.12em';
+                ctx.fillText(brandFull, CARD_W / 2, brandY);
+                ctx.letterSpacing = '0';
                 ctx.textAlign = 'start';
                 ctx.textBaseline = 'alphabetic';
 
@@ -6275,7 +6479,7 @@
                 sb.style.cssText = [
                     'position:absolute;',
                     'top:0;left:0;',
-                    'width:520px;max-width:520px;',
+                    'width:660px;max-width:660px;',
                     'min-height:100px;',
                     'overflow:visible;',
                     'visibility:hidden;',
@@ -6335,7 +6539,7 @@
                     // ⚠️ 关键点：直接挂载到 body，用「位置偏移」隐藏，不用 visibility:hidden / display:none
                     //   → visibility:hidden 会被 html2canvas 克隆后引发 "Unable to find element in cloned iframe"
                     //   → 直接定位到屏幕左外，布局与样式 100% 保留，DOM 树浅（索引对齐匹配率高）
-                    wrapper.style.cssText += ';position:fixed !important;top:0 !important;left:-12000px !important;width:400px !important;max-width:400px !important;margin:0 !important;padding:0 !important;z-index:-9999 !important;pointer-events:none !important;visibility:visible !important;display:block !important;transform:none !important;opacity:1 !important;';
+                    wrapper.style.cssText += ';position:fixed !important;top:0 !important;left:-12000px !important;width:540px !important;max-width:540px !important;margin:0 !important;padding:0 !important;z-index:-9999 !important;pointer-events:none !important;visibility:visible !important;display:block !important;transform:none !important;opacity:1 !important;';
                     document.body.appendChild(wrapper);
 
                     // 等待 wrapper 完成双帧布局回流
