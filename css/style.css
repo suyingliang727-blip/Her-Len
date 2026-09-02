@@ -358,6 +358,42 @@
         [data-theme="dark"] .detail-video-link[data-vtype="social"]   { background: linear-gradient(135deg, rgba(135,158,180,0.74) 0%, rgba(115,155,170,0.74) 100%); }
         [data-theme="dark"] .detail-video-link[data-vtype="shop"]     { background: linear-gradient(135deg, rgba(140,175,155,0.74) 0%, rgba(120,150,140,0.74) 100%); }
 
+        /* ============= 信息分组卡片 · 暗色模式：全部玻璃半透 + 与 #1e1822 纹理深度融合 ============= */
+        [data-theme="dark"] .detail-info-card {
+            background: rgba(60, 52, 74, 0.40);       /* 紫灰半透玻璃，嵌在暗色 texture-card 里像浮层 */
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.32);
+        }
+        [data-theme="dark"] .info-card-title {
+            color: #c9bde0;   /* 与 tag-muted 暗紫白接近，略亮一档做标题色 */
+            opacity: 0.94;
+        }
+        [data-theme="dark"] .detail-info-card .info-row {
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+        [data-theme="dark"] .detail-info-card .info-label {
+            color: #efeaf7;
+        }
+        [data-theme="dark"] .detail-info-card .info-value {
+            color: #cfc5e2;
+        }
+        [data-theme="dark"] .detail-info-card .detail-tags span,
+        [data-theme="dark"] .detail-info-card .info-chip {
+            background: rgba(85, 74, 105, 0.62);   /* 紫灰玻璃 chip，比亮主题略饱和 4% 但 L≈45% 不跳 */
+            color: #e3dcf1;
+        }
+        [data-theme="dark"] .detail-info-card .badge-positive {
+            background: rgba(95, 155, 118, 0.26);
+            color: #7ec79b;
+        }
+        [data-theme="dark"] .detail-info-card .badge-negative {
+            background: rgba(205, 85, 98, 0.24);
+            color: #ee8a98;
+        }
+        [data-theme="dark"] .detail-other-info > :not(:first-child) {
+            border-top-color: rgba(255, 255, 255, 0.06);
+        }
+
         [data-theme="dark"] .header-dropdown-menu {
             background: #2a2330;
         }
@@ -3622,56 +3658,181 @@
             text-indent: 0;
         }
 
-        /* ---------- 底部：其他信�?+ 实机展示�?---------- */
+        /* ---------- 底部：信息分组卡（方案 B · 单列垂直堆叠· 实机展示区 ---------- */
         .detail-other-info {
             grid-area: other;
             border-radius: 14px;
-            padding: 16px 18px;
+            padding: 16px 18px 18px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 16px;  /* 分组卡 / 视频 / 购买按钮 垂直间距 */
+            /* 去除 align-self: start → 回到 Grid 行默认 stretch，让它和右侧截图区等高对齐 */
         }
 
-        /* �?左侧信息表格：加大字号和行距 */
-        .detail-other-info .detail-info-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 1.15rem;
-            line-height: 1.6;
+        /* —— 单列垂直堆叠（统一 4 张卡上下排列，彻底解决 2×2 并排时短卡下方留大白 / 互相"顶高"）—— */
+        .detail-groups {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
         }
 
-        .detail-other-info .detail-info-table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border);
-            vertical-align: top;
+        /* —— 单张玻璃信息卡（单列占满宽度后内边距加大，更舒展呼吸）—— */
+        .detail-info-card {
+            position: relative;
+            padding: 16px 22px 15px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: 0 2px 14px rgba(120, 100, 150, 0.10);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
-        .detail-other-info .detail-info-table td:first-child {
+        /* —— 卡片顶部分组小标题（C-1）：左侧 4×16px 竖条 + 文字 —— */
+        .info-card-title {
+            font-size: 0.78rem;
             font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--accent-text, var(--accent));
+            opacity: 0.92;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 8px;
+            line-height: 1.5;
+        }
+        .info-card-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+            box-shadow: 0 0 6px rgba(155, 138, 189, 0.35);
+            flex-shrink: 0;
+        }
+
+        /* —— 卡片内部：每行「标签 ｜ 值」 2 列 Grid 锁基线（单列撑宽后 label 列宽 88→96，多留 8px 呼吸避免挤压）—— */
+        .detail-info-card .info-row {
+            display: grid;
+            grid-template-columns: 96px 1fr;
+            column-gap: 16px;
+            min-height: 40px;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+        }
+        .detail-info-card .info-row:last-child { border-bottom: none; }  /* 最后一行去掉分隔线 */
+
+        /* —— 左列：标签（B-1：4×14px 小竖条指示器 + 纯文字，无 emoji） —— */
+        .detail-info-card .info-label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+        .detail-info-card .info-label::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+            opacity: 0.86;
+            margin-right: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 0 4px rgba(155, 138, 189, 0.28);
+        }
+
+        /* —— 右列：值 —— */
+        .detail-info-card .info-value {
+            font-size: 0.88rem;
+            font-weight: 500;
             color: var(--text2);
-            width: 30%;
+            line-height: 1.45;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        /* —— 值内 Chip：标签/平台/纯文字 chip 统一 26px 高（视觉一致无跳） —— */
+        .detail-info-card .detail-tags,
+        .detail-info-card .info-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 6px;
+        }
+        .detail-info-card .detail-tags span,
+        .detail-info-card .info-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 26px;
+            padding: 0 12px;
+            border-radius: 13px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            line-height: 26px;
+            background: var(--glass-bg-light);
+            color: var(--tag-text);
             white-space: nowrap;
         }
 
-        .detail-other-info .detail-info-table td .detail-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
+        /* —— 正向/负向状态徽章（✅/❌ → ✓ / ✕ 普通字符 + 玻璃 Chip，统一 26px 高） —— */
+        .detail-info-card .badge-positive,
+        .detail-info-card .badge-negative {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            height: 26px;
+            padding: 0 12px;
+            border-radius: 13px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            line-height: 26px;
+            white-space: nowrap;
+        }
+        .detail-info-card .badge-positive {
+            background: rgba(105, 170, 125, 0.16);  /* 柔绿玻璃 */
+            color: #66b085;
+        }
+        .detail-info-card .badge-positive::before {
+            content: '✓';
+            font-size: 0.95em;
+            line-height: 1;
+            font-weight: 700;
+        }
+        .detail-info-card .badge-negative {
+            background: rgba(220, 80, 90, 0.15);   /* 低饱和淡红玻璃，不跳 */
+            color: #e06a7a;
+        }
+        .detail-info-card .badge-negative::before {
+            content: '✕';
+            font-size: 0.92em;
+            line-height: 1;
+            font-weight: 700;
+        }
+        .detail-info-card .badge-price {
+            font-weight: 700;
+            color: var(--accent-text, var(--accent));
+            letter-spacing: 0.02em;
         }
 
-        .detail-other-info .detail-info-table td .detail-tags span {
-            font-size: 0.9rem;
-            padding: 2px 10px;
-            border-radius: 12px;
-            background: var(--glass-bg-light);
-            color: var(--tag-text);
+        /* —— 视频 / 链接 分隔：保留原 border-top 语义（与分组卡片有视觉分界） —— */
+        .detail-other-info > :not(:first-child) {
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
         }
 
-        /* �?链接按钮区：字号与表格一致，行距统一 */
+        /* —— 链接按钮区：与卡片组分隔 —— */
         .detail-links {
             margin-top: 0;
-            padding-top: 12px;
-            border-top: 1px solid var(--border);
+            padding-top: 0 !important;   /* 上面的 > :not(:first-child) 已经给了 border-top + 14 pad */
+            padding-bottom: 2px;
+            border-top: none !important;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
@@ -3754,14 +3915,16 @@
         .detail-video-link[data-vtype="video"]       { /* 默认琥珀暖紫，上方基础块已定义 */ }
         .detail-video-link[data-vtype="common"]      { background: linear-gradient(135deg, #b09a8f 0%, #887a95 100%); }
 
-        /* ---------- 截图区域：根据张数自适应 ---------- */
+        /* ---------- 截图区域：根据张数自适应（且与左侧信息区等高对齐） ---------- */
         .detail-screenshots {
             grid-area: screenshots;
             border-radius: 14px;
             padding: 16px 18px;
             display: flex;
             flex-direction: column;
-            min-height: 0;
+            min-height: 360px;      /* ← 保底：即使信息区只有 200px 高，截图卡也保证 360px 基本呼吸空间，不会被压得太矮导致裁切严重 */
+            overflow: hidden;       /* ← 被 stretch 等高时，裁切溢出的圆角/图像边缘 */
+            /* 去除 align-self: start → 回到 Grid 行默认 stretch，与左侧信息区等高对齐 */
         }
 
         .detail-screenshots h3 {
@@ -3781,23 +3944,20 @@
             justify-content: flex-start;
         }
 
-        /* 普通截图（�?GIF/视频�?*/
+        /* 普通截图（不含 GIF/视频，GIF/视频有独立规则）—— 与信息列等高对齐后轻微 center 裁切：height:100% 占满被分配的 wrap，object-fit:cover 轻微居中裁切 + object-position:center 保证主体在中间（不会裁掉头部/人物脸） */
         .detail-screenshots-grid img {
             width: 100%;
-            height: auto;
-            max-height: 200px;
-            object-fit: cover;
+            height: 100%;           /* ← 填满被 flex:1 等分的 wrap 盒 */
+            max-height: none;
+            object-fit: cover;      /* ← 轻微裁切（按盒大小 fill，不留白） */
+            object-position: center;/* ← 裁切中心：保证画面主体/主角/人物脸保留中间不丢 */
             border-radius: 10px;
             border: 1px solid var(--border);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             background: var(--tag-bg);
             flex-shrink: 0;
-        }
-
-        .detail-screenshots-grid.screenshots-2 img {
-            max-height: none;
-            object-fit: contain;
+            display: block;
         }
 
         .detail-screenshots-grid img:hover {
@@ -3805,9 +3965,10 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        /* ★★�?GIF 专用：强制覆盖通用规则 ★★�?*/
+        /* ★★ GIF 专用：强制覆盖通用规则（不参与等高裁切，独立按自身高度显示） ★★ */
         .detail-screenshots-grid .screenshot-wrap.gif-img img {
             max-height: none !important;
+            height: auto !important;
             object-fit: contain !important;
             width: auto !important;
             max-width: 100%;
@@ -3818,14 +3979,25 @@
             background: var(--tag-bg);
         }
 
-        /* 截图容器：弹性居�?*/
+        /* 截图容器：弹性居中 + ★ 等分父容器高度（实现与信息列等高对齐）★ */
         .detail-screenshots-grid .screenshot-wrap {
             position: relative;
-            flex-shrink: 0;
+            flex: 1 1 0;           /* ← 关键：每张图/wrap 等分截图 Grid 被 stretch 后的总高度 */
+            min-height: 0;         /* ← 关键：取消 flex item 默认 min-height:auto，否则内容图硬撑开导致高度等分失败 */
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
+            overflow: hidden;      /* ← 裁切超出 wrap 的图像圆角边缘 */
+            border-radius: 10px;
+        }
+
+        /* ★ GIF 豁免：不参与 flex 等分拉伸（否则动画帧被压切丢失），按 GIF 自身高度显示 */
+        .detail-screenshots-grid .screenshot-wrap.gif-img {
+            flex: 0 0 auto;
+            min-height: auto;
+            overflow: visible;
+            border-radius: 0;
         }
 
         /* GIF 角标 */
@@ -3844,23 +4016,21 @@
             z-index: 2;
         }
 
-        /* 视频样式 */
+        /* 视频样式：与普通截图统一「等高对齐 + 轻微中心裁切」策略（height 100% + cover + center） */
         .detail-screenshots-grid .screenshot-wrap.video-wrap video {
             width: 100%;
-            max-height: 200px;
-            object-fit: cover;
+            height: 100%;            /* ← 填满被 flex:1 等分的 wrap 盒 */
+            max-height: none;
+            object-fit: cover;       /* ← 轻微裁切（不留白） */
+            object-position: center; /* ← 中心裁切，保留画面主体 */
             border-radius: 10px;
             border: 1px solid var(--border);
             background: #000;
             cursor: pointer;
+            display: block;
         }
 
-        .detail-screenshots-grid.screenshots-2 .screenshot-wrap.video-wrap video {
-            max-height: none;
-            object-fit: contain;
-        }
-
-        /* ---------- 评论�?---------- */
+        /* ---------- 评论区 ---------- */
         .review-section {
             grid-area: reviews;
             margin-top: 4px;
@@ -11145,6 +11315,42 @@
 
             .detail-other-info {
                 padding: 12px 14px;
+                gap: 14px;
+            }
+
+            /* 信息分组卡 · 手机端 1：< ~768px → 单列4卡垂直堆叠（与桌面端统一模型） */
+            .detail-groups {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .detail-info-card {
+                padding: 12px 18px 12px;
+                border-radius: 14px;
+            }
+            .info-card-title {
+                font-size: 0.74rem;
+                letter-spacing: 0.06em;
+                margin-bottom: 6px;
+            }
+            .detail-info-card .info-row {
+                grid-template-columns: 84px 1fr;
+                column-gap: 14px;
+                min-height: 36px;
+                padding: 5px 0;
+            }
+            .detail-info-card .info-label,
+            .detail-info-card .info-value {
+                font-size: 0.84rem;
+            }
+            .detail-info-card .detail-tags span,
+            .detail-info-card .info-chip,
+            .detail-info-card .badge-positive,
+            .detail-info-card .badge-negative {
+                height: 24px;
+                padding: 0 11px;
+                border-radius: 12px;
+                font-size: 0.78rem;
+                line-height: 24px;
             }
 
             .detail-other-info .detail-info-table {
@@ -11163,6 +11369,7 @@
                 gap: 6px;
             }
 
+            /* 移动端截图：保留 max-height（避免 1 张截图占满整屏），但继承通用规则 contain 完整显示不裁切；GIF / 视频 独立 max-height 语义保留，不再设 screenshots-2 特权（所有张数统一） */
             .detail-screenshots-grid img {
                 max-height: 160px;
             }
@@ -11173,10 +11380,6 @@
 
             .detail-screenshots-grid .screenshot-wrap.video-wrap video {
                 max-height: 160px;
-            }
-
-            .detail-screenshots-grid.screenshots-2 img {
-                max-height: none;
             }
 
             .detail-header {
@@ -11346,6 +11549,30 @@
                 padding: 10px 12px;
             }
 
+            /* 信息分组卡 · 手机端 2：< ~420px 更小屏进一步收紧（单列布局节奏与桌面端对齐） */
+            .detail-other-info { padding: 10px 12px; gap: 12px; }
+            .detail-groups { gap: 12px; }
+            .detail-info-card { padding: 10px 14px 10px; }
+            .info-card-title { font-size: 0.70rem; letter-spacing: 0.05em; margin-bottom: 5px; }
+            .detail-info-card .info-row {
+                grid-template-columns: 78px 1fr;
+                column-gap: 12px;
+                min-height: 34px;
+                padding: 4px 0;
+            }
+            .detail-info-card .info-label,
+            .detail-info-card .info-value { font-size: 0.80rem; }
+            .detail-info-card .detail-tags span,
+            .detail-info-card .info-chip,
+            .detail-info-card .badge-positive,
+            .detail-info-card .badge-negative {
+                height: 22px;
+                padding: 0 10px;
+                border-radius: 11px;
+                font-size: 0.74rem;
+                line-height: 22px;
+            }
+
             .detail-other-info .detail-info-table {
                 font-size: 0.9rem;
             }
@@ -11386,6 +11613,7 @@
             }
             .detail-video-link .vlink-icon { font-size: 0.84em; }
 
+            /* 小屏手机截图：统一 max-height（避免 1 张占满屏幕）+ contain 不裁切；GIF/视频 独立 max-height，不再区分张数特权 */
             .detail-screenshots-grid img {
                 max-height: 120px;
             }
@@ -11396,10 +11624,6 @@
 
             .detail-screenshots-grid .screenshot-wrap.video-wrap video {
                 max-height: 120px;
-            }
-
-            .detail-screenshots-grid.screenshots-2 img {
-                max-height: none;
             }
 
             /* 系列作品区块超小屏适配 */

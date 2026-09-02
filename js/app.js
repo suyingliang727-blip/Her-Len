@@ -6682,43 +6682,88 @@
 
                 const genres = (game.genre || []).map(g => `<span class="detail-tag">${escapeHTML(g)}</span>`).join('');
                 const gameplays = (game.gameplay || []).map(g => `<span class="detail-tag">${escapeHTML(g)}</span>`).join('');
+                const platforms = (game.platforms || []).map(p => `<span class="detail-tag">${escapeHTML(p)}</span>`).join('');
 
-                const platforms = (game.platforms || []).map(p => `<span>${escapeHTML(p)}</span>`).join('');
-                let otherRows = '';
+                // —— 分组卡辅助：单行信息 HTML（纯文字标签，B-1 小竖条指示器由 CSS :before 提供，零 emoji）
+                const r = (label, valueHTML) =>
+                    `<div class="info-row"><span class="info-label">${escapeHTML(label)}</span><span class="info-value">${valueHTML}</span></div>`;
+
+                // —— 状态徽章：正向 ✓ 提供 / 负向 ✕ 不支持（glass chip，统一 26px 高，无 emoji）
+                const okChip = (text='提供') => `<span class="badge-positive">${escapeHTML(text)}</span>`;
+                const noChip = (text='支持') => `<span class="badge-negative">${escapeHTML(text)}</span>`;
+                // 价格：带 ¥ 前缀 + 主色高亮（已有货币符号则跳过不重复加）
+                const priceChip = (p) => {
+                    if (!p) return '—';
+                    const s = String(p).trim();
+                    const hasSymbol = /^[¥$€£₴₽]|\s[¥$€£₴₽]/.test(s);
+                    return `<span class="badge-price">${hasSymbol ? '' : '¥'}${escapeHTML(s)}</span>`;
+                };
+                // 标签 chip 包装（题材/玩法/平台 这种数组值 → 用已有的 .detail-tags 容器包 span.detail-tag 列表）
+                const tagWrap = (chipHTML, fallback='—') =>
+                    chipHTML ? `<div class="detail-tags">${chipHTML}</div>` : fallback;
+                // 纯文字 fallback（值为 null/undefined/空时显示 —）
+                const txt = (v, fallback='—') => v ? escapeHTML(String(v)) : fallback;
+
+                // —— 四张卡片各自的 HTML（已发售 / 未发售 分支不同）
+                // ① 🏷 核心标签：题材 + 玩法（固定两行）
+                const cardTags =
+                    `<div class="detail-info-card">
+                        <h4 class="info-card-title">核心标签</h4>
+                        ${r('题材', tagWrap(genres))}
+                        ${r('玩法', tagWrap(gameplays))}
+                    </div>`;
+
+                // ② 📋 客观属性：视角 / 发售日(或预计发售) / 中文 / 平台
+                let cardAttrs;
                 if (isGameReleased(game)) {
-                    otherRows =
-                        `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
-                          <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
-                          <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                          <tr><td>📅 发售日</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
-                          <tr><td>🌐 中文</td><td>${escapeHTML(game.hasChinese || '—')}</td></tr>
-                          <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                          <tr><td>🍎 Mac</td><td>${game.hasMacSupport === '支持Mac' ? '✅ 支持' : '❌ 不支持'}</td></tr>
-                          <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
-                          <tr><td>👕 服设</td><td>${escapeHTML(game.costumeType || '—')}</td></tr>
-                          <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                          ${game.mainStoryDuration ? `<tr><td>⏱ 游戏时长</td><td>${escapeHTML(game.mainStoryDuration)}</td></tr>` : ''}
-                          ${game.lowestPrice ? `<tr><td>💸 史低价格</td><td>${escapeHTML(game.lowestPrice)}</td></tr>` : ''}`;
+                    cardAttrs =
+                        `<div class="detail-info-card">
+                            <h4 class="info-card-title">客观属性</h4>
+                            ${r('视角', txt(game.perspective))}
+                            ${r('发售日', txt(game.releaseDate))}
+                            ${r('中文',   txt(game.hasChinese))}
+                            ${r('平台',   tagWrap(platforms))}
+                        </div>`;
                 } else {
-                    otherRows =
-                        `<tr><td>📖 题材</td><td><div class="detail-tags">${genres || '—'}</div></td></tr>
-                          <tr><td>🎮 玩法</td><td><div class="detail-tags">${gameplays || '—'}</div></td></tr>
-                          <tr><td>👁 视角</td><td>${escapeHTML(game.perspective || '—')}</td></tr>
-                          <tr><td>👤 主角</td><td>${escapeHTML(game.heroineType || '—')}</td></tr>
-                          <tr><td>🖥 平台</td><td><div class="detail-tags">${platforms || '—'}</div></td></tr>
-                          <tr><td>🍎 Mac</td><td>${game.hasMacSupport === '支持Mac' ? '✅ 支持' : '❌ 不支持'}</td></tr>
-                          <tr><td>🎮 Demo</td><td>${game.hasDemo ? '✅ 提供' : '❌ 暂无'}</td></tr>
-                          <tr><td>📅 预计发售</td><td>${escapeHTML(game.releaseDate || '—')}</td></tr>
-                          ${game.mainStoryDuration ? `<tr><td>⏱ 游戏时长</td><td>${escapeHTML(game.mainStoryDuration)}</td></tr>` : ''}
-                          ${game.lowestPrice ? `<tr><td>💸 史低价格</td><td>${escapeHTML(game.lowestPrice)}</td></tr>` : ''}`;
+                    cardAttrs =
+                        `<div class="detail-info-card">
+                            <h4 class="info-card-title">客观属性</h4>
+                            ${r('视角',       txt(game.perspective))}
+                            ${r('平台',       tagWrap(platforms))}
+                            ${r('预计发售',   txt(game.releaseDate))}
+                        </div>`;
                 }
 
-                const screenshotCount = (game.screenshots || []).length;
+                // ③ 主角相关：主角 + 服设（固定两行）
+                const cardHeroine =
+                    `<div class="detail-info-card">
+                        <h4 class="info-card-title">主角相关</h4>
+                        ${r('主角', txt(game.heroineType))}
+                        ${r('服设', txt(game.costumeType))}
+                    </div>`;
+
+                // ④ 💰 购买体验：Mac / Demo / 游戏时长(可选) / 史低价格(可选)
+                const duration = game.mainStoryDuration
+                    ? r('游戏时长', txt(game.mainStoryDuration))
+                    : '';
+                const lowest = game.lowestPrice
+                    ? r('史低价格', priceChip(game.lowestPrice))
+                    : '';
+                const cardBuy =
+                    `<div class="detail-info-card">
+                        <h4 class="info-card-title">购买体验</h4>
+                        ${r('Mac',  game.hasMacSupport === '支持Mac' ? okChip('支持') : noChip('不支持'))}
+                        ${r('Demo', game.hasDemo ? okChip('提供') : noChip('暂无'))}
+                        ${duration}
+                        ${lowest}
+                    </div>`;
+
+                // —— 合并 2×2 分组卡容器
+                const infoGroupsHTML = `<div class="detail-groups">${cardTags}${cardAttrs}${cardHeroine}${cardBuy}</div>`;
+
                 let screenshotsHTML = buildDetailScreenshotsHTML(game);
-                let screenshotsGridClass = 'detail-screenshots-grid';
-                if (screenshotCount === 2) {
-                    screenshotsGridClass += ' screenshots-2';
-                }
+                // 统一所有张数（1/2/3/4/N 张）完整显示不裁切：不再需要 screenshots-2 特权类
+                const screenshotsGridClass = 'detail-screenshots-grid';
 
                 let videosHTML = buildDetailVideosHTML(game.videos);
 
@@ -6875,9 +6920,7 @@
                             </div>
 
                             <div class="detail-other-info texture-card">
-                                <table class="detail-info-table">
-                                    ${otherRows}
-                                </table>
+                                ${infoGroupsHTML}
                                 ${videosHTML}
                                 ${linksHTML}
                             </div>
@@ -7091,7 +7134,7 @@
                         if (descEl && game.fullDescription) descEl.innerHTML = escapeHTML(game.fullDescription);
                         const gridEl = modal.querySelector('.detail-screenshots-grid');
                         if (gridEl && game.screenshots && game.screenshots.length > 0) {
-                            gridEl.className = 'detail-screenshots-grid' + (game.screenshots.length === 2 ? ' screenshots-2' : '');
+                            gridEl.className = 'detail-screenshots-grid';
                             gridEl.innerHTML = buildDetailScreenshotsHTML(game);
                         }
                         const otherInfoEl = modal.querySelector('.detail-other-info');
