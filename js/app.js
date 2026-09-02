@@ -5213,11 +5213,11 @@
 
                 // 封面
                 const coverWrap = document.createElement('div');
-                coverWrap.style.cssText = 'width:100%;aspect-ratio:3/2;background:#e8e2ee;position:relative;';
+                coverWrap.style.cssText = 'width:100%;aspect-ratio:16/9;background:#e8e2ee;position:relative;';  // 3:2 → 16/9 匹配绝大多数 16:9 封面原图比例，避免拉伸变形
                 if (game.cover) {
                     const img = document.createElement('img');
                     img.src = game.cover;
-                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;object-position:center;';
                     img.crossOrigin = 'anonymous';
                     // ⚠️ 打角色标签：封面转换失败时按女主类型做渐变+大字标题占位
                     img.setAttribute('data-role', 'cover');
@@ -5799,8 +5799,8 @@
                 }
                 cursorY += commentHeight;
 
-                // ==== B. 封面区高度（3:2 杂志封面比）====
-                const coverH = Math.round(CARD_W * 2 / 3); // 540 × 360
+                // ==== B. 封面区高度（16:9 匹配绝大多数 16:9 游戏封面，避免 3:2 盒套 16:9 图导致横向被压缩变形）====
+                const coverH = Math.round(CARD_W * 9 / 16); // 540 × 304（16:9 标准横版比例）
                 cursorY += coverH;
 
                 // ==== C. 信息区：标题（含左侧竖条占位）+ 描述 + 标签组 + 评分 ====
@@ -6039,8 +6039,8 @@
                 if (coverImgEl) {
                     // —— 真图封面（object-fit: cover 填满）——
                     drawImageCover(ctx, coverImgEl, coverRectX, coverRectY, coverRectW, coverRectH);
-                    // 底部轻微渐变遮罩，保证 heroType 胶囊和大字标题（如有）有可读性
-                    const bottomFade = ctx.createLinearGradient(0, coverRectY + coverRectH - 80, 0, coverRectY + coverRectH);
+                    // 底部轻微渐变遮罩，保证 heroType 胶囊和大字标题（如有）有可读性（封面高度 360→304 后渐变条 80→64 等比缩小）
+                    const bottomFade = ctx.createLinearGradient(0, coverRectY + coverRectH - 64, 0, coverRectY + coverRectH);
                     bottomFade.addColorStop(0, 'rgba(0,0,0,0)');
                     bottomFade.addColorStop(1, 'rgba(0,0,0,0.35)');
                     ctx.fillStyle = bottomFade;
