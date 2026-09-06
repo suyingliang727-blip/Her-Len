@@ -327,6 +327,8 @@
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
             --card-bg-glass: rgba(255, 255, 255, 0.04);
             --card-border-glass: rgba(255, 255, 255, 0.06);
+            --card-bg: rgba(42, 35, 48, 0.88);
+            --card-border: rgba(69, 60, 78, 0.55);
             --iridescent-opacity: 0.08;
             --silver-sweep-color: rgba(255,255,255,0.25);
             --accent-light: rgba(184, 162, 214, 0.15);
@@ -394,7 +396,162 @@
             border-top-color: rgba(255, 255, 255, 0.06);
         }
 
-        [data-theme="dark"] .header-dropdown-menu {
+        /* ============= detail-link-btn（Steam链接/我要评价等胶囊）· 暗色模式 ============= */
+        [data-theme="dark"] .detail-links .detail-link-btn {
+            background: linear-gradient(135deg, rgba(98, 82, 128, 0.72) 0%, rgba(82, 70, 108, 0.72) 100%);
+            color: #d8cff0;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+        }
+        [data-theme="dark"] .detail-links .detail-link-btn:hover {
+            background: linear-gradient(135deg, rgba(118, 98, 148, 0.78) 0%, rgba(98, 82, 128, 0.78) 100%);
+            color: #efebf6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
+        }
+
+        /* ============= nav-dropdown-menu · 暗色模式 ============= */
+        [data-theme="dark"] .nav-dropdown-menu {
+            background: rgba(42, 35, 48, 0.96);
+            border-color: rgba(69, 60, 78, 0.55);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
+        }
+        [data-theme="dark"] .nav-dropdown-link {
+            color: #c4b5d3;
+        }
+        [data-theme="dark"] .nav-dropdown-link:hover {
+            background: rgba(184, 162, 214, 0.15);
+            color: #d8cff0;
+        }
+
+        /* ============= 详情页弹窗 & 遮罩 · 暗色模式 ============= */
+        [data-theme="dark"] .modal-overlay {
+            background: #1e1822;
+        }
+        [data-theme="dark"] .modal {
+            background: #1e1822;
+        }
+
+        /* ============= 详情页系列作品区 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-series-section {
+            background: rgba(42, 35, 48, 0.65);
+            border-color: rgba(69, 60, 78, 0.45);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.22);
+        }
+        [data-theme="dark"] .detail-series-section h3 {
+            color: #c9bde0;
+        }
+        [data-theme="dark"] .detail-series-item {
+            background: rgba(54, 47, 62, 0.50);
+            border-color: rgba(69, 60, 78, 0.40);
+        }
+        [data-theme="dark"] .detail-series-item:hover {
+            background: rgba(60, 52, 74, 0.60);
+        }
+        [data-theme="dark"] .detail-series-item.current {
+            background: rgba(98, 82, 128, 0.28);
+            border-color: rgba(184, 162, 214, 0.35);
+        }
+        [data-theme="dark"] .detail-series-item-title {
+            color: #e2dae8;
+        }
+        [data-theme="dark"] .detail-series-item-date {
+            color: #8c7d9a;
+        }
+
+        /* ============= 详情页截图区 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-screenshots {
+            background: rgba(42, 35, 48, 0.50);
+            border-color: rgba(69, 60, 78, 0.35);
+        }
+        [data-theme="dark"] .detail-screenshots h3 {
+            color: #b8a2d6;
+        }
+
+        /* ============= 详情页操作按钮 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-actions .btn-sm {
+            background: rgba(54, 47, 62, 0.60);
+            color: #c4b5d3;
+            border-color: rgba(69, 60, 78, 0.45);
+        }
+        [data-theme="dark"] .detail-actions .btn-sm:hover {
+            background: rgba(98, 82, 128, 0.50);
+            color: #efebf6;
+            border-color: rgba(184, 162, 214, 0.30);
+        }
+
+        /* ============= 详情页 other-info 分隔线 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-other-info > :not(:first-child) {
+            border-top-color: rgba(255, 255, 255, 0.06);
+        }
+
+        /* ============= 详情页标题 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-title {
+            color: #e2dae8;
+        }
+        [data-theme="dark"] .detail-title-en {
+            color: #8c7d9a;
+        }
+
+        /* ============= 编辑/投稿弹窗 · 暗色模式 ============= */
+        [data-theme="dark"] #editModalOverlay .modal,
+        [data-theme="dark"] #bufferModalOverlay .modal,
+        [data-theme="dark"] #submitModalOverlay .modal {
+            background: rgba(42, 35, 48, 0.92);
+            border-color: rgba(69, 60, 78, 0.50);
+            box-shadow: 0 16px 64px rgba(0, 0, 0, 0.50);
+        }
+
+        /* ============= 成就/登录/资料/评论弹窗 · 暗色模式 ============= */
+        [data-theme="dark"] #achievementModalOverlay .modal,
+        [data-theme="dark"] #authModalOverlay .modal,
+        [data-theme="dark"] #profileModalOverlay .modal,
+        [data-theme="dark"] #myReviewsModalOverlay .modal,
+        [data-theme="dark"] #blockModalOverlay .modal,
+        [data-theme="dark"] #tipModalOverlay .modal {
+            background: rgba(42, 35, 48, 0.96);
+            border-color: rgba(69, 60, 78, 0.50);
+            box-shadow: 0 16px 64px rgba(0, 0, 0, 0.50);
+        }
+
+        /* ============= 详细简介板块 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-description {
+            background: rgba(42, 35, 48, 0.40);
+            border: 1px solid rgba(69, 60, 78, 0.35);
+            color: #cfc5e2;
+            border-radius: 14px;
+        }
+
+        /* ============= 短简介 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-short-desc {
+            color: #b8a9c4;
+            border-top-color: rgba(255, 255, 255, 0.06);
+        }
+
+        /* ============= 元信息行 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-meta-row {
+            color: #b8a9c4;
+        }
+        [data-theme="dark"] .detail-meta-row span {
+            color: #b8a9c4;
+        }
+
+        /* ============= 标签胶囊（详情页顶部 tags-row） · 暗色模式 ============= */
+        [data-theme="dark"] .detail-tags-row .detail-tag {
+            background: rgba(54, 47, 62, 0.62);
+            color: #c4b5d3;
+            border-color: rgba(69, 60, 78, 0.40);
+        }
+
+        /* ============= 信息分组卡容器（detail-groups）· 暗色模式 ============= */
+        [data-theme="dark"] .detail-other-info {
+            background: transparent;
+        }
+
+        /* ============= 长简介滚动区 · 暗色模式 ============= */
+        [data-theme="dark"] .detail-description {
+            scrollbar-color: #4a3d55 transparent;
+        }
             background: #2a2330;
         }
 

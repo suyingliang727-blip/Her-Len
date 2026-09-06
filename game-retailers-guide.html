@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏经销商统计指南 · 2026</title>
+<script>
+// 同步 index 网页的主题设置（读取 localStorage）
+(function(){
+  try{
+    var s=localStorage.getItem('heroineGamesSettingsV2');
+    if(s){var d=JSON.parse(s);var t=d.theme||'system';
+      if(t==='system'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+      document.documentElement.setAttribute('data-theme',t);
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#f3eff7;--text:#3d3546;--text2:#665c72;--text3:#8c8099;--border:rgba(213,207,224,.35);
+  --accent:#9b8abd;--accent2:#7e6fa0;--tag-bg:rgba(237,231,242,.50);--tag-text:#5a4e66;
+  --shadow:0 8px 32px rgba(60,30,80,.18);--shadow-lg:0 16px 64px rgba(60,30,80,.25);
+  --radius:16px;--radius-sm:10px;--danger:#c0392b;--success:#5d8a5e;--gold:#f5a623;
+  --card-bg:rgba(255,255,255,.65);--card-border:rgba(213,207,224,.55);
+  --logo-gradient:linear-gradient(135deg,#9b8abd 0%,#7e6fa0 100%);
+  --icon-size:20px;
+}
+
+/* ====== 深色模式：自动跟随系统 / 手动 data-theme ====== */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1e1822;
+    --text:#e2dae8;--text2:#b8a9c4;--text3:#8c7d9a;
+    --border:rgba(69,60,78,.40);
+    --accent:#b8a2d6;--accent2:#9e8abf;
+    --tag-bg:rgba(54,47,62,.50);--tag-text:#c4b5d3;
+    --shadow:0 8px 32px rgba(0,0,0,.35);--shadow-lg:0 16px 64px rgba(0,0,0,.50);
+    --danger:#e74c3c;--success:#6a9b6c;--gold:#f5a623;
+    --card-bg:rgba(42,35,48,.72);--card-border:rgba(69,60,78,.50);
+    --logo-gradient:linear-gradient(135deg,#b8a2d6 0%,#9e8abf 100%);
+    --accent-light:rgba(184,162,214,.15);
+  }
+}
+[data-theme="dark"]{
+  --bg:#1e1822;
+  --text:#e2dae8;--text2:#b8a9c4;--text3:#8c7d9a;
+  --border:rgba(69,60,78,.40);
+  --accent:#b8a2d6;--accent2:#9e8abf;
+  --tag-bg:rgba(54,47,62,.50);--tag-text:#c4b5d3;
+  --shadow:0 8px 32px rgba(0,0,0,.35);--shadow-lg:0 16px 64px rgba(0,0,0,.50);
+  --danger:#e74c3c;--success:#6a9b6c;--gold:#f5a623;
+  --card-bg:rgba(42,35,48,.72);--card-border:rgba(69,60,78,.50);
+  --logo-gradient:linear-gradient(135deg,#b8a2d6 0%,#9e8abf 100%);
+  --accent-light:rgba(184,162,214,.15);
+}
+[data-theme="dark"] .bg-glow{opacity:.08}
+[data-theme="dark"] .tip-info{background:rgba(184,162,214,.08)}
+[data-theme="dark"] .tip-info .svg-icon{stroke:var(--accent)}
+[data-theme="dark"] .tip-warn{background:rgba(245,166,35,.08)}
+[data-theme="dark"] .tip-danger{background:rgba(231,76,60,.07)}
+[data-theme="dark"] .tip-success{background:rgba(106,155,108,.07)}
+[data-theme="dark"] tr:hover td{background:rgba(184,162,214,.05)}
+[data-theme="dark"] .svg-icon{stroke:var(--accent)}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .bg-glow{opacity:.08}
+  :root:not([data-theme="light"]) .tip-info{background:rgba(184,162,214,.08)}
+  :root:not([data-theme="light"]) .tip-info .svg-icon{stroke:var(--accent)}
+  :root:not([data-theme="light"]) .tip-warn{background:rgba(245,166,35,.08)}
+  :root:not([data-theme="light"]) .tip-danger{background:rgba(231,76,60,.07)}
+  :root:not([data-theme="light"]) .tip-success{background:rgba(106,155,108,.07)}
+  :root:not([data-theme="light"]) tr:hover td{background:rgba(184,162,214,.05)}
+  :root:not([data-theme="light"]) .svg-icon{stroke:var(--accent)}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;overflow-x:hidden;-webkit-text-size-adjust:100%}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.bg-glow-container{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-glow{position:absolute;border-radius:50%;filter:blur(100px);opacity:.15}
+.bg-glow.g1{width:600px;height:600px;background:#9b8abd;top:-200px;right:-100px}
+.bg-glow.g2{width:500px;height:500px;background:#7e6fa0;bottom:-100px;left:-150px}
+
+.svg-icon{width:var(--icon-size);height:var(--icon-size);stroke:var(--accent2);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:middle}
+
+.hero{text-align:center;padding:50px 24px 36px;max-width:900px;margin:0 auto}
+.hero h1{font-size:2.4rem;font-weight:800;background:var(--logo-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;line-height:1.3}
+.hero p{font-size:1.05rem;color:var(--text2);max-width:600px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:6px 18px;border-radius:20px;background:var(--tag-bg);color:var(--tag-text);font-size:.85rem;font-weight:500}
+.hero-badge .svg-icon{width:16px;height:16px;stroke:var(--tag-text)}
+
+.section{max-width:1000px;margin:0 auto;padding:40px 24px}
+.section-header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.section-num{width:48px;height:48px;border-radius:14px;background:var(--logo-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;flex-shrink:0;box-shadow:var(--shadow)}
+.section-title{font-size:1.7rem;font-weight:700;color:var(--text)}
+.section-subtitle{font-size:.95rem;color:var(--text3);margin-top:2px}
+
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.card-title{font-size:1.2rem;font-weight:700;color:var(--accent2);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.card-title .svg-icon{width:22px;height:22px;flex-shrink:0}
+
+.sub-title{font-size:1.05rem;font-weight:600;color:var(--accent2);margin:18px 0 10px;padding-left:12px;border-left:3px solid var(--accent)}
+
+.feature-list{list-style:none;padding:0}
+.feature-list li{padding:8px 0 8px 28px;position:relative;color:var(--text2);font-size:.95rem}
+.feature-list li::before{content:'';position:absolute;left:0;top:14px;width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:.7}
+.feature-list li strong{color:var(--text);font-weight:600}
+
+.table-wrap{overflow-x:auto;margin:16px 0;border-radius:var(--radius-sm);border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:600px}
+th{background:var(--accent);color:#fff;padding:12px 16px;text-align:left;font-weight:600;white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(155,138,189,.06)}
+
+.tag{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.78rem;font-weight:500;margin:2px 4px 2px 0}
+.tag-purple{background:var(--accent);color:#fff}
+.tag-light{background:var(--tag-bg);color:var(--tag-text)}
+.tag-danger{background:rgba(192,57,43,.12);color:var(--danger)}
+.tag-success{background:rgba(93,138,94,.12);color:var(--success)}
+.tag-gold{background:rgba(245,166,35,.12);color:var(--gold)}
+
+.tip-box{border-radius:var(--radius-sm);padding:16px 20px;margin:16px 0;font-size:.9rem;display:flex;gap:12px;align-items:flex-start}
+.tip-box .tip-icon{flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.tip-box .tip-icon .svg-icon{width:20px;height:20px}
+.tip-info{background:rgba(155,138,189,.1);border-left:4px solid var(--accent)}
+.tip-info .svg-icon{stroke:var(--accent2)}
+.tip-warn{background:rgba(245,166,35,.1);border-left:4px solid var(--gold)}
+.tip-warn .svg-icon{stroke:var(--gold)}
+.tip-danger{background:rgba(192,57,43,.08);border-left:4px solid var(--danger)}
+.tip-danger .svg-icon{stroke:var(--danger)}
+.tip-success{background:rgba(93,138,94,.08);border-left:4px solid var(--success)}
+.tip-success .svg-icon{stroke:var(--success)}
+.tip-box strong{color:var(--text)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+
+.compare-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow)}
+.compare-card h4{font-size:1.1rem;font-weight:700;margin-bottom:10px;color:var(--accent2)}
+
+.footer{text-align:center;padding:40px 24px;color:var(--text3);font-size:.85rem;border-top:1px solid var(--border);margin-top:40px}
+.footer a{color:var(--accent2)}
+
+.hl{background:rgba(155,138,189,.15);padding:2px 6px;border-radius:4px;font-weight:600;color:var(--accent2)}
+
+@media(max-width:768px){
+  :root{--icon-size:18px}
+  .hero{padding:32px 16px 24px}
+  .hero h1{font-size:1.6rem}
+  .hero p{font-size:.95rem}
+  .section{padding:28px 14px}
+  .section-header{gap:10px;margin-bottom:22px;flex-wrap:wrap}
+  .section-num{width:38px;height:38px;font-size:1.1rem;border-radius:11px}
+  .section-title{font-size:1.3rem}
+  .section-subtitle{font-size:.85rem}
+  .card{padding:18px 16px;margin-bottom:14px}
+  .card-title{font-size:1.05rem;gap:8px}
+  .feature-list li{font-size:.88rem;padding:6px 0 6px 22px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .tip-box{padding:14px 14px;font-size:.85rem;gap:10px}
+  table{font-size:.8rem;min-width:400px}
+  th,td{padding:10px 12px}
+  .compare-card{padding:16px 14px}
+}
+@media(max-width:480px){
+  .hero h1{font-size:1.35rem}
+  .section-title{font-size:1.15rem}
+  table{font-size:.74rem;min-width:320px}
+  th,td{padding:8px 10px}
+  .tag{font-size:.72rem;padding:2px 10px}
+}
+</style>
+</head>
+<body>
+<div class="bg-glow-container"><div class="bg-glow g1"></div><div class="bg-glow g2"></div></div>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>游戏经销商统计指南</h1>
+  <p>汇总当前可靠的游戏数字经销商，涵盖国际授权零售商、国内平台及比价工具，帮助你安全低价购买正版游戏。</p>
+  <div class="hero-badge">
+    <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    2026 年 9 月版 · 信息来源：各经销商官方页面
+  </div>
+</div>
+
+<!-- 总览表 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div>
+      <div class="section-title">经销商总览</div>
+      <div class="section-subtitle">一目了然对比各平台定位与特点</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>经销商</th><th>类型</th><th>地区</th><th>授权来源</th><th>支付方式</th><th>风险等级</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Steam</strong></td><td>平台官方商店</td><td>全球</td><td>Valve 自营</td><td>支付宝/微信/信用卡</td><td><span class="tag tag-success">极低</span></td></tr>
+        <tr><td><strong>Humble Bundle (HB)</strong></td><td>授权零售商 + 慈善捆绑包</td><td>全球（美国）</td><td>发行商直接授权</td><td>PayPal/信用卡</td><td><span class="tag tag-success">极低</span></td></tr>
+        <tr><td><strong>Green Man Gaming (小绿人)</strong></td><td>授权零售商</td><td>全球（英国）</td><td>发行商直接授权</td><td>支付宝/微信/PayPal/信用卡</td><td><span class="tag tag-success">极低</span></td></tr>
+        <tr><td><strong>Fanatical</strong></td><td>授权零售商 + 捆绑包</td><td>全球（英国）</td><td>发行商直接授权</td><td>PayPal/信用卡</td><td><span class="tag tag-success">极低</span></td></tr>
+        <tr><td><strong>IndieGala</strong></td><td>独立游戏零售商 + 捆绑包</td><td>全球（意大利）</td><td>发行商直接授权</td><td>PayPal/信用卡</td><td><span class="tag tag-success">低</span></td></tr>
+        <tr><td><strong>GOG</strong></td><td>平台官方商店（CD Projekt）</td><td>全球</td><td>CD Projekt 自营</td><td>PayPal/信用卡</td><td><span class="tag tag-success">极低</span></td></tr>
+        <tr><td><strong>Epic Games Store</strong></td><td>平台官方商店</td><td>全球</td><td>Epic 自营</td><td>支付宝/微信/PayPal</td><td><span class="tag tag-success">极低</span></td></tr>
+        <tr><td><strong>SteamPY</strong></td><td>国内社区化交易平台</td><td>中国</td><td>用户自购转卖/商家分销</td><td>支付宝/微信</td><td><span class="tag tag-gold">中</span></td></tr>
+        <tr><td><strong>淘宝/拼多多游戏店</strong></td><td>国内电商第三方店铺</td><td>中国</td><td>来源混杂（部分授权/部分灰Key）</td><td>支付宝/微信</td><td><span class="tag tag-gold">中高</span></td></tr>
+        <tr><td><strong>CDKeys</strong></td><td>全球零售商</td><td>全球</td><td>批量采购区域差价Key</td><td>PayPal/信用卡</td><td><span class="tag tag-gold">中</span></td></tr>
+        <tr><td><strong>Kinguin / G2A</strong></td><td>第三方集市平台</td><td>全球</td><td>用户自行上架（非直接授权）</td><td>PayPal/信用卡</td><td><span class="tag tag-danger">高</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip-box tip-info">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+    <div><strong>授权零售商</strong>：指与游戏发行商签订正式分销协议的商店，所售 Key 来源合法可追溯。 Valve 官方认可的授权零售商列表可在 <a href="https://partner.steamgames.com/doc/store/application/retailsales" target="_blank">Steam 合作伙伴页面</a> 查看。</div>
+  </div>
+</div>
+
+<!-- 国际授权零售商 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div>
+      <div class="section-title">国际授权零售商</div>
+      <div class="section-subtitle">发行商直接授权 · 正版安全有保障</div>
+    </div>
+  </div>
+
+  <!-- Humble Bundle -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Humble Bundle (HB)
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">基本信息</h4>
+        <ul class="feature-list">
+          <li><strong>官网</strong>：<a href="https://www.humblebundle.com" target="_blank">humblebundle.com</a></li>
+          <li><strong>母公司</strong>：IGN Entertainment（Ziff Davis 旗下）</li>
+          <li><strong>成立</strong>：2010 年</li>
+          <li><strong>总部</strong>：美国旧金山</li>
+          <li><strong>累计慈善捐款</strong>：超过 <strong>2.82 亿美元</strong></li>
+          <li><strong>支持中文</strong>：是</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">核心特色</h4>
+        <ul class="feature-list">
+          <li><strong>慈善捆绑包</strong>：自选价格购买多款游戏组合，部分收入捐赠慈善机构</li>
+          <li><strong>Humble Choice</strong>：月度订阅制，每月领取 8 款 PC 游戏</li>
+          <li><strong>Humble Store</strong>：常规游戏商店，价格通常低于 Steam 官方</li>
+          <li><strong>Key 来源</strong>：发行商直接授权，100% 正版可追溯</li>
+          <li><strong>支付方式</strong>：PayPal、信用卡、Amazon Pay</li>
+          <li><strong>支持平台</strong>：Steam、Nintendo Switch、Mac/Linux</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip-box tip-success">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><strong>推荐理由</strong>：行业最老牌的慈善捆绑包平台，游戏来源完全可靠。捆绑包经常包含市值 $50-100 的游戏组合，售价仅 $5-15，性价比极高。支持自选捐款比例。</div>
+    </div>
+
+    <div class="sub-title">购买机制详解</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>功能</th><th>机制说明</th><th>购买方式</th></tr></thead>
+        <tbody>
+          <tr><td><strong>慈善捆绑包</strong></td><td>包含 3-10 款主题游戏组合。设"自选价格"（Beat the Average 可解锁全部游戏），高于门槛价可获额外游戏。部分收入可选捐赠给慈善机构。</td><td>网页直接购买，支付后页面显示 Steam Key</td></tr>
+          <tr><td><strong>Humble Choice</strong></td><td>月度订阅制。每月精选 8 款 PC 游戏，当月领取永久入库。订阅期间可回溯领取此前月份的剩余游戏。可随时取消订阅。</td><td>按月/按年订阅，信用卡或 PayPal 自动续费</td></tr>
+          <tr><td><strong>Humble Store</strong></td><td>常规游戏商店，逐款购买。价格通常为 Steam 官方价的 75-90%，部分游戏有独家折扣码。购买后直接获得 Steam Key。</td><td>网页购买，Key 在订单页面或邮件中提供</td></tr>
+          <tr><td><strong>捐款分配</strong></td><td>购买捆绑包时可自选资金分配比例：慈善机构 / Humble Tip（平台费） / 开发商。默认分配为各约 1/3，可自由拖动滑块调整。</td><td>结账页面设置分配比例</td></tr>
+          <tr><td><strong>Key 交付</strong></td><td>购买后在"我的图书馆"页面直接显示各游戏的 Steam Key，可一键复制或直接"领取到 Steam 账户"。</td><td>Key 字符串或直接激活链接</td></tr>
+          <tr><td><strong>退款政策</strong></td><td>捆绑包整体退款：购买后 14 天内且未激活任何 Key。单个 Key 激活后无法退款整个捆绑包。</td><td>联系客服申请</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>省钱技巧</strong>：Humble Choice 年订阅（$11.99/月或 $134.88/年）比月度更划算。如果你只想要某月的游戏，订阅当月领取后立即取消即可，已领取的游戏永久保留。捆绑包在活动末期（最后 1-2 天）通常会追加"后期解锁"游戏，等最后一天购买性价比最高。</div>
+    </div>
+  </div>
+
+  <!-- Green Man Gaming -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+      Green Man Gaming (小绿人)
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">基本信息</h4>
+        <ul class="feature-list">
+          <li><strong>官网</strong>：<a href="https://www.greenmangaming.com" target="_blank">greenmangaming.com</a></li>
+          <li><strong>总部</strong>：英国伦敦</li>
+          <li><strong>成立</strong>：2009 年</li>
+          <li><strong>中国运营主体</strong>：苏州弥菓贸易有限公司</li>
+          <li><strong>支持中文</strong>：是（完整中文界面）</li>
+          <li><strong>备案</strong>：苏ICP备2022024135号-1</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">核心特色</h4>
+        <ul class="feature-list">
+          <li><strong>授权零售商</strong>：与 600+ 发行商签订正式分销协议</li>
+          <li><strong>人民币定价</strong>：直接显示人民币价格，无需换算</li>
+          <li><strong>支付方式</strong>：支付宝、微信、PayPal、信用卡、银联、Apple Pay</li>
+          <li><strong>VIP 折扣</strong>：注册后购物积累经验值，解锁额外折扣</li>
+          <li><strong>Green Gift</strong>：可购买游戏礼物赠送好友</li>
+          <li><strong>退款政策</strong>：未激活的 Key 可申请退款</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip-box tip-success">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><strong>推荐理由</strong>：国内玩家最友好的国际授权零售商——支持支付宝/微信、人民币定价、完整中文界面。折扣力度通常在 Steam 官方价的 70-85%，大促期间可达 50% 以下。</div>
+    </div>
+
+    <div class="sub-title">购买机制详解</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>功能</th><th>机制说明</th><th>购买方式</th></tr></thead>
+        <tbody>
+          <tr><td><strong>常规购买</strong></td><td>逐款购买游戏或 DLC。页面显示人民币价格，折扣叠加 VIP 折扣后为最终价。购买后页面和邮件提供 Steam Key。</td><td>网页直接购买，支付宝/微信扫码支付</td></tr>
+          <tr><td><strong>VIP XP 系统</strong></td><td>每次购物积累 XP 经验值。XP 达到一定等级解锁 <strong>VIP 折扣码</strong>（如额外 5-15% off）。等级越高折扣越大，部分游戏有 VIP 专属价。</td><td>自动累计，结账时自动应用</td></tr>
+          <tr><td><strong>预购奖励</strong></td><td>预购未发售游戏通常比 Steam 便宜 10-20%，部分预购含独家 DLC 或奖励内容。预购 Key 在游戏发售日当天解锁发放。</td><td>提前付款，发售日自动获得 Key</td></tr>
+          <tr><td><strong>Green Gift</strong></td><td>购买游戏后可选择"赠送好友"。好友收到邮件链接，点击后 Steam Key 直接激活到其账户。适合送礼场景。</td><td>结账时选择"Gift"选项</td></tr>
+          <tr><td><strong>退款政策</strong></td><td>未激活的 Steam Key 可在购买后 14 天内申请退款。一旦 Key 被激活到 Steam 账户，则无法退款（除非游戏本身有技术问题）。</td><td>在订单页面申请退款</td></tr>
+          <tr><td><strong>区域 Key 类型</strong></td><td>每款游戏标注 Key 的可激活区域（Global / EU / NA 等）。国区玩家需选择 <strong>Global</strong> 或 <strong>ROW</strong>（Rest of World）类型的 Key，避免购买区域限定 Key 无法激活。</td><td>商品页面标注区域信息</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>省钱技巧</strong>：注册账号后先不急着买——新用户通常收到首单折扣码邮件（额外 10-15% off）。大促期间（Steam 夏特卖/冬特卖同期）GMG 会同步打折且叠加 VIP 折扣，实际到手价经常低于 Steam 促销价。关注"Hot Deals"页面有闪购限时额外折扣。</div>
+    </div>
+  </div>
+
+  <!-- Fanatical -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Fanatical
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">基本信息</h4>
+        <ul class="feature-list">
+          <li><strong>官网</strong>：<a href="https://www.fanatical.com" target="_blank">fanatical.com</a></li>
+          <li><strong>总部</strong>：英国</li>
+          <li><strong>成立</strong>：2012 年（原名 Bundle Stars）</li>
+          <li><strong>支持中文</strong>：部分支持</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">核心特色</h4>
+        <ul class="feature-list">
+          <li><strong>授权零售商</strong>：与 1000+ 发行商和开发商合作</li>
+          <li><strong>捆绑包</strong>：以低价捆绑包闻名，$1 起步</li>
+          <li><strong>Mystery Bundle</strong>：随机游戏盲盒捆绑包（有风险但性价比高）</li>
+          <li><strong>Star Deal</strong>：每日一款超低价精品游戏</li>
+          <li><strong>预购优惠</strong>：预购游戏通常比 Steam 便宜 10-20%</li>
+          <li><strong>支付方式</strong>：PayPal、信用卡</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip-box tip-success">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><strong>推荐理由</strong>：捆绑包价格极低，经常 $3-5 拿到 5-8 款游戏。Star Deal 每日精选折扣力度大。适合喜欢探索独立游戏的玩家。</div>
+    </div>
+
+    <div class="sub-title">购买机制详解</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>功能</th><th>机制说明</th><th>购买方式</th></tr></thead>
+        <tbody>
+          <tr><td><strong>常规捆绑包</strong></td><td>主题捆绑包含 3-10 款游戏，固定价格（通常 $1-$14.99）。比 Humble Bundle 更专注于独立和中型游戏。支付后在"我的订单"页面获得所有游戏的 Steam Key。</td><td>网页直接购买，PayPal/信用卡</td></tr>
+          <tr><td><strong>Mystery Bundle</strong></td><td>随机盲盒捆绑包——你不知道具体包含哪些游戏，只知道数量和大致价值范围。$1 起步，价值可达 $50+。风险是可能抽到已有或不喜欢的游戏。</td><td>选择数量购买，购买后随机分配 Key</td></tr>
+          <tr><td><strong>Star Deal</strong></td><td>每日一款精选大作超低价闪购，折扣通常 60-90% off。限时 24 小时，售完即止。是 Fanatical 最受关注的特色功能。</td><td>限时购买，先到先得</td></tr>
+          <tr><td><strong>Pick & Mix</strong></td><td>自选捆绑包——从一组候选游戏中自选 3/5/8 款组成自己的捆绑包，选越多单价越低。适合想精确控制购买内容的玩家。</td><td>勾选游戏后统一结账</td></tr>
+          <tr><td><strong>预购优惠</strong></td><td>预购未发售游戏通常比 Steam 便宜 10-25%，部分含独家预购 DLC 或奖励。发售日当天发放 Key。</td><td>提前付款，发售日自动获得 Key</td></tr>
+          <tr><td><strong>退款政策</strong></td><td>未激活 Key 可在 14 天内退款。Mystery Bundle 已揭示游戏后不支持退款（因为已知道内容）。常规捆绑包中只要有一个 Key 被激活，整个捆绑包不可退。</td><td>在订单页面申请</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-warn">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><strong>Mystery Bundle 注意事项</strong>：盲盒有概率抽到高价值游戏，也可能全是小品类独立游戏。建议仅在"即使最差结果也不亏"的价格下购买。检查 Mystery Bundle 候选游戏列表（通常在活动页面底部标注），避免重复购买已有的游戏。</div>
+    </div>
+  </div>
+
+  <!-- IndieGala -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 12h3M8.5 10.5v3"/><circle cx="15" cy="11" r="1"/><circle cx="17.5" cy="13" r="1"/></svg>
+      IndieGala
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">基本信息</h4>
+        <ul class="feature-list">
+          <li><strong>官网</strong>：<a href="https://www.indiegala.com" target="_blank">indiegala.com</a></li>
+          <li><strong>总部</strong>：意大利罗马</li>
+          <li><strong>成立</strong>：2011 年</li>
+          <li><strong>运营主体</strong>：Indiegala s.r.l.</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">核心特色</h4>
+        <ul class="feature-list">
+          <li><strong>独立游戏专注</strong>：主打独立游戏捆绑包和零售</li>
+          <li><strong>低价捆绑包</strong>：$3.99 起的 7-8 款游戏组合</li>
+          <li><strong>免费赠送</strong>：定期免费发放 Steam Key</li>
+          <li><strong>GalaClient</strong>：自带客户端可管理和游玩游戏</li>
+          <li><strong>社区功能</strong>：论坛、交易、Giveaway 活跃</li>
+          <li><strong>支付方式</strong>：PayPal、信用卡</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>适合人群</strong>：喜欢独立游戏、预算有限的玩家。游戏品质参差不齐，但价格极低，适合"淘金"心态的玩家。</div>
+    </div>
+
+    <div class="sub-title">购买机制详解</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>功能</th><th>机制说明</th><th>购买方式</th></tr></thead>
+        <tbody>
+          <tr><td><strong>捆绑包</strong></td><td>主题独立游戏捆绑包，通常含 5-10 款游戏，起价 $3.49-$3.99。比 Fanatical 更偏向小成本独立游戏，部分游戏在 Steam 上评价较低。</td><td>网页直接购买，PayPal/信用卡</td></tr>
+          <tr><td><strong>免费 Key 发放</strong></td><td>定期在网站和 Discord 社区免费发放 Steam Key，通常需完成简单任务（如关注社交媒体、加入 Discord）。Key 数量有限先到先得。</td><td>注册账号后参与活动领取</td></tr>
+          <tr><td><strong>GalaClient</strong></td><td>IndieGala 自有客户端，可直接下载和管理通过平台购买的部分游戏（非 Steam Key 方式）。部分游戏仅通过 GalaClient 提供。</td><td>下载客户端后登录激活</td></tr>
+          <tr><td><strong>Giveaway 赠送</strong></td><td>社区功能——用户可将多余的 Steam Key 免费赠送给其他用户，也可参与他人的 Giveaway 抽取。需要消耗 Gala Silver（平台虚拟积分）参与。</td><td>社区页面参与</td></tr>
+          <tr><td><strong>Feudalife Challenge</strong></td><td>平台独有的浏览器小游戏，游玩可获得 Gala Silver 积分，用于参与 Giveaway 或抵扣购物。</td><td>网页直接游玩</td></tr>
+          <tr><td><strong>退款政策</strong></td><td>未激活的 Key 可在 14 天内申请退款。GalaClient 激活的游戏退款政策较灵活，但需联系客服处理。</td><td>邮件联系客服</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 平台官方商店 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div>
+      <div class="section-title">平台官方商店</div>
+      <div class="section-subtitle">最安全的购买渠道 · 无任何中间环节</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>平台</th><th>运营方</th><th>特点</th><th>退款政策</th><th>支付方式</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Steam</strong></td><td>Valve</td><td>全球最大 PC 游戏商店，10 万+ 游戏</td><td>14 天 / 2 小时无条件退款</td><td>支付宝/微信/银联/信用卡</td></tr>
+        <tr><td><strong>Epic Games Store</strong></td><td>Epic Games</td><td>每周免费游戏，独占作品，88% 分成</td><td>14 天 / 2 小时无条件退款</td><td>支付宝/微信/PayPal</td></tr>
+        <tr><td><strong>GOG</strong></td><td>CD Projekt</td><td>无 DRM，经典游戏库，30 天退款</td><td>30 天无条件退款</td><td>PayPal/信用卡</td></tr>
+        <tr><td><strong>PlayStation Store</strong></td><td>Sony</td><td>PS5/PS4 数字版游戏，PS Plus 会员</td><td>14 天内（未下载且未游玩）</td><td>信用卡/点卡</td></tr>
+        <tr><td><strong>Nintendo eShop</strong></td><td>Nintendo</td><td>Switch/Switch 2 数字版游戏</td><td>一般不支持退款（地区政策不同）</td><td>信用卡/eShop 充值卡</td></tr>
+        <tr><td><strong>Microsoft Store</strong></td><td>Microsoft</td><td>Xbox + PC 游戏，Game Pass 订阅</td><td>14 天 / 2 小时（Xbox 政策）</td><td>信用卡/支付宝</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip-box tip-info">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+    <div><strong>官方商店 vs 零售商</strong>：官方商店价格通常最高，但退款保障最好、售后最完善。零售商价格更低但 Key 激活后一般不可退。建议：热门大作等 Steam 大促购买，日常用零售商比价补充。</div>
+  </div>
+
+  <div class="sub-title">各平台购买机制详解</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>平台</th><th>购买方式</th><th>促销机制</th><th>特殊功能</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Steam</strong></td>
+          <td>直接入库到账户，无需 Key 激活</td>
+          <td>每周特惠、 seasonal 大促（夏/秋/冬/春）、发行商周、闪购、社区选择投票折扣</td>
+          <td>愿望单降价邮件提醒、Steam 点数商店、探索队列推荐、家庭库共享</td>
+        </tr>
+        <tr>
+          <td><strong>Epic Games Store</strong></td>
+          <td>直接入库到 Epic 账户</td>
+          <td>Epic Mega Sale（每年 5-6 月）：通用优惠券 $10 off（满 $14.99 可用）</td>
+          <td><strong>每周免费游戏</strong>（永久入库）、$10 优惠券定期发放、部分游戏独占首发</td>
+        </tr>
+        <tr>
+          <td><strong>GOG</strong></td>
+          <td>直接入库到 GOG 账户（无 DRM 离线安装包）</td>
+          <td>季节性大促、每周特惠、GOG Connect（从 Steam 同步部分游戏到 GOG）</td>
+          <td><strong>无 DRM</strong>（可离线安装备份）、30 天退款、经典老游戏优化版、GOG GALAXY 客户端可选</td>
+        </tr>
+        <tr>
+          <td><strong>PlayStation Store</strong></td>
+          <td>直接绑定 PSN 账户，主机端下载</td>
+          <td>Days of Play（6 月）、Black Friday（11 月）、新年促销、PS Plus 会员专属折扣</td>
+          <td>PS Plus 每月免费游戏、Game Trials（Premium）、云串流游玩（Premium）</td>
+        </tr>
+        <tr>
+          <td><strong>Nintendo eShop</strong></td>
+          <td>直接绑定 Nintendo 账户，主机端下载</td>
+          <td>仅有零星促销（任天堂第一方极少打折），第三方游戏有季节性折扣</td>
+          <td>金币返还（购买金额的 1% 返还金币用于下次消费）、Game Voucher（两张兑换券 $99 可换两份第一方游戏）</td>
+        </tr>
+        <tr>
+          <td><strong>Microsoft Store</strong></td>
+          <td>直接绑定 Microsoft 账户，Xbox/PC 通用</td>
+          <td>Xbox 大促（与 Steam 大促同期）、Deals with Gold（Gold 会员专属折扣）</td>
+          <td><strong>Xbox Game Pass</strong>（订阅制畅玩数百款游戏，第一方首发即入库）、Smart Delivery（买一版获 X/S 双版本）、EA Play 会员整合</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip-box tip-info">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+    <div><strong>策略建议</strong>：Epic 每周免费游戏务必领取（即使暂时不玩，领取后永久保留）；GOG 适合收藏无 DRM 经典游戏；Steam 愿望单降价时收到邮件提醒再决定购买；PS Store 的大促折扣力度通常在 50-75%，但 PS Plus 会员有额外 10-25% 叠加折扣。</div>
+  </div>
+</div>
+
+<!-- 国内平台 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div>
+      <div class="section-title">国内交易平台</div>
+      <div class="section-subtitle">支付方便但需注意 Key 来源</div>
+    </div>
+  </div>
+
+  <!-- SteamPY -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      SteamPY
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">基本信息</h4>
+        <ul class="feature-list">
+          <li><strong>类型</strong>：社区化游戏交易平台</li>
+          <li><strong>地区</strong>：中国</li>
+          <li><strong>支付方式</strong>：支付宝、微信</li>
+          <li><strong>语言</strong>：中文</li>
+          <li><strong>模式</strong>：C2C + B2C 混合（用户/商家上架）</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">特点与风险</h4>
+        <ul class="feature-list">
+          <li><strong>价格优势</strong>：通常比 Steam 官方价低 20-50%</li>
+          <li><strong>Key 来源混杂</strong>：部分为正版授权 Key，部分为低价区采购/礼物链接</li>
+          <li><strong>售后保障</strong>：平台提供一定的纠纷仲裁机制</li>
+          <li><strong>商家信誉体系</strong>：有评分和销量参考，但非官方授权认证</li>
+          <li><strong>风险点</strong>：礼物链接可能被 Steam 回收；低价区 Key 可能被标记</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip-box tip-warn">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><strong>使用建议</strong>：SteamPY 适合追求低价的国内玩家，但需注意：优先选择信誉高的商家，避免购买来源不明的"礼物链接"类商品，激活后尽快确认无误。大作建议优先考虑授权零售商。</div>
+    </div>
+
+    <div class="sub-title">购买机制详解</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>功能</th><th>机制说明</th><th>注意事项</th></tr></thead>
+        <tbody>
+          <tr><td><strong>CDKey 直购</strong></td><td>商家提供 Steam 激活码，购买后在 Steam 客户端"添加游戏"中输入 Key 激活。这是最安全的购买方式——激活后游戏永久绑定你的账户。</td><td>选择标注"全球/国区可激活"的 Key，确认 Key 类型与你的 Steam 区域匹配</td></tr>
+          <tr><td><strong>礼物链接</strong></td><td>商家通过 Steam 发送礼物到你的账号。你接收后游戏入库。价格通常比 Key 直购更低，因为利用了低价区差价。</td><td>风险较高：跨区礼物可能被 Steam 检测并回收。建议仅购买同区礼物</td></tr>
+          <tr><td><strong>家庭共享激活</strong></td><td>部分商家以极低价格提供"家庭共享"服务——将你加入其 Steam 家庭组（需 365 天后才能退出）。表面入库但实际不拥有游戏。</td><td>不推荐：不等于购买，商家可随时移除共享；且加入他人家庭组有安全风险</td></tr>
+          <tr><td><strong>商家信誉体系</strong></td><td>每个商家有评分（1-5 星）、销量、历史纠纷率。高评分 + 高销量 + 低纠纷率 = 相对可信。部分商家有"官方认证"标签。</td><td>优先选择 4.5 星以上且销量 1000+ 的商家；查看差评内容判断风险</td></tr>
+          <tr><td><strong>售后仲裁</strong></td><td>如 Key 无法激活或被回收，可在订单页面发起纠纷。平台根据聊天记录和激活截图进行仲裁。仲裁结果可能是退款或补发 Key。</td><td>保留激活失败的截图证据；收到 Key 后尽快激活，延迟激活可能影响仲裁</td></tr>
+          <tr><td><strong>限时闪购</strong></td><td>平台定期举办限时折扣活动，部分商家在活动期间降价促销。闪购价格可能低于日常价 10-30%。</td><td>注意区分"真降价"和"先涨后降"——对比历史价格确认</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 淘宝/拼多多 -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      淘宝 / 拼多多游戏店铺
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">基本情况</h4>
+        <ul class="feature-list">
+          <li><strong>类型</strong>：电商第三方店铺</li>
+          <li><strong>价格</strong>：通常为 Steam 官方价的 50-80%</li>
+          <li><strong>支付</strong>：支付宝、微信</li>
+          <li><strong>便利性</strong>：中文界面、支付便捷</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--danger);margin-bottom:8px;font-size:1rem">风险提示</h4>
+        <ul class="feature-list">
+          <li><strong>来源不透明</strong>：部分店铺为授权零售商转售，部分为灰 Key</li>
+          <li><strong>黑 Key 风险</strong>：极少数店铺销售盗刷信用卡购买的 Key</li>
+          <li><strong>虚假入库</strong>：通过远程操控或家庭共享伪装"已入库"，实际并未真正激活（详见下方）</li>
+          <li><strong>离线账号出租</strong>：以低价"出租"含游戏的离线账号，非永久拥有</li>
+          <li><strong>售后困难</strong>：Key 激活后出现问题，维权难度大</li>
+          <li><strong>识别方法</strong>：看店铺评分、销量、评价关键词（"已激活""被回收""远程"等差评需警惕）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip-box tip-danger">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+      <div><strong>风险提示</strong>：淘宝/拼多多上的游戏 Key 价格虽低，但来源难以验证。如果价格远低于市场价（如正规零售商 5 折以下），极有可能是灰 Key 或黑 Key。一旦被 Steam 回收，不仅损失金钱还可能触发账号警告。建议仅在信誉极高的大型店铺购买，且优先选择"激活后担保"的商品。</div>
+    </div>
+  </div>
+
+  <!-- 虚假入库详解 -->
+  <div class="card">
+    <div class="card-title">
+      <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      淘宝/拼多多常见骗局：虚假入库与离线账号
+    </div>
+
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:14px">部分不良商家利用玩家对 Steam 机制的不了解，以极低价格出售看似"已入库"的游戏，但实际上玩家并未真正获得游戏所有权。以下是最常见的三种骗局：</p>
+
+    <div class="sub-title">骗局一：远程操控"假入库"</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>项目</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><strong>操作方式</strong></td><td>商家通过远程桌面（如 ToDesk/向日葵）登录自己的 Steam 账号到你的电脑上，下载游戏后切换回你的账号。游戏显示在库中，但<strong>实际上属于商家的家庭共享</strong>。</td></tr>
+          <tr><td><strong>表面现象</strong></td><td>你的 Steam 库中出现了游戏图标，可以点击"开始游戏"。看起来和正常购买一模一样。</td></tr>
+          <tr><td><strong>实际真相</strong></td><td>游戏通过商家的"家庭共享"授权给你。一旦商家取消共享、更改密码或封号，游戏立刻消失。你<strong>从未真正拥有</strong>这个游戏。</td></tr>
+          <tr><td><strong>风险</strong></td><td>远程操控期间你的电脑被他人完全控制，存在隐私泄露和账号被盗风险。商家可能同时记录你的 Steam 登录信息。</td></tr>
+          <tr><td><strong>识别方法</strong></td><td>购买后检查：Steam → 设置 → 家庭 → 查看"家庭共享"来源。如果游戏来自他人账号共享，即为虚假入库。正常购买的<strong>不会</strong>出现在共享列表中。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">骗局二：离线账号出租</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>项目</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><strong>操作方式</strong></td><td>商家提供一个已购买大量游戏的 Steam 账号，让你登录后切换到"离线模式"游玩。多个买家可能同时"租用"同一账号。</td></tr>
+          <tr><td><strong>表面现象</strong></td><td>以极低价格（如 5-15 元）"拥有"大量 3A 大作，看似性价比极高。</td></tr>
+          <tr><td><strong>实际真相</strong></td><td>你只是"租用"了账号的使用权，<strong>完全不拥有游戏</strong>。商家可随时改密码收回账号，你投入的存档和进度全部丢失。</td></tr>
+          <tr><td><strong>风险</strong></td><td>多人在同一账号上登录可能触发 Steam 安全审查；离线模式下无法获得成就、无法在线联机、无法使用创意工坊。</td></tr>
+          <tr><td><strong>识别方法</strong></td><td>如果商家要求你登录"指定账号"而非给你激活码/礼物链接，即为离线出租。<strong>正常购买的游戏是激活到你自己的账号上的</strong>。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">骗局三：礼物链接欺诈</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>项目</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><strong>操作方式</strong></td><td>商家通过低价区账号发送 Steam 礼物链接给你，你接收后游戏入库。看似正常，但来源是低价区转赠。</td></tr>
+          <tr><td><strong>表面现象</strong></td><td>游戏正常入库到你的账号，可正常游玩。和正常礼物接收体验完全一样。</td></tr>
+          <tr><td><strong>实际真相</strong></td><td>Steam 在 2024 年起大幅限制跨区礼物赠送，商家可能使用 VPN 伪装地区发送。一旦被检测到异常，<strong>游戏会被回收</strong>且不可申诉。</td></tr>
+          <tr><td><strong>风险</strong></td><td>游戏被回收后金钱损失；频繁接收跨区礼物可能触发账号安全审查。</td></tr>
+          <tr><td><strong>识别方法</strong></td><td>接收礼物后检查 Steam 邮件通知中的发送者地区。如果发送者来自异常低价区（如阿根廷、土耳其），需警惕。建议只接收同区好友的礼物。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-danger">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+      <div><strong>核心辨别原则</strong>：正规购买的游戏，<strong>一定是激活到你自己的 Steam 账号上</strong>。如果商家要求你登录别人的账号、远程操控你的电脑、或者接收来源不明的礼物——几乎可以确定是骗局。判断标准很简单：<strong>"游戏是否在你的账号购买记录中"</strong>——去 Steam → 账户详情 → 查看交易记录，如果没有这笔购买记录，你就没有真正拥有这个游戏。</div>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>价格参考线</strong>：如果一个游戏在正规授权零售商（如小绿人/HB/Fanatical）的最低价是 100 元，而淘宝某店铺只卖 15-20 元且要求"远程激活"或"提供账号登录"——这 100% 是虚假入库或离线出租。不要被低价迷惑，你买到的不是游戏，而是一个随时可能消失的 illusion。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 灰色地带平台 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div>
+      <div class="section-title">需谨慎的平台</div>
+      <div class="section-subtitle">价格诱人但风险较高 · 请充分了解后再决定</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>平台</th><th>模式</th><th>价格</th><th>核心风险</th><th>建议</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>CDKeys</strong></td>
+          <td>B2C 自营零售</td>
+          <td>低</td>
+          <td>批量采购低价区 Key，非发行商直接授权但来源合法</td>
+          <td><span class="tag tag-gold">可谨慎使用</span></td>
+        </tr>
+        <tr>
+          <td><strong>Kinguin</strong></td>
+          <td>C2C 集市（用户上架）</td>
+          <td>很低</td>
+          <td>Key 来源不可控，有黑 Key 风险；平台提供 Buyer Protection 但需额外付费</td>
+          <td><span class="tag tag-danger">不推荐</span></td>
+        </tr>
+        <tr>
+          <td><strong>G2A</strong></td>
+          <td>C2C 集市（用户上架）</td>
+          <td>很低</td>
+          <td>历史争议最大，多次被发行商公开声明不授权；G2A Shield 需付费订阅</td>
+          <td><span class="tag tag-danger">不推荐</span></td>
+        </tr>
+        <tr>
+          <td><strong>MMOGA / Eneba</strong></td>
+          <td>B2C + C2C 混合</td>
+          <td>低</td>
+          <td>部分自营，部分用户上架；来源混杂</td>
+          <td><span class="tag tag-gold">需甄别</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip-box tip-danger">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+    <div><strong>关于 G2A / Kinguin</strong>：这类 C2C 集市平台允许任何人上架销售 Key，不验证来源。历史上多次发生大规模盗刷信用卡购买 Key 后上架销售的事件，导致发行商（如 TinyBuild）公开声明损失数百万美元。即使购买了 Buyer Protection，维权过程也耗时费力。<strong>省下的几块钱不值得冒账号安全风险</strong>。</div>
+  </div>
+</div>
+
+<!-- 比价工具 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div>
+      <div class="section-title">比价工具</div>
+      <div class="section-subtitle">一键比较所有零售商价格 · 找到最低价</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="compare-card">
+      <h4>CheapShark</h4>
+      <ul class="feature-list">
+        <li><strong>官网</strong>：<a href="https://www.cheapshark.com" target="_blank">cheapshark.com</a></li>
+        <li><strong>跟踪商店</strong>：Steam、Green Man Gaming、GOG、Humble Bundle 等多家</li>
+        <li><strong>功能</strong>：价格比较、降价提醒、历史最低价查看</li>
+        <li><strong>特色</strong>：只跟踪授权零售商，不收录灰色平台</li>
+        <li><strong>费用</strong>：免费</li>
+      </ul>
+    </div>
+    <div class="compare-card">
+      <h4>GG.deals</h4>
+      <ul class="feature-list">
+        <li><strong>官网</strong>：<a href="https://gg.deals" target="_blank">gg.deals</a></li>
+        <li><strong>跟踪商店</strong>：30+ 家零售商（含授权和灰色平台）</li>
+        <li><strong>功能</strong>：价格比较、历史价格曲线、Key 激活区域检查</li>
+        <li><strong>特色</strong>：标注每个商店的可靠度等级（Official / Verified / Marketplace）</li>
+        <li><strong>费用</strong>：免费（高级功能需订阅）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tip-box tip-info">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+    <div><strong>使用建议</strong>：购买任何游戏前，先在 GG.deals 搜索游戏名，查看当前最低价和历史价格曲线。优先选择标注 <strong>"Official Store"</strong> 的商家（即发行商直接授权），其次选择 <strong>"Verified"</strong>（可信零售商），尽量避免 <strong>"Marketplace"</strong>（用户集市）。</div>
+  </div>
+</div>
+
+<!-- 选购建议 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div>
+      <div class="section-title">安全购买建议</div>
+      <div class="section-subtitle">从低风险到高风险的优先级排序</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>优先级</th><th>渠道</th><th>价格水平</th><th>安全性</th><th>适用场景</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>第 1 选择</strong></td><td>Steam / Epic / GOG 官方商店</td><td>原价 ~ 大促 5 折</td><td><span class="tag tag-success">最高</span></td><td>大促期间购买，退款有保障</td></tr>
+          <tr><td><strong>第 2 选择</strong></td><td>Green Man Gaming / Humble Bundle / Fanatical</td><td>官方价 7-85 折</td><td><span class="tag tag-success">很高</span></td><td>日常购买，授权 Key 安全可靠</td></tr>
+          <tr><td><strong>第 3 选择</strong></td><td>CDKeys</td><td>官方价 5-7 折</td><td><span class="tag tag-gold">较高</span></td><td>预算有限时的折中选择</td></tr>
+          <tr><td><strong>第 4 选择</strong></td><td>SteamPY / 淘宝大型店铺</td><td>官方价 4-7 折</td><td><span class="tag tag-gold">中</span></td><td>仅选信誉高的商家，激活后尽快确认</td></tr>
+          <tr><td><strong>不推荐</strong></td><td>G2A / Kinguin 等集市平台</td><td>官方价 3-5 折</td><td><span class="tag tag-danger">低</span></td><td>不建议使用，黑 Key 风险高</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tip-box tip-success">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+    <div><strong>黄金法则</strong>：如果一个价格好到不像真的——那它很可能不是真的。正版授权零售商的折扣通常在官方价的 50-85% 之间。低于 50% 的价格需要警惕来源，低于 30% 的价格几乎可以确定是灰 Key 或黑 Key。</div>
+  </div>
+
+  <div class="tip-box tip-warn">
+    <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+    <div><strong>黑 Key 后果</strong>：激活盗刷信用卡购买的 Key 后，Valve 会移除游戏并可能对账号发出警告甚至限制。不要为了省几十块钱冒账号安全风险——你的 Steam 账号里可能有价值数千元的游戏库。</div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<div class="footer">
+  <p>游戏经销商统计指南 · 2026 年 9 月版</p>
+  <p style="margin-top:8px">信息来源：各经销商官方网站、CheapShark、GG.deals、Steam 合作伙伴页面</p>
+  <p style="margin-top:8px">本指南为科普性质，经销商政策和价格可能随时调整，请以各平台最新信息为准。</p>
+  <p style="margin-top:8px">由 <a href="#">商汤小浣熊</a> 生成 · 仅供参考</p>
+</div>
+
+</body>
+</html>

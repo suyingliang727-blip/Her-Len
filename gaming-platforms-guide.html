@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏平台全科普 · 2026 完全指南</title>
+<script>
+// 同步 index 网页的主题设置（读取 localStorage）
+(function(){
+  try{
+    var s=localStorage.getItem('heroineGamesSettingsV2');
+    if(s){var d=JSON.parse(s);var t=d.theme||'system';
+      if(t==='system'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+      document.documentElement.setAttribute('data-theme',t);
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#f3eff7;--bg2:#ede6f5;--surface:rgba(250,247,253,.55);--surface2:rgba(246,242,250,.60);
+  --text:#3d3546;--text2:#665c72;--text3:#8c8099;--border:rgba(213,207,224,.35);
+  --accent:#9b8abd;--accent2:#7e6fa0;--tag-bg:rgba(237,231,242,.50);--tag-text:#5a4e66;
+  --shadow:0 8px 32px rgba(60,30,80,.18);--shadow-lg:0 16px 64px rgba(60,30,80,.25);
+  --radius:16px;--radius-sm:10px;--danger:#c0392b;--success:#5d8a5e;--gold:#f5a623;
+  --card-bg:rgba(255,255,255,.65);--card-border:rgba(213,207,224,.55);
+  --logo-gradient:linear-gradient(135deg,#9b8abd 0%,#7e6fa0 100%);
+  --icon-stroke:currentColor;--icon-size:20px;
+}
+
+/* ====== 深色模式：自动跟随系统 / 手动 data-theme ====== */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1e1822;--bg2:#241e2b;
+    --surface:rgba(42,35,48,.60);--surface2:rgba(48,40,54,.65);
+    --text:#e2dae8;--text2:#b8a9c4;--text3:#8c7d9a;
+    --border:rgba(69,60,78,.40);
+    --accent:#b8a2d6;--accent2:#9e8abf;
+    --tag-bg:rgba(54,47,62,.50);--tag-text:#c4b5d3;
+    --shadow:0 8px 32px rgba(0,0,0,.35);--shadow-lg:0 16px 64px rgba(0,0,0,.50);
+    --danger:#e74c3c;--success:#6a9b6c;--gold:#f5a623;
+    --card-bg:rgba(42,35,48,.72);--card-border:rgba(69,60,78,.50);
+    --logo-gradient:linear-gradient(135deg,#b8a2d6 0%,#9e8abf 100%);
+    --accent-light:rgba(184,162,214,.15);
+  }
+}
+[data-theme="dark"]{
+  --bg:#1e1822;--bg2:#241e2b;
+  --surface:rgba(42,35,48,.60);--surface2:rgba(48,40,54,.65);
+  --text:#e2dae8;--text2:#b8a9c4;--text3:#8c7d9a;
+  --border:rgba(69,60,78,.40);
+  --accent:#b8a2d6;--accent2:#9e8abf;
+  --tag-bg:rgba(54,47,62,.50);--tag-text:#c4b5d3;
+  --shadow:0 8px 32px rgba(0,0,0,.35);--shadow-lg:0 16px 64px rgba(0,0,0,.50);
+  --danger:#e74c3c;--success:#6a9b6c;--gold:#f5a623;
+  --card-bg:rgba(42,35,48,.72);--card-border:rgba(69,60,78,.50);
+  --logo-gradient:linear-gradient(135deg,#b8a2d6 0%,#9e8abf 100%);
+  --accent-light:rgba(184,162,214,.15);
+}
+[data-theme="dark"] .bg-glow{opacity:.08}
+[data-theme="dark"] .nav-menu{background:rgba(42,35,48,.96);border-color:rgba(69,60,78,.55);box-shadow:0 12px 40px rgba(0,0,0,.45)}
+[data-theme="dark"] .nav-menu a{color:#c4b5d3}
+[data-theme="dark"] .nav-menu a:hover{background:rgba(184,162,214,.15);color:#d8cff0}
+[data-theme="dark"] .tip-info{background:rgba(184,162,214,.08)}
+[data-theme="dark"] .tip-info .svg-icon{stroke:var(--accent)}
+[data-theme="dark"] .tip-warn{background:rgba(245,166,35,.08)}
+[data-theme="dark"] .tip-danger{background:rgba(231,76,60,.07)}
+[data-theme="dark"] .tip-success{background:rgba(106,155,108,.07)}
+[data-theme="dark"] tr:hover td{background:rgba(184,162,214,.05)}
+[data-theme="dark"] .top-nav{background:rgba(30,24,34,.92);box-shadow:0 2px 12px rgba(0,0,0,.15)}
+[data-theme="dark"] .svg-icon{stroke:var(--accent)}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .bg-glow{opacity:.08}
+  :root:not([data-theme="light"]) .nav-menu{background:rgba(42,35,48,.96);border-color:rgba(69,60,78,.55);box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  :root:not([data-theme="light"]) .nav-menu a{color:#c4b5d3}
+  :root:not([data-theme="light"]) .nav-menu a:hover{background:rgba(184,162,214,.15);color:#d8cff0}
+  :root:not([data-theme="light"]) .tip-info{background:rgba(184,162,214,.08)}
+  :root:not([data-theme="light"]) .tip-info .svg-icon{stroke:var(--accent)}
+  :root:not([data-theme="light"]) .tip-warn{background:rgba(245,166,35,.08)}
+  :root:not([data-theme="light"]) .tip-danger{background:rgba(231,76,60,.07)}
+  :root:not([data-theme="light"]) .tip-success{background:rgba(106,155,108,.07)}
+  :root:not([data-theme="light"]) tr:hover td{background:rgba(184,162,214,.05)}
+  :root:not([data-theme="light"]) .top-nav{background:rgba(30,24,34,.92);box-shadow:0 2px 12px rgba(0,0,0,.15)}
+  :root:not([data-theme="light"]) .svg-icon{stroke:var(--accent)}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;overflow-x:hidden;-webkit-text-size-adjust:100%}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* 背景光晕 */
+.bg-glow-container{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-glow{position:absolute;border-radius:50%;filter:blur(100px);opacity:.15}
+.bg-glow.g1{width:600px;height:600px;background:#9b8abd;top:-200px;right:-100px}
+.bg-glow.g2{width:500px;height:500px;background:#7e6fa0;bottom:-100px;left:-150px}
+.bg-glow.g3{width:400px;height:400px;background:#b8a4d8;top:40%;left:50%;transform:translateX(-50%)}
+
+/* SVG 图标通用 */
+.svg-icon{width:var(--icon-size);height:var(--icon-size);stroke:var(--accent2);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:middle}
+
+/* 顶部导航栏 */
+.top-nav{position:sticky;top:0;z-index:9999;background:rgba(250,247,253,.92);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:0;white-space:nowrap;box-shadow:0 2px 12px rgba(60,30,80,.08)}
+.top-nav-logo{font-size:1.1rem;font-weight:700;background:var(--logo-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;padding:12px 16px 12px 0;flex-shrink:0}
+.nav-item{position:relative;flex-shrink:0}
+.nav-trigger{display:flex;align-items:center;gap:4px;padding:12px 14px;font-size:.88rem;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:transparent;transition:color .2s;white-space:nowrap}
+.nav-trigger:hover{color:var(--accent2)}
+.nav-trigger .nav-caret{width:14px;height:14px;stroke:var(--text3);stroke-width:2;fill:none;transition:transform .2s}
+.nav-item:hover .nav-trigger{color:var(--accent2)}
+.nav-item:hover .nav-caret{transform:rotate(180deg)}
+.nav-menu{display:none;position:absolute;top:100%;left:0;min-width:180px;background:#fff;border:1px solid var(--border);border-radius:0 0 var(--radius-sm) var(--radius-sm);box-shadow:0 12px 40px rgba(60,30,80,.25);padding:6px;z-index:10000}
+.nav-item:hover .nav-menu{display:block}
+.nav-menu a{display:block;padding:8px 14px;font-size:.85rem;color:var(--text2);border-radius:8px;transition:all .15s;white-space:nowrap}
+.nav-menu a:hover{background:var(--accent);color:#fff;text-decoration:none}
+
+/* Hero */
+.hero{text-align:center;padding:50px 24px 36px;max-width:900px;margin:0 auto}
+.hero h1{font-size:2.6rem;font-weight:800;background:var(--logo-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;line-height:1.3}
+.hero p{font-size:1.1rem;color:var(--text2);max-width:600px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:6px 18px;border-radius:20px;background:var(--tag-bg);color:var(--tag-text);font-size:.85rem;font-weight:500}
+.hero-badge .svg-icon{width:16px;height:16px;stroke:var(--tag-text)}
+
+/* 目录导航 - 已移至顶部导航栏 */
+
+/* 通用 section */
+.section{max-width:1000px;margin:0 auto;padding:40px 24px}
+.section-header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.section-num{width:48px;height:48px;border-radius:14px;background:var(--logo-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;flex-shrink:0;box-shadow:var(--shadow)}
+.section-title{font-size:1.8rem;font-weight:700;color:var(--text)}
+.section-subtitle{font-size:.95rem;color:var(--text3);margin-top:2px}
+
+/* hero 图片 */
+.hero-img{width:100%;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:28px;display:block}
+
+/* 卡片 */
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.card-title{font-size:1.25rem;font-weight:700;color:var(--accent2);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.card-title .svg-icon{width:22px;height:22px;flex-shrink:0}
+
+/* 子标题 */
+.sub-title{font-size:1.05rem;font-weight:600;color:var(--accent2);margin:18px 0 10px;padding-left:12px;border-left:3px solid var(--accent)}
+
+/* 列表 */
+.feature-list{list-style:none;padding:0}
+.feature-list li{padding:8px 0 8px 28px;position:relative;color:var(--text2);font-size:.95rem}
+.feature-list li::before{content:'';position:absolute;left:0;top:14px;width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:.7}
+.feature-list li strong{color:var(--text);font-weight:600}
+
+/* 表格 */
+.table-wrap{overflow-x:auto;margin:16px 0;border-radius:var(--radius-sm);border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:480px}
+th{background:var(--accent);color:#fff;padding:12px 16px;text-align:left;font-weight:600;white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(155,138,189,.06)}
+
+/* 标签 */
+.tag{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.78rem;font-weight:500;margin:2px 4px 2px 0}
+.tag-purple{background:var(--accent);color:#fff}
+.tag-light{background:var(--tag-bg);color:var(--tag-text)}
+.tag-danger{background:rgba(192,57,43,.12);color:var(--danger)}
+.tag-success{background:rgba(93,138,94,.12);color:var(--success)}
+.tag-gold{background:rgba(245,166,35,.12);color:var(--gold)}
+
+/* 提示框 */
+.tip-box{border-radius:var(--radius-sm);padding:16px 20px;margin:16px 0;font-size:.9rem;display:flex;gap:12px;align-items:flex-start}
+.tip-box .tip-icon{flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.tip-box .tip-icon .svg-icon{width:20px;height:20px}
+.tip-info{background:rgba(155,138,189,.1);border-left:4px solid var(--accent)}
+.tip-info .svg-icon{stroke:var(--accent2)}
+.tip-warn{background:rgba(245,166,35,.1);border-left:4px solid var(--gold)}
+.tip-warn .svg-icon{stroke:var(--gold)}
+.tip-danger{background:rgba(192,57,43,.08);border-left:4px solid var(--danger)}
+.tip-danger .svg-icon{stroke:var(--danger)}
+.tip-success{background:rgba(93,138,94,.08);border-left:4px solid var(--success)}
+.tip-success .svg-icon{stroke:var(--success)}
+.tip-box strong{color:var(--text)}
+
+/* 双列网格 */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* 对比卡片 */
+.compare-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow)}
+.compare-card h4{font-size:1.1rem;font-weight:700;margin-bottom:10px;color:var(--accent2)}
+.compare-card .compare-img{width:100%;border-radius:var(--radius-sm);margin-bottom:14px;display:block}
+
+/* 手柄对比表 */
+.controller-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}
+.controller-card{background:var(--card-bg);border:2px solid var(--card-border);border-radius:var(--radius);padding:20px;text-align:center;transition:all .2s}
+.controller-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.controller-card h4{font-size:1.15rem;font-weight:700;margin-bottom:6px}
+.controller-card .ctrl-icon{margin-bottom:10px;display:flex;justify-content:center}
+.controller-card .ctrl-icon .svg-icon{width:32px;height:32px}
+.controller-card .ctrl-desc{font-size:.88rem;color:var(--text2);text-align:left;margin-top:10px}
+
+/* 页脚 */
+.footer{text-align:center;padding:40px 24px;color:var(--text3);font-size:.85rem;border-top:1px solid var(--border);margin-top:40px}
+.footer a{color:var(--accent2)}
+
+/* 高亮关键词 */
+.hl{background:rgba(155,138,189,.15);padding:2px 6px;border-radius:4px;font-weight:600;color:var(--accent2)}
+
+/* 步骤流程 */
+.steps{counter-reset:step;list-style:none;padding:0}
+.steps li{counter-increment:step;padding:12px 0 12px 48px;position:relative;color:var(--text2);font-size:.93rem}
+.steps li::before{content:counter(step);position:absolute;left:0;top:10px;width:30px;height:30px;border-radius:50%;background:var(--logo-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700}
+
+/* 更新日期 */
+.update-date{text-align:center;color:var(--text3);font-size:.85rem;margin-top:20px}
+
+/* ====== 移动端优化 ====== */
+@media(max-width:768px){
+  :root{--icon-size:18px}
+  .hero{padding:32px 16px 24px}
+  .hero h1{font-size:1.6rem}
+  .hero p{font-size:.95rem}
+  .section{padding:28px 14px}
+  .section-header{gap:10px;margin-bottom:22px;flex-wrap:wrap}
+  .section-num{width:38px;height:38px;font-size:1.1rem;border-radius:11px}
+  .section-title{font-size:1.35rem}
+  .section-subtitle{font-size:.85rem}
+  .card{padding:18px 16px;margin-bottom:14px}
+  .card-title{font-size:1.08rem;gap:8px}
+  .sub-title{font-size:.98rem}
+  .feature-list li{font-size:.88rem;padding:6px 0 6px 22px}
+  .feature-list li::before{width:6px;height:6px;top:13px;left:2px}
+  .steps li{font-size:.88rem;padding:10px 0 10px 40px}
+  .steps li::before{width:26px;height:26px;font-size:.78rem;top:8px}
+  .grid-2,.grid-3,.controller-grid{grid-template-columns:1fr}
+  .top-nav{padding:0 12px}
+  .top-nav-logo{font-size:.95rem;padding:10px 10px 10px 0}
+  .nav-trigger{padding:10px 10px;font-size:.82rem}
+  .nav-menu{min-width:150px}
+  .tip-box{padding:14px 14px;font-size:.85rem;gap:10px}
+  table{font-size:.82rem;min-width:380px}
+  th,td{padding:10px 12px}
+  .compare-card{padding:16px 14px}
+  .compare-card h4{font-size:1rem}
+  .hero-img{border-radius:12px;margin-bottom:18px}
+  .footer{padding:30px 16px;font-size:.8rem}
+}
+@media(max-width:480px){
+  .hero h1{font-size:1.4rem}
+  .hero p{font-size:.88rem}
+  .section-title{font-size:1.2rem}
+  .card-title{font-size:1rem}
+  table{font-size:.76rem;min-width:320px}
+  th,td{padding:8px 10px}
+  .tag{font-size:.72rem;padding:2px 10px}
+  .nav-menu a{font-size:.78rem;padding:7px 12px}
+}
+</style>
+</head>
+<body>
+<div class="bg-glow-container"><div class="bg-glow g1"></div><div class="bg-glow g2"></div><div class="bg-glow g3"></div></div>
+
+<!-- 顶部导航栏 -->
+<nav class="top-nav">
+  <div class="top-nav-logo">游戏平台科普</div>
+  <div class="nav-item">
+    <button class="nav-trigger" type="button">Steam<svg class="nav-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nav-menu">
+      <a href="#steam-register">注册与分区</a>
+      <a href="#steam-free">免费游戏领取</a>
+      <a href="#steam-family">家庭库</a>
+      <a href="#steam-cdkey">CDKey 机制</a>
+      <a href="#steam-refund">退款机制</a>
+      <a href="#steam-warning">警告信</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <button class="nav-trigger" type="button">PS5<svg class="nav-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nav-menu">
+      <a href="#ps5-account">账号</a>
+      <a href="#ps5-console">主机版本</a>
+      <a href="#ps5-disc">光盘购买</a>
+      <a href="#ps5-plus">会员权益</a>
+      <a href="#ps5-share">拼车机制</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <button class="nav-trigger" type="button">Switch / NS2<svg class="nav-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nav-menu">
+      <a href="#switch">版本区别</a>
+      <a href="#switch">游戏卡带</a>
+      <a href="#switch">会员</a>
+      <a href="#switch">共享游戏</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <button class="nav-trigger" type="button">Xbox<svg class="nav-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nav-menu">
+      <a href="#xbox">主机版本</a>
+      <a href="#xbox">会员体系</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <button class="nav-trigger" type="button">手柄对比<svg class="nav-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nav-menu">
+      <a href="#controllers">三手柄详解</a>
+      <a href="#controllers">综合对比表</a>
+      <a href="#controllers">选购建议</a>
+      <a href="#controllers">平台总结</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>游戏平台全科普</h1>
+  <p>覆盖 Steam、PlayStation 5、Nintendo Switch / Switch 2、Xbox 四大平台，以及御三家手柄深度对比。所有政策信息更新至 2026 年 9 月。</p>
+  <div class="hero-badge">
+    <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    2026 年 9 月版 · 信息来源：各平台官方页面
+  </div>
+</div>
+
+<!-- ==================== Steam ==================== -->
+<div class="section" id="steam">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div>
+      <div class="section-title">Steam 平台</div>
+      <div class="section-subtitle">Valve 旗下全球最大 PC 游戏数字发行平台</div>
+    </div>
+  </div>
+  <img class="hero-img" src="https://pic.kts.g.mi.com/50ba2b54ba591e5901b3991a99c4fd223730365828703211718.png" alt="Steam 平台展示" referrerpolicy="no-referrer">
+
+  <!-- 注册与分区 -->
+  <div class="card" id="steam-register">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>注册账号与分区机制</div>
+
+    <div class="sub-title">注册流程</div>
+    <ol class="steps">
+      <li>访问 <a href="https://store.steampowered.com" target="_blank">store.steampowered.com</a>，点击右上角「登录」→「加入 Steam」</li>
+      <li>填写邮箱地址并确认，设置密码（建议 16 位以上含特殊字符）</li>
+      <li>完成人机验证，Steam 会向邮箱发送验证邮件</li>
+      <li>点击邮件中的验证链接，账号即激活成功</li>
+      <li>下载 Steam 客户端并登录，首次登录需确认地区设置</li>
+    </ol>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>账号名 vs 显示名</strong>：注册时设置的「账号名」<strong>永久不可更改</strong>，这是登录用 ID；而「个人资料名称」可随时修改，是好友看到的昵称。建议账号名使用不泄露个人信息的英文字符串。</div>
+    </div>
+
+    <div class="sub-title">分区（地区商店）机制</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:12px">Steam 根据账号注册地和支付方式将用户分配到不同地区商店，不同地区的游戏价格、可用游戏库和促销活动存在显著差异。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>常见分区</th><th>价格水平</th><th>特点</th><th>支付方式</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CN 国区</td><td>中低价</td><td>部分游戏有专门审查版本；人民币定价</td><td>支付宝、微信、银联</td></tr>
+          <tr><td>US 美区</td><td>高价</td><td>游戏最全，无审查；美元定价</td><td>信用卡、PayPal</td></tr>
+          <tr><td>AR 阿根廷区</td><td>极低价</td><td>历史低价区，已加强转区限制</td><td>当地支付方式</td></tr>
+          <tr><td>TR 土耳其区</td><td>低价</td><td>2023 年大幅涨价后仍较便宜</td><td>当地支付方式</td></tr>
+          <tr><td>JP 日区</td><td>高价</td><td>部分日系游戏独占或首发</td><td>信用卡、便利店支付</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-warn">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><strong>转区风险</strong>：Steam 在 2024 年起大幅收紧了跨区购物限制。频繁更改地区可能触发账号审查，甚至导致<span class="hl">账号锁定</span>。每个账号每 90 天只能更改一次地区，且需要对应地区的支付方式。切勿使用 VPN 频繁切换地区商店——这可能被视为欺诈行为。</div>
+    </div>
+  </div>
+
+  <!-- 免费游戏领取 -->
+  <div class="card" id="steam-free">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>免费游戏领取</div>
+
+    <div class="sub-title">永久免费游戏（F2P）</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:12px">Steam 上有大量永久免费的游戏，可直接搜索并点击「开始游戏」即可入库。热门免费游戏包括：</p>
+    <div>
+      <span class="tag tag-purple">Apex Legends</span>
+      <span class="tag tag-purple">Counter-Strike 2</span>
+      <span class="tag tag-purple">Dota 2</span>
+      <span class="tag tag-light">PUBG: BATTLEGROUNDS</span>
+      <span class="tag tag-light">Warframe</span>
+      <span class="tag tag-light">NARAKA: BLADEPOINT</span>
+      <span class="tag tag-light">Yu-Gi-Oh! Master Duel</span>
+      <span class="tag tag-light">Delta Force</span>
+    </div>
+
+    <div class="sub-title">限时免费领取（100% OFF 促销）</div>
+    <ul class="feature-list">
+      <li><strong>机制</strong>：开发商会在特定时段将付费游戏设置为 100% 折扣，期间领取即可<span class="hl">永久入库</span></li>
+      <li><strong>领取方式</strong>：在 Steam 商店页面找到该游戏 → 点击「添加至账户」→ 确认领取</li>
+      <li><strong>获取信息渠道</strong>：
+        <br>• 第三方网站 <a href="https://steamdb.info/upcoming/free/" target="_blank">SteamDB</a> 的「Free Promotions」页面
+        <br>• Reddit 的 r/FreeGamesOnSteam 社区
+        <br>• 各大游戏资讯网站和公众号会及时推送
+      </li>
+      <li><strong>注意</strong>：限时免费领取的游戏与正常购买的游戏享有同等权益，不会过期。但 DLC 不包含在内，需单独购买</li>
+    </ul>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>周末免费试玩</strong>：除了永久免费和限时 100% OFF 外，Steam 还经常推出周末免费试玩活动，通常从周四上午开始到周一下午结束。试玩结束后游戏会从库中移除，但如果在此期间购买可享受折扣价。</div>
+    </div>
+  </div>
+
+  <!-- 家庭库 -->
+  <div class="card" id="steam-family">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Steam 家庭库（Family Sharing）</div>
+
+    <div class="sub-title">2024 全新「Steam 家庭」系统</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:14px">Valve 在 2024 年推出了全新的「Steam 家庭」功能，取代了旧版的「家庭共享」。新系统更加灵活，支持跨地域共享。</p>
+
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem">核心权益</h4>
+        <ul class="feature-list">
+          <li>最多 <strong>6 名成员</strong>组成一个家庭组</li>
+          <li>家庭组内所有成员的游戏库<strong>互相共享</strong></li>
+          <li>同一游戏最多 <strong>6 人同时拥有</strong>访问权</li>
+          <li>儿童账户可由成人设置<strong>家长控制</strong></li>
+          <li>支持跨地区共享（无需同一 IP）</li>
+          <li>每人保留独立的<strong>存档和成就</strong></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--danger);margin-bottom:8px;font-size:1rem">限制条件</h4>
+        <ul class="feature-list">
+          <li>同一游戏同一时间<strong>仅限一人游玩</strong></li>
+          <li>若拥有者正在游玩，其他成员会被提示购买</li>
+          <li>加入家庭组后需等待 <strong>365 天</strong>才能退出并加入新组</li>
+          <li>部分游戏（如 MMO）<strong>不支持共享</strong></li>
+          <li>如果家庭组中有成员存在违规行为，<strong>可能影响全组</strong></li>
+          <li>共享游戏库时，被共享者的游玩时间不计入拥有者</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub-title">如何创建/加入 Steam 家庭</div>
+    <ol class="steps">
+      <li>打开 Steam 客户端 → 鼠标悬停右上角头像 → 点击「查看我的账户」</li>
+      <li>在左侧菜单找到「家庭设置」→ 点击「创建 Steam 家庭」</li>
+      <li>设置家庭名称后，系统会生成邀请链接</li>
+      <li>将链接发送给好友/家人，对方点击后确认加入即可</li>
+      <li>创建者可设置成员角色（成人/儿童）和管理权限</li>
+    </ol>
+
+    <div class="tip-box tip-danger">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+      <div><strong>重要警告</strong>：加入一个 Steam 家庭后需要等待整整一年才能退出并加入另一个家庭。请务必确认信任你的家庭组成员，因为成员的 VAC 封禁或欺诈行为可能导致你的账号受到牵连。</div>
+    </div>
+  </div>
+
+  <!-- CDKey -->
+  <div class="card" id="steam-cdkey">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>CDKey 机制详解</div>
+
+    <div class="sub-title">什么是 CDKey？</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:12px">CDKey（激活码）是一串由开发商/发行商生成的字母数字组合序列号，用于在 Steam 上激活并入库游戏。它通常由第三方零售商（如 Humble Bundle、Fanatical、Green Man Gaming 等）以低于 Steam 官方价的价格出售。</p>
+
+    <div class="sub-title">CDKey 的类型</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>类型</th><th>说明</th><th>风险等级</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-success">全球通用 Key</span></td><td>无地区限制，任何分区可激活</td><td>极低</td></tr>
+          <tr><td><span class="tag tag-light">区域限定 Key</span></td><td>仅限指定地区激活（如 EU、US、CN）</td><td>低</td></tr>
+          <tr><td><span class="tag tag-gold">礼物链接</span></td><td>以 Steam 礼物形式发送，非直接激活</td><td>中</td></tr>
+          <tr><td><span class="tag tag-danger">低价区礼物</span></td><td>利用地区差价发送礼物，已被大幅限制</td><td>高</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">如何激活 CDKey</div>
+    <ol class="steps">
+      <li>打开 Steam 客户端 → 点击左下角「添加游戏」</li>
+      <li>选择「在 Steam 上激活产品」→ 点击「下一步」</li>
+      <li>同意协议后，输入 CDKey 激活码 → 点击「下一步」</li>
+      <li>激活成功后，游戏会自动添加到你的库中并开始下载</li>
+    </ol>
+
+    <div class="tip-box tip-warn">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><strong>购买建议</strong>：仅在正规授权零售商购买 CDKey，如 Humble Bundle、Fanatical、Green Man Gaming、Indiegala 等。避免来源不明的超低价 Key——这些可能是用盗刷信用卡购买的「黑 Key」，激活后可能被 Valve 撤销并<span class="hl">封禁你的账号</span>。</div>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>比价工具</strong>：推荐使用 <a href="https://www.cheapshark.com" target="_blank">CheapShark</a> 或 <a href="https://gg.deals" target="_blank">GG.deals</a> 比价网站，它们会聚合多个正规零售商的价格，帮助你找到最低价的授权 Key。</div>
+    </div>
+  </div>
+
+  <!-- 退款 -->
+  <div class="card" id="steam-refund">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>退款机制</div>
+
+    <div class="sub-title">官方退款条件</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:12px">Steam 拥有业内最友好的退款政策，满足以下两个条件即可无条件退款：</p>
+
+    <div class="grid-2" style="margin:16px 0">
+      <div class="compare-card" style="text-align:center">
+        <div style="font-size:2.5rem;font-weight:800;color:var(--accent)">⏱ 14 天</div>
+        <div style="color:var(--text2);font-size:.9rem">购买后 14 天内</div>
+      </div>
+      <div class="compare-card" style="text-align:center">
+        <div style="font-size:2.5rem;font-weight:800;color:var(--accent)">2 小时</div>
+        <div style="color:var(--text2);font-size:.9rem">游戏运行时间不超过 2 小时</div>
+      </div>
+    </div>
+
+    <div class="sub-title">退款规则细节</div>
+    <ul class="feature-list">
+      <li><strong>同时满足</strong>：购买不超过 14 天 <strong>且</strong> 游戏时间不超过 2 小时，两个条件缺一不可</li>
+      <li><strong>退款方式</strong>：原路退回（支付宝/微信退回到支付账户），或退回到 Steam 钱包</li>
+      <li><strong>无条件退款</strong>：不需要任何理由，系统会自动批准符合条件的退款申请</li>
+      <li><strong>预购游戏</strong>：预购的游戏在发售前可随时退款，发售后按常规 14 天 / 2 小时规则</li>
+      <li><strong>DLC 退款</strong>：DLC 同样适用 14 天 / 2 小时规则，但如果 DLC 已经被使用/消耗且不可转移则无法退款</li>
+      <li><strong>捆绑包</strong>：按整个捆绑包计算，如果其中任何一款游戏超过 2 小时则整个捆绑包无法退款</li>
+    </ul>
+
+    <div class="sub-title">如何申请退款</div>
+    <ol class="steps">
+      <li>访问 <a href="https://help.steampowered.com" target="_blank">help.steampowered.com</a> 或客户端内「帮助」→「Steam 客服」</li>
+      <li>选择「购买」→ 找到要退款的游戏 → 点击「我要退款」</li>
+      <li>选择退款原因（从下拉列表选择即可，不影响审批）</li>
+      <li>选择退款方式：退回原支付方式 或 退回 Steam 钱包</li>
+      <li>提交申请，通常在 <strong>24 小时内</strong>收到审核结果，退款到账可能需要 3-7 个工作日</li>
+    </ol>
+  </div>
+
+  <!-- 警告信 -->
+  <div class="card" id="steam-warning">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>容易触发警告信的操作</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:14px">Steam 的警告信通常是账号违规的第一步，收到警告后若不及时纠正行为，可能升级为账号限制甚至永久封禁。以下是最容易触发警告的操作：</p>
+
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--danger);margin-bottom:10px;font-size:1rem">高风险操作</h4>
+        <ul class="feature-list">
+          <li><strong>频繁退款</strong>：短时间内多次退款（如一个月退款 5+ 次）可能被标记为「滥用退款」，收到警告后继续退款可能被禁止退款</li>
+          <li><strong>VPN 跨区购买</strong>：使用 VPN 伪装地区购买低价区游戏，Steam 会通过支付方式 IP 检测异常</li>
+          <li><strong>账号买卖/共享</strong>：出售或购买 Steam 账号违反 SSA（Steam 订阅协议），一旦被发现直接封号</li>
+          <li><strong>信用卡拒付/撤回</strong>：通过信用卡公司撤回已完成的支付（Chargeback），这是最严重的违规之一</li>
+          <li><strong>使用黑 Key</strong>：激活通过盗刷信用卡购买的 CDKey，游戏会被移除并收到警告</li>
+          <li><strong>刷成就/使用作弊软件</strong>：在 VAC 服务器上使用作弊软件会被永久 VAC 封禁（不可申诉）</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--gold);margin-bottom:10px;font-size:1rem"> 中等风险操作</h4>
+        <ul class="feature-list">
+          <li><strong>频繁转区</strong>：在短时间内多次更改地区商店</li>
+          <li><strong>恶意评价/骚扰</strong>：在社区中发布恶意评论或骚扰其他用户</li>
+          <li><strong>频繁发送礼物</strong>：短时间内向大量不同用户发送礼物可能被视为可疑行为</li>
+          <li><strong>市场刷交易</strong>：在 Steam 社区市场进行异常的大量交易</li>
+          <li><strong>钓鱼链接</strong>：在聊天或社区中发送钓鱼链接</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tip-box tip-danger">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+      <div><strong>VAC 封禁 vs 社区封禁 vs 账户封禁</strong>：
+        <br>• <strong>VAC 封禁</strong>：Valve 反作弊系统自动触发，永久且不可申诉，仅影响该游戏的多人模式
+        <br>• <strong>社区封禁</strong>：因社区行为违规触发，禁止使用社区功能（论坛、市场等）
+        <br>• <strong>账户封禁</strong>：最严重级别，账号永久无法使用，所有游戏丢失
+      </div>
+    </div>
+
+    <div class="tip-box tip-success">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><strong>收到警告怎么办？</strong>：首先停止可能违规的行为，仔细阅读警告邮件内容。如果是误判可以通过 Steam 客服申诉。确保账户安全——启用 Steam Guard 移动验证器，不要分享登录凭据。</div>
+    </div>
+  </div>
+</div>
+<!-- ==================== PS5 ==================== -->
+<div class="section" id="ps5">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div>
+      <div class="section-title">PlayStation 5</div>
+      <div class="section-subtitle">Sony 旗下次世代主机平台 · Play Has No Limits</div>
+    </div>
+  </div>
+  <img class="hero-img" src="https://gmedia.playstation.com/is/image/SIEPDC/ps5-slim-disc-console-featured-hardware-image-block-02-en-15nov23?$1600px$" alt="PS5 主机展示" referrerpolicy="no-referrer">
+
+  <!-- 账号 -->
+  <div class="card" id="ps5-account">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>PSN 账号体系</div>
+
+    <div class="sub-title">注册与地区选择</div>
+    <ul class="feature-list">
+      <li><strong>注册渠道</strong>：通过 PS5 主机或 <a href="https://my.playstation.com" target="_blank">PlayStation 官网</a>注册 PSN（PlayStation Network）账号</li>
+      <li><strong>地区锁定</strong>：注册时选择的地区<strong>永久绑定</strong>，创建后不可更改。不同地区的游戏库、价格、促销活动和会员服务存在差异</li>
+      <li><strong>港服 vs 国服</strong>：中国大陆玩家最常选择的是<span class="hl">港服（香港区）</span>，游戏库丰富且支持中文；国服（中国大陆区）游戏经过审查且数量较少</li>
+      <li><strong>多账号策略</strong>：许多玩家会注册多个不同地区的账号（如港服主力 + 日服/美服辅购），但<strong>会员只需在主力账号购买</strong>，其他账号登录同一主机即可享受会员权益</li>
+    </ul>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>地区选择建议</strong>：如果你在中国大陆，强烈建议注册<strong>港服</strong>作为主力账号。港服支持中文、支付方式友好（支持信用卡和点卡），且游戏库与欧美服基本一致。注册时地区选择「香港」，地址可填写香港任意地址。</div>
+    </div>
+  </div>
+
+  <!-- 主机版本 -->
+  <div class="card" id="ps5-console">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 12h3M8.5 10.5v3"/><circle cx="15" cy="11" r="1"/><circle cx="17.5" cy="13" r="1"/></svg>PS5 主机版本对比</div>
+
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:16px">截至 2026 年，PS5 家族共有以下版本在售：</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>型号</th><th>存储</th><th>光驱</th><th>体积变化</th><th>定位</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>PS5 初代</strong></td><td>825GB SSD</td><td>有光驱版/数字版</td><td>—</td><td>已逐步停产</td></tr>
+          <tr><td><strong>PS5 Slim</strong></td><td>1TB SSD</td><td>有光驱版/数字版（可加装光驱）</td><td>体积减少 30%+，重量减轻 18-24%</td><td>当前主力销售型号</td></tr>
+          <tr><td><strong>PS5 Pro</strong></td><td>2TB SSD</td><td>无内置光驱（可外接）</td><td>与 Slim 接近</td><td>高性能旗舰版</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">PS5 Pro 核心升级</div>
+    <ul class="feature-list">
+      <li><strong>GPU 性能提升约 45%</strong>：更强大的图形处理能力，支持更高级别的光线追踪</li>
+      <li><strong>PlayStation Spectral Super Resolution（PSSR）</strong>：Sony 自研 AI 超分辨率技术，类似 NVIDIA DLSS，可在保持高帧率的同时提升画面分辨率</li>
+      <li><strong>2TB SSD</strong>：存储容量翻倍，减少扩展存储需求</li>
+      <li><strong>无内置光驱</strong>：Pro 版仅提供数字版，但支持外接 PS5 Slim 可拆卸光驱</li>
+      <li><strong>WiFi 7 支持</strong>：下一代无线网络协议，更低延迟</li>
+    </ul>
+
+    <div class="tip-box tip-warn">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><strong>重要通知</strong>：Sony 宣布从 <strong>2028 年 1 月</strong>起，PlayStation 新发售的游戏将仅以数字版形式销售，不再生产实体光盘。2028 年之前发售的游戏光盘仍可正常使用。这意味着 PS5 光驱版的价值将在未来逐步降低，但短期内光盘仍有二手交易价值。</div>
+    </div>
+  </div>
+
+  <!-- 光盘购买 -->
+  <div class="card" id="ps5-disc">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>光盘购买指南</div>
+
+    <div class="sub-title">光盘的优劣势</div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--success);margin-bottom:8px;font-size:1rem">优势</h4>
+        <ul class="feature-list">
+          <li><strong>二手交易</strong>：通关后可二手出售回血，实际持有成本远低于数字版</li>
+          <li><strong>价格更低</strong>：光盘版经常低于 PS Store 数字版定价</li>
+          <li><strong>收藏价值</strong>：实体收藏满足感和展示性</li>
+          <li><strong>不占存储</strong>：游戏数据从光盘安装，减少下载量</li>
+          <li><strong>跨账号使用</strong>：光盘可在任意 PS5 主机上使用</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--danger);margin-bottom:8px;font-size:1rem"> 劣势</h4>
+        <ul class="feature-list">
+          <li><strong>需要光驱版主机</strong>：数字版 PS5 无法使用光盘</li>
+          <li><strong>换碟繁琐</strong>：切换游戏需要物理换碟</li>
+          <li><strong>光盘磨损</strong>：使用不当可能刮花导致读取失败</li>
+          <li><strong>存储空间</strong>：需要实体空间存放光盘</li>
+          <li><strong>版本锁定</strong>：光盘有地区编码，跨区购买需确认兼容性</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub-title">光盘购买渠道</div>
+    <ul class="feature-list">
+      <li><strong>国内电商平台</strong>：淘宝、京东、拼多多上的游戏专营店，价格通常比港服 PS Store 便宜 20-40%</li>
+      <li><strong>二手平台</strong>：闲鱼、转转上的二手光盘，通关后回血首选</li>
+      <li><strong>海外电商</strong>：Amazon Japan（日版光盘）、Play-Asia（多区光盘）</li>
+      <li><strong>实体店</strong>：各地游戏实体店，价格可能略高但可当面验货</li>
+    </ul>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>光盘地区编码</strong>：PS5 光盘通常分为<span class="hl">R1（北美）、R2（欧洲）、R3（亚洲/港台）</span>等区域编码。PS5 主机对大部分光盘<strong>不锁区</strong>（区域编码主要影响附赠 DLC 兑换码），但建议购买与主力账号同区的光盘以获得最佳兼容性。日版和港版光盘在港服账号上均可正常使用。</div>
+    </div>
+  </div>
+
+  <!-- 会员权益 -->
+  <div class="card" id="ps5-plus">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>PlayStation Plus 会员权益</div>
+
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:16px">PS Plus 分为三个等级，所有等级均包含在线多人游戏权限（免费游戏如 Fortnite、Apex 除外）。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>功能</th><th>Essential</th><th>Extra</th><th>Premium</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>每月免费游戏</td><td>√</td><td>√</td><td>√</td></tr>
+          <tr><td>在线多人游戏</td><td>√</td><td>√</td><td>√</td></tr>
+          <tr><td>专属折扣与内容</td><td>√</td><td>√</td><td>√</td></tr>
+          <tr><td>云存档与 Share Play</td><td>√</td><td>√</td><td>√</td></tr>
+          <tr><td>游戏目录（数百款 PS4/PS5）</td><td>×</td><td>√</td><td>√</td></tr>
+          <tr><td>Ubisoft+ Classics</td><td>×</td><td>√</td><td>√</td></tr>
+          <tr><td>经典游戏目录（PS1/PS2/PSP）</td><td>×</td><td>×</td><td>√</td></tr>
+          <tr><td>游戏试玩（Game Trials）</td><td>×</td><td>×</td><td>√</td></tr>
+          <tr><td>PS5 云游戏串流</td><td>×</td><td>×</td><td>√</td></tr>
+          <tr><td>Sony Pictures 影视库</td><td>×</td><td>×</td><td>√</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">各等级详细说明</div>
+
+    <div class="grid-3">
+      <div class="compare-card">
+        <h4>Essential（基础）</h4>
+        <p style="font-size:.88rem;color:var(--text2)">每月领取 3 款免费游戏（PS4/PS5 各若干），保留会员期间可游玩。含在线多人、云存档、专属折扣。适合主要只玩少数固定游戏的玩家。</p>
+        <div style="margin-top:10px"><span class="tag tag-light">适合：轻度玩家</span></div>
+      </div>
+      <div class="compare-card">
+        <h4>Extra（进阶）</h4>
+        <p style="font-size:.88rem;color:var(--text2)">在 Essential 基础上增加数百款 PS4/PS5 游戏目录，类似 Netflix 订阅制。包含大量 3A 大作和独立游戏。性价比最高的等级。</p>
+        <div style="margin-top:10px"><span class="tag tag-purple">适合：大多数玩家</span></div>
+      </div>
+      <div class="compare-card">
+        <h4>Premium（高级）</h4>
+        <p style="font-size:.88rem;color:var(--text2)">增加经典游戏目录（PS1/PS2/PSP）、游戏试玩（通常 2-5 小时试玩精选大作）、PS5 云串流（支持 4K HDR 60Hz）、Sony 影视库。适合怀旧玩家和追求全套体验的用户。</p>
+        <div style="margin-top:10px"><span class="tag tag-gold">适合：核心玩家</span></div>
+      </div>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>每月免费游戏领取提醒</strong>：PS Plus 每月免费游戏通常在每月第一个周三公布，领取后在会员期间永久可玩。即使本月游戏你暂时不感兴趣，也建议先领取——一旦领取就永久绑定账户，随时可以下载游玩。<strong>注意：从 2026 年 1 月起，PS4 游戏将间歇性地加入游戏目录</strong>。</div>
+    </div>
+  </div>
+
+  <!-- 拼车机制 -->
+  <div class="card" id="ps5-share">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M5 17H3v-5l2-5h11l3 5v5h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>拼车机制（账号共享）</div>
+
+    <div class="sub-title">什么是「拼车」？</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:14px">「拼车」是玩家社群中流行的说法，指的是利用 PS5 的<strong>「主机共享与离线游玩」</strong>功能，多个玩家共用同一个 PSN 账号的数字游戏库，从而分摊购买成本。</p>
+
+    <div class="sub-title">PS5 官方「主机共享与离线游玩」机制</div>
+    <ul class="feature-list">
+      <li><strong>每台 PS5 可激活一个「主机共享」账号</strong>：激活后，该账号购买的所有数字游戏在该主机上<strong>可供任何登录该主机的账号游玩</strong></li>
+      <li><strong>其他主机上的同一账号</strong>：账号拥有者在另一台 PS5 上登录时，仍可游玩自己购买的游戏（需保持联网）</li>
+      <li><strong>同时游玩限制</strong>：同一游戏同一时间<strong>不能被两台主机同时运行</strong>（除非使用不同账号在主机共享模式下）</li>
+      <li><strong>PS Plus 会员共享</strong>：主机共享模式下，其他账号也可享受该账号的 PS Plus 在线多人权限和每月免费游戏</li>
+    </ul>
+
+    <div class="sub-title">常见拼车模式</div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--accent2);margin-bottom:8px;font-size:1rem"> 双人拼车</h4>
+        <ul class="feature-list">
+          <li>A 的账号激活在 B 的主机上 → B 可玩 A 的所有游戏</li>
+          <li>A 在自己主机上正常登录游玩</li>
+          <li>游戏费用两人分摊，各付 50%</li>
+          <li><strong>最安全稳定的拼车方式</strong></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--gold);margin-bottom:8px;font-size:1rem"> 多人拼车</h4>
+        <ul class="feature-list">
+          <li>一人持有主账号，多人共享游戏库</li>
+          <li>通常通过「离线游玩」方式在不同主机上游玩</li>
+          <li><strong>风险较高</strong>：账号安全、信任问题</li>
+          <li>不建议与陌生人拼车</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tip-box tip-danger">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+      <div><strong>拼车风险提示</strong>：
+        <br>• <strong>账号安全</strong>：共享账号意味着分享登录凭据，存在被盗风险
+        <br>• <strong>信任问题</strong>：对方修改密码或更改绑定邮箱可能导致你无法访问
+        <br>• <strong>Sony 政策</strong>：虽然「主机共享」是官方功能，但 Sony <strong>不鼓励</strong>跨家庭共享账号，大量异常登录可能触发安全审查
+        <br>• <strong>建议</strong>：仅与信任的朋友/家人双人拼车，切勿在网络上与陌生人交易账号
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ==================== Nintendo Switch / NS2 ==================== -->
+<div class="section" id="switch">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div>
+      <div class="section-title">Nintendo Switch & Switch 2</div>
+      <div class="section-subtitle">任天堂混合式主机平台 · 2025 年 6 月 Switch 2 正式发售</div>
+    </div>
+  </div>
+  <img class="hero-img" src="https://www.nintendo.com/hk/common/ncom/img/footer_img_feature.png" alt="Nintendo Switch 2 展示" referrerpolicy="no-referrer">
+
+  <!-- 版本区别 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="1"/><path d="M6 7v3M10 7v4M14 7v3M18 7v4"/></svg>Switch 与 Switch 2 版本区别</div>
+
+    <div class="sub-title">初代 Switch 家族（2017-2025）</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>型号</th><th>屏幕</th><th>续航</th><th>特点</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Switch OLED</strong></td><td>7.0" OLED</td><td>4.5-9h</td><td>最佳显示效果，支架改进</td><td>逐步停产</td></tr>
+          <tr><td><strong>Switch（续航版）</strong></td><td>6.2" LCD</td><td>4.5-9h</td><td>标准版，性价比之选</td><td>逐步停产</td></tr>
+          <tr><td><strong>Switch Lite</strong></td><td>5.5" LCD</td><td>3-7h</td><td>纯掌机，不可连接电视，手柄不可拆卸</td><td>逐步停产</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">Switch 2（2025 年 6 月发售）</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>规格</th><th>Switch 2</th><th>初代 Switch</th><th>提升</th></tr></thead>
+        <tbody>
+          <tr><td>屏幕</td><td><strong>7.9 英寸 LCD</strong></td><td>6.2 英寸 LCD / 7.0 OLED</td><td>更大屏幕，支持 HDR 和 VRR</td></tr>
+          <tr><td>分辨率（掌机）</td><td>1080p</td><td>720p</td><td>1.5x</td></tr>
+          <tr><td>分辨率（电视）</td><td><strong>4K</strong></td><td>1080p</td><td>4x（需支持 4K 的电视和游戏）</td></tr>
+          <tr><td>帧率</td><td>最高 120fps</td><td>最高 60fps</td><td>2x（4K 下锁 60fps）</td></tr>
+          <tr><td>存储</td><td><strong>256GB</strong></td><td>32GB</td><td>8x</td></tr>
+          <tr><td>Joy-Con 连接</td><td><strong>磁吸式</strong></td><td>滑轨式</td><td>更易拆卸</td></tr>
+          <tr><td>Joy-Con 新功能</td><td><strong>鼠标模式</strong></td><td>—</td><td>侧面光学传感器</td></tr>
+          <tr><td>GameChat</td><td><strong>内置 C 按钮</strong></td><td>无</td><td>语音+画面共享聊天</td></tr>
+          <tr><td>存储卡</td><td><strong>仅 microSD Express</strong></td><td>microSD</td><td>更快读写（不兼容旧卡！）</td></tr>
+          <tr><td>USB-C</td><td>底部 + <strong>顶部</strong></td><td>仅底部</td><td>桌面模式可充电</td></tr>
+          <tr><td>支架</td><td>150° 可调</td><td>有限角度</td><td>更大幅调节</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-warn">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><strong>microSD Express 专用</strong>：Switch 2 <strong>仅兼容 microSD Express 卡</strong>，你在初代 Switch 上使用的普通 microSD 卡<strong>无法在 Switch 2 上使用</strong>。购买扩展存储时务必确认是 microSD Express 规格。</div>
+    </div>
+
+    <div class="sub-title">向下兼容</div>
+    <ul class="feature-list">
+      <li>Switch 2 <strong>兼容几乎所有初代 Switch 的实体和数字游戏</strong></li>
+      <li>部分游戏可能不完全兼容或有功能限制</li>
+      <li>部分初代游戏在 Switch 2 上可获得性能提升（更流畅帧率、更快加载）</li>
+      <li><strong>Switch 2 Edition 游戏</strong>：部分热门游戏推出专用 Switch 2 版本，包含画质/性能升级，通常可通过付费升级包获得</li>
+      <li>Nintendo Switch Online 会员可继续在 Switch 2 上使用</li>
+    </ul>
+  </div>
+
+  <!-- 游戏卡带 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>游戏卡带</div>
+
+    <div class="sub-title">卡带的特点</div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--success);margin-bottom:8px;font-size:1rem">优势</h4>
+        <ul class="feature-list">
+          <li><strong>即插即玩</strong>：插入即可启动，无需等待下载安装</li>
+          <li><strong>二手交易</strong>：通关后可二手出售，保值率高</li>
+          <li><strong>不占机身存储</strong>：游戏数据直接从卡带读取</li>
+          <li><strong>收藏价值</strong>：实体卡带可收集展示</li>
+          <li><strong>跨机使用</strong>：卡带可在任意 Switch/Switch 2 上使用</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:var(--danger);margin-bottom:8px;font-size:1rem"> 注意事项</h4>
+        <ul class="feature-list">
+          <li><strong>Key 卡带</strong>：部分大作卡带仅包含启动数据，仍需下载大量游戏文件</li>
+          <li><strong>丢失风险</strong>：卡带体积小，容易遗失</li>
+          <li><strong>游戏更新</strong>：仍需联网下载补丁和 DLC</li>
+          <li><strong>区域版本</strong>：不同区域卡带可能包含不同语言</li>
+          <li><strong>味道</strong>：任天堂卡带涂层含苦味剂（苯甲酸地那铵），防止误食</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>数字版 vs 实体卡带</strong>：数字版方便切换游戏、可随时重新下载；实体版可二手回血、不占存储。建议：在线联机类游戏（如 Splatoon）买数字版，单机通关类游戏买卡带二手回血。</div>
+    </div>
+  </div>
+
+  <!-- 会员 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Nintendo Switch Online 会员</div>
+
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:16px">Nintendo Switch Online（NSO）是任天堂的在线服务订阅，分为基础版和扩展包版，每个版本都有<strong>个人版</strong>和<strong>家庭版</strong>两种选择。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>方案</th><th>个人版（1 账号）</th><th>家庭版（最多 8 账号）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>NSO 基础版</strong></td><td>$19.99 USD / 年</td><td>$34.99 USD / 年</td></tr>
+          <tr><td><strong>NSO + 扩展包</strong></td><td>$49.99 USD / 年</td><td>$79.99 USD / 年</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">基础版功能</div>
+    <ul class="feature-list">
+      <li><strong>在线联机</strong>：游玩兼容游戏的在线多人模式（如 Splatoon、Mario Kart）</li>
+      <li><strong>GameChat</strong>：Switch 2 专属，通过 C 按钮启动语音+画面共享聊天</li>
+      <li><strong>经典游戏库</strong>：NES、Super NES、Game Boy 精选游戏</li>
+      <li><strong>Nintendo Music</strong>：手机 App 上聆听任天堂游戏音乐</li>
+      <li><strong>云存档</strong>：自动备份兼容游戏的存档到云端</li>
+      <li><strong>专属优惠</strong>：游戏内奖励和限定商品</li>
+      <li><strong>7 天免费试用</strong>：新用户可试用 7 天，到期自动续费</li>
+    </ul>
+
+    <div class="sub-title">扩展包（+ Expansion Pack）额外功能</div>
+    <ul class="feature-list">
+      <li><strong>GameCube 经典库</strong>：<span class="hl">仅 Switch 2 专属</span>，包含《塞尔达传说：风之杖》《灵魂能力 II》等</li>
+      <li><strong>Game Boy Advance 经典库</strong>：《塞尔达传说：缩小帽》等</li>
+      <li><strong>Nintendo 64 经典库</strong>：《马里奥赛车 64》（支持在线对战）等</li>
+      <li><strong>Virtual Boy 经典库</strong>：《马里奥网球》《银河保龄球》等 3D 游戏</li>
+      <li><strong>SEGA Genesis 经典库</strong>：世嘉经典游戏库</li>
+      <li><strong>升级包与 DLC</strong>：精选 Switch 2 升级包和 DLC 免费使用（需拥有基础游戏）</li>
+    </ul>
+
+    <div class="tip-box tip-success">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+      <div><strong>家庭版超高性价比</strong>：NSO 基础版家庭版 8 人仅 $34.99/年，人均不到 $5/年；扩展包家庭版 8 人 $79.99/年，人均约 $10/年。找 7 个朋友组建家庭组，每人都能以极低成本享受全部会员权益。<strong>家庭组成员无需在同一家庭，只需互相添加好友即可</strong>。</div>
+    </div>
+  </div>
+
+  <!-- 共享游戏 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Switch 游戏共享机制</div>
+
+    <div class="sub-title">数字游戏共享（主机绑定）</div>
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:12px">Nintendo 的数字游戏共享机制与 PS5 类似，基于「主机绑定」概念：</p>
+
+    <ul class="feature-list">
+      <li><strong>主主机（Primary Console）</strong>：每个 Nintendo 账号可绑定一台主机为「主主机」。在主主机上，该账号购买的所有数字游戏<strong>可供该主机上任何账号游玩</strong>，无需联网验证</li>
+      <li><strong>副主机（非主主机）</strong>：账号在另一台主机上登录时为「副主机」。副主机上只能由<strong>账号拥有者本人</strong>游玩自己购买的游戏，且<strong>必须保持联网</strong></li>
+      <li><strong>同时游玩</strong>：主主机上其他账号游玩 + 副主机上拥有者本人游玩 = <strong>可以同时游玩同一游戏</strong>，但副主机需联网且不能与其他人共享</li>
+      <li><strong>切换主主机</strong>：可在原主主机上解绑后再在新主机上绑定。每年不限制切换次数，但需要在原主机上操作解绑</li>
+    </ul>
+
+    <div class="sub-title">实体卡带共享</div>
+    <ul class="feature-list">
+      <li><strong>自由借出</strong>：实体卡带可以自由借给任何人的任何主机，无限制</li>
+      <li><strong>存档独立</strong>：卡带在不同主机上游玩时存档各自独立，不会互相覆盖</li>
+      <li><strong>DLC 共享</strong>：如果一台主机上购买了某游戏的 DLC，插入实体卡带时即可使用该 DLC</li>
+    </ul>
+
+    <div class="sub-title">GameShare（Switch 2 新功能）</div>
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg></span>
+      <div>Switch 2 新增 <strong>GameShare</strong> 功能：允许你将自己的游戏临时共享给最多 3 位好友（对方无需拥有该游戏）。通过本地无线或在线方式共享，对方可限时体验。需 NSO 会员。</div>
+    </div>
+
+    <div class="sub-title">Virtual Game Cards（虚拟游戏卡）</div>
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+      <div>Switch 2 引入<strong>虚拟游戏卡</strong>概念：数字游戏以「虚拟卡」形式存在于账号中，可以在<strong>已绑定的两台主机之间</strong>「加载」和「弹出」，模拟实体卡带的使用体验。这让数字游戏共享更加灵活和直观。</div>
+    </div>
+  </div>
+</div>
+<!-- ==================== Xbox ==================== -->
+<div class="section" id="xbox">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div>
+      <div class="section-title">Xbox</div>
+      <div class="section-subtitle">微软旗下游戏主机平台 · Game Pass 生态核心</div>
+    </div>
+  </div>
+  <img class="hero-img" src="https://img.alicdn.com/bao/uploaded/O1CN01v7705Z267GK6geHkm_!!6000000007614-0-yinhe.jpg" alt="Xbox 主机展示" referrerpolicy="no-referrer">
+
+  <!-- 主机版本 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 12h3M8.5 10.5v3"/><circle cx="15" cy="11" r="1"/><circle cx="17.5" cy="13" r="1"/></svg>Xbox 主机版本区别</div>
+
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:16px">当前 Xbox Series 系列有两款主机同时在售，定位互补：</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>规格</th><th>Xbox Series X</th><th>Xbox Series S</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>定位</td><td><strong>旗舰高性能</strong></td><td><strong>紧凑经济型</strong></td></tr>
+          <tr><td>外观</td><td>黑色塔式立柱造型</td><td>白色小巧方块造型</td></tr>
+          <tr><td>分辨率</td><td>最高 <strong>4K @ 60fps</strong>（部分游戏支持 120fps）</td><td>最高 <strong>1440p @ 60fps</strong>（部分游戏支持 120fps）</td></tr>
+          <tr><td>GPU</td><td>12 TFLOPS</td><td>4 TFLOPS</td></tr>
+          <tr><td>存储</td><td><strong>1TB NVMe SSD</strong></td><td><strong>512GB / 1TB NVMe SSD</strong></td></tr>
+          <tr><td>光驱</td><td>有（4K UHD Blu-ray）</td><td>无（纯数字版）</td></tr>
+          <tr><td>光线追踪</td><td>支持</td><td>支持（效果降低）</td></tr>
+          <tr><td>Quick Resume</td><td>√</td><td>√</td></tr>
+          <tr><td>扩展存储</td><td>专用扩展卡插槽</td><td>专用扩展卡插槽</td></tr>
+          <tr><td>向后兼容</td><td>Xbox One / 360 / 原始 Xbox</td><td>Xbox One / 360 / 原始 Xbox</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="compare-card">
+        <h4> Xbox Series X</h4>
+        <p style="font-size:.88rem;color:var(--text2)">追求最佳画质和性能的玩家首选。支持 4K 原生渲染、光线追踪、120fps 高帧率。内置 4K UHD 蓝光光驱，可播放实体游戏和影视光盘。适合拥有 4K 电视的客厅娱乐场景。</p>
+        <div style="margin-top:10px"><span class="tag tag-purple">追求画质</span><span class="tag tag-light">有光驱</span></div>
+      </div>
+      <div class="compare-card">
+        <h4>Xbox Series S</h4>
+        <p style="font-size:.88rem;color:var(--text2)">性价比之选，价格约为 Series X 的一半。纯数字版设计，无光驱。1440p 输出在 1080p/1440p 显示器上表现出色。体积小巧，适合桌面或卧室。是 Game Pass 订阅制的最佳搭档。</p>
+        <div style="margin-top:10px"><span class="tag tag-success">高性价比</span><span class="tag tag-light">纯数字</span></div>
+      </div>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>选择建议</strong>：如果你有 4K 电视且追求最佳画质 → 选 Series X；如果你主要用显示器或 1080p/1440p 屏幕，且主要订阅 Game Pass → Series S 性价比极高。两台主机游玩的是<strong>完全相同的游戏库</strong>，只是画质和分辨率不同。</div>
+    </div>
+
+    <div class="sub-title">向后兼容</div>
+    <ul class="feature-list">
+      <li><strong>四代兼容</strong>：Xbox Series 可游玩 Xbox One、Xbox 360（部分）和原始 Xbox（部分）的游戏</li>
+      <li><strong>自动 HDR</strong>：部分老游戏在 Series 上可获得自动 HDR 增强效果</li>
+      <li><strong>帧率增强</strong>：部分 Xbox One 游戏在 Series X 上可自动提升到 60fps 甚至 120fps</li>
+      <li><strong>Quick Resume</strong>：可在多个游戏之间快速切换并保持进度，无需重新加载</li>
+    </ul>
+  </div>
+
+  <!-- 会员 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Xbox 会员体系</div>
+
+    <p style="color:var(--text2);font-size:.95rem;margin-bottom:16px">Xbox 的会员体系以 <strong>Game Pass</strong> 为核心，辅以 Xbox Live Gold（现已整合进 Game Pass Core）。微软在 2024 年简化了会员结构，目前主要有以下方案：</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>方案</th><th>平台</th><th>核心权益</th><th>适合人群</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Game Pass Core</strong></td>
+            <td>Xbox 主机</td>
+            <td>在线多人 + 25+ 款精选游戏目录 + 会员折扣</td>
+            <td>基础联机需求</td>
+          </tr>
+          <tr>
+            <td><strong>Game Pass Standard</strong></td>
+            <td>Xbox 主机</td>
+            <td>数百款游戏目录 + 在线多人 + 会员折扣（不含首发新作）</td>
+            <td>主机玩家</td>
+          </tr>
+          <tr>
+            <td><strong>PC Game Pass（PGP）</strong></td>
+            <td>PC（Windows）</td>
+            <td>数百款 PC 游戏目录 + EA Play + 会员折扣</td>
+            <td>纯 PC 玩家</td>
+          </tr>
+          <tr>
+            <td><strong>Game Pass Ultimate</strong></td>
+            <td>Xbox + PC + 云游戏</td>
+            <td>全部权益：主机+PC 游戏目录 + 首发新作 + 云游戏 + 在线多人 + EA Play</td>
+            <td>全平台玩家</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">各方案详细说明</div>
+
+    <div class="grid-2">
+      <div class="compare-card">
+        <h4> Game Pass Core（原 Xbox Live Gold）</h4>
+        <p style="font-size:.88rem;color:var(--text2)">最基础的会员等级，提供 Xbox 在线多人游戏权限和 25+ 款精选游戏目录。如果你主要玩少数固定游戏且需要联机，这是最低成本的选项。</p>
+        <div style="margin-top:8px"><span class="tag tag-light">基础联机</span><span class="tag tag-light">25+ 游戏</span></div>
+      </div>
+      <div class="compare-card">
+        <h4>Game Pass Standard</h4>
+        <p style="font-size:.88rem;color:var(--text2)">主机端数百款游戏目录，涵盖 3A 大作和独立精品。包含在线多人功能。注意：Standard 版<strong>不包含首发新作</strong>（首发需 Ultimate）。</p>
+        <div style="margin-top:8px"><span class="tag tag-purple">主机端</span><span class="tag tag-light">数百款</span></div>
+      </div>
+      <div class="compare-card">
+        <h4>PC Game Pass（PGP）</h4>
+        <p style="font-size:.88rem;color:var(--text2)">专为 PC 玩家设计，包含与主机端相同的数百款游戏目录的 PC 版本。附带 EA Play 会员。性价比极高——如果你只在 PC 上玩游戏，PGP 是最划算的选择。包含微软第一方首发新作。</p>
+        <div style="margin-top:8px"><span class="tag tag-success">PC 专用</span><span class="tag tag-purple">含首发</span></div>
+      </div>
+      <div class="compare-card">
+        <h4>Game Pass Ultimate（XGPU）</h4>
+        <p style="font-size:.88rem;color:var(--text2)">全部功能合一：Xbox 主机 + PC 双平台游戏目录、微软第一方游戏首发即入库、云游戏串流（可在手机/浏览器上玩）、在线多人、EA Play、会员专属折扣。适合同时拥有 Xbox 和 PC 的玩家。</p>
+        <div style="margin-top:8px"><span class="tag tag-gold">全平台</span><span class="tag tag-gold">云游戏</span><span class="tag tag-purple">含首发</span></div>
+      </div>
+    </div>
+
+    <div class="tip-box tip-success">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+      <div><strong>Game Pass 最大卖点——首发即入库</strong>：微软所有第一方游戏（如《极限竞速》《光环》《Fable》等）在发售当天<strong>直接加入 Game Pass</strong>，无需额外购买。Ultimate 和 PC Game Pass 会员可在首发日立即游玩，这是 Game Pass 相比 PS Plus 和 NSO 的最大优势。</div>
+    </div>
+
+    <div class="sub-title">XGP vs PGP 对比</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>对比项</th><th>PC Game Pass（PGP）</th><th>Game Pass Ultimate（XGPU）</th></tr></thead>
+        <tbody>
+          <tr><td>PC 游戏目录</td><td>√</td><td>√</td></tr>
+          <tr><td>Xbox 主机游戏目录</td><td>×</td><td>√</td></tr>
+          <tr><td>首发新作</td><td>PC 版</td><td>PC + 主机版</td></tr>
+          <tr><td>在线多人</td><td>PC 游戏通常免费</td><td>主机在线多人</td></tr>
+          <tr><td>云游戏串流</td><td>×</td><td>√</td></tr>
+          <tr><td>EA Play</td><td>√</td><td>√</td></tr>
+          <tr><td>价格</td><td>较低</td><td>较高（约为 PGP 的 1.5-2 倍）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>省钱技巧</strong>：Xbox Game Pass 经常推出首月优惠活动（如首月 $1 或大幅折扣新用户优惠）。此外，使用 Xbox 充值卡或 Microsoft Reward 积分兑换也可以降低订阅成本。PGP 新用户通常能以极低价格体验首月。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 手柄对比 ==================== -->
+<div class="section" id="controllers">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div>
+      <div class="section-title">御三家手柄对比</div>
+      <div class="section-subtitle">DualSense vs Xbox Wireless Controller vs Joy-Con 2 / Pro Controller</div>
+    </div>
+  </div>
+  <img class="hero-img" src="https://wsrv.nl/?url=https://ts3.mm.bing.net/th?id=OIP.C14X9w0O7T5hi6csHq7mbwHaEo&pid=15.1" alt="三款手柄对比展示" referrerpolicy="no-referrer">
+
+  <!-- 手柄卡片 -->
+  <div class="controller-grid">
+    <div class="controller-card">
+      <div class="ctrl-icon"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg></div>
+      <h4 style="color:#0070d1">PS5 DualSense</h4>
+      <p style="font-size:.82rem;color:var(--text3)">Sony · 白色双色调设计</p>
+      <div class="ctrl-desc">
+        <ul class="feature-list" style="font-size:.85rem">
+          <li><strong>自适应扳机</strong>：L2/R2 可动态调节阻力，模拟弓弦、刹车等力度</li>
+          <li><strong>触觉反馈</strong>：双线性马达取代传统震动马达，精细模拟环境和触感</li>
+          <li><strong>内置麦克风</strong>：可直接语音聊天，有独立静音按钮</li>
+          <li><strong>触控板</strong>：支持多点触控和按压</li>
+          <li><strong>扬声器</strong>：内置高保真扬声器，游戏内音效</li>
+          <li><strong>电池</strong>：内置可充电（约 4-8 小时续航）</li>
+          <li><strong>PC 兼容</strong>：USB-C 或蓝牙连接 PC，部分大作支持触觉反馈</li>
+          <li><strong>高级版</strong>：DualSense Edge 可自定义按键/扳机/摇杆帽</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="controller-card">
+      <div class="ctrl-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="6" y1="12" x2="2" y2="12"/></svg></div>
+      <h4 style="color:#107c10">Xbox Wireless</h4>
+      <p style="font-size:.82rem;color:var(--text3)">Microsoft · 黑色经典人体工学</p>
+      <div class="ctrl-desc">
+        <ul class="feature-list" style="font-size:.85rem">
+          <li><strong>人体工学设计</strong>：公认手感最佳的手柄，握持舒适度行业标杆</li>
+          <li><strong>扳机震动</strong>：四个独立震动马达，扳机和握把均可震动</li>
+          <li><strong>混合方向键</strong>：采用碗状 D-Pad，格斗/方向操作更精准</li>
+          <li><strong>Share 按键</strong>：一键截图/录屏/分享</li>
+          <li><strong>电池舱</strong>：使用 AA 电池或可充电电池组（非内置）</li>
+          <li><strong>PC 原生支持</strong>：<span class="hl">Windows PC 即插即用</span>，兼容性最佳</li>
+          <li><strong>3.5mm 耳机孔</strong>：底部支持有线耳机</li>
+          <li><strong>高级版</strong>：Elite Series 2 可自定义一切，含背键和摇杆调节</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="controller-card">
+      <div class="ctrl-icon"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg></div>
+      <h4 style="color:#e60012">Switch 2 Joy-Con 2 / Pro</h4>
+      <p style="font-size:.82rem;color:var(--text3)">Nintendo · 磁吸式可拆卸设计</p>
+      <div class="ctrl-desc">
+        <ul class="feature-list" style="font-size:.85rem">
+          <li><strong>磁吸式拆卸</strong>：一键释放磁力锁，Joy-Con 2 可瞬间拆装</li>
+          <li><strong>鼠标模式</strong>：侧面光学传感器，可当鼠标使用（支持双手鼠）</li>
+          <li><strong>HD 震动 2</strong>：升级版 HD Rumble，触觉反馈更细腻</li>
+          <li><strong>GL/GR 按键</strong>：Pro 手柄新增可自定义侧按键</li>
+          <li><strong>C 按钮</strong>：一键启动 GameChat 语音+画面共享</li>
+          <li><strong>amiibo 功能</strong>：Pro 手柄内置 NFC，支持 amiibo 读写</li>
+          <li><strong>续航</strong>：Joy-Con 2 约 10-20 小时；Pro 手柄约 40 小时</li>
+          <li><strong>3.5mm 耳机孔</strong>：Pro 手柄配备音频接口</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 综合对比表 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>综合对比表</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>特性</th><th>DualSense（PS5）</th><th>Xbox Wireless</th><th>Joy-Con 2 / Pro（Switch 2）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>自适应扳机</td><td><span class="tag tag-success">行业独有</span></td><td>×</td><td>×</td></tr>
+          <tr><td>触觉反馈</td><td><span class="tag tag-success">最精细</span></td><td><span class="tag tag-light">普通震动</span></td><td><span class="tag tag-light">HD 震动 2</span></td></tr>
+          <tr><td>手感舒适度</td><td>良好</td><td><span class="tag tag-success">最佳</span></td><td>Pro 手柄良好 / Joy-Con 一般</td></tr>
+          <tr><td>触控板</td><td><span class="tag tag-success">√</span></td><td>×</td><td>×</td></tr>
+          <tr><td>内置麦克风</td><td><span class="tag tag-success">√</span></td><td>×</td><td>（系统内置麦克）</td></tr>
+          <tr><td>可拆卸设计</td><td>×</td><td>×</td><td><span class="tag tag-success">磁吸式</span></td></tr>
+          <tr><td>鼠标模式</td><td>×</td><td>×</td><td><span class="tag tag-success">行业独有</span></td></tr>
+          <tr><td>PC 兼容性</td><td>USB-C/蓝牙（部分功能）</td><td><span class="tag tag-success">原生最佳</span></td><td>需额外软件</td></tr>
+          <tr><td>电池续航</td><td>4-8 小时（内置）</td><td>AA 电池/可充电组</td><td>JC: 10-20h / Pro: ~40h</td></tr>
+          <tr><td>高级定制版</td><td>DualSense Edge</td><td>Elite Series 2</td><td>无（Pro 即旗舰）</td></tr>
+          <tr><td>特色功能</td><td>自适应扳机 + 3D 音频</td><td>极致手感 + 通用性</td><td>磁吸拆装 + 鼠标 + GameChat</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 手柄选购建议 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>手柄选购建议</div>
+
+    <div class="grid-3">
+      <div class="compare-card">
+        <h4>在 PC 上玩游戏</h4>
+        <p style="font-size:.88rem;color:var(--text2)">首选 <strong>Xbox Wireless Controller</strong>。Windows 原生即插即用，兼容性最佳，几乎所有 PC 游戏默认适配 Xbox 按键布局。蓝牙或 USB-C 连接，无需驱动。次选 DualSense（触觉反馈在部分 PC 大作中可用）。</p>
+      </div>
+      <div class="compare-card">
+        <h4>追求沉浸体验</h4>
+        <p style="font-size:.88rem;color:var(--text2)">首选 <strong>DualSense</strong>。自适应扳机和触觉反馈在 PS5 独占和部分跨平台游戏中提供无可比拟的沉浸感。拉弓、加速、降雨触感等体验远超其他手柄。需注意续航较短。</p>
+      </div>
+      <div class="compare-card">
+        <h4>派对/多人聚会</h4>
+        <p style="font-size:.88rem;color:var(--text2)">首选 <strong>Joy-Con 2</strong>。一套 Joy-Con 可拆为两个独立手柄，两人即时对战。磁吸拆装+鼠标模式+GameChat 让派对体验更丰富。Pro Controller 适合单人长时间游玩。</p>
+      </div>
+    </div>
+
+    <div class="tip-box tip-info">
+      <span class="tip-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <div><strong>跨平台使用建议</strong>：
+        <br>• <strong>Xbox 手柄 → PC</strong>：原生支持，推荐 USB-C 或 Xbox 无线适配器以获得最低延迟
+        <br>• <strong>DualSense → PC</strong>：USB-C 连接可使用自适应扳机和触觉反馈（需游戏支持）；蓝牙连接仅基础功能
+        <br>• <strong>Pro Controller → PC</strong>：可通过蓝牙连接 PC，但可能需要额外软件映射按键
+      </div>
+    </div>
+  </div>
+
+  <!-- 御三家定位总结 -->
+  <div class="card">
+    <div class="card-title"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>御三家平台定位总结</div>
+    <div class="grid-3">
+      <div class="compare-card" style="border-top:4px solid #0070d1">
+        <h4 style="color:#0070d1">PlayStation 5</h4>
+        <p style="font-size:.88rem;color:var(--text2)">
+          <strong>定位</strong>：高端客厅娱乐主机<br>
+          <strong>优势</strong>：独占大作（蜘蛛侠、战神、最后生还者）、DualSense 沉浸手柄、4K 蓝光光驱<br>
+          <strong>适合</strong>：追求影视级画面和沉浸体验的玩家
+        </p>
+      </div>
+      <div class="compare-card" style="border-top:4px solid #e60012">
+        <h4 style="color:#e60012">Nintendo Switch 2</h4>
+        <p style="font-size:.88rem;color:var(--text2)">
+          <strong>定位</strong>：混合式掌机/家用机<br>
+          <strong>优势</strong>：任天堂 IP（马里奥、塞尔达、宝可梦）、便携掌机模式、本地多人派对、磁吸 Joy-Con<br>
+          <strong>适合</strong>：任天堂粉丝、家庭聚会、通勤游玩
+        </p>
+      </div>
+      <div class="compare-card" style="border-top:4px solid #107c10">
+        <h4 style="color:#107c10">Xbox Series</h4>
+        <p style="font-size:.88rem;color:var(--text2)">
+          <strong>定位</strong>：Game Pass 订阅生态平台<br>
+          <strong>优势</strong>：Game Pass 性价比之王、首发即入库、PC 生态打通、Quick Resume<br>
+          <strong>适合</strong>：性价比优先、跨 PC/主机游玩、订阅制爱好者
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<div class="footer">
+  <p>游戏平台全科普 · 2026 年 9 月版</p>
+  <p style="margin-top:8px">信息来源：Steam 官方帮助页面、PlayStation.com、Nintendo.com、Xbox.com 等各平台官方页面</p>
+  <p style="margin-top:8px">本报告为科普性质，具体政策以各平台最新公告为准。价格和权益可能随时调整。</p>
+  <p style="margin-top:8px">由 <a href="#">商汤小浣熊</a> 生成 · 仅供参考</p>
+</div>
+
+</body>
+</html>

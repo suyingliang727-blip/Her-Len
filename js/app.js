@@ -11149,6 +11149,26 @@
                         });
                     });
                 }
+
+                // 「关于平台」下拉菜单：点击触发展开/收起
+                const platformsNavWrap = document.getElementById('platformsNavWrap');
+                const navPlatformsBtn = document.getElementById('navPlatformsBtn');
+                if (platformsNavWrap && navPlatformsBtn) {
+                    navPlatformsBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        platformsNavWrap.classList.toggle('open');
+                    });
+                    document.addEventListener('click', function (e) {
+                        if (!platformsNavWrap.contains(e.target)) {
+                            platformsNavWrap.classList.remove('open');
+                        }
+                    });
+                    platformsNavWrap.querySelectorAll('.nav-dropdown-link').forEach(function (link) {
+                        link.addEventListener('click', function () {
+                            platformsNavWrap.classList.remove('open');
+                        });
+                    });
+                }
             }
 
             async function fetchModPosts() {
