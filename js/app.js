@@ -2577,22 +2577,38 @@
                         if (!rpcError && rpcData && rpcData.length > 0) {
                             const row = rpcData[0];
                             const average = row.rating_count > 0 ? row.rating_sum / row.rating_count : null;
-                            const stats = { average, count: row.rating_count };
+                            let stats = { average, count: row.rating_count, comment_count: 0 };
+                            // ★ 补查纯文字评论数，与卡片/排序口径一致（单游戏一次查询）
+                            if (row.rating_count > 0) {
+                                try {
+                                    const { data: cData } = await supabaseClient
+                                        .from('user_reviews')
+                                        .select('verdict, rating, comment')
+                                        .eq('game_id', Number(gameId));
+                                    if (Array.isArray(cData)) {
+                                        const withContent = cData.filter(r => r.verdict != null || r.rating != null).length;
+                                        const withComment = cData.filter(r => r.comment && String(r.comment).trim() !== '').length;
+                                        stats.comment_count = Math.max(0, withComment - withContent);
+                                    }
+                                } catch (_) {}
+                            }
                             // ★ count=0 只缓存 30 秒：可能是纯文字评论未被 RPC 统计，避免长时间不显示
                             _ratingStatsCache[cacheKey] = { ...stats, ts: Date.now() - (row.rating_count > 0 ? 0 : 1795000) };
                             return stats;
                         }
                     } catch (_) {}
 
-                    // 回退：基于 verdict 计算（保留原逻辑作为兜底）
-                    const { data, error } = await supabaseClient.from('user_reviews').select('verdict, rating').eq('game_id', Number(
+                    // 回退：明细统计（保留原逻辑作为兜底）
+                    const { data, error } = await supabaseClient.from('user_reviews').select('verdict, rating, comment').eq('game_id', Number(
                         gameId));
                     if (error) throw error;
-                    const verdicts = data.map(r => r.verdict).filter(v => v !== null && v !== undefined);
-                    const count = verdicts.length;
+                    // ★ 口径：verdict 或 rating 任一存在即 1 个「评价人」；均分优先用表态，其次 rating 折算
+                    const withContent = data.filter(r => r.verdict != null || r.rating != null);
+                    const count = withContent.length;
                     let average = null;
-                    if (count > 0) {
-                        average = verdicts.reduce((a, b) => a + b, 0) / count;
+                    const verdictVals = withContent.map(r => r.verdict).filter(v => v != null);
+                    if (verdictVals.length > 0) {
+                        average = verdictVals.reduce((a, b) => a + b, 0) / verdictVals.length;
                     } else {
                         // 回退：使用旧 rating 折算
                         const ratings = data.map(r => r.rating).filter(r => r !== null);
@@ -2644,49 +2660,61 @@
                             }
                         }
 
-                        // ★ 批量补查纯文字评论数：RPC 的 rating_count 不含「只写评论没打分」的行。
-                        //   对有评分的游戏，一次 in 查询补齐（有评论的行数 − 有评分的行数 = 纯评论数），
-                        //   与本地兜底路径口径完全一致，避免极端情况少报。
-                        const ratedIds = needFetch.filter(id => (fetchedMap[id] && fetchedMap[id].count > 0));
-                        const commentOnlyMap = {};
-                        if (ratedIds.length > 0) {
-                            try {
-                                const { data: cData, error: cErr } = await supabaseClient
-                                    .from('user_reviews')
-                                    .select('game_id, verdict, rating, comment')
-                                    .in('game_id', ratedIds);
-                                if (!cErr && Array.isArray(cData)) {
-                                    const grouped = {};
-                                    for (const row of cData) {
-                                        const gid = row.game_id;
-                                        if (!grouped[gid]) grouped[gid] = { withContent: 0, withComment: 0 };
-                                        if (row.verdict != null || row.rating != null) grouped[gid].withContent++;
-                                        if (row.comment && String(row.comment).trim() !== '') grouped[gid].withComment++;
+                        // ★ 一次批量表查询补齐全量明细：RPC 的 rating_count 不含「只写评论没打分」的行，
+                        //   且 count=0 的游戏不能逐个串行查询（会拖慢整页）。一次 in 查询同时算出：
+                        //   有评分/表态人数（含均值折算）+ 纯文字评论数，与本地兜底路径口径一致。
+                        const grouped = {};
+                        try {
+                            const { data: cData, error: cErr } = await supabaseClient
+                                .from('user_reviews')
+                                .select('game_id, verdict, rating, comment')
+                                .in('game_id', needFetch);
+                            if (!cErr && Array.isArray(cData)) {
+                                for (const row of cData) {
+                                    const gid = row.game_id;
+                                    if (!grouped[gid]) grouped[gid] = { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                                    // ★ 表态与打分是同一条评价的两个字段：任一存在即计为 1 个「评价人」
+                                    if (row.verdict != null || row.rating != null) {
+                                        grouped[gid].rated++;
+                                        if (row.verdict != null) { grouped[gid].verdictSum += row.verdict; grouped[gid].verdictN++; }
+                                        if (row.rating != null) { grouped[gid].ratingSum += row.rating; grouped[gid].ratingN++; }
                                     }
-                                    for (const id of ratedIds) {
-                                        const g = grouped[id] || { withContent: 0, withComment: 0 };
-                                        commentOnlyMap[id] = Math.max(0, g.withComment - g.withContent);
-                                    }
+                                    if (row.comment && String(row.comment).trim() !== '') grouped[gid].comments++;
                                 }
-                            } catch (_) { /* 补查失败不影响主流程，纯评论数按 0 处理 */ }
-                        }
+                            }
+                        } catch (_) { /* 明细查询失败时退回 RPC 结果，不影响显示 */ }
 
                         for (const id of needFetch) {
-                            const stats = fetchedMap[id] || { average: null, count: 0 };
-                            // ★ count=0 时降级单查询补齐（可能只有纯文字评论），避免"有评论但不显示"
-                            if (stats.count > 0) {
-                                const commentOnly = commentOnlyMap[id] || 0;
-                                const fullStats = { ...stats, comment_count: commentOnly };
-                                _ratingStatsCache[String(id)] = { ...fullStats, ts: now };
-                                result[id] = fullStats;
+                            const rpcStats = fetchedMap[id] || { average: null, count: 0 };
+                            const g = grouped[id] || { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                            let count = 0;
+                            let average = null;
+                            // ★ 人数以 RPC（definer 权限，绕过 RLS，能看到全部用户的行）为准；
+                            //   客户端明细查询受 RLS 限制可能少算，只取两者较大值兜底
+                            count = Math.max(rpcStats.count || 0, g.rated);
+                            if (g.verdictN > 0) {
+                                average = g.verdictSum / g.verdictN;
+                            } else if (g.ratingN > 0) {
+                                average = Math.round(g.ratingSum / g.ratingN / 2 * 10) / 10;
+                            } else if (rpcStats.average != null) {
+                                average = rpcStats.average;
+                            }
+                            // 本地明细比 RPC 更全时优先用本地口径；否则用 RPC 结果
+                            if (count > 0 || g.comments > 0) {
+                                const commentOnly = Math.max(0, g.comments - g.rated);
+                                const stats = { average, count, comment_count: commentOnly };
+                                _ratingStatsCache[String(id)] = { ...stats, ts: now };
+                                result[id] = stats;
                             } else {
-                                result[id] = await fetchGameRatingStats(id);
+                                const stats = { ...rpcStats, comment_count: 0 };
+                                _ratingStatsCache[String(id)] = { ...stats, ts: now };
+                                result[id] = stats;
                             }
                         }
                         batchFetched = true;
                     } catch (e) {
-                        _batchRpcBroken = true;
-                        console.warn('[Batch] RPC 不可用，后续使用单查询批量拉取');
+                        // ★ 打印真实失败原因，便于定位（函数不存在 / 字段变更 / 权限等）
+                        console.warn('[Batch] RPC 不可用，后续使用批量表查询兜底。原因:', e && (e.message || e));
                     }
                 }
 
@@ -2701,26 +2729,26 @@
                         const grouped = {};
                         for (const row of (data || [])) {
                             const gid = row.game_id;
-                            if (!grouped[gid]) grouped[gid] = { verdicts: [], ratings: [], comments: 0 };
-                            if (row.verdict != null) grouped[gid].verdicts.push(row.verdict);
-                            if (row.rating != null) grouped[gid].ratings.push(row.rating);
-                            // ★ 纯文字评论（无表态无评分）也计入评论数
+                            if (!grouped[gid]) grouped[gid] = { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                            // ★ 表态与打分是同一条评价的两个字段：任一存在即计为 1 个「评价人」
+                            if (row.verdict != null || row.rating != null) {
+                                grouped[gid].rated++;
+                                if (row.verdict != null) { grouped[gid].verdictSum += row.verdict; grouped[gid].verdictN++; }
+                                if (row.rating != null) { grouped[gid].ratingSum += row.rating; grouped[gid].ratingN++; }
+                            }
                             if (row.comment && String(row.comment).trim() !== '') grouped[gid].comments++;
                         }
 
                         for (const id of needFetch) {
-                            const g = grouped[id] || { verdicts: [], ratings: [], comments: 0 };
-                            let count = 0;
+                            const g = grouped[id] || { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
                             let average = null;
-                            // ★ 口径统一：与 RPC 一致，以「有内容的评价」为基数
-                            if (g.verdicts.length > 0) {
-                                count = g.verdicts.length;
-                                average = g.verdicts.reduce((a, b) => a + b, 0) / count;
-                            } else if (g.ratings.length > 0) {
-                                count = g.ratings.length;
-                                average = Math.round(g.ratings.reduce((a, b) => a + b, 0) / count / 2 * 10) / 10;
+                            if (g.verdictN > 0) {
+                                average = g.verdictSum / g.verdictN;
+                            } else if (g.ratingN > 0) {
+                                average = Math.round(g.ratingSum / g.ratingN / 2 * 10) / 10;
                             }
-                            const commentOnly = Math.max(0, g.comments - count); // 有评分的评论不算"纯评论"
+                            const count = g.rated;
+                            const commentOnly = Math.max(0, g.comments - g.rated); // 有评分/表态的评论不算"纯评论"
                             _ratingStatsCache[String(id)] = { average, count, comment_count: commentOnly, ts: now };
                             result[id] = { average, count, comment_count: commentOnly };
                         }
@@ -2731,9 +2759,42 @@
                 }
 
                 if (!batchFetched) {
+                    // ★ 兜底也只发一次批量查询，不再逐条串行（逐条会导致整页加载极慢）
                     for (const id of needFetch) {
-                        result[id] = await fetchGameRatingStats(id);
+                        result[id] = { average: null, count: 0, comment_count: 0 };
                     }
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('user_reviews')
+                            .select('game_id, verdict, rating, comment')
+                            .in('game_id', needFetch);
+                        if (!error && Array.isArray(data)) {
+                            const grouped = {};
+                            for (const row of data) {
+                                const gid = row.game_id;
+                                if (!grouped[gid]) grouped[gid] = { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                                if (row.verdict != null || row.rating != null) {
+                                    grouped[gid].rated++;
+                                    if (row.verdict != null) { grouped[gid].verdictSum += row.verdict; grouped[gid].verdictN++; }
+                                    if (row.rating != null) { grouped[gid].ratingSum += row.rating; grouped[gid].ratingN++; }
+                                }
+                                if (row.comment && String(row.comment).trim() !== '') grouped[gid].comments++;
+                            }
+                            for (const id of needFetch) {
+                                const g = grouped[id] || { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                                let average = null;
+                                if (g.verdictN > 0) {
+                                    average = g.verdictSum / g.verdictN;
+                                } else if (g.ratingN > 0) {
+                                    average = Math.round(g.ratingSum / g.ratingN / 2 * 10) / 10;
+                                }
+                                const count = g.rated;
+                                const commentOnly = Math.max(0, g.comments - g.rated);
+                                result[id] = { average, count, comment_count: commentOnly };
+                                _ratingStatsCache[String(id)] = { ...result[id], ts: now };
+                            }
+                        }
+                    } catch (_) { /* 全部失败时保持 0，卡片不显示人数 */ }
                 }
 
                 return result;
@@ -3195,26 +3256,72 @@
                 }
                 if (client) {
                     try {
-                        // 仅查询已有的统计数据（batch_rating_stats 返回所有存在评价的 game_id 对应 count）
-                        // 传空数组不行——RPC 无过滤条件，直接全量统计最准确（后续可再做分页裁剪）
+                        // ★ 口径统一：与卡片徽章（count + comment_count）完全同源。
+                        //   命中 _ratingStatsCache 且未过期的游戏直接复用，不重复请求。
+                        //   另调 RPC（绕过 RLS）保证「表态/打分人数」统计到全部用户；
+                        //   客户端明细查询只用来补「纯文字评论数」（RLS 限制下可能少算，取较大值兜底）。
                         const allIds = (typeof games !== 'undefined' ? (games || []) : []).map(g => Number(g.id)).filter(id => id > 2);
-                        if (allIds.length) {
-                            const { data, error } = await client.rpc('batch_rating_stats', { game_ids: allIds });
-                            if (!error && Array.isArray(data)) {
-                                for (const row of data) {
-                                    const gid = Number(row.game_id);
-                                    if (gid > 0) {
-                                        // 实际字段名为 rating_count（与现有 fetchBatchRatingStats 一致），
-                                        //  保留 count_reviews / count 兜底以防 RPC 后续版本变更
-                                        const cloudCount = Number(row.rating_count ?? row.count_reviews ?? row.count ?? 0);
-                                        // 云侧统计通常包含当前用户评价，直接覆盖本地
-                                        result[gid] = Math.max(result[gid] || 0, cloudCount);
+                        const now2 = Date.now();
+                        const needQuery = [];
+                        for (const id of allIds) {
+                            const cached = _ratingStatsCache[String(id)];
+                            if (cached && (now2 - cached.ts < 1800000)) {
+                                result[id] = Math.max(result[id] || 0, (Number(cached.count) || 0) + (Number(cached.comment_count) || 0));
+                            } else {
+                                needQuery.push(id);
+                            }
+                        }
+                        // RPC 全量统计（与原来排序逻辑一致，能看到所有用户的表态/打分行）
+                        const rpcCountMap = {};
+                        try {
+                            if (allIds.length && needQuery.length > 0) {
+                                const { data: rpcData, error: rpcErr } = await client.rpc('batch_rating_stats', { game_ids: needQuery });
+                                if (!rpcErr && Array.isArray(rpcData)) {
+                                    for (const row of rpcData) {
+                                        rpcCountMap[Number(row.game_id)] = Number(row.rating_count ?? row.count_reviews ?? row.count ?? 0) || 0;
                                     }
+                                }
+                            }
+                        } catch (_) {}
+                        if (needQuery.length > 0) {
+                            const { data, error } = await client
+                                .from('user_reviews')
+                                .select('game_id, verdict, rating, comment')
+                                .in('game_id', needQuery);
+                            if (!error && Array.isArray(data)) {
+                                const grouped = {};
+                                for (const row of data) {
+                                    const gid = row.game_id;
+                                    if (!grouped[gid]) grouped[gid] = { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                                    if (row.verdict != null || row.rating != null) {
+                                        grouped[gid].rated++;
+                                        if (row.verdict != null) { grouped[gid].verdictSum += row.verdict; grouped[gid].verdictN++; }
+                                        if (row.rating != null) { grouped[gid].ratingSum += row.rating; grouped[gid].ratingN++; }
+                                    }
+                                    if (row.comment && String(row.comment).trim() !== '') grouped[gid].comments++;
+                                }
+                                for (const id of needQuery) {
+                                    const g = grouped[id] || { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
+                                    let count = 0;
+                                    let average = null;
+                                    // ★ 排序人数：RPC（绕过 RLS）与本地明细取较大值，避免 RLS 少算
+                                    count = Math.max(rpcCountMap[id] || 0, g.rated);
+                                    if (g.verdictN > 0) {
+                                        average = g.verdictSum / g.verdictN;
+                                    } else if (g.ratingN > 0) {
+                                        average = Math.round(g.ratingSum / g.ratingN / 2 * 10) / 10;
+                                    }
+                                    const commentOnly = Math.max(0, g.comments - g.rated);
+                                    // 写回评分统计缓存：卡片渲染直接复用，省一次请求
+                                    if (!_ratingStatsCache[String(id)] || (now2 - (_ratingStatsCache[String(id)].ts || 0) >= 1800000)) {
+                                        _ratingStatsCache[String(id)] = { average, count, comment_count: commentOnly, ts: now2 };
+                                    }
+                                    result[id] = Math.max(result[id] || 0, count + commentOnly);
                                 }
                             }
                         }
                     } catch (_) {
-                        // RPC 失败：降级使用本地已有数据
+                        // 明细查询失败：降级使用本地已有数据
                     }
                 }
                 _reviewCountCache = result;
@@ -7929,8 +8036,12 @@
             // 抽取渲染逻辑（缓存命中和首次加载共用）
             async function renderReviewsIntoDOM(reviews, stats, gameRepliesMap, gameId, statsDisplay, commentsList) {
                 // 渲染评分统计
+                // ★ 口径统一：与卡片徽章一致 = 评分/表态人数 + 纯文字评论数
+                const totalCount = (Number(stats.count) || 0) + (Number(stats.comment_count) || 0);
                 if (stats.average !== null) {
-                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 5 （共 <strong>${stats.count}</strong> 人评价）`;
+                    statsDisplay.innerHTML = `⭐ <strong>${stats.average.toFixed(1)}</strong> / 5 （共 <strong>${totalCount}</strong> 人评价）`;
+                } else if (totalCount > 0) {
+                    statsDisplay.innerHTML = `（共 <strong>${totalCount}</strong> 人评价）`;
                 } else {
                     statsDisplay.textContent = '暂无评价';
                 }
