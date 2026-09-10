@@ -1,8 +1,8 @@
 /* ================================================================
  * Her Lens 每日她健康小贴士
  * - 按日期确定性轮换，全设备同天同条
- * - 主站标题下方横幅 + 开机桌面便签共用
- * - 可今日隐藏 / 永久关闭（用户菜单或 ?tips=1 恢复）
+ * - 仅供给开机桌面便签使用（主站内的横幅已于 2026-09-10 下架）
+ * - 可永久关闭（设置页开关，或 URL 加 ?tips=1 恢复）
  * ================================================================ */
 (function () {
     var STATE_KEY = 'herlens_dailytip_v1';
@@ -169,69 +169,28 @@
         if (new URLSearchParams(window.location.search).get('tips') === '1') return false;
         return s.off === true;
     }
-    function isHiddenToday() {
-        return loadState().hiddenDate === todayStr();
+
+    // 广播开关状态变化，供开机桌面便签等消费方响应
+    function emitToggle() {
+        try {
+            document.dispatchEvent(new CustomEvent('herlens:dailytip-toggle', {
+                detail: { off: isPermanentOff() }
+            }));
+        } catch (e) {}
     }
 
     function setPermanentOff(v) {
         var s = loadState();
         s.off = !!v;
-        if (!v) delete s.hiddenDate;
         saveState(s);
-        renderBanner();
-    }
-
-    function hideToday() {
-        var s = loadState();
-        s.hiddenDate = todayStr();
-        saveState(s);
-        renderBanner();
-    }
-
-    /* ===== 主站横幅 ===== */
-    function renderBanner() {
-        var anchor = document.getElementById('siteTitleSection');
-        if (!anchor) return;
-        var old = document.getElementById('dailyTipBar');
-        if (old) old.remove();
-        if (isPermanentOff() || isHiddenToday()) return;
-
-        var tip = getTip(offset);
-        var bar = document.createElement('div');
-        bar.id = 'dailyTipBar';
-        bar.className = 'daily-tip-bar';
-        bar.innerHTML =
-            '<span class="tip-icon">💡</span>' +
-            '<div class="tip-body">' +
-                '<span class="tip-cat">' + tip.c + '</span>' +
-                '<span class="tip-text" title="' + tip.t + '">' + tip.t + '</span>' +
-            '</div>' +
-            '<span class="tip-disclaim">科普 · 非医疗建议</span>' +
-            '<button class="tip-btn" id="tipShuffleBtn" title="换一条">换一条</button>' +
-            '<button class="tip-btn tip-close" id="tipHideBtn" title="今日不再显示">✕</button>';
-
-        anchor.insertAdjacentElement('afterend', bar);
-
-        document.getElementById('tipShuffleBtn').addEventListener('click', function () {
-            offset++;
-            var t = getTip(offset);
-            var txt = bar.querySelector('.tip-text');
-            var cat = bar.querySelector('.tip-cat');
-            if (txt) txt.textContent = t.t;
-            if (cat) cat.textContent = t.c;
-            bar.classList.remove('tip-swap');
-            void bar.offsetWidth;
-            bar.classList.add('tip-swap');
-        });
-        document.getElementById('tipHideBtn').addEventListener('click', hideToday);
+        emitToggle();
     }
 
     function checkDateChange() {
         var prevDate = currentDate;
         getDayIndex(); // 内部会比较并更新 currentDate / dayIndex / offset
         if (currentDate !== prevDate) {
-            // 日期变了：重新渲染横幅，并派发全局事件通知桌面便签等其他消费方
-            renderBanner();
+            // 日期变了：派发全局事件通知开机桌面便签等消费方更新内容
             try {
                 document.dispatchEvent(new CustomEvent('herlens:dailytip-newday', {
                     detail: { date: currentDate, tip: getTip(0) }
@@ -246,15 +205,8 @@
         nextTip: function () { offset++; return getTip(offset); },
         setPermanentOff: setPermanentOff,
         isPermanentOff: isPermanentOff,
-        renderBanner: renderBanner,
         TIPS_COUNT: TIPS.length
     };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', renderBanner);
-    } else {
-        renderBanner();
-    }
 
     // 每 30 秒检查一次是否跨天，0 点后自动切换下一条
     setInterval(checkDateChange, 30 * 1000);

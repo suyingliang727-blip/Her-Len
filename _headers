@@ -1,0 +1,41 @@
+# Cloudflare Pages 缓存与安全头配置
+# 规则从上到下匹配，先匹配者生效
+
+# ===== HTML 入口：不缓存（保证更新即时生效）=====
+/index.html
+  Cache-Control: no-cache, must-revalidate
+  X-Content-Type-Options: nosniff
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+# ===== 带指纹/版本号的静态资源：长缓存 + immutable =====
+# 注：资源指纹化后（app.js?v=xxx），可安全长缓存
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/char-images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ===== 图片等二进制资源：长缓存 =====
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+# ===== 数据文件：短缓存（允许适度更新）=====
+/*.json
+  Cache-Control: public, max-age=3600
+
+# ===== 全局安全头 =====
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin

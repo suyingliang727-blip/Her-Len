@@ -58,19 +58,27 @@
             --radius: 16px;
             --radius-sm: 10px;
 
-            /* === 头衔稀有度色系（低饱和度，不抢眼） === */
-            --tier-bronze: #a8896b;
+            /* === 头衔稀有度色系（低饱和、柔和高级，玻璃质感底） === */
+            --tier-bronze: #a08068;
             --tier-bronze-light: #c4a988;
-            --tier-bronze-bg: linear-gradient(135deg, #a08068, #c0a488);
+            --tier-bronze-bg: rgba(160, 128, 104, 0.14);
+            --tier-bronze-border: rgba(160, 128, 104, 0.32);
+            --tier-bronze-text: #8a6a50;
             --tier-silver: #9098a2;
             --tier-silver-light: #b8bfc8;
-            --tier-silver-bg: linear-gradient(135deg, #828a96, #aab2bc);
+            --tier-silver-bg: rgba(144, 152, 162, 0.14);
+            --tier-silver-border: rgba(144, 152, 162, 0.32);
+            --tier-silver-text: #6d7681;
             --tier-gold: #c4a05a;
             --tier-gold-light: #dcc088;
-            --tier-gold-bg: linear-gradient(135deg, #b89648, #d4b870);
+            --tier-gold-bg: rgba(196, 160, 90, 0.14);
+            --tier-gold-border: rgba(196, 160, 90, 0.36);
+            --tier-gold-text: #a07a30;
             --tier-diamond: #8a82a8;
             --tier-diamond-light: #7eb0ac;
-            --tier-diamond-bg: linear-gradient(135deg, #8a82a8, #7ea8a4);
+            --tier-diamond-bg: rgba(138, 130, 168, 0.14);
+            --tier-diamond-border: rgba(138, 130, 168, 0.36);
+            --tier-diamond-text: #6f6790;
 
             /* === 中文/主色胶囊（accent-tag / muted-tag）亮暗主题变量 === */
             --accent-tag-bg: #9b8abd;
@@ -287,7 +295,7 @@
             --surface2: rgba(48, 40, 54, 0.65);
             --text: #e2dae8;
             --text2: #b8a9c4;
-            --text3: #8c7d9a;
+            --text3: #9a8aa8;
             --border: rgba(69, 60, 78, 0.40);
             --accent: #b8a2d6;
             --accent2: #9e8abf;
@@ -332,6 +340,16 @@
             --iridescent-opacity: 0.08;
             --silver-sweep-color: rgba(255,255,255,0.25);
             --accent-light: rgba(184, 162, 214, 0.15);
+
+            /* === 头衔稀有度：深色模式下文字与描边提亮，保证玻璃徽章对比度 === */
+            --tier-bronze-text: #c9a98b;
+            --tier-bronze-border: rgba(196, 169, 136, 0.40);
+            --tier-silver-text: #c0c6cd;
+            --tier-silver-border: rgba(184, 191, 200, 0.40);
+            --tier-gold-text: #d4b070;
+            --tier-gold-border: rgba(220, 192, 136, 0.44);
+            --tier-diamond-text: #b8aede;
+            --tier-diamond-border: rgba(184, 174, 222, 0.44);
 
             /* === 中文/主色胶囊 · 暗色调和版：降饱和(S≤25%) + 降亮度(L≤40%) + 玻璃半透明，避免极暗背景下"亮紫膏药" === */
             --accent-tag-bg: rgba(98, 82, 128, 0.68);  /* H265° S24% L41% + 68%alpha → 低饱和深紫，嵌在暗色卡片里像玻璃层不跳 */
@@ -551,8 +569,6 @@
         /* ============= 长简介滚动区 · 暗色模式 ============= */
         [data-theme="dark"] .detail-description {
             scrollbar-color: #4a3d55 transparent;
-        }
-            background: #2a2330;
         }
 
         [data-theme="dark"] .texture-card {
@@ -1827,6 +1843,89 @@
             color: var(--text);
         }
 
+        /* ===== 搜索历史下拉 ===== */
+        .search-row .search-history {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--modal-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-lg);
+            padding: 6px;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity .2s ease, transform .2s ease, visibility .2s;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .search-row .search-history.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .search-history-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px 4px;
+            font-size: .72rem;
+            color: var(--text3);
+        }
+        .search-history-clear {
+            border: none;
+            background: transparent;
+            color: var(--text3);
+            font-size: .72rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: color .15s, background .15s;
+        }
+        .search-history-clear:hover {
+            color: var(--text);
+            background: var(--border);
+        }
+        .search-history-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 9px;
+            font-size: .88rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .search-history-item:hover {
+            background: var(--card-hover);
+        }
+        .search-history-item .sh-clock {
+            color: var(--text3);
+            font-size: .82rem;
+            flex-shrink: 0;
+        }
+        .search-history-item .sh-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .search-history-empty {
+            padding: 16px 10px;
+            text-align: center;
+            font-size: .82rem;
+            color: var(--text3);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .search-row .search-history { transition: none; }
+        }
+
         .filter-row {
             display: flex;
             flex-wrap: wrap;
@@ -2807,6 +2906,34 @@
             [data-theme="dark"] .gallery-card:hover {
                 background: rgba(255, 255, 255, 0.05);
                 border-color: rgba(184, 162, 214, 0.25);
+            }
+
+            /* 渐变发光描边（内层，hover 时显现，增强精致感） */
+            .gallery-card::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 20px;
+                padding: 1px;
+                background: linear-gradient(135deg,
+                        rgba(155, 138, 189, 0.0) 0%,
+                        rgba(155, 138, 189, 0.0) 30%,
+                        rgba(216, 196, 244, 0.55) 50%,
+                        rgba(155, 138, 189, 0.0) 70%,
+                        rgba(155, 138, 189, 0.0) 100%);
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                opacity: 0;
+                transition: opacity 0.35s ease;
+                pointer-events: none;
+                z-index: 2;
+            }
+            .gallery-card:hover::after {
+                opacity: 1;
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .gallery-card::after { transition: none; }
             }
         }
 
@@ -6350,6 +6477,119 @@
             }
         }
 
+        /* ===== 骨架屏（首屏加载占位，替代纯 spinner） ===== */
+        .skeleton-wrap {
+            padding: 8px 0 20px;
+        }
+        .skeleton-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 22px;
+            color: var(--text3);
+        }
+        .skeleton-brand .spinner-icon {
+            font-size: 2.6rem;
+            display: block;
+            animation: dogRun 0.6s ease-in-out infinite alternate;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+        .skeleton-brand .skeleton-brand-text {
+            font-size: .85rem;
+        }
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        .skeleton-card {
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--card-bg-glass);
+            border: 1px solid var(--card-border-glass);
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+        }
+        .skeleton-cover {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(100deg,
+                    rgba(155, 138, 189, 0.10) 40%,
+                    rgba(155, 138, 189, 0.22) 50%,
+                    rgba(155, 138, 189, 0.10) 60%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.4s ease-in-out infinite;
+        }
+        .skeleton-body {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .skeleton-line {
+            height: 14px;
+            border-radius: 7px;
+            background: linear-gradient(100deg,
+                    rgba(155, 138, 189, 0.10) 40%,
+                    rgba(155, 138, 189, 0.22) 50%,
+                    rgba(155, 138, 189, 0.10) 60%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.4s ease-in-out infinite;
+        }
+        .skeleton-line.w-60 { width: 60%; }
+        .skeleton-line.w-80 { width: 80%; }
+        .skeleton-line.w-40 { width: 40%; }
+        .skeleton-line.short { height: 11px; }
+        @keyframes skeletonShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .skeleton-cover,
+            .skeleton-line,
+            .skeleton-brand .spinner-icon {
+                animation: none;
+            }
+        }
+
+        /* ===== 页脚社区数据统计（低调一行计数） ===== */
+        .footer-stats {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            padding: 0 20px 36px;
+            color: var(--text3);
+            font-size: 0.76rem;
+            opacity: 0.72;
+            letter-spacing: 0.03em;
+            text-align: center;
+        }
+        .fstat-item {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 3px;
+            white-space: nowrap;
+        }
+        .fstat-icon {
+            font-size: 0.82rem;
+        }
+        .fstat-value {
+            font-weight: 600;
+            color: var(--text2);
+            font-variant-numeric: tabular-nums;
+        }
+        .fstat-label {
+            color: var(--text3);
+        }
+        .fstat-sep {
+            color: var(--text3);
+            opacity: 0.6;
+        }
+
         .loading-spinner {
             text-align: center;
             padding: 60px 20px;
@@ -6546,6 +6786,154 @@
             font-size: 1.15rem;
         }
 
+        /* ========== Her Lens 打赏提醒小卡（材质复刻主站 toast 的薰衣草玻璃） ========== */
+        .herlens-tip-card {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            z-index: 999997;
+            max-width: min(360px, calc(100vw - 40px));
+            box-sizing: border-box;
+            padding: 14px 34px 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(190, 180, 210, 0.6);
+            color: var(--text);
+            background-color: rgba(248, 244, 252, 0.96);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.035) 3px,
+                    rgba(155, 138, 189, 0.035) 4px
+                );
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(60, 30, 80, 0.04),
+                inset 2px 0 10px rgba(155, 138, 189, 0.06),
+                inset -2px 0 10px rgba(155, 138, 189, 0.06),
+                0 10px 34px rgba(60, 30, 80, 0.18),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+            opacity: 0;
+            transform: translate(-50%, -50%) translateY(18px) scale(0.94);
+            pointer-events: none;
+            transition: transform 0.36s cubic-bezier(0.34, 1.35, 0.64, 1), opacity 0.32s ease;
+            font-family: inherit;
+        }
+        [data-theme="dark"] .herlens-tip-card {
+            background-color: rgba(48, 42, 54, 0.97);
+            border-color: rgba(90, 80, 105, 0.6);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg, transparent, transparent 3px,
+                    rgba(155, 138, 189, 0.025) 3px,
+                    rgba(155, 138, 189, 0.025) 4px
+                );
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+                inset 2px 0 10px rgba(120, 100, 150, 0.06),
+                inset -2px 0 10px rgba(120, 100, 150, 0.06),
+                0 12px 34px rgba(0, 0, 0, 0.45),
+                0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        .herlens-tip-card.htc-show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+        /* 柔焦遮罩：居中提醒卡时衬于卡片之下，点卡片外任意处即收起 */
+        .herlens-tip-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 999996;
+            background: rgba(30, 18, 40, 0.22);
+            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.32s ease;
+        }
+        .herlens-tip-backdrop.htc-show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .herlens-tip-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 12% 8%, rgba(255, 255, 255, 0.2) 0%, transparent 55%);
+        }
+        .herlens-tip-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+        }
+        .htc-inner { position: relative; z-index: 1; }
+        .herlens-tip-card .htc-title {
+            margin: 0 0 4px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: var(--text);
+        }
+        .herlens-tip-card .htc-sub {
+            margin: 0;
+            font-size: 0.78rem;
+            line-height: 1.55;
+            color: var(--text2);
+        }
+        .herlens-tip-card .htc-acts {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .htc-ok {
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            box-shadow: 0 3px 10px color-mix(in srgb, var(--accent) 35%, transparent);
+            transition: filter .18s, transform .18s;
+        }
+        .htc-ok:hover { filter: brightness(1.06); transform: translateY(-1px); }
+        .htc-later {
+            border: none;
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 0.76rem;
+            padding: 6px 4px;
+        }
+        .htc-later:hover { color: var(--text2); }
+        .herlens-tip-card .htc-x {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text3);
+            font-size: 0.85rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px;
+            z-index: 2;
+        }
+        .herlens-tip-card .htc-x:hover { color: var(--text); }
+
+
         /* ========== 成就/头衔高光时刻全屏覆盖 ========== */
         .spotlight-overlay {
             position: fixed;
@@ -6671,58 +7059,51 @@
             display: inline-flex;
             align-items: center;
             gap: 3px;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 600;
             white-space: nowrap;
             position: relative;
-            line-height: 1.4;
+            line-height: 1.5;
             font-family: inherit;
+            letter-spacing: 0.01em;
         }
         .title-badge .badge-icon {
-            font-size: 0.76rem;
+            font-size: 0.68rem;
             line-height: 1;
         }
         .title-badge.bronze {
             background: var(--tier-bronze-bg);
-            color: #fff;
-            box-shadow: 0 1px 2px rgba(160, 128, 104, 0.15);
+            color: var(--tier-bronze-text);
+            border: 1px solid var(--tier-bronze-border);
         }
         .title-badge.silver {
             background: var(--tier-silver-bg);
-            color: #fff;
-            box-shadow: 0 1px 2px rgba(130, 138, 150, 0.15);
-            border: 1px solid rgba(255,255,255,0.18);
+            color: var(--tier-silver-text);
+            border: 1px solid var(--tier-silver-border);
         }
         .title-badge.gold {
             background: var(--tier-gold-bg);
-            color: #4a3818;
-            box-shadow: 0 1px 3px rgba(184, 150, 72, 0.12);
-            border: 1px solid rgba(220, 192, 136, 0.25);
+            color: var(--tier-gold-text);
+            border: 1px solid var(--tier-gold-border);
         }
         .title-badge.diamond {
             background: var(--tier-diamond-bg);
-            color: #fff;
-            box-shadow: 0 1px 4px rgba(138, 130, 168, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: diamondShimmer 3s ease-in-out infinite;
-        }
-        @keyframes diamondShimmer {
-            0%, 100% { box-shadow: 0 1px 4px rgba(138, 130, 168, 0.15); }
-            50% { box-shadow: 0 1px 6px rgba(138, 130, 168, 0.22); }
+            color: var(--tier-diamond-text);
+            border: 1px solid var(--tier-diamond-border);
         }
 
-        /* 评论区头衔徽章容器：紧跟�?custom_id 后面，支持多个徽章并�?*/
+        /* 评论区头衔徽章容器：紧跟 custom_id 后面，支持多个徽章并排 */
         .comment-header-titles {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
         .comment-header-titles .title-badge {
             margin-left: 0;
-            font-size: 0.86rem;
-            padding: 3px 10px;
+            font-size: 0.7rem;
+            padding: 1px 8px;
         }
 
         /* 头衔展示�?*/
@@ -12238,6 +12619,31 @@
             font-size: 3rem;
             display: block;
             margin-bottom: 12px;
+            line-height: 1;
+        }
+
+        /* 空状态插画：emoji 外层加圆形渐变光晕，提升精致感 */
+        .empty-state-guide .empty-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 88px;
+            height: 88px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            font-size: 2.6rem;
+            background:
+                radial-gradient(circle at 50% 35%, rgba(155, 138, 189, 0.18), rgba(155, 138, 189, 0.04) 70%);
+            box-shadow:
+                inset 0 0 0 1px rgba(155, 138, 189, 0.18),
+                0 6px 24px rgba(60, 30, 80, 0.08);
+        }
+        [data-theme="dark"] .empty-state-guide .empty-icon {
+            background:
+                radial-gradient(circle at 50% 35%, rgba(184, 162, 214, 0.20), rgba(184, 162, 214, 0.04) 70%);
+            box-shadow:
+                inset 0 0 0 1px rgba(184, 162, 214, 0.20),
+                0 6px 24px rgba(0, 0, 0, 0.25);
         }
 
         .empty-state-guide .empty-title {
@@ -15557,59 +15963,6 @@
 
 
 /* ================================================================
-   ★ 每日她健康贴士横幅
-   ================================================================ */
-.daily-tip-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px auto 0;
-    max-width: 1000px;
-    padding: 8px 14px;
-    background: var(--input-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 0.82rem;
-    color: var(--text2);
-    animation: tipFadeIn 0.5s ease;
-}
-@keyframes tipFadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-.daily-tip-bar.tip-swap .tip-text { animation: tipSwap 0.4s ease; }
-@keyframes tipSwap { from { opacity: 0; } to { opacity: 1; } }
-.daily-tip-bar .tip-icon { flex-shrink: 0; font-size: 1rem; }
-.daily-tip-bar .tip-body { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
-.daily-tip-bar .tip-cat {
-    flex-shrink: 0;
-    padding: 1px 9px;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    color: var(--accent);
-    font-size: 0.72rem;
-    font-weight: 600;
-}
-.daily-tip-bar .tip-text {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-height: 1.5;
-}
-.daily-tip-bar .tip-disclaim { flex-shrink: 0; font-size: 0.66rem; color: var(--text3); white-space: nowrap; }
-.daily-tip-bar .tip-btn {
-    flex-shrink: 0;
-    border: none;
-    background: transparent;
-    color: var(--text3);
-    font-size: 0.72rem;
-    cursor: pointer;
-    padding: 3px 8px;
-    border-radius: 10px;
-    transition: all 0.2s;
-    font-family: inherit;
-}
-.daily-tip-bar .tip-btn:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-
-/* ================================================================
    ★ 导航「她们」下拉
    ================================================================ */
 .nav-dropdown-wrap { position: relative; display: inline-block; }
@@ -15745,10 +16098,118 @@
 
 /* ===== 移动端适配 ===== */
 @media (max-width: 767px) {
-    .daily-tip-bar { flex-wrap: wrap; gap: 6px; padding: 7px 10px; font-size: 0.76rem; }
-    .daily-tip-bar .tip-body { width: 100%; order: -1; }
-    .daily-tip-bar .tip-disclaim { display: none; }
     .desktop-sticky-note { right: 10px; top: 0; width: 150px; padding: 12px 10px 6px; }
     .desktop-sticky-note .sticky-note-text { font-size: 0.62rem; -webkit-line-clamp: 2; }
     .coin-chip { gap: 6px; padding: 3px 8px; font-size: 0.68rem; }
+}
+
+
+/* ================================================================
+   无障碍：全局键盘焦点可见性（:focus-visible）
+   修复大量 outline:none 导致的键盘 Tab 导航焦点不可见问题
+   ================================================================ */
+:root {
+    --focus-ring: 0 0 0 3px rgba(155, 138, 189, 0.45);
+}
+
+/* 通用可交互元素：键盘聚焦时显示清晰焦点环（鼠标点击不触发） */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+}
+
+/* 深色模式下焦点环更亮，保证对比度 */
+[data-theme="dark"] :focus-visible {
+    outline-color: #c4b5d3;
+    box-shadow: 0 0 0 3px rgba(196, 181, 211, 0.45);
+}
+
+/* 卡片类大元素：焦点环收拢到卡片内，避免遮住封面 */
+.gallery-card:focus-visible,
+.creators-pick-card:focus-visible,
+.mod-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* 已用 border-color 自定义焦点的输入类，避免 outline 重复叠加 */
+.search-row .search-input-wrap:focus-within input,
+.form-group input:focus-visible,
+.form-group textarea:focus-visible,
+.form-group select:focus-visible,
+.comment-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+/* ================================================================
+   移动端触控目标统一（Apple HIG / WCAG 建议 ≥ 44px）
+   在 ≤768px 断点下，提升高频交互元素的最小可点击尺寸
+   ================================================================ */
+@media (max-width: 768px) {
+    /* 导航与顶栏操作 */
+    .top-nav-item {
+        min-height: 40px;
+        padding: 6px 12px;
+    }
+    .header-action-link,
+    .top-nav-user-btn {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* 筛选类别按钮 & 筛选标签 */
+    .filter-cat-btn {
+        min-height: 40px;
+        padding: 6px 14px;
+        display: inline-flex;
+        align-items: center;
+    }
+    .filter-option-tag {
+        min-height: 38px;
+        padding: 6px 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* 工具栏按钮 */
+    .toolbar .btn,
+    .toolbar .btn-sm,
+    .sort-btn {
+        min-height: 40px;
+        padding: 6px 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* 筛选胶囊（已选条件）& 移除按钮 */
+    .active-filter-chip {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+    }
+    .active-filter-chip .remove-chip {
+        min-width: 32px;
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 悬浮按钮 & 主题切换 */
+    .theme-toggle-floating {
+        width: 46px;
+        height: 46px;
+    }
+    .coin-tip-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* 搜索清除按钮（小圆钮需保证可点面积） */
+    .search-row .search-clear-btn {
+        width: 32px;
+        height: 32px;
+    }
 }

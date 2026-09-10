@@ -60,3 +60,5 @@
     function injectDropdownExtras(inner) {
         // 不再向下拉菜单注入项
     }
+    window.injectDropdownExtras = injectDropdownExtras;
+})();

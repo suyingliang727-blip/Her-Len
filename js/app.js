@@ -441,17 +441,6 @@
             };
 
             // --- 2. 蜜罐字段：生成隐藏字段 HTML（对用户不可见，但脚本会填写） ---
-            function getHoneypotFieldsHTML() {
-                const ts = Date.now();
-                const fakeName = 'url_' + Math.random().toString(36).slice(2, 8);
-                const fakeId = 'field_' + Math.random().toString(36).slice(2, 8);
-                return `
-                    <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;height:0;overflow:hidden;" aria-hidden="true">
-                        <input type="text" name="${fakeName}" id="${fakeId}" tabindex="-1" autocomplete="off" />
-                    </div>
-                `;
-            }
-
             // 蜜罐验证：检查隐藏字段是否被填写（脚本常会填写所有可见输入框）
             function checkHoneypotFilled() {
                 const honeypot = document.querySelector('[id^="field_"][id$="_hp"]');
@@ -728,18 +717,6 @@
                     `<span class="badge-icon"${iconSize}>${escapeHTML(title.icon || '🎖️')}</span>` +
                     `<span class="badge-text">${escapeHTML(title.name)}</span>` +
                     `</span>`;
-            }
-
-            function getUserTitles(userId) {
-                // 返回指定用户的头衔列表，兼容从 userData 或 comment author 读取
-                if (!userId) return { unlocked: [], equipped: null };
-                // 当前登录用户自己
-                if (currentUser && currentUser.id === userId) {
-                    const unlocked = (userData.titles || []).map(id => TITLES.find(t => t.id === id)).filter(Boolean);
-                    const equipped = TITLES.find(t => t.id === userData.equippedTitle);
-                    return { unlocked, equipped };
-                }
-                return { unlocked: [], equipped: null };
             }
 
             function equipTitle(titleId) {
@@ -1104,16 +1081,6 @@
             }
 
             // 清理用户输入（去除危险字符）
-            function sanitizeInput(input) {
-                if (!input) return '';
-                return String(input)
-                    .replace(/[<>]/g, '')
-                    .replace(/['"]/g, '')
-                    .replace(/javascript:/gi, '')
-                    .replace(/data:/gi, '')
-                    .trim();
-            }
-
             // 限制输入长度
             function truncateInput(input, maxLength) {
                 if (!input) return '';
@@ -2458,6 +2425,14 @@
                 }
                 invalidateReviewCountCache();
                 showToast('✅ 评价保存成功', 1500);
+                // 完成一次贡献 → 打赏轻提示（会话/天限频已内置）
+                try {
+                    if (window.HerLensTip) window.HerLensTip.consider('review', {
+                        title: '欢迎使用HerLens',
+                        sub: '喜欢网站的姊妹可以奖励努力工作的比格一个鸡腿吗？',
+                        action: '投喂比格'
+                    });
+                } catch (e) {}
                 return true;
             }
 
@@ -2554,6 +2529,31 @@
                                     });
                                 }
                             } catch (pfErr) { /* ignore */ }
+                        }
+                    }
+
+                    // ★ 批量填充评论作者的佩戴头衔（equipped_title）：
+                    //   一次查询 user_profiles 表拿到所有作者的 equipped_title，注入 row._equipped_title
+                    //   渲染端 renderReviewItem 依赖 r._equipped_title 展示他人头衔徽章
+                    if (data && data.length && supabaseClient) {
+                        const authorIds = [...new Set(data.map(r => r.user_id).filter(Boolean))];
+                        if (authorIds.length) {
+                            try {
+                                const { data: profiles } = await supabaseClient
+                                    .from('user_profiles')
+                                    .select('user_id, equipped_title')
+                                    .in('user_id', authorIds);
+                                if (profiles && profiles.length) {
+                                    const idToTitle = {};
+                                    profiles.forEach(p => { idToTitle[p.user_id] = p.equipped_title || null; });
+                                    data.forEach(row => {
+                                        if (row.user_id && idToTitle[row.user_id]) {
+                                            const eq = TITLES.find(t => t.id === idToTitle[row.user_id]);
+                                            if (eq) row._equipped_title = eq;
+                                        }
+                                    });
+                                }
+                            } catch (_) { /* 忽略：头衔获取失败不影响评论显示 */ }
                         }
                     }
 
@@ -3048,6 +3048,8 @@
                     } catch (_) {}
                     if (currentView === 'series') renderSeriesView(); else renderGallery(); // 用新数据重新渲染
                     syncAutoReleasedGames(); // 管理员：把到期未标记的游戏落库为已发售
+                    // 云端数据到达后，同步更新页脚游戏数
+                    try { if (typeof renderFooterStats === 'function') renderFooterStats(); } catch (_) {}
                 }
             }
 
@@ -3644,6 +3646,111 @@
                 }, 280);
             }
 
+            // ================================================================
+            // 搜索历史（localStorage 持久化，最多 8 条，去重）
+            // ================================================================
+            const SEARCH_HISTORY_KEY = 'herlens_search_history';
+            const SEARCH_HISTORY_MAX = 8;
+            let _searchHistoryCache = null;
+            function getSearchHistory() {
+                if (_searchHistoryCache) return _searchHistoryCache;
+                try {
+                    const raw = localStorage.getItem(SEARCH_HISTORY_KEY);
+                    _searchHistoryCache = raw ? JSON.parse(raw) : [];
+                    if (!Array.isArray(_searchHistoryCache)) _searchHistoryCache = [];
+                } catch (_) { _searchHistoryCache = []; }
+                return _searchHistoryCache;
+            }
+            function saveSearchHistory() {
+                try { localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(_searchHistoryCache)); } catch (_) {}
+            }
+            function recordSearchHistory(term) {
+                const t = String(term || '').trim();
+                if (!t) return;
+                const hist = getSearchHistory();
+                const idx = hist.findIndex(h => h.toLowerCase() === t.toLowerCase());
+                if (idx >= 0) hist.splice(idx, 1);
+                hist.unshift(t);
+                if (hist.length > SEARCH_HISTORY_MAX) hist.length = SEARCH_HISTORY_MAX;
+                saveSearchHistory();
+            }
+            function renderSearchHistory(show) {
+                const box = document.getElementById('searchHistory');
+                if (!box) return;
+                const hist = getSearchHistory();
+                if (!show || hist.length === 0) {
+                    box.classList.remove('show');
+                    box.setAttribute('aria-hidden', 'true');
+                    box.innerHTML = '';
+                    return;
+                }
+                box.setAttribute('aria-hidden', 'false');
+                box.innerHTML = `
+                    <div class="search-history-head">
+                        <span>🕘 最近搜索</span>
+                        <button class="search-history-clear" type="button" id="searchHistoryClear">清除</button>
+                    </div>
+                    ${hist.map((h, i) => `
+                        <div class="search-history-item" data-idx="${i}" role="button" tabindex="0">
+                            <span class="sh-clock" aria-hidden="true">↺</span>
+                            <span class="sh-text">${escapeHTML(h)}</span>
+                        </div>`).join('')}`;
+                box.classList.add('show');
+            }
+            function initSearchHistory() {
+                const input = document.getElementById('searchInput');
+                const box = document.getElementById('searchHistory');
+                if (!input || !box) return;
+
+                // 聚焦且为空时显示历史
+                input.addEventListener('focus', function () {
+                    if (this.value.trim() === '') renderSearchHistory(true);
+                });
+                // 输入时隐藏历史
+                input.addEventListener('input', function () {
+                    if (box.classList.contains('show')) {
+                        box.classList.remove('show');
+                        box.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                // 点击外部关闭
+                document.addEventListener('click', function (e) {
+                    if (box.classList.contains('show') && !e.target.closest('.search-input-wrap')) {
+                        box.classList.remove('show');
+                        box.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                // 委托：点击历史项 / 清除按钮
+                box.addEventListener('click', function (e) {
+                    const clearBtn = e.target.closest('#searchHistoryClear');
+                    if (clearBtn) {
+                        _searchHistoryCache = [];
+                        saveSearchHistory();
+                        renderSearchHistory(false);
+                        return;
+                    }
+                    const item = e.target.closest('.search-history-item');
+                    if (item) {
+                        const idx = Number(item.dataset.idx);
+                        const hist = getSearchHistory();
+                        const term = hist[idx];
+                        if (term) {
+                            input.value = term;
+                            setSearchQuery(term);
+                        }
+                        renderSearchHistory(false);
+                        input.focus();
+                    }
+                });
+                // 键盘：Esc 关闭历史（不覆盖已有 Esc 清空逻辑）
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && box.classList.contains('show')) {
+                        box.classList.remove('show');
+                        box.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+
             let _toastTimer = null;
             let _toastRemoveTimer = null;
             function showToast(msg, duration) {
@@ -3663,6 +3770,34 @@
                     toast.classList.remove('show');
                     _toastRemoveTimer = setTimeout(() => toast.remove(), 500);
                 }, duration);
+            }
+
+            // ================================================================
+            // 页脚社区数据统计（低调一行计数；游戏数本地即时，博主/评论异步，失败静默降级）
+            // ================================================================
+            async function renderFooterStats() {
+                const el = document.getElementById('fstatGames');
+                if (!el) return; // 无页脚统计则跳过
+                // 1. 游戏数：本地即时（零网络请求）
+                const gameCount = Array.isArray(games) ? games.filter(g => !g.isDraft).length : 0;
+                const setVal = (id, v) => {
+                    const n = document.getElementById(id);
+                    if (n) n.textContent = (v == null) ? '—' : Number(v).toLocaleString('zh-CN');
+                };
+                setVal('fstatGames', gameCount);
+                // 2. 博主数 & 评论数：云端异步
+                if (SUPABASE_ENABLED && supabaseClient) {
+                    try {
+                        const { count: bloggerCount, error: bErr } = await supabaseClient
+                            .from('bloggers').select('id', { count: 'exact', head: true });
+                        if (!bErr && bloggerCount != null) setVal('fstatBloggers', bloggerCount);
+                    } catch (_) { /* 静默降级 */ }
+                    try {
+                        const { count: reviewCount, error: rErr } = await supabaseClient
+                            .from('user_reviews').select('id', { count: 'exact', head: true });
+                        if (!rErr && reviewCount != null) setVal('fstatReviews', reviewCount);
+                    } catch (_) { /* 静默降级 */ }
+                }
             }
 
             function toggleWishlistMode() {
@@ -3756,6 +3891,16 @@
                 const frag = document.createDocumentFragment();
                 const newCards = [];
 
+                // FLIP：记录本次「保留」且「已可见」卡片在重排前的位置
+                const flipPrevRects = new Map();
+                if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+                    for (const [id, card] of _cardMap) {
+                        if (!filteredIds.has(id)) continue; // 将被移除的跳过
+                        if (!card.classList.contains('visible')) continue; // 尚未进入视口/未做进入动画的跳过
+                        flipPrevRects.set(id, card.getBoundingClientRect());
+                    }
+                }
+
                 filtered.forEach(g => {
                     let card = _cardMap.get(g.id);
                     if (card) {
@@ -3777,6 +3922,32 @@
                 }
 
                 grid.replaceChildren(frag);
+
+                // FLIP：应用反向位移，再过渡到新位置
+                if (flipPrevRects.size > 0) {
+                    for (const [id, card] of _cardMap) {
+                        const prev = flipPrevRects.get(id);
+                        if (!prev) continue;
+                        const cur = card.getBoundingClientRect();
+                        const dx = prev.left - cur.left;
+                        const dy = prev.top - cur.top;
+                        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue; // 位置未变，跳过
+                        // 立即反向偏移（无过渡）
+                        card.style.transition = 'none';
+                        card.style.transform = `translate(${dx}px, ${dy}px)`;
+                        // 下一帧过渡到目标位置
+                        requestAnimationFrame(() => {
+                            card.style.transition = 'transform .45s cubic-bezier(.22,.61,.36,1)';
+                            card.style.transform = '';
+                            const onEnd = () => {
+                                card.style.transition = '';
+                                card.style.transform = '';
+                                card.removeEventListener('transitionend', onEnd);
+                            };
+                            card.addEventListener('transitionend', onEnd);
+                        });
+                    }
+                }
 
                 if (cardObserver) { cardObserver.disconnect(); } else {
                     cardObserver = new IntersectionObserver((entries) => {
@@ -5763,24 +5934,6 @@
                     ctx.quadraticCurveTo(x, y, x + r, y);
                     ctx.closePath();
                 }
-                function drawPill(ctx, x, y, text, fontSize, colorBg, colorText, fontFallback) {
-                    ctx.save();
-                    ctx.font = `600 ${fontSize}px ${fontFallback || FONT_FAMILY}`;
-                    ctx.textBaseline = 'top';
-                    const metrics = ctx.measureText(text);
-                    const padLR = 10;
-                    const padTB = 3;
-                    const w = metrics.width + padLR * 2;
-                    const h = fontSize + padTB * 2;
-                    roundRectPath(ctx, x, y, w, h, h / 2);
-                    ctx.fillStyle = colorBg;
-                    ctx.fill();
-                    ctx.fillStyle = colorText;
-                    ctx.fillText(text, x + padLR, y + padTB + 0.5);
-                    ctx.restore();
-                    return { w: w, h: h };
-                }
-                // 多行文本 + 最多 maxLines 行溢出省略，返回总高
                 function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, fontSize, fontWeight, color, maxLines) {
                     maxLines = maxLines || 99;
                     const fullText = String(text || '');
@@ -6626,28 +6779,6 @@
 
             // 确保页面中有稳定的「沙箱容器」用于放待截图的分享卡片
             //   不使用 left:-9999px 技巧，避免 html2canvas 测量错位
-            function _getShareSandbox() {
-                var sb = document.getElementById('__share_sandbox__');
-                if (sb) return sb;
-                sb = document.createElement('div');
-                sb.id = '__share_sandbox__';
-                sb.setAttribute('aria-hidden', 'true');
-                sb.style.cssText = [
-                    'position:absolute;',
-                    'top:0;left:0;',
-                    'width:660px;max-width:660px;',
-                    'min-height:100px;',
-                    'overflow:visible;',
-                    'visibility:hidden;',
-                    'pointer-events:none;',
-                    'z-index:-9999;',
-                    'background:transparent;',
-                    'padding:0;margin:0;border:0;'
-                ].join('');
-                document.body.appendChild(sb);
-                return sb;
-            }
-
             // 显示分享浮层 v2（分步日志）
             async function buildShareFloat(game, extraComment) {
                 console.info('[Share Step 1/6] buildShareFloat 启动：gameId=' + (game && game.id) + ', title=' + (game && game.title));
@@ -6817,6 +6948,15 @@
                 if (!game) return;
                 const from = options && options.from ? options.from : 'gallery';
                 window._detailFrom = from;
+
+                // 逐张点开看 → 累计到一定数量给一次打赏轻提示（限频内置）
+                try {
+                    if (window.HerLensTip) window.HerLensTip.noteBrowse({
+                        title: '欢迎使用HerLens',
+                        sub: '喜欢网站的姊妹可以奖励努力工作的比格一个鸡腿吗？',
+                        action: '投喂比格'
+                    });
+                } catch (e) {}
 
                 // 个人主页是全屏覆盖层（z-index 100001），高于详情弹窗（z-index 100000），
                 // 原地展开详情会被主页盖住。改为在新标签页打开（页面加载时会通过 ?game=ID 自动展开详情），
@@ -10719,35 +10859,6 @@
                 }
             }
 
-            async function getModCommentRepliesForComment(commentId) {
-                // 优先云端
-                if (supabaseClient) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('mod_comment_replies')
-                            .select('*')
-                            .eq('comment_id', Number(commentId))
-                            .order('created_at', { ascending: true });
-                        if (!error && data) {
-                            return data.map(r => ({
-                                id: r.id,
-                                comment_id: r.comment_id,
-                                user_id: r.user_id,
-                                content: r.content,
-                                display_name: safeDisplayName(r.display_name),
-                                avatar_url: r.avatar_url || null,
-                                reply_to: r.reply_to,
-                                parent_reply_id: r.parent_reply_id,
-                                created_at: r.created_at
-                            }));
-                        }
-                    } catch (_) {}
-                }
-                // localStorage 回退
-                const replies = getModCommentReplies();
-                return replies[String(commentId)] || [];
-            }
-
             // 构建MOD评论回复树
             function buildModReplyTree(flatReplies) {
                 const map = {};
@@ -11901,6 +12012,25 @@
                             if (currentMainView !== 'mods') switchMainView('mods');
                             const post = modPosts.find(p => p.id === targetId);
                             if (post) setTimeout(() => openModDetail(post), 200);
+                        } else if (targetType === 'game_comment') {
+                            // target_id 存的是游戏数字 id（修复 22P02 后在 createReplyNotification 里归一化）
+                            const gid = Number(targetId);
+                            const g = (typeof games !== 'undefined' && Array.isArray(games))
+                                ? games.find(x => x && Number(x.id) === gid) : null;
+                            if (!g) { showToast('未找到该游戏', 1800); return; }
+                            try { if (typeof switchMainView === 'function' && currentMainView !== 'games') switchMainView('games'); } catch (_) {}
+                            const ov = document.getElementById('detailModalOverlay');
+                            const alreadyOpen = ov && ov.classList.contains('show') && Number(ov.dataset.gameId) === gid;
+                            if (alreadyOpen) {
+                                try { loadCommunityReviews(gid); } catch (_) {}
+                            } else {
+                                try { showDetailModal(g); } catch (e) { console.warn('通知跳转打开游戏失败', e); }
+                            }
+                            // 打开后把详情滚动到评论区，让被回复的那条可见
+                            setTimeout(function () {
+                                const area = document.querySelector('#detailModal .review-community-area');
+                                if (area) { try { area.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {} }
+                            }, alreadyOpen ? 150 : 650);
                         }
                     });
                 });
@@ -11953,22 +12083,41 @@
 
             async function createReplyNotification(targetUserId, targetType, targetId, targetTitle, replyContent) {
                 if (!supabaseClient || !currentUser) return;
+                if (!targetUserId) { console.warn('[通知] 回复通知被跳过：目标用户 id 为空', { targetType, targetId }); return; }
                 if (targetUserId === currentUser.id) return;
                 const metadata = currentUser.user_metadata || {};
                 const displayName = getDisplayName(currentUser);
                 const avatarUrl = metadata.avatar_url || null;
+                // notifications.target_id 是 bigint 列，只接受整数。
+                // 游戏评论通知曾误把 "游戏id_评论uuid"（如 "1009_xxxx"）当 target_id 传入，
+                // 导致 PostgREST 报 22P02 invalid input syntax for type bigint，整条通知写不进去。
+                // 这里做归一化：提取前段数字 id；纯 uuid / 无法转整数的直接跳过并告警（不阻断回复）。
+                let resolvedTargetId = targetId;
+                if (typeof targetId === 'string' && targetId.length) {
+                    const m = /^(\d+)(?:_|$)/.exec(targetId);
+                    if (m) resolvedTargetId = Number(m[1]);
+                    else if (/^\d+$/.test(targetId)) resolvedTargetId = Number(targetId);
+                    else {
+                        console.warn('[通知] 回复通知被跳过：target_id 无法转为整数(bigint)', { targetType, targetId });
+                        return;
+                    }
+                } else if (typeof targetId === 'number') {
+                    if (isNaN(targetId)) { console.warn('[通知] 回复通知被跳过：target_id 为 NaN', { targetType, targetId }); return; }
+                    resolvedTargetId = targetId;
+                }
                 try {
-                    await supabaseClient.from('notifications').insert({
+                    const { error } = await supabaseClient.from('notifications').insert({
                         user_id: targetUserId,
                         actor_id: currentUser.id,
                         actor_name: displayName,
                         actor_avatar: avatarUrl,
                         type: 'reply',
                         target_type: targetType,
-                        target_id: targetId,
+                        target_id: resolvedTargetId,
                         target_title: targetTitle || '',
                         content: replyContent || ''
                     });
+                    if (error) console.error('❌ 回复通知写入失败(可能被数据库 RLS/约束拦截)：', error);
                 } catch (e) {
                     console.error('❌ 回复通知发送失败:', e);
                 }
@@ -13134,12 +13283,36 @@
             function openTipModal() {
                 document.getElementById('tipModalOverlay').classList.add('show');
                 document.body.style.overflow = 'hidden';
+                // 防破图兜底：若站长还没在站点根放 赞赏码.jpg（收款码属个人资产，需本人提供），
+                // 就自动把二维码区换成占位提示，避免弹窗里出现一张碎裂图片；放好真实文件后会自动恢复。
+                try {
+                    var _q = document.querySelector('#tipModal .tip-card img.tip-qrcode');
+                    if (_q) {
+                        var missing = (!_q.complete) ? false : (_q.naturalWidth === 0);
+                        var holder = _q.closest('.tip-card');
+                        var existing = holder && holder.querySelector('.tip-qrcode-fallback');
+                        if (missing && holder && !existing) {
+                            var ph = document.createElement('div');
+                            ph.className = 'tip-qrcode-fallback';
+                            ph.textContent = '收款码待站长添加';
+                            ph.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;min-height:170px;border:1.5px dashed rgba(120,110,140,.35);border-radius:16px;color:var(--text3,#9a8fa8);font-size:.86rem;background:rgba(120,110,140,.05);';
+                            _q.style.display = 'none';
+                            var hint = holder && holder.querySelector('.tip-hint');
+                            if (hint) hint.textContent = '扫码通道即将开放，可先用爱发电支持';
+                            holder.insertBefore(ph, hint);
+                        }
+                    }
+                } catch (e) {}
             }
 
             function closeTipModal() {
                 document.getElementById('tipModalOverlay').classList.remove('show');
                 document.body.style.overflow = '';
             }
+
+            // 暴露到全局：打赏提醒小卡（js/tip-reminder.js）点击主按钮时通过 window.openTipModal 打开弹窗
+            window.openTipModal = openTipModal;
+            window.closeTipModal = closeTipModal;
 
             // ================================================================
             // 返回顶部 + 滚动进度
@@ -13656,64 +13829,6 @@
             // ================================================================
             // 个人资料
             // ================================================================
-
-            function openProfileModal() {
-                if (!currentUser) {
-                    showToast('请先登录', 1500);
-                    return;
-                }
-                const overlay = document.getElementById('profileModalOverlay');
-                const nameInput = document.getElementById('profileDisplayName');
-                const avatarImg = document.getElementById('profileAvatarPreview');
-                const customIdInput = document.getElementById('profileCustomId');
-                const bioInput = document.getElementById('profileBio');
-                const customIdMsg = document.getElementById('profileCustomIdMsg');
-                const displayNameMsg = document.getElementById('profileDisplayNameMsg');
-
-                const metadata = currentUser.user_metadata || {};
-                nameInput.value = metadata.display_name || '';
-                customIdInput.value = metadata.custom_id || '';
-                bioInput.value = metadata.bio || '';
-
-                // 邮箱字段
-                const emailCurrent = document.getElementById('profileEmailCurrent');
-                if (emailCurrent) emailCurrent.textContent = currentUser.email ? `（当前：${currentUser.email}）` : '';
-                const emailInput = document.getElementById('profileNewEmail');
-                if (emailInput) emailInput.value = '';
-                const emailMsg = document.getElementById('profileEmailMsg');
-                if (emailMsg) emailMsg.textContent = '';
-
-                // 初始化显示名称状态
-                displayNameMsg.textContent = '';
-                displayNameMsg.style.color = 'var(--text3)';
-                if (metadata.display_name) {
-                    displayNameMsg.textContent = '✓ 当前显示名称';
-                    displayNameMsg.style.color = 'var(--success, #4caf50)';
-                }
-
-                // 初始化专属ID状态
-                customIdMsg.textContent = '';
-                customIdMsg.style.color = 'var(--text3)';
-                if (metadata.custom_id) {
-                    customIdMsg.textContent = '✓ 当前专属ID';
-                    customIdMsg.style.color = 'var(--success, #4caf50)';
-                }
-                if (metadata.avatar_url) {
-                    avatarImg.src = metadata.avatar_url;
-                } else {
-                    avatarImg.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%23ddd"/%3E%3Ctext x="50" y="58" font-size="40" text-anchor="middle" fill="%23999"%3E👤%3C/text%3E%3C/svg%3E';
-                }
-                document.getElementById('avatarInput').value = '';
-                currentAvatarFile = null;
-                if (avatarPreviewUrl) {
-                    URL.revokeObjectURL(avatarPreviewUrl);
-                    avatarPreviewUrl = null;
-                }
-                document.getElementById('profileErrorMsg').textContent = '';
-
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
 
             function closeProfileModal() {
                 document.getElementById('profileModalOverlay').classList.remove('show');
@@ -14633,7 +14748,7 @@
                             <span class="item-icon">🏠</span> 我的主页
                         </div>
                         <div class="nav-user-dropdown-item" id="navDiaryBtn">
-                            <span class="item-icon">📖</span> 游戏日记
+                            <span class="item-icon">📓</span> 感想记事本
                         </div>
                         <div class="nav-user-dropdown-item" id="navSettingsBtn">
                             <span class="item-icon">⚙️</span> 设置
@@ -14653,7 +14768,7 @@
                     document.getElementById('navDiaryBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('navUserDropdown').classList.remove('show');
-                        openDiaryModal();
+                        window.location.href = '相关文件/notes.html';
                     });
 
                     document.getElementById('navSettingsBtn').addEventListener('click', function (e) {
@@ -14678,7 +14793,7 @@
                             <span class="dropdown-arrow" id="dropdownArrow">▼</span>
                             <div id="userDropdownMenu">
                                 <button class="dropdown-item" id="profileHomeBtn">🏠 我的主页</button>
-                                <button class="dropdown-item" id="diaryBtn">📖 游戏日记</button>
+                                <button class="dropdown-item" id="diaryBtn">📓 感想记事本</button>
                                 <button class="dropdown-item" id="settingsBtn">⚙️ 设置</button>
                                 <hr class="divider" />
                                 <button class="dropdown-item danger" id="logoutBtn">🚪 登出</button>
@@ -14720,7 +14835,7 @@
                         e.stopPropagation();
                         document.getElementById('userDropdownMenu').classList.remove('show');
                         if (arrow) arrow.classList.remove('open');
-                        openDiaryModal();
+                        window.location.href = '相关文件/notes.html';
                     });
 
                     document.getElementById('settingsBtn').addEventListener('click', function (e) {
@@ -14828,6 +14943,10 @@
                             this.value = '';
                             setSearchQuery('');
                             this.blur();
+                        } else if (e.key === 'Enter') {
+                            // 回车确认搜索时记录历史
+                            const v = this.value.trim();
+                            if (v) recordSearchHistory(v);
                         }
                     });
                 }
@@ -14862,7 +14981,17 @@
                 });
 
                 document.getElementById('navTip').addEventListener('click', openTipModal);
+                // 从 notes 等子页「随心支持」跳来：?tip=1 自动展开打赏
+                try {
+                    if (/[?&]tip=1/.test(location.search)) setTimeout(openTipModal, 650);
+                } catch (e) {}
                 document.getElementById('tipModalClose').addEventListener('click', closeTipModal);
+                const tipNoMore = document.getElementById('tipNoMore');
+                if (tipNoMore) tipNoMore.addEventListener('click', function () {
+                    try { if (window.HerLensTip) window.HerLensTip.weekMute(); } catch (e) {}
+                    closeTipModal();
+                    showToast('收到姊妹，本周就不打扰你啦 💗', 2200);
+                });
                 document.getElementById('tipModalOverlay').addEventListener('click', function (e) {
                     if (e.target === this) closeTipModal();
                 });
@@ -15870,23 +15999,6 @@
             // ================================================================
             // ★★★ 个性化随机推荐 ★★★
             // ================================================================
-            function getUserPreferredGenres() {
-                const genreCounts = {};
-                const playedIds = userData.played || [];
-                playedIds.forEach(id => {
-                    const game = games.find(g => g.id === id);
-                    if (game && game.genre) {
-                        game.genre.forEach(g => {
-                            genreCounts[g] = (genreCounts[g] || 0) + 1;
-                        });
-                    }
-                });
-                return Object.entries(genreCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
-                    .map(e => e[0]);
-            }
-
             // ================================================================
             // ★★★ 优化的随机推荐 ★★★
             // ================================================================
@@ -16042,7 +16154,14 @@
 
                 const grid = cacheEl('galleryGrid');
                 if (grid) {
-                    grid.innerHTML = '<div class="loading-spinner"><span class="spinner-icon">🐕</span><div class="loading-dog-trail"><span></span><span></span><span></span></div><div class="spinner-text">正在加载游戏数据...</div></div>';
+                    grid.innerHTML = `<div class="skeleton-wrap">
+                        <div class="skeleton-brand">
+                            <span class="spinner-icon">🐕</span>
+                            <span class="skeleton-brand-text">正在加载游戏数据…</span>
+                        </div>
+                        <div class="skeleton-grid">${Array(6).fill('<div class="skeleton-card"><div class="skeleton-cover"></div><div class="skeleton-body"><div class="skeleton-line w-80"></div><div class="skeleton-line w-60 short"></div><div class="skeleton-line w-40 short"></div></div></div>').join('')}
+                        </div>
+                    </div>`;
                 }
 
                 const [, loadedGames] = await Promise.all([
@@ -16063,14 +16182,29 @@
                 updateFilterUI();
                 updateAchievementDot();
 
-                initBackToTop();
-                initAnnouncementBar();
-                initGuideEvents();
-                initAnnouncementModalEvents();
+                // 页脚社区数据统计（异步，不阻塞首屏）
+                renderFooterStats().catch(() => { /* 静默降级 */ });
+
+                // ===== 首屏必需初始化（同步，保证核心交互立即可用）=====
+                initTopNavEvents();
                 initKeyboardShortcuts();
                 initSystemThemeListener();
-                initConfetti();
-                initTopNavEvents();
+                initSearchHistory();
+
+                // ===== 非首屏初始化（延后到浏览器空闲，降低首屏主线程压力）=====
+                // 这些功能不影响「浏览游戏列表」这一核心路径，延后执行可加快首屏可交互时间
+                const _deferInit = (fn) => {
+                    if (typeof requestIdleCallback === 'function') {
+                        requestIdleCallback(() => { try { fn(); } catch (e) {} }, { timeout: 2000 });
+                    } else {
+                        setTimeout(() => { try { fn(); } catch (e) {} }, 300);
+                    }
+                };
+                _deferInit(initBackToTop);
+                _deferInit(initAnnouncementBar);
+                _deferInit(initGuideEvents);
+                _deferInit(initAnnouncementModalEvents);
+                _deferInit(initConfetti);
 
                 // 全局点击波纹（事件委托，覆盖所有 .gallery-card，桌面+触屏）
                 function _spawnRipple(card, clientX, clientY) {
@@ -16125,8 +16259,9 @@
                             // 兜底：若跳转失败，再回退到旧的选择弹层
                             if (typeof window.openCreatorsPicker === 'function') window.openCreatorsPicker();
                         }
-                    } else if (target === 'diary') {
-                        if (typeof openDiaryModal === 'function') openDiaryModal();
+                    } else if (target === 'notes') {
+                        // 开机桌面图标「感想记事本」→ 跳转新记事本页面
+                        window.location.href = '相关文件/notes.html';
                     } else if (target === 'tip') {
                         if (typeof openTipModal === 'function') openTipModal();
                     }
@@ -16318,16 +16453,6 @@
                         }
                     });
                 }
-
-                console.log('✅ Her Lens 已启动（性能优化 + 引导 + 快捷键）');
-                console.log(`📊 共加载 ${games.length} 款游戏`);
-                console.log(`📋 愿望单 ${userData.wishlist.length} 款，玩过 ${userData.played.length} 款`);
-                console.log(`🏆 已解锁 ${userData.achievements.length} / ${ACHIEVEMENTS.length} 项成就`);
-                console.log(`📝 已评论 ${userData.reviews.length} 款游戏`);
-                console.log(`📱 触摸设备: ${isTouchDevice ? '是 (已禁用高耗能特效)' : '否'}`);
-                console.log(`🔐 认证状态: ${currentUser ? '已登录 (' + currentUser.email + ')' : '未登录'}`);
-                console.log(`🎨 主题: ${currentTheme}`);
-                console.log(`⌨️ 快捷键: /搜索 · 1/2切换 · R随机 · ?帮助`);
 
                 if (currentUser) {
                     let _lastSyncTime = 0;
