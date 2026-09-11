@@ -8742,6 +8742,8 @@
 
                     var bio = metadata.bio || '';
                     bioInput.value = bio;
+                    // ★ 初始就按内容撑好高度，避免「聚焦时才跳高」造成抖动
+                    autoResizeBio(bioInput);
 
                     var equippedTitle = userData.equippedTitle || metadata.equipped_title || null;
                     if (equippedTitle && typeof TITLES !== 'undefined') {

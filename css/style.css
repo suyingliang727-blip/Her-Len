@@ -8139,6 +8139,9 @@
                 linear-gradient(180deg, #fcfafd 0%, #f8f5fb 40%, #faf6f8 100%);
             overflow-y: auto;
             overflow-x: hidden;
+            /* ★ 恒定预留滚动条空间：避免 banner 动画（floatSparkle 的 translate/rotate）
+               让 scrollHeight 反复越界 → 滚动条时有时无 → 整页横向宽度跳变（左右晃） */
+            scrollbar-gutter: stable;
             display: flex;
             flex-direction: column;
             animation: profileFadeIn 0.35s ease-out;
@@ -8171,6 +8174,9 @@
                 linear-gradient(135deg, #d4c5e8 0%, #b8a5d4 25%, #c9b6d8 50%, #dcc4d0 75%, #e5d5d8 100%);
             overflow: hidden;
             flex-shrink: 0;
+            /* ★ 隔离内部动画（::after 的 floatSparkle 有 translate/rotate）：
+               不设 contain 时，变换后的边界会参与祖先 scrollHeight 计算，导致滚动条反复出现/消失 */
+            contain: layout paint;
         }
 
         .profile-banner::before {
@@ -8411,7 +8417,9 @@
             font-family: inherit;
             resize: none;
             overflow: hidden;
-            transition: all 0.25s;
+            /* ★ 不要用 transition:all —— 会把 JS 调整 height 的过程也做成动画，导致聚焦时高度"吸上去"的抖动。
+               只过渡视觉属性（边框/背景/阴影），高度变化必须瞬时完成。 */
+            transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
             box-sizing: border-box;
         }
 
@@ -8715,6 +8723,8 @@
             border-radius: 20px;
             border: 1px dashed rgba(186, 166, 214, 0.35);
             position: relative;
+            /* ★ 隔离 ::before 的 floatSparkle 变换，避免影响滚动尺寸导致滚动条抖动 */
+            contain: layout paint;
         }
 
         .p-reviews-empty::before,
