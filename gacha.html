@@ -306,7 +306,7 @@ html{overflow-y:auto}
         <div class="header-sub" id="headerSub">闭上双眼，心中默念你的疑惑……</div>
     </div>
     <div class="divider"></div>
-    <div class="stats" style="margin-top:24px">卡池共 <strong id="poolCount">0</strong> 款游戏 · 已抽卡 <strong id="drawCount">0</strong> 次</div>
+    <div class="stats" style="margin-top:24px">卡池共 <strong id="poolCount">0</strong> 款游戏 · 已抽卡 <strong id="drawCount">0</strong> 次 · <span style="cursor:pointer" id="gachaCoinWrap" title="每日登录+1，评论游戏+1（前3条）">🪙 抽卡币 <strong id="gachaCoinCount">0</strong> 枚</span></div>
     <div class="actions">
         <button class="btn-draw" id="btnDraw">✦ 命运抽牌</button>
         <button class="btn-secondary" id="btnRevealAll" style="display:none">全部揭晓</button>
@@ -331,6 +331,21 @@ html{overflow-y:auto}
 </div>
 
 <div class="history-overlay" id="historyOverlay"></div>
+
+<!-- 币不足弹窗 -->
+<div class="history-overlay" id="coinModalOverlay" style="z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(5,2,14,0.75);opacity:0;pointer-events:none;transition:opacity 0.3s">
+    <div style="width:min(400px,88vw);background:linear-gradient(160deg,#1c1648,#141030);border:1px solid rgba(201,168,76,0.35);border-radius:20px;padding:32px 28px;text-align:center;font-family:'Cinzel','Georgia',serif;color:var(--cream);box-shadow:0 12px 60px rgba(0,0,0,0.6)">
+        <div style="font-size:3rem;margin-bottom:10px">🪙</div>
+        <div style="font-size:1.05rem;font-weight:700;color:var(--gold);letter-spacing:0.08em;margin-bottom:8px">抽卡币不足</div>
+        <div style="font-size:0.78rem;color:var(--cream-dim);line-height:1.9;margin-bottom:22px">
+            每次命运抽牌消耗 1 枚抽卡币<br>
+            ✦ 每日登录 +1<br>
+            ✦ 在主站评论游戏 +1（每日前 3 条）
+        </div>
+        <a href="index.html" style="display:block;padding:11px;background:linear-gradient(135deg,var(--gold),#a08830);border-radius:12px;color:var(--deep);font-weight:700;font-size:0.85rem;text-decoration:none;letter-spacing:0.06em;margin-bottom:10px">回主站赚币</a>
+        <button id="coinModalClose" style="padding:9px 24px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.25);border-radius:10px;color:var(--cream-dim);font-family:inherit;font-size:0.78rem;cursor:pointer">关闭</button>
+    </div>
+</div>
 <div class="history-panel" id="historyPanel">
     <div class="history-header">
         <div class="history-title">📜 抽卡记录</div>
@@ -339,6 +354,7 @@ html{overflow-y:auto}
     <div class="history-body" id="historyBody"><div class="history-empty">暂无抽卡记录</div></div>
 </div>
 
+<script src="js/wallet.js?v=7ab94e36fd"></script>
 <script>
 (function(){
     var STORAGE_KEY='heroineGamesDataV2',HISTORY_KEY='herlens_gacha_history',SETTINGS_KEY='heroineGamesSettingsV2';
@@ -796,6 +812,20 @@ html{overflow-y:auto}
         },250);
     }
 
+    /* ========== 钱包 ========== */
+    function updateCoinDisplay(){
+        var el=document.getElementById('gachaCoinCount');
+        if(el&&window.HerlensWallet) el.textContent=window.HerlensWallet.getBalance('gacha');
+    }
+    function showCoinModal(){
+        var m=document.getElementById('coinModalOverlay');
+        m.style.opacity='1';m.style.pointerEvents='auto';
+    }
+    function hideCoinModal(){
+        var m=document.getElementById('coinModalOverlay');
+        m.style.opacity='0';m.style.pointerEvents='none';
+    }
+
     /* ========== 抽卡主流程 ========== */
     var isAnimating=false;
 
@@ -803,6 +833,12 @@ html{overflow-y:auto}
         if(isAnimating) return;
         var pool=getFiltered();
         if(pool.length===0){alert('卡池为空，请先返回主页添加游戏');return}
+
+        // 扣除抽卡币
+        if(window.HerlensWallet){
+            if(!window.HerlensWallet.spend('gacha',1)){showCoinModal();return}
+            updateCoinDisplay();
+        }
 
         isAnimating=true;
         document.getElementById('btnDraw').disabled=true;
@@ -886,6 +922,10 @@ html{overflow-y:auto}
         document.getElementById('btnHistory').addEventListener('click',toggleHistory);
         document.getElementById('historyClose').addEventListener('click',toggleHistory);
         document.getElementById('historyOverlay').addEventListener('click',toggleHistory);
+        document.getElementById('coinModalClose').addEventListener('click',hideCoinModal);
+        document.getElementById('coinModalOverlay').addEventListener('click',function(e){if(e.target===this)hideCoinModal()});
+        updateCoinDisplay();
+        document.addEventListener('herlens_wallet_change',updateCoinDisplay);
     });
 })();
 </script>

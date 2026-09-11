@@ -8329,11 +8329,13 @@
 
         .profile-name-line {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 10px;
             margin-bottom: 6px;
             flex-wrap: wrap;
             justify-content: center;
+            /* 固定行高：避免「显示态文字 ↔ 编辑态输入框」高度不同导致下方内容跳动 */
+            min-height: 34px;
         }
 
         .profile-username {
@@ -8976,6 +8978,8 @@
             margin: 2px 0 4px;
             min-height: 14px;
             text-align: center;
+            /* ★ 常驻占位：显隐只切 visibility，避免 display 切换造成下方整体跳动 */
+            line-height: 14px;
         }
 
         /* ===== 设置页面 ===== */

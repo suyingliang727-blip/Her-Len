@@ -8705,7 +8705,7 @@
                     editBtnWrap.style.display = '';
                     // 内联编辑模式
                     var profileEditBtn = document.getElementById('profileEditBtn');
-                    var profileSaveBtn = document.getElementById('profileSaveBtn');
+                    var profileSaveBtn = document.getElementById('profileInlineSaveBtn');
                     var profileCancelBtn = document.getElementById('profileCancelBtn');
                     var profileAvatarFileInput = document.getElementById('profileAvatarFileInput');
                     if (profileEditBtn) profileEditBtn.onclick = function () { enterProfileEditMode(); };
@@ -14070,6 +14070,8 @@
             // ================================================================
             var _profileAvatarFile = null;
             var _profileAvatarPreviewUrl = null;
+            // 保存资料期间抑制 onAuthStateChange 的全量重置（避免竞态覆盖刚保存的值）
+            var _suppressAuthReset = false;
 
             function enterProfileEditMode() {
                 var usernameSpan = document.getElementById('profileUsername');
@@ -14077,7 +14079,7 @@
                 var customIdSpan = document.getElementById('profileCustomIdDisplay');
                 var customIdInput = document.getElementById('profileCustomIdInput');
                 var editBtn = document.getElementById('profileEditBtn');
-                var saveBtn = document.getElementById('profileSaveBtn');
+                var saveBtn = document.getElementById('profileInlineSaveBtn');
                 var cancelBtn = document.getElementById('profileCancelBtn');
                 var avatarLabel = document.getElementById('profileAvatarUploadLabel');
                 var editMsg = document.getElementById('profileEditMsg');
@@ -14091,7 +14093,7 @@
                 if (editBtn) editBtn.style.display = 'none';
                 if (saveBtn) saveBtn.style.display = '';
                 if (cancelBtn) cancelBtn.style.display = '';
-                if (editMsg) { editMsg.textContent = ''; editMsg.style.display = ''; }
+                if (editMsg) { editMsg.textContent = ''; editMsg.style.visibility = 'visible'; }
                 _profileAvatarFile = null;
                 if (_profileAvatarPreviewUrl) { URL.revokeObjectURL(_profileAvatarPreviewUrl); _profileAvatarPreviewUrl = null; }
             }
@@ -14102,7 +14104,7 @@
                 var customIdSpan = document.getElementById('profileCustomIdDisplay');
                 var customIdInput = document.getElementById('profileCustomIdInput');
                 var editBtn = document.getElementById('profileEditBtn');
-                var saveBtn = document.getElementById('profileSaveBtn');
+                var saveBtn = document.getElementById('profileInlineSaveBtn');
                 var cancelBtn = document.getElementById('profileCancelBtn');
                 var avatarLabel = document.getElementById('profileAvatarUploadLabel');
                 var editMsg = document.getElementById('profileEditMsg');
@@ -14115,7 +14117,7 @@
                 if (editBtn) editBtn.style.display = '';
                 if (saveBtn) saveBtn.style.display = 'none';
                 if (cancelBtn) cancelBtn.style.display = 'none';
-                if (editMsg) editMsg.style.display = 'none';
+                if (editMsg) editMsg.style.visibility = 'hidden';
                 if (_profileAvatarPreviewUrl) { URL.revokeObjectURL(_profileAvatarPreviewUrl); _profileAvatarPreviewUrl = null; }
                 _profileAvatarFile = null;
                 // 恢复头像
@@ -14150,7 +14152,7 @@
                     if (newCustomId && !await checkCustomIdAvailable(newCustomId)) { if (editMsg) { editMsg.textContent = '该专属ID已被占用'; editMsg.style.color = 'var(--danger)'; } return; }
                 }
 
-                var saveBtn = document.getElementById('profileSaveBtn');
+                var saveBtn = document.getElementById('profileInlineSaveBtn');
                 if (saveBtn) saveBtn.disabled = true;
 
                 var avatarUrl = metadata.avatar_url || null;
@@ -14162,7 +14164,8 @@
                         var upRes = await supabaseClient.storage.from('avatars').upload(path, _profileAvatarFile, { upsert: true });
                         if (upRes.error) throw upRes.error;
                         var urlRes = supabaseClient.storage.from('avatars').getPublicUrl(path);
-                        avatarUrl = urlRes.data.publicURL;
+                        // ⚠️ supabase-js v2 返回字段为 publicUrl（小写 u），写成 publicURL 会得到 undefined
+                        avatarUrl = urlRes.data.publicUrl;
                     } catch (e) {
                         if (editMsg) { editMsg.textContent = '头像上传失败: ' + (e.message || e); editMsg.style.color = 'var(--danger)'; }
                         if (saveBtn) saveBtn.disabled = false;
@@ -14171,6 +14174,9 @@
                 }
 
                 // 更新 user_metadata
+                // ★ 置标志：抑制 onAuthStateChange 里 USER_UPDATED 触发的「全量重置」，
+                //   否则它可能在接下来的 await 期间把 currentUser 覆盖回旧快照/置空
+                _suppressAuthReset = true;
                 var updateRes = await supabaseClient.auth.updateUser({
                     data: {
                         display_name: newName,
@@ -14179,6 +14185,7 @@
                         avatar_url: avatarUrl
                     }
                 });
+                _suppressAuthReset = false;
                 if (updateRes.error) {
                     if (editMsg) { editMsg.textContent = '保存失败: ' + updateRes.error.message; editMsg.style.color = 'var(--danger)'; }
                     if (saveBtn) saveBtn.disabled = false;
@@ -14186,6 +14193,8 @@
                 }
 
                 currentUser = updateRes.user;
+                // ⚠️ 保存本地 id：await 期间 onAuthStateChange 可能把 currentUser 置空（竞态）
+                var _savedUserId = (updateRes.user && updateRes.user.id) || null;
                 // 同步到 user_profiles 表
                 try {
                     await supabaseClient.from('user_profiles').upsert({
@@ -14201,8 +14210,9 @@
 
                 if (saveBtn) saveBtn.disabled = false;
                 exitProfileEditMode();
-                // 刷新主页
-                openUserProfile(currentUser.id);
+                // 刷新主页（用局部 id，避免 currentUser 被异步回调清空导致崩溃）
+                var _uid = _savedUserId || (currentUser && currentUser.id);
+                if (_uid) openUserProfile(_uid);
                 showToast('资料已保存', 1200);
             }
 
@@ -14762,6 +14772,7 @@
                     document.getElementById('navProfileHomeBtn').addEventListener('click', function (e) {
                         e.stopPropagation();
                         document.getElementById('navUserDropdown').classList.remove('show');
+                        if (!currentUser || !currentUser.id) { showToast('请先登录', 1200); return; }
                         openUserProfile(currentUser.id);
                     });
 
@@ -16295,6 +16306,11 @@
                         if (event === 'USER_UPDATED' && session) {
                             const el = document.getElementById('profileEmailCurrent');
                             if (el && session.user) el.textContent = session.user.email ? `（当前：${session.user.email}）` : '';
+                            // ★ 保存资料流程进行中：只采用最新 user，不走下方全量重置（否则会覆盖刚保存的值）
+                            if (_suppressAuthReset) {
+                                if (session.user) currentUser = session.user;
+                                return;
+                            }
                         }
                         if (session) {
                             // ★ 登录/切换账号：保存旧用户数据 → 加载新用户数据

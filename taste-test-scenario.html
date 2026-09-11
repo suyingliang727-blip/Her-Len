@@ -354,6 +354,9 @@ body {
 /* Top3特质卡 */
 .trait-section { margin: 1.5rem 0; }
 .trait-cards { display: flex; flex-direction: column; gap: 0.6rem; }
+.radar-section { margin: 1.5rem 0; text-align: center; }
+.radar-box { display: flex; justify-content: center; }
+#radarCanvas { display: block; margin: 0 auto; width: 300px; max-width: 100%; height: auto; }
 .trait-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2865,6 +2868,7 @@ function renderResult(resultTypes, mbti) {
         '<div class="adventure-trail" id="adventureTrail"></div>' +
         '<div class="spectrum-section" id="spectrumSection"><h3>🌈 你的游戏人格光谱</h3><div class="spectrum-list" id="spectrumList"></div></div>' +
         '<div class="trait-section" id="traitSection"><h3>✨ 你的三大核心特质</h3><div class="trait-cards" id="traitCards"></div></div>' +
+        '<div class="radar-section"><h3>📊 你的偏好雷达</h3><div class="radar-box"><canvas id="radarCanvas" width="300" height="300"></canvas></div></div>' +
         '</div>' +
         subHTML + compHTML + mbtiHTML +
         '<div class="recommend-section"><h3>为你推荐的女性主角游戏</h3>'+gameRecs+'</div>' +
@@ -2874,7 +2878,7 @@ function renderResult(resultTypes, mbti) {
         '<button class="btn-secondary" onclick="window.open(\'https://her-len.pages.dev/\', \'_blank\', \'noopener,noreferrer\')">🏠 前往 Her Lens</button>' +
         '</div>' +
         '<div style="text-align:center;margin-top:1rem;font-size:0.75rem;color:var(--text3);opacity:0.7;">仅供娱乐</div>';
-    setTimeout(function() { renderSpectrum(); renderTopTraits(); renderBranchPath(); renderCharacterMatch(resultTypes.primary); }, 200);
+    setTimeout(function() { renderSpectrum(); renderTopTraits(); renderBranchPath(); renderCharacterMatch(resultTypes.primary); drawRadarChart(); }, 200);
     renderAdventureTrail();
 }
 

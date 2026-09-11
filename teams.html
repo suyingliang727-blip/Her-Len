@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>她们 · 主创团队 | Her Lens</title>
+    <meta name="robots" content="index, follow" />
+    <link rel="stylesheet" href="css/style.css?v=ca6d543ed4" />
+    <script>
+        document.documentElement.setAttribute('data-theme-applied', 'light');
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg, #f4f1f8);
+            color: var(--text);
+            transition: background 0.3s ease;
+        }
+        html[data-theme-applied="dark"] body { background: var(--bg); }
+
+        .page-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 20px;
+            background: color-mix(in srgb, var(--bg, #f4f1f8) 82%, transparent);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text2);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .topbar-link:hover { color: var(--accent); border-color: var(--accent); transform: translateX(-2px); }
+        .topbar-link.switch:hover { transform: translateX(2px); }
+
+        .page-header { text-align: center; padding: 34px 20px 8px; }
+        .page-header .icon { font-size: 2.6rem; display: block; margin-bottom: 8px; }
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            letter-spacing: 0.08em;
+            background: linear-gradient(135deg, var(--accent) 0%, #c9b8e8 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header .sub { margin-top: 6px; font-size: 0.84rem; color: var(--text3); }
+
+        .sample-notice {
+            max-width: 960px;
+            margin: 18px auto 0;
+            padding: 9px 16px;
+            width: calc(100% - 40px);
+            background: color-mix(in srgb, #e8a33d 12%, transparent);
+            border: 1px dashed #d09a3e;
+            border-radius: 10px;
+            color: #a4741f;
+            font-size: 0.76rem;
+            text-align: center;
+        }
+        html[data-theme-applied="dark"] .sample-notice { color: #e0b45c; }
+
+        .filter-row {
+            max-width: 960px;
+            margin: 20px auto 0;
+            padding: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-chip {
+            padding: 5px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text2);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .filter-search {
+            flex: 1;
+            min-width: 160px;
+            max-width: 260px;
+            margin-left: auto;
+            padding: 7px 14px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.8rem;
+            outline: none;
+            font-family: inherit;
+        }
+        .filter-search:focus { border-color: var(--accent); }
+
+        /* ===== 左右分栏布局容器 ===== */
+        .diary-container {
+            max-width: 1100px;
+            margin: 24px auto 0;
+            padding: 0 20px 30px;
+            display: flex;
+            gap: 0;
+            min-height: 500px;
+        }
+
+        /* 左页 - 团队信息 */
+        .diary-page-left {
+            flex: 0 0 380px;
+            background: var(--modal-bg, rgba(250, 247, 253, 0.82));
+            border-radius: 20px 0 0 20px;
+            border: 1px solid var(--border);
+            border-right: none;
+            padding: 25px;
+            position: relative;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb, #d0c4d8) transparent;
+        }
+        html[data-theme-applied="dark"] .diary-page-left { background: var(--modal-bg); }
+
+        .diary-page-left::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(90deg, var(--glow-color, rgba(155, 138, 189, 0.12)) 0%, transparent 100%);
+            border-radius: 20px 0 0 20px;
+        }
+
+        /* 右页 - 作品展示 */
+        .diary-page-right {
+            flex: 1;
+            background: var(--modal-bg, rgba(250, 247, 253, 0.82));
+            border-radius: 0 20px 20px 0;
+            border: 1px solid var(--border);
+            padding: 25px;
+            position: relative;
+            overflow-y: auto;
+        }
+        html[data-theme-applied="dark"] .diary-page-right { background: var(--modal-bg); }
+
+        .diary-page-right::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(270deg, var(--glow-color, rgba(155, 138, 189, 0.12)) 0%, transparent 100%);
+            border-radius: 0 20px 20px 0;
+        }
+
+        /* 左页内容样式 */
+        .team-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .team-logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px var(--shadow, rgba(60, 30, 80, 0.18));
+        }
+        .team-header .team-info h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--text);
+        }
+        .team-header .team-meta {
+            font-size: 0.82rem;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 20px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .team-story {
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: var(--text2);
+        }
+
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--input-bg);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .member-item:hover {
+            background: var(--card-hover, rgba(155, 138, 189, 0.1));
+            transform: translateX(4px);
+        }
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .member-name {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text);
+        }
+        .member-role {
+            font-size: 0.76rem;
+            color: var(--accent);
+            margin-top: 2px;
+        }
+        .member-note {
+            font-size: 0.72rem;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        .link-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .link-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-size: 0.78rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .link-btn:hover { background: var(--accent); color: #fff; }
+
+        /* 右页作品样式 */
+        .works-section {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .work-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--input-bg);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+        .work-card:nth-child(1) { animation-delay: 0.1s; }
+        .work-card:nth-child(2) { animation-delay: 0.2s; }
+        .work-card:nth-child(3) { animation-delay: 0.3s; }
+        .work-card:nth-child(4) { animation-delay: 0.4s; }
+        .work-card:nth-child(5) { animation-delay: 0.5s; }
+
+        .work-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 24px var(--glow-color, rgba(155, 138, 189, 0.2));
+        }
+
+        .work-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .work-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .work-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .work-meta {
+            font-size: 0.76rem;
+            color: var(--text3);
+        }
+        .work-year {
+            padding: 4px 10px;
+            background: var(--accent-light, rgba(155, 138, 189, 0.12));
+            border-radius: 12px;
+            font-size: 0.74rem;
+            color: var(--accent);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .no-works {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text3);
+            font-size: 0.88rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text3);
+            font-size: 0.88rem;
+        }
+
+        .page-footer {
+            text-align: center;
+            padding: 10px 20px 44px;
+            font-size: 0.72rem;
+            color: var(--text3);
+            opacity: 0.75;
+        }
+
+        /* 卡片入场动画 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 光效装饰 */
+        .glow-effect {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--glow-color, rgba(155, 138, 189, 0.15)) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .work-card:hover .glow-effect {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 1.35rem; }
+            
+            .diary-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+            
+            .diary-page-left {
+                flex: none;
+                border-radius: 20px 20px 0 0;
+                border-right: 1px solid var(--border);
+                border-bottom: none;
+                max-height: 400px;
+            }
+            
+            .diary-page-left::before { display: none; }
+            
+            .diary-page-right {
+                border-radius: 0 0 20px 20px;
+                min-height: 300px;
+            }
+            
+            .diary-page-right::before { display: none; }
+            
+            .filter-search { max-width: none; width: 100%; margin-left: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .team-header { flex-direction: column; text-align: center; }
+            .member-item { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-topbar">
+        <a href="index.html" class="topbar-link">← 返回主页</a>
+        <a href="bloggers.html" class="topbar-link switch">游戏博主 →</a>
+    </div>
+
+    <div class="page-header">
+        <span class="icon">🎬</span>
+        <h1>她们 · 主创团队</h1>
+        <div class="sub">女性主导的开发工作室，与她们笔下的世界</div>
+    </div>
+
+    <div class="sample-notice" id="sampleNotice" style="display:none;">
+        📌 当前为占位示例数据，正式收录内容正在整理中
+    </div>
+
+    <div class="filter-row">
+        <button class="filter-chip active" data-tag="全部">全部</button>
+        <div id="tagChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <input type="text" class="filter-search" id="searchInput" placeholder="搜索团队或成员…" />
+    </div>
+
+    <div class="diary-container" id="diaryContainer">
+        <!-- 左页：团队信息 -->
+        <div class="diary-page-left" id="pageLeft">
+            <div id="teamInfoContent">
+                <div class="no-results">← 点击右侧作品卡片查看详情</div>
+            </div>
+        </div>
+        
+        <!-- 右页：作品展示 -->
+        <div class="diary-page-right" id="pageRight">
+            <div class="section-title">🎮 作品列表</div>
+            <div class="works-section" id="worksContent">
+                <div class="no-works">暂无作品数据</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="no-results" id="noResults" style="display:none;">没有找到匹配的团队</div>
+
+    <div class="page-footer">收录说明：信息来自公开渠道 · 如需补充或移除请联系站长</div>
+
+    <script src="js/creators-data.js?v=f30ce3b772"></script>
+    <script>
+        (function () {
+            var DATA = window.HerlensCreators || { teams: [], meta: {} };
+            var teams = DATA.teams || [];
+            var activeTag = '全部';
+            var keyword = '';
+            var selectedTeam = null;
+
+            function esc(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            function hue(name) {
+                var h = 0;
+                for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+                return h;
+            }
+            function logoStyle(t) {
+                return 'background:linear-gradient(135deg,hsl(' + hue(t.name) + ',45%,55%),hsl(' + ((hue(t.name) + 40) % 360) + ',50%,45%))';
+            }
+            function memberAvatarStyle(name) {
+                return 'background:linear-gradient(135deg,hsl(' + hue(name) + ',40%,50%),hsl(' + ((hue(name) + 30) % 360) + ',45%,42%))';
+            }
+            function workIconStyle(title) {
+                return 'background:linear-gradient(135deg,hsl(' + hue(title) + ',35%,55%),hsl(' + ((hue(title) + 25) % 360) + ',40%,48%))';
+            }
+
+            if (DATA.meta && DATA.meta.sample) {
+                document.getElementById('sampleNotice').style.display = '';
+            }
+
+            var tagPool = {};
+            teams.forEach(function (t) {
+                (t.members || []).forEach(function (m) {
+                    String(m.role || '').split(/[\/、,，]/).forEach(function (r) {
+                        r = r.trim();
+                        if (r && r.length <= 8) tagPool[r] = (tagPool[r] || 0) + 1;
+                    });
+                });
+            });
+            var topTags = Object.keys(tagPool).sort(function (a, b) { return tagPool[b] - tagPool[a]; }).slice(0, 6);
+            var chipWrap = document.getElementById('tagChips');
+            topTags.forEach(function (tag) {
+                var b = document.createElement('button');
+                b.className = 'filter-chip';
+                b.setAttribute('data-tag', tag);
+                b.textContent = tag;
+                b.addEventListener('click', function () {
+                    activeTag = tag;
+                    document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+                    b.classList.add('active');
+                    renderWorksList();
+                });
+                chipWrap.appendChild(b);
+            });
+            document.querySelector('.filter-chip[data-tag="全部"]').addEventListener('click', function () {
+                activeTag = '全部';
+                document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+                this.classList.add('active');
+                renderWorksList();
+            });
+
+            document.getElementById('searchInput').addEventListener('input', function () {
+                keyword = this.value.trim().toLowerCase();
+                renderWorksList();
+            });
+
+            function matchTeam(t) {
+                if (keyword) {
+                    var hay = (t.name + (t.story || '') + (t.place || '') + (t.members || []).map(function (m) { return m.name + m.role; }).join('')).toLowerCase();
+                    if (hay.indexOf(keyword) < 0) return false;
+                }
+                if (activeTag !== '全部') {
+                    var roles = (t.members || []).map(function (m) { return String(m.role || ''); }).join('/');
+                    if (roles.indexOf(activeTag) < 0) return false;
+                }
+                return true;
+            }
+
+            function renderWorksList() {
+                var list = teams.filter(matchTeam);
+                document.getElementById('noResults').style.display = list.length ? 'none' : '';
+                
+                var worksHtml = '';
+                list.forEach(function (t) {
+                    (t.works || []).forEach(function (w, idx) {
+                        worksHtml += '<div class="work-card" data-team-id="' + esc(t.id) + '" data-work-idx="' + idx + '">' +
+                            '<div class="work-icon" style="' + workIconStyle(w.title) + '">🎮</div>' +
+                            '<div class="work-info">' +
+                                '<div class="work-title">' + esc(w.title) + '</div>' +
+                                '<div class="work-meta">' + esc(t.name) + ' · ' + esc(w.year || '未知年份') + '</div>' +
+                            '</div>' +
+                            '<div class="work-year">' + esc(w.year || '--') + '</div>' +
+                            '<div class="glow-effect"></div>' +
+                        '</div>';
+                    });
+                });
+                
+                if (!worksHtml) {
+                    worksHtml = '<div class="no-works">暂无匹配的作品</div>';
+                }
+                
+                document.getElementById('worksContent').innerHTML = worksHtml;
+                
+                document.querySelectorAll('.work-card').forEach(function (card) {
+                    card.addEventListener('click', function () {
+                        var teamId = card.getAttribute('data-team-id');
+                        var team = teams.find(function (t) { return t.id === teamId; });
+                        if (team) {
+                            selectTeam(team);
+                        }
+                    });
+                });
+            }
+
+            function selectTeam(t) {
+                selectedTeam = t;
+                
+                var membersHtml = (t.members || []).map(function (m) {
+                    return '<div class="member-item">' +
+                        '<div class="member-avatar" style="' + memberAvatarStyle(m.name) + '">' + esc(m.name.charAt(0)) + '</div>' +
+                        '<div class="member-info">' +
+                            '<div class="member-name">' + esc(m.name) + '</div>' +
+                            '<div class="member-role">' + esc(m.role) + '</div>' +
+                            (m.note ? '<div class="member-note">' + esc(m.note) + '</div>' : '') +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                var linksHtml = (t.links || []).map(function (l) {
+                    var url = l.url === '#' ? 'javascript:void(0)' : l.url;
+                    return '<a class="link-btn" href="' + esc(url) + '"' + (l.url === '#' ? '' : ' target="_blank" rel="noopener noreferrer"') + '>' + esc(l.label) + '</a>';
+                }).join('');
+
+                document.getElementById('teamInfoContent').innerHTML =
+                    '<div class="team-header">' +
+                        '<div class="team-logo" style="' + logoStyle(t) + '">' + esc(t.logoText || t.name.charAt(0)) + '</div>' +
+                        '<div class="team-info">' +
+                            '<h2>' + esc(t.name) + '</h2>' +
+                            '<div class="team-meta">' + esc(t.place || '') + (t.founded ? ' · ' + t.founded + ' 年成立' : '') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="section-title">📖 团队故事</div>' +
+                    '<div class="team-story">' + esc(t.story) + '</div>' +
+                    (membersHtml ? '<div class="section-title">👥 核心成员</div><div class="member-list">' + membersHtml + '</div>' : '') +
+                    (linksHtml ? '<div class="section-title">🔗 了解更多</div><div class="link-btns">' + linksHtml + '</div>' : '');
+                
+                document.getElementById('teamInfoContent').style.animation = 'none';
+                document.getElementById('teamInfoContent').offsetHeight;
+                document.getElementById('teamInfoContent').style.animation = 'fadeInUp 0.4s ease forwards';
+            }
+
+            renderWorksList();
+            
+            if (teams.length > 0) {
+                selectTeam(teams[0]);
+            }
+        })();
+    </script>
+</body>
+
+</html>
