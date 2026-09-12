@@ -695,7 +695,81 @@
                 if (!Array.isArray(list)) return list;
                 return list.map(function (t) { return t === '百合' ? 'GL' : t; });
             }
+
+            // ================================================================
+            // 封面图容错：Steam CDN 镜像自动重试 + 图片代理兜底
+            // ----------------------------------------------------------------
+            // 背景：全站约 90% 的封面来自 *.steamstatic.com。Steam 把同一份图片
+            //   同时挂在 3 个互为镜像的子域上（同路径字节完全一致）。用「真实浏览器 +
+            //   30 条线上真实封面路径」实测（2026-09）：
+            //     shared.akamai.steamstatic.com      30/30
+            //     shared.fastly.steamstatic.com      29/30
+            //     shared.cloudflare.steamstatic.com  30/30
+            //   三个镜像平时都通；真正的问题是**首屏一次性并发拉上百张时会出现偶发失败**
+            //   （连接被重置，失败很快返回而不是超时），表现为「总有几张图加载不出来」。
+            // 策略：**不改动任何 URL、不改动数据**，只在「这张图真的加载失败了」时，
+            //   按顺序去其他镜像重试 → 再退到图片代理。任何一张图因此多出好几次机会，
+            //   而且因为原地址永远是第一顺位，**不可能让原本能加载的图变差**。
+            // ================================================================
+            var STEAM_IMG_HOST_RE = /^shared\.(?:akamai|fastly|cloudflare)\.steamstatic\.com$/;
+            // 失败时的重试顺序（三个镜像字节一致，可互换；akamai 实测最稳最快）
+            var STEAM_IMG_MIRRORS = [
+                'shared.akamai.steamstatic.com',
+                'shared.cloudflare.steamstatic.com',
+                'shared.fastly.steamstatic.com'
+            ];
+            // 免费图片代理（站点此前已人工用它修过 4 张封面，实测可用；
+            //   已验证它不会把「原图 404」伪装成成功，故不会盖掉站点自己的占位图）
+            var IMG_PROXY_PREFIX = 'https://wsrv.nl/?url=';
+
+            // 给定一张图的原始地址，列出所有可重试的候选（其他镜像 → 代理）
+            function imageFallbackCandidates(src) {
+                var out = [];
+                if (!src || typeof src !== 'string') return out;
+                var m = /^https?:\/\/([^/?#]+)([^?#]*)(\?[^#]*)?/i.exec(src);
+                if (!m) return out;
+                var host = m[1], path = m[2] || '', query = m[3] || '';
+                if (STEAM_IMG_HOST_RE.test(host)) {
+                    for (var i = 0; i < STEAM_IMG_MIRRORS.length; i++) {
+                        var h = STEAM_IMG_MIRRORS[i];
+                        if (h !== host) out.push('https://' + h + path + query);
+                    }
+                }
+                // 代理兜底：把「主机+路径」交给代理去取，绕开原站 CDN 的可达性问题
+                // （已经是代理地址的不再套一层，避免「代理套代理」；
+                //   本机/内网地址代理够不着，也没必要走代理）
+                if (host !== 'wsrv.nl' && host !== 'images.weserv.nl' &&
+                    !/^(localhost|127\.|0\.0\.0\.0|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) {
+                    out.push(IMG_PROXY_PREFIX + encodeURIComponent(host + path + query));
+                }
+                return out;
+            }
+
+            // 全局图片错误兜底：单点接管，无需逐个改渲染模板。
+            // 注：img 的 error 事件不冒泡，但会在捕获阶段经过 document，故用 capture。
+            function installImageFallback() {
+                document.addEventListener('error', function (e) {
+                    var img = e.target;
+                    if (!img || img.tagName !== 'IMG') return;
+                    if (!img.dataset.hlImgBase) {
+                        img.dataset.hlImgBase = img.getAttribute('src') || '';
+                    }
+                    var base = img.dataset.hlImgBase;
+                    if (!base) return;
+                    var cands = imageFallbackCandidates(base);
+                    // hlImgIdx 记录「下一个要试的候选下标」；初始 -1 表示还没试过
+                    var next = (img.dataset.hlImgIdx === undefined ? 0 : parseInt(img.dataset.hlImgIdx, 10) + 1);
+                    if (!cands.length || next >= cands.length) return; // 无候选可用 → 放行，交给各处的 onerror 显示占位
+                    img.dataset.hlImgIdx = String(next);
+                    // 阻止事件到达 img 自身的内联 onerror，避免它提前把图片隐藏/换成占位
+                    e.stopPropagation();
+                    img.src = cands[next];
+                }, true);
+            }
+
             // 对整个 games 数组做一次性归一化（百合→GL、id 类型等）
+            // ⚠️ 这里**不做封面 URL 换域**：封面兜底改成「加载失败才重试」（见 installImageFallback），
+            //    避免改写数据、也避免把本来能加载的地址换掉。
             function normalizeGamesArray(arr) {
                 if (!Array.isArray(arr)) return [];
                 return arr.map(function (g) {
@@ -8913,7 +8987,13 @@
                             var results = await Promise.all([
                                 supabaseClient
                                     .from('user_profiles')
-                                    .select('display_name, avatar_url, custom_id, bio, created_at, equipped_title')
+                                    // ⚠️ 此处的列名必须是 user_profiles 真实存在的列。
+                                    //    曾在这里写 created_at —— 该表没有此列 → PostgREST 报
+                                    //    42703，整条查询 400 → profileData 为 null → 他人主页的
+                                    //    昵称/头像/专属ID/签名/头衔全部拿不到（只剩评论兜底），
+                                    //    且 bio 与 equipped_title 没有兜底来源，会永远为空。
+                                    //    注册时间请走下文的独立查询（regRes），缺列时静默降级。
+                                    .select('display_name, avatar_url, custom_id, bio, equipped_title')
                                     .eq('user_id', targetUserId)
                                     .maybeSingle(),
                                 supabaseClient
@@ -8929,12 +9009,22 @@
                                     .select('id, game_id, comment, selected_tags, verdict, created_at, updated_at, user_id, display_name, avatar_url, custom_id')
                                     .eq('user_id', targetUserId)
                                     .order('updated_at', { ascending: false })
-                                    .limit(30)
+                                    .limit(30),
+                                // 注册时间：单独查一次，容错。
+                                // user_profiles.created_at 可能尚未建立（跑过
+                                // supabase/patch_user_profiles.sql 后才会有）；
+                                // 缺列时只影响这一项，不影响上面的主资料查询。
+                                supabaseClient
+                                    .from('user_profiles')
+                                    .select('created_at')
+                                    .eq('user_id', targetUserId)
+                                    .maybeSingle()
                             ]);
                             var profileRes = results[0] || {};
                             var wishlistRes = results[1] || {};
                             var playedRes = results[2] || {};
                             var reviewsRes = results[3] || {};
+                            var regRes = results[4] || {};
                             var profileData = profileRes.data;
                             var reviewsData = (!reviewsRes.error && reviewsRes.data) ? reviewsRes.data : [];
 
@@ -8945,7 +9035,8 @@
                             var displayName = (profileData && profileData.display_name) || (fallbackFromReview && fallbackFromReview.display_name) || null;
                             var customId = (profileData && profileData.custom_id) || (fallbackFromReview && fallbackFromReview.custom_id) || null;
                             var bio = (profileData && profileData.bio) || null;
-                            var createdAt = (profileData && profileData.created_at) || null;
+                            // 注册时间取自独立查询：regRes.error（列不存在）时静默降级为不显示
+                            var createdAt = (regRes && !regRes.error && regRes.data && regRes.data.created_at) || null;
                             var equippedTitle = (profileData && profileData.equipped_title) || null;
 
                             if (avatarUrl) {
@@ -8954,6 +9045,9 @@
                             usernameEl.textContent = escapeHTML(displayName || '用户');
                             customIdEl.textContent = customId ? '@' + escapeHTML(customId) : '';
                             bioInputOther.value = bio || '';
+                            // ★ 与「自己主页」保持一致：设置完值立即按内容撑高。
+                            //   该 textarea 是 rows="2" + overflow:hidden，不调用会被裁掉第 3 行以后。
+                            autoResizeBio(bioInputOther);
                             if (createdAt) {
                                 var ud = new Date(createdAt);
                                 regTimeEl.textContent = '注册于 ' + ud.getFullYear() + '.' + String(ud.getMonth() + 1).padStart(2, '0') + '.' + String(ud.getDate()).padStart(2, '0');
@@ -8978,7 +9072,12 @@
                                 console.warn('读取他人已玩过失败（可能是 RLS 未开放公开读）:', playedRes.error.message, 'user_id=', targetUserId);
                             }
                             if (profileRes.error) {
-                                console.warn('读取他人 user_profiles 失败（可能是 RLS 未开放公开读）:', profileRes.error.message, 'user_id=', targetUserId);
+                                // 注意：user_profiles 是允许公开读的（已验证），此处报错多半是
+                                // 列名写错（42703）或表结构变更，别一律归因于 RLS。
+                                console.warn('读取他人 user_profiles 失败（请检查列名/RLS）:', profileRes.error.message, 'user_id=', targetUserId);
+                            }
+                            if (regRes.error) {
+                                console.warn('读取他人注册时间失败（可能缺 created_at 列，跑 patch_user_profiles.sql 可补）:', regRes.error.message, 'user_id=', targetUserId);
                             }
                             var otherWishlistIds = (!wishlistRes.error && wishlistRes.data)
                                 ? wishlistRes.data.map(function (item) { return Math.round(Number(item.game_id)); }).filter(Boolean)
@@ -16138,6 +16237,8 @@
             // ★★★ 初始化 ★★★
             // ================================================================
             async function init() {
+                // ★ 最先挂上图片兜底监听，确保首屏渲染的图片失败时也能被接管
+                installImageFallback();
                 loadSettings();
                 loadUserData();
 

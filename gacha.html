@@ -389,6 +389,37 @@ html{overflow-y:auto}
     function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)]}
 
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+    /* ========== 封面图容错（与 index.html 同策略，详见 js/app.js 顶部说明）==========
+       Steam 把同一份封面同时挂在 3 个互为镜像的子域上（字节一致，可互换），
+       三个镜像平时都通；偶发失败主要出现在首屏并发拉取大量封面时。
+       此处**不改动任何 URL**，只在一张封面真的加载失败时依次：
+       重试其他镜像 → 图片代理 → 放弃（交回原有占位逻辑）。 */
+    var STEAM_MIRRORS=['shared.akamai.steamstatic.com','shared.cloudflare.steamstatic.com','shared.fastly.steamstatic.com'];
+    function imgCandidates(src){
+        var m=/^https?:\/\/([^/?#]+)([^?#]*)(\?[^#]*)?/i.exec(src||''); if(!m) return [];
+        var out=[];
+        if(/^shared\.(?:akamai|fastly|cloudflare)\.steamstatic\.com$/.test(m[1])){
+            STEAM_MIRRORS.forEach(function(h){ if(h!==m[1]) out.push('https://'+h+m[2]+(m[3]||'')); });
+        }
+        /* 已是代理地址的不再套一层，避免「代理套代理」 */
+        if(m[1]!=='wsrv.nl'&&m[1]!=='images.weserv.nl')
+            out.push('https://wsrv.nl/?url='+encodeURIComponent(m[1]+m[2]+(m[3]||'')));
+        return out;
+    }
+
+    document.addEventListener('error',function(e){
+        var img=e.target;
+        if(!img||img.tagName!=='IMG') return;
+        if(!img.dataset.hlImgBase) img.dataset.hlImgBase=img.getAttribute('src')||'';
+        var c=imgCandidates(img.dataset.hlImgBase); if(!c.length) return;
+        var n=(img.dataset.hlImgIdx===undefined?0:parseInt(img.dataset.hlImgIdx,10)+1);
+        if(n>=c.length) return;
+        img.dataset.hlImgIdx=String(n);
+        e.stopPropagation();          /* 阻止内联 onerror 提前显示占位 */
+        img.src=c[n];
+    },true);
+
     function loadGames(){var l=localStorage.getItem(STORAGE_KEY);if(l){try{var p=JSON.parse(l);games=p.map(function(g){return Object.assign({},g,{id:Number(g.id)})}).filter(function(g){return g.id!==1&&g.id!==2&&!g.isDraft})}catch(_){games=[]}}}
     function loadSettings(){
         try{
