@@ -74,7 +74,7 @@
             return window._lazyLoadScript('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'QRCode', 10000);
         };
     </script>
-    <link rel="stylesheet" href="css/style.css?v=5f02c70979" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
+    <link rel="stylesheet" href="css/style.css?v=72313b5469" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
 </head>
 
 <body data-theme="light" data-page-node-id="9D0oKelu9L73kLVNf5sXGl">
@@ -580,8 +580,6 @@
             <button class="btn btn-sm" id="btnImportCSV" title="从CSV批量导入" style="display:none;" data-page-node-id="CD364Qg3cGdtbdPWCo1ke7">📂 导入</button>
             <button class="btn btn-sm" id="btnBuffer" title="查看导入缓冲区（CSV导入的游戏先在此完善）" style="display:none;" data-page-node-id="Sg6if9HKmRNwFWsrICvSTl">🗂 缓冲区</button>
             <input type="file" id="csvFileInput" accept=".csv" style="display:none;" data-page-node-id="Dh2GpCuxo7L36gk7MbKNhF" />
-
-            <span class="sync-status" id="syncStatus" data-page-node-id="wPKZfyBlDWxp5P6csf3qSS">☁️ 已同步</span>
         </div>
     </div>
 
@@ -1136,6 +1134,18 @@
                 <p class="settings-coin-hint" data-page-node-id="iiABVs0LvyOAiQFkg5fhjF">每日登录各 +1，评论游戏各 +1（每日前 3 条）</p>
             </div>
 
+            <!-- 云同步 -->
+            <div class="profile-header-card settings-section-card" id="spSyncCard">
+                <div class="settings-section-title">☁️ 云同步</div>
+                <div class="settings-toggle-row">
+                    <span>同步状态</span>
+                    <span class="sync-status synced" id="spSyncStatus" style="cursor:default;">☁️ 已同步</span>
+                </div>
+                <p class="settings-coin-hint" id="spSyncTime" style="margin-top:8px;">上次同步：—</p>
+                <p class="settings-coin-hint" style="margin-top:10px; line-height:1.6;">在手机上标记过玩过、愿望单或写过评论后，点下面的按钮把最新数据拉到这台设备。</p>
+                <button class="btn btn-accent" id="spSyncNowBtn" style="width:100%; padding:10px; margin-top:12px;">🔄 立即同步</button>
+            </div>
+
             <!-- 每日健康贴士开关 -->
             <div class="profile-header-card settings-section-card" data-page-node-id="tVUjdlGjaNwQYyh3K9wG8v">
                 <div class="settings-section-title" data-page-node-id="hnFc5mJyVsTytcCM8ryDCX">💡 每日健康贴士</div>
@@ -1459,7 +1469,7 @@
     <script src="js/daily-tip.js?v=cdc9de80f7" defer></script>
     <script src="js/herlens-extensions.js?v=a3da23c407" defer></script>
     <script src="js/tip-reminder.js?v=b91965e049" defer></script>
-    <script src="js/app.js?v=e63745621b" defer></script>
+    <script src="js/app.js?v=2d99325314" defer></script>
 
     </body>
 

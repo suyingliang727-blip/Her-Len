@@ -180,7 +180,7 @@
             let excludedTags = { genre: [], gameplay: [], platforms: [], heroineType: [], costumeType: [], perspective: [] };
             let blockOpenDims = new Set(['genre']);
             let blockSearchQuery = '';
-            let userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null };
+            let userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} };
             let searchTimeout = null;
             let cardObserver = null;
             let card3DListeners = [];
@@ -1313,8 +1313,12 @@
                         }));
                         userData.titles = parsed.titles || [];
                         userData.equippedTitle = parsed.equippedTitle || null;
-                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null }; }
-                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null }; }
+                        // ★ 同步墓碑：记录「本机删除过什么」与「本机添加过什么」，
+                        //   用于把删除意图传给其他设备（详见 user_deletions.sql 顶部说明）
+                        userData.tombstones = (parsed.tombstones && typeof parsed.tombstones === 'object') ? parsed.tombstones : {};
+                        userData.localAdds = (parsed.localAdds && typeof parsed.localAdds === 'object') ? parsed.localAdds : {};
+                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} }; }
+                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} }; }
 
                 // 迁移：旧版本使用通用 heroineUserData key，首次登录时迁移到用户专属 key
                 const legacyKey = 'heroineUserData';
@@ -1344,6 +1348,141 @@
             // ================================================================
             let _pendingCloudOps = [];
 
+            // ================================================================
+            // 同步墓碑：把「删除」这件事本身同步出去
+            // ----------------------------------------------------------------
+            // 【为什么需要】三张表跨设备同步是「取并集」（云端行 ∪ 本地行）。
+            //   并集只能表达「有」，表达不了「没有」。于是手机取消「玩过」后，
+            //   电脑本地仍留着旧记录，下次同步发现「本地有、云端没有」→ 又推回云端
+            //   → 删除被另一台设备「复活」。
+            // 【怎么办】删除时记一条「墓碑」（本机删除时间），并上传到云端。
+            //   同步时先读墓碑：凡墓碑时间 >= 该行的创建时间，删除即有效
+            //   → 删云端行 + 其他设备本地也跟随删除。
+            //   反之若该行是在删除之后重新创建的（时间更新），墓碑自动失效，不会误删。
+            // ⚠️ 依赖 supabase/user_deletions.sql；未建表时全部静默降级为旧行为。
+            // ================================================================
+            const TOMB_TABLE = 'user_deletions';
+            const TOMB_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 本地墓碑保留 30 天，之后自然清掉
+            const TOMB_RETRY_MS = 5 * 60 * 1000;          // 云端未建表时的重试间隔（避免反复打 404）
+            let _tombTableMissing = false;                // 云端未建表
+            let _tombRetryAfter = 0;                      // 下次允许重试的时间
+
+            // 是否允许向云端请求墓碑表：未建表时退避重试，
+            // 既避免控制台反复出现 404，又能在用户跑完 SQL 后自动恢复（无需刷新页面）
+            function _canTryTomb() { return !_tombTableMissing || Date.now() > _tombRetryAfter; }
+            function _markTombTableMissing() {
+                _tombTableMissing = true;
+                _tombRetryAfter = Date.now() + TOMB_RETRY_MS;
+            }
+
+            function _tombKey(table, gameId) { return table + ':' + Number(gameId); }
+
+            function _getTombstones() {
+                if (!userData.tombstones || typeof userData.tombstones !== 'object') userData.tombstones = {};
+                return userData.tombstones;
+            }
+            function _getLocalAdds() {
+                if (!userData.localAdds || typeof userData.localAdds !== 'object') userData.localAdds = {};
+                return userData.localAdds;
+            }
+
+            // 本机删除：记墓碑、撤销本机添加时间
+            function markTombstone(table, gameId, ts) {
+                const k = _tombKey(table, gameId);
+                _getTombstones()[k] = ts || Date.now();
+                delete _getLocalAdds()[k];
+            }
+            // 本机添加：记添加时间、清本机墓碑（「删了又加回来」以此判定）
+            function markLocalAdd(table, gameId, ts) {
+                const k = _tombKey(table, gameId);
+                _getLocalAdds()[k] = ts || Date.now();
+                delete _getTombstones()[k];
+            }
+            function clearTombstone(table, gameId) { delete _getTombstones()[_tombKey(table, gameId)]; }
+
+            // 本地视角：该记录当前是否处于「已删除」状态
+            // （有墓碑，且墓碑晚于本机最后一次添加；本机添加时间缺省视为更早，即删除有效）
+            function isTombstoned(table, gameId) {
+                const k = _tombKey(table, gameId);
+                const d = _getTombstones()[k];
+                if (!d) return false;
+                const a = _getLocalAdds()[k];
+                if (a && a > d) return false; // 删除之后又标记过
+                return true;
+            }
+
+            function _isMissingTableErr(error) {
+                if (!error) return false;
+                const m = String(error.message || '') + ' ' + String(error.details || '') + ' ' + String(error.hint || '');
+                return error.code === '42P01' || error.code === 'PGRST205' ||
+                    /does not exist|schema cache|Could not find the table/i.test(m);
+            }
+
+            // 上传本机墓碑到云端（顺带清理过期墓碑）。
+            // 结果：即使某次删除时断网，删除意图也会在下次同步时补传，不会丢。
+            async function pushTombstonesToCloud() {
+                if (!userData) return false;
+                const tomb = _getTombstones();
+                const now = Date.now();
+                let localChanged = false;
+
+                // 清理超过 TTL 的本地墓碑，防止无限增长
+                for (const k in tomb) {
+                    if (!tomb[k] || (now - tomb[k]) > TOMB_TTL_MS) { delete tomb[k]; localChanged = true; }
+                }
+                if (!currentUser || !supabaseClient || !_canTryTomb()) return localChanged;
+
+                const rows = [];
+                for (const k in tomb) {
+                    const i = k.lastIndexOf(':');
+                    if (i <= 0) continue;
+                    const table = k.slice(0, i);
+                    const gameId = Number(k.slice(i + 1));
+                    if (!Number.isInteger(gameId) || gameId <= 0) continue;
+                    if (!isTombstoned(table, gameId)) continue; // 本机删了又加回来的，不上传
+                    rows.push({
+                        user_id: currentUser.id,
+                        table_name: table,
+                        game_id: gameId,
+                        deleted_at: new Date(tomb[k]).toISOString()
+                    });
+                }
+                if (rows.length === 0) return localChanged;
+
+                try {
+                    const { error } = await supabaseClient
+                        .from(TOMB_TABLE)
+                        .upsert(rows, { onConflict: 'user_id,table_name,game_id' });
+                    if (error) {
+                        if (_isMissingTableErr(error)) {
+                            _markTombTableMissing();
+                            console.warn('⚠️ 云端未建 user_deletions 表，本次跳过墓碑同步。请到 Supabase SQL Editor 执行 supabase/user_deletions.sql');
+                        } else {
+                            console.warn('[墓碑] 上传失败:', error.message);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[墓碑] 上传异常:', e && e.message);
+                }
+                return localChanged;
+            }
+
+            // 撤销云端某条墓碑（本机重新标记时调用，否则云端墓碑会把这条重新删掉）
+            async function deleteCloudTombstone(table, gameId) {
+                if (!currentUser || !supabaseClient || !_canTryTomb()) return;
+                const gid = Number(gameId);
+                if (!Number.isInteger(gid) || gid <= 0) return;
+                try {
+                    const { error } = await supabaseClient
+                        .from(TOMB_TABLE)
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('table_name', table)
+                        .eq('game_id', gid);
+                    if (error && _isMissingTableErr(error)) _markTombTableMissing();
+                } catch (e) { /* 静默：墓碑撤销失败只会导致多删一次，下次同步会按创建时间自动纠正 */ }
+            }
+
             function _processPendingCloudOps() {
                 if (!currentUser || !supabaseClient) return;
                 const ops = _pendingCloudOps.splice(0);
@@ -1357,12 +1496,38 @@
             }
 
             async function deleteFromCloud(table, gameId) {
-                if (!currentUser || !supabaseClient) {
-                    _pendingCloudOps.push({ type: 'delete', table, gameId });
-                    return;
-                }
                 const gameIdNum = Number(gameId);
                 if (!Number.isInteger(gameIdNum) || gameIdNum <= 0) return;
+                // ★ 先记本地墓碑：它是「删除意图」的唯一真相。
+                //   无论是否登录、是否联网，都会留下记录，下次同步补传 → 删除不会丢。
+                //   已存在则保留原时间（重复调用=同一次删除意图，不刷新时间戳）
+                markTombstone(table, gameIdNum, _getTombstones()[_tombKey(table, gameIdNum)] || Date.now());
+                if (!currentUser || !supabaseClient) {
+                    _pendingCloudOps.push({ type: 'delete', table, gameId: gameIdNum });
+                    return;
+                }
+                // ★ 同时把墓碑写进云端：这是让「其他设备」知道这条已被删除的唯一途径
+                if (_canTryTomb()) {
+                    supabaseClient
+                        .from(TOMB_TABLE)
+                        .upsert({
+                            user_id: currentUser.id,
+                            table_name: table,
+                            game_id: gameIdNum,
+                            deleted_at: new Date(_getTombstones()[_tombKey(table, gameIdNum)] || Date.now()).toISOString()
+                        }, { onConflict: 'user_id,table_name,game_id' })
+                        .then(({ error }) => {
+                            if (error) {
+                                if (_isMissingTableErr(error)) {
+                                    _markTombTableMissing();
+                                    console.warn('⚠️ 云端未建 user_deletions 表，删除将无法同步到其他设备。请执行 supabase/user_deletions.sql');
+                                } else {
+                                    console.warn('[墓碑] 写入失败:', error.message);
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                }
                 try {
                     const { error } = await supabaseClient
                         .from(table)
@@ -1381,12 +1546,18 @@
             }
 
             async function pushToCloud(table, gameId) {
-                if (!currentUser || !supabaseClient) {
-                    _pendingCloudOps.push({ type: 'push', table, gameId });
-                    return;
-                }
                 const gameIdNum = Number(gameId);
                 if (!Number.isInteger(gameIdNum) || gameIdNum <= 0) return;
+                // ★ 防御：本机墓碑显示「已删除」时不允许再推回云端
+                //   （正常路径不会命中——重新标记会先清墓碑；这里挡的是竞态与异常时序）
+                if (isTombstoned(table, gameIdNum)) {
+                    console.log(`🚫 跳过推送 [${table}] game_id: ${gameIdNum}（本机已删除，防止复活）`);
+                    return;
+                }
+                if (!currentUser || !supabaseClient) {
+                    _pendingCloudOps.push({ type: 'push', table, gameId: gameIdNum });
+                    return;
+                }
                 try {
                     const { error } = await supabaseClient.from(table).insert({ user_id: currentUser.id, game_id: gameIdNum });
                     if (error) {
@@ -1401,7 +1572,7 @@
                         setSyncStatus('error', '未同步');
                     } else {
                         console.log(`✅ 云端写入成功 [${table}] game_id: ${gameIdNum}`);
-                        if (document.getElementById('syncStatus').classList.contains('error')) {
+                        if (_syncState === 'error') {
                             setSyncStatus('synced', '已同步');
                         }
                     }
@@ -1578,9 +1749,11 @@
                 const idx = userData.wishlist.indexOf(id);
                 if (idx >= 0) {
                     userData.wishlist.splice(idx, 1);
-                    deleteFromCloud('user_wishlist', id);
+                    deleteFromCloud('user_wishlist', id); // 内部记墓碑 + 上传，其他设备会跟随删除
                 } else {
                     userData.wishlist.push(id);
+                    markLocalAdd('user_wishlist', id);        // ★ 记本机添加时间（覆盖此前的删除意图）
+                    deleteCloudTombstone('user_wishlist', id); // ★ 撤销云端墓碑，否则会被重新删掉
                     pushToCloud('user_wishlist', id);
                 }
                 saveUserData();
@@ -1597,9 +1770,11 @@
                 const idx = userData.played.indexOf(id);
                 if (idx >= 0) {
                     userData.played.splice(idx, 1);
-                    deleteFromCloud('user_played', id);
+                    deleteFromCloud('user_played', id); // 内部记墓碑 + 上传，其他设备会跟随删除
                 } else {
                     userData.played.push(id);
+                    markLocalAdd('user_played', id);        // ★ 记本机添加时间
+                    deleteCloudTombstone('user_played', id); // ★ 撤销云端墓碑
                     checkAchievements();
                     setTimeout(() => { try { checkTitleUnlocks(); } catch (e) {} }, 50);
                     pushToCloud('user_played', id);
@@ -1631,6 +1806,25 @@
                     playBtn.className = 'action-btn action-play' + (inP ? ' active-played' : '');
                     playBtn.innerHTML = `<span class="icon">${inP ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inP ? '已玩过' : '标记玩过'}</span>`;
                 }
+            }
+
+            // ★ 把首屏所有卡片的「愿望单 / 玩过」按钮状态整体刷新一遍
+            //   为什么必须显式调用：renderGallery() 会**复用已有卡片 DOM**
+            //   （命中 _cardMap 时直接 appendChild，不重建），所以卡片里的按钮不会跟着最新
+            //   userData 更新。跨设备同步（手机上标记 → 电脑上显示）就卡在这里。
+            function refreshAllCardButtonStates() {
+                const ids = new Set();
+                // 常规网格：卡片都在 _cardMap 里
+                if (_cardMap) _cardMap.forEach((_c, id) => ids.add(id));
+                // 系列视图等未注册进 _cardMap 的卡片：直接扫 DOM
+                document.querySelectorAll('.gallery-card[data-game-id]').forEach(c => {
+                    const id = Number(c.dataset.gameId);
+                    if (Number.isInteger(id)) ids.add(id);
+                });
+                // 兜底：本地列表里有、但当前没渲染出来的（无卡片时 updateCardButtonState 会直接返回）
+                (userData.played || []).forEach(id => ids.add(Number(id)));
+                (userData.wishlist || []).forEach(id => ids.add(Number(id)));
+                ids.forEach(id => { try { updateCardButtonState(id); } catch (e) {} });
             }
 
             // ================================================================
@@ -2326,6 +2520,8 @@
                         updated_at: new Date().toISOString()
                     });
                 }
+                markLocalAdd('user_reviews', Math.round(Number(gameId)));            // ★ 记本机添加时间
+                deleteCloudTombstone('user_reviews', Math.round(Number(gameId)));    // ★ 撤销云端墓碑，否则会被同步删掉
                 saveUserData();
                 // 评论保存后检测头衔解锁
                 setTimeout(() => { try { checkTitleUnlocks(); } catch (e) { console.warn('头衔检测异常:', e); } }, 60);
@@ -2512,29 +2708,24 @@
 
             async function deleteReview(gameId) {
                 if (!currentUser) { showToast('请先登录', 2000); return; }
-                userData.reviews = userData.reviews.filter(r => r.game_id !== gameId);
+                const gid = Math.round(Number(gameId));
+                userData.reviews = userData.reviews.filter(r => r.game_id !== gid);
+                markTombstone('user_reviews', gid); // ★ 记墓碑，防止被其他设备复活
                 saveUserData();
                 invalidateReviewCountCache();
-                invalidateReviewsListCache(gameId); // ★ 清除评论列表缓存
+                invalidateReviewsListCache(gid); // ★ 清除评论列表缓存
                 const detailOverlay = cacheEl('detailModalOverlay');
                 if (detailOverlay && detailOverlay.classList.contains('show')) {
                     const currentGameId = detailOverlay.dataset.gameId;
-                    if (currentGameId && Number(currentGameId) === Number(gameId)) {
-                        const game = games.find(g => g.id === Number(gameId));
+                    if (currentGameId && Number(currentGameId) === gid) {
+                        const game = games.find(g => g.id === gid);
                         if (game) showDetailModal(game);
                     }
                 }
-                if (!supabaseClient) return;
-                try {
-                    const { error } = await supabaseClient.from('user_reviews').delete().eq('user_id', currentUser.id).eq(
-                        'game_id', Number(gameId));
-                    if (error) {
-                        console.error('❌ 删除评论失败:', error);
-                        showToast('⚠️ 删除失败，请重试', 2000);
-                    } else {
-                        console.log('✅ 评论删除成功');
-                    }
-                } catch (e) { console.error('❌ 删除评论异常:', e); }
+                // ★ 统一走 deleteFromCloud：写入云端墓碑 + 删除云端行；
+                //   断网/失败时自动入队并保留本地墓碑，下次同步补删。
+                //   （原实现失败只弹提示不重试 → 删除会永久丢失）
+                await deleteFromCloud('user_reviews', gid);
             }
 
             // ★ 缓存：评论区 user_profiles custom_id 批量查询结果（短期，避免重复打 Supabase）
@@ -2934,6 +3125,10 @@
             // isDraft 列不存在时（尚未执行 add_is_draft_column.sql），降级为不带该字段的查询，避免同步报错
             let _isDraftColumnMissing = false;
 
+            // 同步状态快照：顶栏「☁️ 已同步」胶囊已撤（入口改到设置页），设置页区块据此渲染
+            let _syncState = 'synced';
+            let _syncStateMsg = '';
+
             function invalidateSyncCache() {
                 try { localStorage.removeItem(SYNC_META_KEY); } catch (_) {}
             }
@@ -2944,20 +3139,65 @@
             }
 
             function setSyncStatus(status, msg) {
+                _syncState = status;
+                _syncStateMsg = msg || '';
+                // 顶栏胶囊已撤（页面里没有 #syncStatus → 自动跳过）；保留该分支便于将来恢复顶栏显示
                 const el = document.getElementById('syncStatus');
+                if (el) {
+                    el.className = 'sync-status';
+                    if (status === 'synced') {
+                        el.classList.add('synced');
+                        el.textContent = '☁️ 已同步';
+                    } else if (status === 'syncing') {
+                        el.classList.add('syncing');
+                        el.textContent = '⏳ ' + (msg || '正在展开地图');
+                    } else if (status === 'error') {
+                        el.classList.add('error');
+                        el.textContent = '⚠️ ' + (msg || '同步失败');
+                    } else { el.textContent = '☁️ ' + (msg || '就绪'); }
+                }
+                // 设置页「☁️ 云同步」区块与顶栏胶囊同源显示
+                syncSettingsStatusUI(status, msg);
+                refreshSettingsSyncTime();
+            }
+
+            // ★ 设置页「☁️ 云同步」：状态由 setSyncStatus() 统一驱动（顶栏胶囊已撤）
+            function refreshSettingsSyncTime() {
+                var el = document.getElementById('spSyncTime');
+                if (!el) return;
+                var ts = _lastSyncTime;
+                if (!ts) { el.textContent = '上次同步：—'; return; }
+                var d = new Date(ts);
+                var p = function (n) { return (n < 10 ? '0' : '') + n; };
+                el.textContent = '上次同步：' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + p(d.getHours()) + ':' + p(d.getMinutes());
+            }
+
+            function syncSettingsStatusUI(status, msg) {
+                var el = document.getElementById('spSyncStatus');
                 if (!el) return;
                 el.className = 'sync-status';
-                if (status === 'synced') {
-                    el.classList.add('synced');
-                    el.textContent = '☁️ 已同步';
-                } else if (status === 'syncing') {
-                    el.classList.add('syncing');
-                    el.textContent = '⏳ ' + (msg || '正在展开地图');
-                } else if (status === 'error') {
-                    el.classList.add('error');
-                    el.textContent = '⚠️ ' + (msg || '同步失败');
-                } else { el.textContent = '☁️ ' + (msg || '就绪'); }
+                if (!currentUser) { el.textContent = '未登录'; return; }
+                if (status === 'syncing') { el.classList.add('syncing'); el.textContent = '⏳ ' + (msg || '正在同步'); }
+                else if (status === 'error') { el.classList.add('error'); el.textContent = '⚠️ ' + (msg || '同步失败'); }
+                else { el.classList.add('synced'); el.textContent = '☁️ 已同步'; }
             }
+
+            // ★ 手动同步：顶栏胶囊与设置页「🔄 立即同步」按钮共用同一实现
+            async function triggerManualSync() {
+                if (!currentUser) { showToast('登录后才能同步数据', 1500); return; }
+                if (_syncInProgress) { showToast('正在同步中，请稍候…', 1200); return; }
+                _lastSyncTime = Date.now();
+                setSyncStatus('syncing', '正在展开地图');
+                try {
+                    await syncUserDataWithCloud();
+                    await _processPendingCloudOps();
+                    if (_syncState !== 'error') showToast('✅ 已与云端同步', 1500);
+                } catch (e) {
+                    console.warn('[Sync] 手动同步失败:', e && e.message);
+                }
+            }
+
+            // （顶栏「☁️ 已同步」胶囊已撤，手动同步入口 = 设置页「🔄 立即同步」，见 triggerManualSync）
 
             async function loadFromSupabase() {
                 const client = getSupabase();
@@ -14085,6 +14325,9 @@
                 if (typeof initBlockSettingsOnPage === 'function') {
                     initBlockSettingsOnPage();
                 }
+                // 云同步状态：直接用状态快照渲染（顶栏胶囊已撤）
+                syncSettingsStatusUI(_syncState, _syncStateMsg);
+                refreshSettingsSyncTime();
                 page.style.display = 'flex';
                 window.scrollTo(0, 0);
             }
@@ -14103,8 +14346,12 @@
                     var spTagSearch = document.getElementById('spBlockTagSearch');
                     var spClearAll = document.getElementById('spBlockClearAll');
                     var spSaveBtn = document.getElementById('spBlockSaveBtn');
+                    var spSyncNowBtn = document.getElementById('spSyncNowBtn');
 
                     if (closeBtn) closeBtn.onclick = closeSettingsPage;
+
+                    // 设置页「🔄 立即同步」
+                    if (spSyncNowBtn) spSyncNowBtn.onclick = function () { triggerManualSync(); };
 
                     if (tipToggle) tipToggle.onclick = function () {
                         if (!window.HerlensDailyTip) return;
@@ -15512,6 +15759,8 @@
             // 云端同步
             // ================================================================
             let _syncInProgress = false;
+            // 「上次与云端同步」的时间戳：后台轮询 / 回到页面 / 手动点击，三处共享同一个节流基准
+            let _lastSyncTime = 0;
             async function syncUserDataWithCloud(retryCount = 0) {
                 if (!currentUser || !supabaseClient) {
                     console.warn('未登录或 Supabase 未初始化，跳过同步');
@@ -15606,11 +15855,18 @@
                         }
                     };
 
-                    const [wishlistRes, playedRes, reviewsRes] = await Promise.all([
-                        supabaseClient.from('user_wishlist').select('game_id').eq('user_id', userId),
-                        supabaseClient.from('user_played').select('game_id').eq('user_id', userId),
+                    // 墓碑表：可能尚未建立（未跑 SQL）→ 单独容错，绝不拖垮主同步。
+                    // 已知未建表时进入退避期，跳过请求以免控制台反复出现 404
+                    const _triedTomb = _canTryTomb();
+                    const [wishlistRes, playedRes, reviewsRes, tombRes] = await Promise.all([
+                        // 带上 created_at：用于判断「墓碑是否发生在该行创建之后」
+                        supabaseClient.from('user_wishlist').select('game_id, created_at').eq('user_id', userId),
+                        supabaseClient.from('user_played').select('game_id, created_at').eq('user_id', userId),
                         supabaseClient.from('user_reviews').select('game_id, verdict, selected_tags, rating, comment, play_date, play_hours, created_at, updated_at').eq(
-                            'user_id', userId)
+                            'user_id', userId),
+                        _triedTomb
+                            ? supabaseClient.from(TOMB_TABLE).select('table_name, game_id, deleted_at').eq('user_id', userId)
+                            : Promise.resolve({ data: [], error: null })
                     ]);
 
                     if (wishlistRes.error) throw new Error(wishlistRes.error.message);
@@ -15630,6 +15886,131 @@
                         created_at: item.created_at,
                         updated_at: item.updated_at
                     }));
+
+                    // 云端各行的「创建时间」（毫秒）；缺列/解析失败记 0，等价于「很早就存在」
+                    const cloudCreatedMs = {
+                        user_wishlist: new Map(wishlistRes.data.map(r => [Math.round(Number(r.game_id)), Date.parse(r.created_at) || 0])),
+                        user_played: new Map(playedRes.data.map(r => [Math.round(Number(r.game_id)), Date.parse(r.created_at) || 0])),
+                        user_reviews: new Map(reviewsRes.data.map(r => [Math.round(Number(r.game_id)), Date.parse(r.created_at) || 0]))
+                    };
+
+                    if (tombRes.error) {
+                        if (_isMissingTableErr(tombRes.error)) {
+                            _markTombTableMissing();
+                            console.warn('ℹ️ 云端未建 user_deletions 表：本次同步跳过「删除传播」（取消标记仍可能被其他设备复活）。执行 supabase/user_deletions.sql 后自动生效');
+                        } else {
+                            console.warn('[墓碑] 读取失败:', tombRes.error.message);
+                        }
+                    } else {
+                        // 本次确实发了请求且成功 = 表已存在（跑过 SQL 了）→ 恢复正常
+                        if (_triedTomb) { _tombTableMissing = false; _tombRetryAfter = 0; }
+                    }
+
+                    // ── 删除传播 步骤 1：先上传本机墓碑，其他设备才可能知道这些删除 ──
+                    {
+                        const localTombDirty = await pushTombstonesToCloud();
+                        if (localTombDirty) saveUserData();
+                    }
+
+                    // ── 步骤 2：合并「本机墓碑」与「云端墓碑」，同一条取较晚的时间 ──
+                    const tombMap = new Map();
+                    {
+                        const localTomb = _getTombstones();
+                        for (const k in localTomb) {
+                            const i = k.lastIndexOf(':');
+                            if (i <= 0) continue;
+                            const gid = Number(k.slice(i + 1));
+                            if (!Number.isInteger(gid) || gid <= 0) continue;
+                            tombMap.set(k, { table: k.slice(0, i), gameId: gid, ts: localTomb[k] });
+                        }
+                        if (!tombRes.error && Array.isArray(tombRes.data)) {
+                            for (const r of tombRes.data) {
+                                const gid = Number(r.game_id);
+                                const ts = Date.parse(r.deleted_at) || 0;
+                                if (!ts || !Number.isInteger(gid) || gid <= 0) continue;
+                                const k = r.table_name + ':' + gid;
+                                const cur = tombMap.get(k);
+                                if (!cur || ts > cur.ts) tombMap.set(k, { table: r.table_name, gameId: gid, ts });
+                            }
+                        }
+                    }
+
+                    // ── 步骤 3：逐条判定墓碑是否仍然有效 ──
+                    //   失效 = 本机在删除之后又标记过 / 云端该行是在删除之后才创建的
+                    const validTomb = [];
+                    const staleTomb = [];
+                    for (const [k, info] of tombMap) {
+                        const myAddTs = _getLocalAdds()[k] || 0;
+                        if (myAddTs > info.ts) { staleTomb.push(info); continue; }
+                        const createdMs = (cloudCreatedMs[info.table] || new Map()).get(info.gameId) || 0;
+                        if (createdMs > info.ts) { staleTomb.push(info); continue; }
+                        validTomb.push(info);
+                    }
+
+                    // ── 步骤 4：有效墓碑 → 删除云端行（幂等；删过了再删也无副作用）──
+                    if (validTomb.length > 0) {
+                        const byTable = { user_wishlist: [], user_played: [], user_reviews: [] };
+                        for (const info of validTomb) {
+                            if (byTable[info.table] && (cloudCreatedMs[info.table] || new Map()).has(info.gameId)) {
+                                byTable[info.table].push(info.gameId);
+                            }
+                        }
+                        for (const t in byTable) {
+                            const ids = byTable[t];
+                            if (ids.length === 0) continue;
+                            try {
+                                const { error } = await supabaseClient.from(t).delete().eq('user_id', userId).in('game_id', ids);
+                                if (error) console.warn(`[墓碑] 删除云端 ${t} 失败:`, error.message);
+                                else console.log(`🪦 已按墓碑删除云端 ${t}：`, ids);
+                            } catch (e) { console.warn(`[墓碑] 删除云端 ${t} 异常:`, e && e.message); }
+                        }
+                        // 同步内存快照 + 创建时间表，避免后面的并集把刚删掉的行又补回来
+                        for (const info of validTomb) {
+                            const arr = info.table === 'user_wishlist' ? cloudWishlist
+                                : info.table === 'user_played' ? cloudPlayed : null;
+                            if (arr) { const i = arr.indexOf(info.gameId); if (i >= 0) arr.splice(i, 1); }
+                            if (info.table === 'user_reviews') {
+                                const i = cloudReviews.findIndex(r => r.game_id === info.gameId);
+                                if (i >= 0) cloudReviews.splice(i, 1);
+                            }
+                            const m = cloudCreatedMs[info.table];
+                            if (m) m.delete(info.gameId);
+                        }
+                    }
+
+                    // ── 步骤 5：失效墓碑 → 两端清掉（否则会一直误删重新标记的记录）──
+                    if (staleTomb.length > 0) {
+                        let changed = false;
+                        for (const info of staleTomb) {
+                            const k = info.table + ':' + info.gameId;
+                            if (_getTombstones()[k]) { delete _getTombstones()[k]; changed = true; }
+                        }
+                        if (changed) saveUserData();
+                        for (const info of staleTomb) deleteCloudTombstone(info.table, info.gameId);
+                    }
+
+                    // ── 步骤 6：本机跟随删除 —— 其他设备删掉的，这里也删掉（本次修复的核心）──
+                    if (validTomb.length > 0) {
+                        const mk = t => new Set(validTomb.filter(i => i.table === t).map(i => i.gameId));
+                        const sW = mk('user_wishlist'), sP = mk('user_played'), sR = mk('user_reviews');
+                        let changed = false;
+                        if (sW.size) {
+                            const before = userData.wishlist.length;
+                            userData.wishlist = userData.wishlist.filter(id => !sW.has(Number(id)));
+                            if (userData.wishlist.length !== before) changed = true;
+                        }
+                        if (sP.size) {
+                            const before = userData.played.length;
+                            userData.played = userData.played.filter(id => !sP.has(Number(id)));
+                            if (userData.played.length !== before) changed = true;
+                        }
+                        if (sR.size) {
+                            const before = userData.reviews.length;
+                            userData.reviews = userData.reviews.filter(r => !sR.has(Number(r.game_id)));
+                            if (userData.reviews.length !== before) changed = true;
+                        }
+                        if (changed) saveUserData();
+                    }
 
                     const localWishlist = userData.wishlist || [];
                     const localPlayed = userData.played || [];
@@ -15778,11 +16159,15 @@
                     saveUserData();
 
                     renderGallery();
+                    // ★ 云端可能来自另一台设备：renderGallery() 复用旧卡片不会重建按钮，
+                    //   这里显式把玩过 / 愿望单按钮状态按最新 userData 刷一遍
+                    refreshAllCardButtonStates();
                     updateAchievementDot();
                     checkAchievements(); // 内部会触发 syncTitlesAndAchievementsToMetadata
                     // 再调用一次确保头衔列表同步（例如从第二台设备同步过来的已解锁头衔，需要回写 metadata 保证双端一致）
                     syncTitlesAndAchievementsToMetadata({ silent: true, debounceMs: 500 });
 
+                    _lastSyncTime = Date.now(); // 记录同步完成时间（设置页「上次同步」展示用）
                     setSyncStatus('synced', '已同步');
                     const tCnt = (userData.titles || []).length;
                     const aCnt = (userData.achievements || []).length;
@@ -16471,7 +16856,7 @@
                             isAdmin = false;
                             isAdminMode = false;
                             // 清空 userData 并加载 guest 级数据
-                            userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null };
+                            userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} };
                             loadUserData(); // 此时 currentUser 为 null，会加载 heroineUserData_guest
                             updateUIForLoggedOut();
                             document.getElementById('notifBellWrap').style.display = 'none';
@@ -16574,28 +16959,55 @@
                 }
 
                 if (currentUser) {
-                    let _lastSyncTime = 0;
-                    const MIN_SYNC_INTERVAL = 30 * 60 * 1000;
+                    // 后台兜底轮询：页面一直开着不动时，每 10 分钟最多收敛一次
+                    const BACKGROUND_SYNC_GAP = 10 * 60 * 1000;
+                    // ★ 回到页面时（切回标签页 / 从后台唤醒 / 前进后退恢复 / 从别的应用切回来）：
+                    //   只要距上次同步超过 60 秒就立刻拉一次。
+                    //   背景：「玩过 / 愿望单 / 评论」只存在数据表里，不像「头衔 / 成就」那样搭着
+                    //   auth 会话的车（user_metadata 会随令牌自动刷新），
+                    //   而原先这里同样卡 30 分钟 → 手机上刚标记完、切回电脑却看不到。
+                    const RESUME_SYNC_GAP = 60 * 1000;
+                    // 窗口失焦不足这段时间（比如点一下别的程序又马上点回来）就不必同步
+                    const AWAY_BEFORE_RESUME = 30 * 1000;
+
+                    const _runSync = (label) => {
+                        _lastSyncTime = Date.now();
+                        return syncUserDataWithCloud()
+                            .then(() => _processPendingCloudOps())
+                            .catch(e => console.warn('[Sync] ' + label + '同步失败:', e.message));
+                    };
 
                     setInterval(() => {
                         if (document.visibilityState === 'visible' && currentUser) {
-                            const now = Date.now();
-                            if (now - _lastSyncTime < MIN_SYNC_INTERVAL) return;
-                            _lastSyncTime = now;
-                            syncUserDataWithCloud().then(() => _processPendingCloudOps()).catch(e => console.warn('[Sync] 定时同步失败:', e.message));
+                            if (Date.now() - _lastSyncTime < BACKGROUND_SYNC_GAP) return;
+                            _runSync('定时');
                         }
                     }, 300000);
 
                     document.addEventListener('visibilitychange', function () {
-                        if (document.visibilityState === 'visible' && currentUser) {
-                            const now = Date.now();
-                            if (now - _lastSyncTime >= MIN_SYNC_INTERVAL) {
-                                _lastSyncTime = now;
-                                syncUserDataWithCloud().then(() => _processPendingCloudOps()).catch(e => console.warn('[Sync] 可见性同步失败:', e.message));
-                            } else if (_pendingCloudOps.length > 0) {
-                                _processPendingCloudOps();
-                            }
+                        if (document.visibilityState !== 'visible' || !currentUser) return;
+                        if (Date.now() - _lastSyncTime >= RESUME_SYNC_GAP) {
+                            _runSync('可见性');
+                        } else if (_pendingCloudOps.length > 0) {
+                            _processPendingCloudOps();
                         }
+                    });
+
+                    // 从别的应用切回来时 visibilitychange 不一定触发，补一道窗口失焦计时
+                    let _blurAt = 0;
+                    window.addEventListener('blur', function () { _blurAt = Date.now(); });
+                    window.addEventListener('focus', function () {
+                        if (!currentUser) return;
+                        const away = _blurAt ? Date.now() - _blurAt : 0;
+                        _blurAt = 0;
+                        if (away >= AWAY_BEFORE_RESUME && Date.now() - _lastSyncTime >= RESUME_SYNC_GAP) {
+                            _runSync('回到页面');
+                        }
+                    });
+
+                    // 移动端前进 / 后退恢复（bfcache）时补一次
+                    window.addEventListener('pageshow', function (e) {
+                        if (e.persisted && currentUser) _runSync('恢复');
                     });
 
                     window.addEventListener('beforeunload', function () {

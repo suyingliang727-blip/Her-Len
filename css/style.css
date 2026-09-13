@@ -2642,6 +2642,12 @@
             border-radius: 8px;
             background: var(--sync-status-bg);
             white-space: nowrap;
+            /* 纯状态展示：设置页「☁️ 云同步」区块（顶栏胶囊已撤，同步入口见 triggerManualSync） */
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+            /* 只过渡视觉属性，别用 all（本仓有过 transition:all 导致抖动的教训） */
+            transition: background 0.2s, color 0.2s;
         }
 
         .sync-status.synced {
