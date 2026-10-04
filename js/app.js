@@ -123,42 +123,70 @@
             let customGenres = [];
             let customGameplays = [];
             let supabaseClient = null;
+
+            // ★ 统一的 Supabase 请求超时包装：避免弱网下请求无限挂起（移动端「点了没反应」的主因之一）
+            //   分页每页 1000 条 20+ 字段 payload 较大，30s 兼顾慢网络与容错。
+            //   抽成具名函数，ensureSupabaseLib() 重建 client 时复用同一套超时策略。
+            const sbFetchWithTimeout = (url, opts = {}) => {
+                const timeoutMs = 30000;
+                const timeoutErr = new DOMException(`请求超时 (>${timeoutMs / 1000}s)`, 'AbortError');
+                const timeoutController = new AbortController();
+                const timeoutId = setTimeout(() => timeoutController.abort(timeoutErr), timeoutMs);
+                let finalSignal = timeoutController.signal;
+                if (opts && opts.signal) {
+                    const upstream = opts.signal;
+                    if (upstream.aborted) {
+                        clearTimeout(timeoutId);
+                        return fetch(url, opts);
+                    }
+                    if (typeof AbortSignal.any === 'function') {
+                        finalSignal = AbortSignal.any([upstream, timeoutController.signal]);
+                    } else {
+                        const combo = new AbortController();
+                        const onUpstream = () => combo.abort(upstream.reason);
+                        const onTimeout = () => combo.abort(timeoutErr);
+                        upstream.addEventListener('abort', onUpstream, { once: true });
+                        timeoutController.signal.addEventListener('abort', onTimeout, { once: true });
+                        finalSignal = combo.signal;
+                    }
+                }
+                const merged = Object.assign({}, opts, { signal: finalSignal });
+                return fetch(url, merged).finally(() => clearTimeout(timeoutId));
+            };
+
+            // ★ 云同步组件兜底：index.html 的三级加载器（本地/jsdelivr/cdnjs）全失败时补一次本地加载。
+            //   这是「既能看到游戏又能注册」的最后一道保险，别让它悄悄变成死局。
+            function ensureSupabaseLib() {
+                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) return Promise.resolve(true);
+                return new Promise((resolve) => {
+                    let settled = false;
+                    const finish = (ok) => { if (settled) return; settled = true; resolve(ok); };
+                    const t = setTimeout(() => finish(false), 8000);
+                    const s = document.createElement('script');
+                    s.src = '相关文件/libs/supabase.min.js?v=1bcad9d170';
+                    s.async = true;
+                    s.onload = () => {
+                        if (!(window.supabase && window.supabase.createClient)) { clearTimeout(t); return finish(false); }
+                        try {
+                            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+                                realtime: { params: { eventsPerSecond: 2 } },
+                                global: { fetch: sbFetchWithTimeout }
+                            });
+                            clearTimeout(t); finish(true);
+                        } catch (_) { clearTimeout(t); finish(false); }
+                    };
+                    s.onerror = () => { clearTimeout(t); finish(false); };
+                    document.head.appendChild(s);
+                });
+            }
+
             if (SUPABASE_ENABLED && typeof supabase !== 'undefined') {
                 try {
                     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
                         realtime: { params: { eventsPerSecond: 2 } },
-                        global: {
-                            // 为所有请求注入超时，避免 Supabase 不可达时请求无限挂起
-                            // 分页每页 1000 条 20+ 字段 payload 较大，30s 兼顾慢网络与容错
-                            fetch: (url, opts = {}) => {
-                                const timeoutMs = 30000;
-                                const timeoutErr = new DOMException(`请求超时 (>${timeoutMs / 1000}s)`, 'AbortError');
-                                const timeoutController = new AbortController();
-                                const timeoutId = setTimeout(() => timeoutController.abort(timeoutErr), timeoutMs);
-                                let finalSignal = timeoutController.signal;
-                                // 如果上游已经传了 signal，合并两个 signal（任意一个触发都会取消）
-                                if (opts && opts.signal) {
-                                    const upstream = opts.signal;
-                                    if (upstream.aborted) {
-                                        clearTimeout(timeoutId);
-                                        return fetch(url, opts);
-                                    }
-                                    if (typeof AbortSignal.any === 'function') {
-                                        finalSignal = AbortSignal.any([upstream, timeoutController.signal]);
-                                    } else {
-                                        const combo = new AbortController();
-                                        const onUpstream = () => combo.abort(upstream.reason);
-                                        const onTimeout = () => combo.abort(timeoutErr);
-                                        upstream.addEventListener('abort', onUpstream, { once: true });
-                                        timeoutController.signal.addEventListener('abort', onTimeout, { once: true });
-                                        finalSignal = combo.signal;
-                                    }
-                                }
-                                const merged = Object.assign({}, opts, { signal: finalSignal });
-                                return fetch(url, merged).finally(() => clearTimeout(timeoutId));
-                            }
-                        }
+                        global: { fetch: sbFetchWithTimeout }
                     });
                 } catch (e) { supabaseClient = null; }
                 // 后台静默迁移本地回复数据到云端（仅执行一次）；延迟执行，避免与首屏数据加载竞争网络
@@ -506,6 +534,9 @@
                     return score;
                 }
             };
+            // ★ 挂到 window：注册页的校验读的是 window.HUMAN_INTERACTION。
+            //   以前没挂 → 那个「请手动操作后再注册」的拦截一直是死代码（等于没防）。
+            window.HUMAN_INTERACTION = HUMAN_INTERACTION;
 
             // --- 4. 页面加载时间跟踪 ---
             const PAGE_LOAD_TIME = {
@@ -3367,6 +3398,36 @@
                 }
             }
 
+            // ★ 云端不可达时的「重新加载」入口（空列表里的 ⟳ 按钮）。
+            //   重试上限 4 次，避免弱网下无限打 Supabase；每次失败都会走 loadFromSupabase 的重试退避。
+            window.retryLoadGames = function () {
+                let tries = 0;
+                const tryReload = async () => {
+                    if (tries >= 4) { renderGallery(); return; }
+                    tries += 1;
+                    setSyncStatus('syncing', '正在展开地图');
+                    const grid = cacheEl('galleryGrid');
+                    if (grid) {
+                        grid.innerHTML = `<div class="skeleton-wrap">
+                            <div class="skeleton-brand">
+                                <span class="spinner-icon">🐕</span>
+                                <span class="skeleton-brand-text">正在加载游戏数据…（第 ${tries} 次）</span>
+                            </div>
+                        </div>`;
+                    }
+                    try {
+                        await refreshGamesFromCloud();
+                        if (games.length === 0 && tries < 4) {
+                            await new Promise(r => setTimeout(r, 1200 * tries));
+                            tryReload();
+                            return;
+                        }
+                    } catch (_) { /* 由下面的 renderGallery 兜底成错误提示 */ }
+                    if (currentView === 'series') renderSeriesView(); else renderGallery();
+                };
+                tryReload();
+            };
+
             // ================================================================
             // 设置管理
             // ================================================================
@@ -4181,12 +4242,31 @@
                                 <button class="empty-action" onclick="document.getElementById('searchInput').value='';setSearchQuery('');">✕ 清除搜索</button>
                             </div>`;
                     } else {
+                        // ★ 区分「真的没有匹配」和「根本没加载出来」
+                        //   移动端弱网 / Supabase 不可达 / 云同步组件没加载成功时，games 必然为空，
+                        //   若沿用「没有匹配的游戏」会把用户引到错误方向上（去调筛选条件）。
+                        const cloudDown = !supabaseClient || _syncState === 'error';
+                        if (cloudDown) {
+                            const noLib = !supabaseClient;
+                            no.innerHTML = `
+                            <div class="empty-state-guide">
+                                <span class="empty-icon">📡</span>
+                                <div class="empty-title">游戏数据还没加载出来</div>
+                                <div class="empty-desc">${
+                                    noLib
+                                        ? '浏览器没能加载云同步组件，这是临时故障。检查网络后点下面按钮重试。'
+                                        : '暂时连不上云端服务器，马上会自动再试一次；也可以手动重试。'
+                                }</div>
+                                <button class="empty-action" onclick="retryLoadGames()">⟳ 重新加载</button>
+                            </div>`;
+                        } else {
                         no.innerHTML = `
                             <div class="empty-state-guide">
                                 <span class="empty-icon">📭</span>
                                 <div class="empty-title">没有匹配的游戏</div>
                                 <div class="empty-desc">请调整筛选条件，或<span class="clear-all-filters" onclick="clearAllFilters()" style="color:var(--accent);cursor:pointer;">清除全部筛选</span></div>
                             </div>`;
+                        }
                     }
                     if (cardObserver) {
                         cardObserver.disconnect();
@@ -13845,9 +13925,24 @@
                 registerBtn.textContent = '注册中...';
 
                 if (!supabaseClient) {
-                    errorEl.textContent = 'Supabase 未初始化';
+                    // ★ 云同步组件没加载成功：以前只丢一句「Supabase 未初始化」就结束，
+                    //   移动端用户看到的就是「注册不了」。这里补一次本地加载并引导重试。
                     registerBtn.disabled = false;
-                    registerBtn.textContent = '注册';
+                    if (!SUPABASE_ENABLED) {
+                        errorEl.textContent = '当前网络下云同步不可用（离线），请联网后重试';
+                        registerBtn.textContent = '注册';
+                        return;
+                    }
+                    errorEl.textContent = '云同步组件没加载好，正在重试…';
+                    registerBtn.textContent = '重试注册';
+                    ensureSupabaseLib().then((ok) => {
+                        if (ok) {
+                            errorEl.textContent = '组件已补好，请再点一次「重试注册」';
+                            registerBtn.textContent = '重试注册';
+                        } else {
+                            errorEl.textContent = '云同步组件加载失败，请刷新页面后重试';
+                        }
+                    });
                     return;
                 }
 
@@ -13890,7 +13985,8 @@
 
             // 随机昵称重试直至可用（RPC 未部署时直接返回）
             async function generateUniqueRandomUsername() {
-                for (let i = 0; i < 10; i++) {
+                // ★ 上限 3 次：弱网下一次 rpc 可能耗到全局 30s 超时，10 次会把注册拖成几分钟（用户感知＝注册不了）
+                for (let i = 0; i < 3; i++) {
                     const name = generateRandomUsername();
                     if (supabaseClient) {
                         try {
