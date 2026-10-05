@@ -1464,35 +1464,18 @@
         <span class="fstat-item" data-page-node-id="7zQmgUC3cnN1ImhjWEfvtD"><span class="fstat-icon" aria-hidden="true" data-page-node-id="mEAUIyzL641eNglIk6dBDO">💬</span><span class="fstat-value" id="fstatReviews" data-page-node-id="wfY0Amz78dFNHlumEA7jJD">—</span><span class="fstat-label" data-page-node-id="Gf4hxbB9ak4Wh6GteiqpEO">条评论</span></span>
     </div>
 
-    <!-- supabase-js：本地件优先 + CDN 兜底。
-         ⚠️ 以前只从 jsdelivr 引单份，CDN 拉不到 → window.supabase 未定义 → 游戏库 0 款、注册不可用。
-            现在按 本地 → jsdelivr → cdnjs 依次尝试，任一成功即可，全失败时页面会显示「重试」提示而不是空列表。 -->
-    <script>
-    (function () {
-        var SRCS = [
-            '相关文件/libs/supabase.min.js?v=1bcad9d170',
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.0/supabase.umd.min.js'
-        ];
-        function ready() { return !!(window.supabase && window.supabase.createClient); }
-        function load(i) {
-            if (ready()) return;
-            if (i >= SRCS.length) return; // 全失败：交给 app.js 的降级提示处理
-            var s = document.createElement('script');
-            s.src = SRCS[i];
-            s.async = false;
-            s.onload = function () { if (!ready()) load(i + 1); };
-            s.onerror = function () { load(i + 1); };
-            document.head.appendChild(s);
-        }
-        load(0);
-    })();
-    </script>
+    <!-- supabase-js：同步加载（保证下面的 defer 脚本执行时 window.supabase 一定就绪）。
+         ⚠️ 不要再改回「createElement + appendChild 动态插入 + async=false」：
+            async=false 只保证【动态脚本之间】的顺序，既不阻塞 HTML 解析，也不保证早于后面的 defer 脚本。
+            98KB 本地件没下完时 app.js 就跑了 → supabaseClient 恒为 null →
+            首屏打「⚠️ Supabase 未启用，认证功能不可用」，游戏库只剩本机缓存、注册/登录全废。
+         兜底只用 jsdelivr：cdnjs 根本没收录 supabase-js（那个路径 404），unpkg 的 umd 路径也已 404。 -->
+    <script src="相关文件/libs/supabase.min.js?v=1bcad9d170" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';s.async=false;document.head.appendChild(s);"></script>
     <script src="js/wallet.js?v=7ab94e36fd" defer></script>
     <script src="js/daily-tip.js?v=cdc9de80f7" defer></script>
     <script src="js/herlens-extensions.js?v=a3da23c407" defer></script>
     <script src="js/tip-reminder.js?v=b91965e049" defer></script>
-    <script src="js/app.js?v=592653a3e5" defer></script>
+    <script src="js/app.js?v=6272e9c263" defer></script>
 
     </body>
 

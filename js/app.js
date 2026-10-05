@@ -154,30 +154,44 @@
                 return fetch(url, merged).finally(() => clearTimeout(timeoutId));
             };
 
-            // ★ 云同步组件兜底：index.html 的三级加载器（本地/jsdelivr/cdnjs）全失败时补一次本地加载。
+            // ★ 云同步组件兜底：index.html 的同步加载失败时，按 本地 → jsdelivr 依次补一次。
             //   这是「既能看到游戏又能注册」的最后一道保险，别让它悄悄变成死局。
+            //   ⚠️ 兜底源只有 jsdelivr 有效：cdnjs 未收录 supabase-js（404），unpkg 的 umd 路径也已 404。
             function ensureSupabaseLib() {
                 if (typeof window.supabase !== 'undefined' && window.supabase.createClient) return Promise.resolve(true);
+                const FALLBACKS = [
+                    '相关文件/libs/supabase.min.js?v=1bcad9d170',
+                    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js'
+                ];
                 return new Promise((resolve) => {
                     let settled = false;
                     const finish = (ok) => { if (settled) return; settled = true; resolve(ok); };
-                    const t = setTimeout(() => finish(false), 8000);
-                    const s = document.createElement('script');
-                    s.src = '相关文件/libs/supabase.min.js?v=1bcad9d170';
-                    s.async = true;
-                    s.onload = () => {
-                        if (!(window.supabase && window.supabase.createClient)) { clearTimeout(t); return finish(false); }
+                    const buildClient = () => {
                         try {
                             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                                 auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
                                 realtime: { params: { eventsPerSecond: 2 } },
                                 global: { fetch: sbFetchWithTimeout }
                             });
-                            clearTimeout(t); finish(true);
-                        } catch (_) { clearTimeout(t); finish(false); }
+                            return true;
+                        } catch (_) { return false; }
                     };
-                    s.onerror = () => { clearTimeout(t); finish(false); };
-                    document.head.appendChild(s);
+                    // 逐个尝试：本地件 → jsdelivr；任一挂上且能建 client 即算成功
+                    let i = 0;
+                    const t = setTimeout(() => finish(false), 8000);
+                    const tryNext = () => {
+                        if (i >= FALLBACKS.length) { clearTimeout(t); return finish(false); }
+                        const s = document.createElement('script');
+                        s.src = FALLBACKS[i++];
+                        s.async = false;
+                        s.onload = () => {
+                            if (!(window.supabase && window.supabase.createClient) || !buildClient()) return tryNext();
+                            clearTimeout(t); finish(true);
+                        };
+                        s.onerror = () => { tryNext(); };
+                        document.head.appendChild(s);
+                    };
+                    tryNext();
                 });
             }
 
@@ -193,6 +207,20 @@
                 setTimeout(() => migrateLocalRepliesToCloud().catch(e => console.warn('[Migration] 异常:', e)), 3000);
                 // 分类名迁移：百合 -> GL（同步 games 表 genre 数组中的旧值，以及自定义标签）
                 setTimeout(() => migrateGenreLilyToGL().catch(e => console.warn('[Migration Lily→GL] 异常:', e)), 4000);
+            } else if (SUPABASE_ENABLED) {
+                // ★ 自愈：同步 <script> 与 jsdelivr 兜底都没成功时，启动阶段就补一次加载，
+                //   而不是干等用户点「注册」才调ensureSupabaseLib()（首屏此前是死局）。
+                //   补上后重建 client 并重新拉游戏库，让首屏就能看到云端数据。
+                console.warn('[Supabase] 同步加载未就绪，启动时补一次加载…');
+                ensureSupabaseLib().then((ok) => {
+                    if (!ok) return; // 全失败：renderGallery 的空态会提示，不再重复刷日志
+                    console.log('[Supabase] 补加载成功');
+                    if (typeof loadGames === 'function') {
+                        loadGames().then(() => {
+                            if (currentView === 'series') renderSeriesView(); else renderGallery();
+                        }).catch(() => {});
+                    }
+                });
             }
 
             let games = [];

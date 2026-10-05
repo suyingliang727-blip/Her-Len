@@ -3549,28 +3549,14 @@
 
   <!-- 出图依赖：先本地(libs/)，不可用再走 CDN 兜底（jsdelivr 在国内常被墙/返回空，故优先本地与国内镜像） -->
   <script src="libs/html2canvas.min.js?v=525b9780c8" defer></script>
-  <!-- supabase-js：本地件优先 + CDN 兜底（与 index.html 一致） -->
-  <script>
-  (function () {
-      var SRCS = [
-          '相关文件/libs/supabase.min.js?v=1bcad9d170',
-          'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js',
-          'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.0/supabase.umd.min.js'
-      ];
-      function ready() { return !!(window.supabase && window.supabase.createClient); }
-      function load(i) {
-          if (ready()) return;
-          if (i >= SRCS.length) return;
-          var s = document.createElement('script');
-          s.src = SRCS[i];
-          s.async = false;
-          s.onload = function () { if (!ready()) load(i + 1); };
-          s.onerror = function () { load(i + 1); };
-          document.head.appendChild(s);
-      }
-      load(0);
-  })();
-  </script>
+  <!-- supabase-js：同步加载（保证下面的 defer 脚本执行时 window.supabase 一定就绪）。
+       ⚠️ 路径必须写 libs/（本页面自身就在 相关文件/ 下，写成 相关文件/libs/ 会解析成
+          /相关文件/相关文件/libs/ → 404 回落到首页 HTML → 本地件从来没真正加载成功过）。
+          同上方的 libs/html2canvas.min.js 就是正确写法。
+       ⚠️ 不要再改回「createElement + appendChild 动态插入 + async=false」：async=false 只保证
+          【动态脚本之间】的顺序，既不阻塞解析也不保证早于后面的 defer 脚本。
+       兜底只用 jsdelivr：cdnjs 未收录 supabase-js（404），unpkg 的 umd 路径也已 404。 -->
+  <script src="libs/supabase.min.js?v=1bcad9d170" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';s.async=false;document.head.appendChild(s);"></script>
   <script src="../js/notes-cloud.js?v=38bba6ad90" defer></script>
   <script src="../js/tip-reminder.js?v=b91965e049" defer></script>
   <script src="../js/notes-board.js?v=b532d0b02c" defer></script>
