@@ -553,6 +553,14 @@
                 isHumanLike() {
                     return this._hasInteracted;
                 },
+                // ★ hasInteracted()：注册页（handleRegister）读的是这个名字。
+                //   此前对象上只有 isHumanLike()，一直没人发现——因为 window.HUMAN_INTERACTION
+                //   在 2026-10-04 之前是 undefined，「&&」短路把这行跳过了（等于没防也不报错）。
+                //   挂上 window 之后就变成「调用不存在的方法」→ 抛 TypeError 中断 handleRegister，
+                //   用户点了注册完全没反应。两个名字都保留，避免调用方写法不同再踩一次。
+                hasInteracted() {
+                    return this._hasInteracted;
+                },
                 getInteractionScore() {
                     let score = 0;
                     if (this._hasMouseMoved) score += 3;
@@ -13949,7 +13957,8 @@
                     showToast(`⏱ 请稍候 ${remain} 秒后再试`, 2500);
                     return;
                 }
-                if (window.HUMAN_INTERACTION && !window.HUMAN_INTERACTION.hasInteracted()) {
+                //   fail-open：方法缺失/实现异常一律放行，不让反脚本逻辑反过来把注册堵死。
+                if (window.HUMAN_INTERACTION && typeof window.HUMAN_INTERACTION.hasInteracted === 'function' && !window.HUMAN_INTERACTION.hasInteracted()) {
                     errorEl.textContent = '检测到异常请求，请手动操作后再注册';
                     showToast('⚠ 请手动完成注册操作', 3500);
                     return;
