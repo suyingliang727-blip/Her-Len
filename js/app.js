@@ -567,9 +567,12 @@
             window.HUMAN_INTERACTION = HUMAN_INTERACTION;
 
             // --- 4. 页面加载时间跟踪 ---
+            // 基准取「导航开始时刻」（performance.timeOrigin）而非脚本执行时刻：
+            // 更贴近真实「进入页面」的时间，也避免本地件下载慢时把停留时间算短、误拦真人。
+            // 脚本自动化仍是「加载后立刻提交」→ 照样被拦。
             const PAGE_LOAD_TIME = {
-                _loadTs: Date.now(),
-                // 最小页面停留时间（毫秒）
+                _loadTs: (typeof performance !== 'undefined' && performance.timeOrigin) || Date.now(),
+                // 最小页面停留时间（秒）
                 MIN_SECONDS: 5,
                 // 检查是否已过最小时间
                 isReady() {
@@ -13934,11 +13937,16 @@
                     return;
                 }
 
-                // ★ 3. 反脚本：注册页停留时间 + 人机交互检测（与评论区保持一致）
-                if (!window._pageEnterTime) window._pageEnterTime = Date.now();
-                if (Date.now() - window._pageEnterTime < 5000) {
-                    errorEl.textContent = '操作过快，请稍后再尝试注册';
-                    showToast('⏱ 操作过快，请稍后再试', 3000);
+                // ★ 3. 反脚本：页面停留时间 + 人机交互检测（与评论区共用 PAGE_LOAD_TIME）
+                //   ⚠️ 曾经这里用 window._pageEnterTime，且写成「懒初始化 = Date.now()」——
+                //   该变量全站没有第二个写入点，于是计时基准变成「第一次点注册的那一刻」，
+                //   首次点击差值恒为 0 → 真人 100% 被拦「操作过快，请稍后再尝试注册」。
+                //   现改用模块初始化时就已记好时间的 PAGE_LOAD_TIME（基准＝页面加载），
+                //   并一律 fail-open：计时对象缺失就放行，避免反脚本逻辑失灵把真人锁死。
+                if (PAGE_LOAD_TIME && typeof PAGE_LOAD_TIME.isReady === 'function' && !PAGE_LOAD_TIME.isReady()) {
+                    const remain = Math.max(1, PAGE_LOAD_TIME.MIN_SECONDS - Math.floor(PAGE_LOAD_TIME.getElapsed() / 1000));
+                    errorEl.textContent = `请稍候 ${remain} 秒后再提交注册`;
+                    showToast(`⏱ 请稍候 ${remain} 秒后再试`, 2500);
                     return;
                 }
                 if (window.HUMAN_INTERACTION && !window.HUMAN_INTERACTION.hasInteracted()) {
