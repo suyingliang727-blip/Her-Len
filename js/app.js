@@ -5090,6 +5090,119 @@
                 return (games || []).filter(g => g.isDraft);
             }
 
+            // ================================================================
+            // 审核工作台：完整度评分 + 重复检测 + 排序筛选
+            //   背景：实测 158 条草稿的description/genre/cover 全为空，
+            //   缓冲区曾是一张没有优先级的名单，管理员无法判断先补哪条。
+            // ================================================================
+
+            // 必填项：缺任一项都禁止上架（publishDraft 会拦）
+            const REVIEW_REQUIRED = [
+                { key: 'title',       label: '游戏名' },
+                { key: 'cover',       label: '封面' },
+                { key: 'description', label: '简介' },
+                { key: 'genre',       label: '题材', isArray: true },
+                { key: 'platforms',   label: '平台', isArray: true },
+                { key: 'perspective', label: '视角' }
+            ];
+            // 建议项：不影响上架，但影响完整度得分
+            const REVIEW_OPTIONAL = [
+                { key: 'heroineType',    label: '女主类型' },
+                { key: 'costumeType',    label: '服装设定' },
+                { key: 'releaseDate',    label: '发售日' },
+                { key: 'hasChinese',     label: '中文情况' },
+                { key: 'mainStoryDuration', label: '主线时长' },
+                { key: 'steamLink',      label: 'Steam 链接' }
+            ];
+
+            function fieldFilled(g, f) {
+                const v = g[f.key];
+                if (v === null || v === undefined) return false;
+                if (f.isArray) return Array.isArray(v) ? v.length > 0 : !!v;
+                if (typeof v === 'string') return v.trim() !== '';
+                return true;
+            }
+
+            // 返回 {missing:必填缺失项, optionalMissing:建议缺失项, score:0-100}
+            function reviewCompleteness(g) {
+                const missing = REVIEW_REQUIRED.filter(f => !fieldFilled(g, f));
+                const optionalMissing = REVIEW_OPTIONAL.filter(f => !fieldFilled(g, f));
+                const total = REVIEW_REQUIRED.length + REVIEW_OPTIONAL.length;
+                const done = total - missing.length - optionalMissing.length;
+                return {
+                    missing,
+                    optionalMissing,
+                    score: Math.round(done / total * 100)
+                };
+            }
+
+            // 重复检测：以「标题 / 英文名」小写去重，跨草稿 + 跨已上架
+            //   命中同库已上架游戏 = 高危（可能重复收录）；命中其他草稿 = 待合并
+            function findDuplicateGroups() {
+                const published = (games || []).filter(g => !g.isDraft);
+                const drafts = getDraftGames();
+                const keyOf = g => (g.title || '').trim().toLowerCase();
+                const enKeyOf = g => (g.englishName || '').trim().toLowerCase();
+
+                // id -> {withPublished:[title], withDrafts:[title]}
+                const map = new Map();
+                const add = (id, type, title) => {
+                    if (!id) return;
+                    if (!map.has(id)) map.set(id, { withPublished: [], withDrafts: [] });
+                    const bucket = type === 'published' ? 'withPublished' : 'withDrafts';
+                    if (title && !map.get(id)[bucket].includes(title)) map.get(id)[bucket].push(title);
+                };
+
+                const check = (target, others, type) => {
+                    for (const o of others) {
+                        if (o.id === target.id) continue;
+                        const tk = keyOf(target), ek = enKeyOf(target);
+                        if ((tk && tk === keyOf(o)) || (ek && ek === enKeyOf(o))) {
+                            add(target.id, type, o.title || '未命名');
+                        }
+                    }
+                };
+                drafts.forEach(d => check(d, published, 'published'));
+                drafts.forEach(d => check(d, drafts, 'draft'));
+
+                return map;
+            }
+
+            // 缓冲区筛选 / 排序状态
+            let _bufFilter = 'all';     // all | incomplete | duplicate | complete
+            let _bufSort = 'completeness'; // completeness | id_desc | id_asc
+            function setBufferFilter(f) { _bufFilter = f; renderBuffer(); }
+            function setBufferSort(s) { _bufSort = s; renderBuffer(); }
+            window.setBufferFilter = setBufferFilter;
+            window.setBufferSort = setBufferSort;
+
+            function applyBufferView(drafts, dupMap) {
+                let list = drafts.map(g => ({
+                    g,
+                    comp: reviewCompleteness(g),
+                    dup: dupMap.get(g.id) || null
+                }));
+                if (_bufFilter === 'incomplete') list = list.filter(x => x.comp.missing.length > 0);
+                else if (_bufFilter === 'duplicate') list = list.filter(x => x.dup);
+                else if (_bufFilter === 'complete') list = list.filter(x => x.comp.missing.length === 0);
+
+                if (_bufSort === 'completeness') {
+                    // 完整度低的排前面：先补最缺信息的
+                    list.sort((a, b) => a.comp.score - b.comp.score || b.g.id - a.g.id);
+                } else if (_bufSort === 'id_asc') {
+                    list.sort((a, b) => a.g.id - b.g.id);
+                } else {
+                    list.sort((a, b) => b.g.id - a.g.id);
+                }
+                return list;
+            }
+
+            function scoreColorClass(score) {
+                if (score >= 80) return 'ok';
+                if (score >= 50) return 'mid';
+                return 'low';
+            }
+
             function computeReleased(releaseDate) {
                 const d = (releaseDate || '').trim();
                 if (!d) return true;
@@ -5149,35 +5262,83 @@
                 if (drafts.length === 0) {
                     modal.innerHTML = `
                         <button class="modal-close" onclick="closeBuffer()">✕</button>
-                        <h2 style="margin-bottom:14px;color:var(--accent);">🗂 导入缓冲区</h2>
+                        <h2 style="margin-bottom:14px;color:var(--accent);">🗂 审核缓冲区</h2>
                         <div style="padding:30px 10px;text-align:center;color:var(--text3);">
                             <div style="font-size:2rem;margin-bottom:10px;">📭</div>
                             <div>缓冲区为空</div>
-                            <div style="font-size:0.82rem;margin-top:6px;">CSV 导入的游戏会先到这里，完善信息后点击「上架」</div>
+                            <div style="font-size:0.82rem;margin-top:6px;">用户投稿与 CSV 导入的游戏都会先到这里，补全信息后点击「上架」</div>
                         </div>`;
                     return;
                 }
+
+                const dupMap = findDuplicateGroups();
+                const view = applyBufferView(drafts, dupMap);
+                const dupCount = drafts.filter(g => dupMap.get(g.id)).length;
+                const readyCount = drafts.filter(g => reviewCompleteness(g).missing.length === 0).length;
+                const noLinkCount = drafts.filter(g => !(g.steamLink || '').trim()).length;
+
+                const filterBtn = (key, label, cnt, extraCls) => `
+                    <button type="button" class="buf-filter-btn ${_bufFilter === key ? 'active' : ''} ${extraCls || ''}"
+                            onclick="setBufferFilter('${key}')">${label} <b>${cnt}</b></button>`;
+
                 modal.innerHTML = `
                     <button class="modal-close" onclick="closeBuffer()">✕</button>
-                    <h2 style="margin-bottom:4px;color:var(--accent);">🗂 导入缓冲区</h2>
-                    <div style="font-size:0.82rem;color:var(--text3);margin-bottom:14px;">共 ${drafts.length} 款待完善 · 完善后点「上架」即按发售日自动进入总览（已发售/未发售）</div>
+                <h2 style="margin-bottom:4px;color:var(--accent);">🗂 审核缓冲区</h2>
+                <div style="font-size:0.82rem;color:var(--text3);margin-bottom:14px;">
+                        共 ${drafts.length} 款待补全 · 已齐备 ${readyCount} 款 · 重复 ${dupCount} 款 · 缺封面或简介禁止上架
+                    </div>
+
+                    <div class="buf-toolbar">
+                        <div class="buf-filters">
+                            ${filterBtn('all', '全部', drafts.length)}
+                            ${filterBtn('incomplete', '待补全', drafts.filter(g => reviewCompleteness(g).missing.length > 0).length)}
+                            ${filterBtn('duplicate', '重复', dupCount, 'warn')}
+                            ${filterBtn('complete', '已齐备', readyCount, 'ok')}
+                        </div>
+                        <select class="buf-sort" onchange="setBufferSort(this.value)" title="排序方式">
+                            <option value="completeness" ${_bufSort === 'completeness' ? 'selected' : ''}>按完整度（先补最缺的）</option>
+                            <option value="id_desc" ${_bufSort === 'id_desc' ? 'selected' : ''}>按编号（新→旧）</option>
+                            <option value="id_asc" ${_bufSort === 'id_asc' ? 'selected' : ''}>按编号（旧→新）</option>
+                        </select>
+                    </div>
+
                     <div class="buffer-list">
-                        ${drafts.map(g => `
-                            <div class="buffer-item">
+                        ${view.length === 0 ? `<div style="padding:26px 10px;text-align:center;color:var(--text3);">当前筛选下没有草稿</div>` :
+                        view.map(({ g, comp, dup }) => {
+                            const cls = scoreColorClass(comp.score);
+                            const badges = [];
+                            if (dup) {
+                                const dp = dup.withPublished;
+                                badges.push(`<span class="buf-badge dup" title="同库中存在同名游戏${dp.length ? '：' + dp.join('、') : ''}">⚠️ 重复${dp.length ? '·已上架' : '·待合并'}</span>`);
+                            }
+                            if (comp.missing.length === 0) badges.push('<span class="buf-badge ok">✓ 可上架</span>');
+                            else badges.push(`<span class="buf-badge ${cls}">缺 ${comp.missing.map(f => f.label).join('、')}</span>`);
+                            if (!(g.steamLink || '').trim()) badges.push('<span class="buf-badge none">无链接</span>');
+
+                            return `
+                            <div class="buffer-item" data-id="${g.id}">
+                                <div class="buf-score ${cls}" title="信息完整度 ${comp.score}%">
+                                    <span class="buf-score-num">${comp.score}</span><span class="buf-score-pct">%</span>
+                                </div>
                                 <div class="buffer-info">
-                                    <div class="buffer-title">${escapeHTML(g.title || '未命名')}</div>
-                                    <div class="buffer-meta">${escapeHTML((g.genre || []).slice(0, 3).join(' · ') || '暂无题材')}${g.releaseDate ? ' · 发售日 ' + escapeHTML(g.releaseDate) : ''}</div>
+                                    <div class="buffer-title">${escapeHTML(g.title || '未命名')}<span class="buf-id">#${g.id}</span></div>
+                                    <div class="buffer-meta">${escapeHTML((g.steamLink || '未填 Steam 链接'))}</div>
+                                    <div class="buf-badges">${badges.join('')}</div>
                                 </div>
                                 <div class="buffer-actions">
-                                    <button class="btn btn-sm" onclick="editDraft(${g.id})">✏️ 编辑</button>
+                                    ${dup && dup.withDrafts.length ? `<button class="btn btn-sm btn-warn" onclick="dedupeGroup(${g.id})" title="同库存在同名草稿：${escapeHTML(dup.withDrafts.join('、'))}">🧹 去重</button>` : ''}
+                                    <button class="btn btn-sm" onclick="editDraft(${g.id})">✏️ 补全</button>
                                     <button class="btn btn-sm btn-accent" onclick="publishDraft(${g.id})">🚀 上架</button>
-                                    <button class="btn btn-sm" onclick="deleteDraft(${g.id})">🗑 删除</button>
+                                    <button class="btn btn-sm" onclick="deleteDraft(${g.id})">🗑</button>
                                 </div>
-                            </div>`).join('')}
+                            </div>`;
+                        }).join('')}
                     </div>
-                    <div class="buffer-footer" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-                        <button type="button" class="btn btn-accent" onclick="publishAllDrafts()">🚀 全部上架</button>
+
+                    <div class="buffer-footer" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;">
+                        <button type="button" class="btn btn-accent" onclick="publishReadyDrafts()">🚀 批量上架已齐备（${readyCount}）</button>
                         <button type="button" class="btn" onclick="closeBuffer()">关闭</button>
+                        ${noLinkCount > 0 ? `<span style="font-size:0.78rem;color:var(--text3);">${noLinkCount} 款无 Steam 链接，无法自动抓信息</span>` : ''}
                         <button type="button" class="btn" style="margin-left:auto;color:var(--danger);" onclick="clearBuffer()">🗑 清空缓冲区</button>
                     </div>`;
             }
@@ -5211,8 +5372,15 @@
                 const g = games.find(x => x.id === id);
                 if (!g) return;
                 const title = g.title || '未命名';
-                if (!g.cover && !g.description && (g.genre || []).length === 0) {
-                    if (!confirm(`「${title}」信息还不完整（无封面/简介/题材），确定要上架吗？`)) return;
+                // 上架门槛：必填项缺失直接拒绝，不给「确定要上架吗」的选择余地。
+                // 旧逻辑只弹一次 confirm，等于允许半成品上线。
+                const comp = reviewCompleteness(g);
+                if (comp.missing.length > 0) {
+                    showToast(`「${title}」还缺：${comp.missing.map(f => f.label).join('、')}`, 3600);
+                    const dup = findDuplicateGroups().get(g.id);
+                    if (dup) showToast('⚠️ 同库存在同名游戏，建议先处理重复', 3200);
+                    renderBuffer();
+                    return;
                 }
                 g.isDraft = false;
                 g.isReleased = computeReleased(g.releaseDate);
@@ -5235,11 +5403,30 @@
                 showToast(`🚀 "${title}" 已上架，按发售日进入${g.isReleased ? '已发售' : '未发售'}`, 2400);
             };
 
-            window.publishAllDrafts = async function () {
+            // 批量上架「已齐备」的草稿：跳过信息不全的，不做二次确认噪音
+            window.publishReadyDrafts = async function () {
                 if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
                 const drafts = getDraftGames();
                 if (drafts.length === 0) { showToast('缓冲区为空', 1500); return; }
-                drafts.forEach(g => {
+
+                const dupMap = findDuplicateGroups();
+                const ready = drafts.filter(g => {
+                    if (reviewCompleteness(g).missing.length > 0) return false;
+                    const d = dupMap.get(g.id);
+                    // 命中已上架的同名游戏一律不上架，避免重复收录
+                    return !(d && d.withPublished.length > 0);
+                });
+                if (ready.length === 0) {
+                    showToast('没有可批量上架的草稿（信息齐备且无重复的为 0 条）', 3200);
+                    return;
+                }
+                const skipInfo = drafts.length - ready.length;
+                const msg = skipInfo > 0
+                    ? `将上架 ${ready.length} 款已齐备且无重复的草稿，跳过 ${skipInfo} 款（信息不全或重复）。确定继续？`
+                    : `将上架 ${ready.length} 款草稿，确定继续？`;
+                if (!confirm(msg)) return;
+
+                ready.forEach(g => {
                     g.isDraft = false;
                     g.isReleased = computeReleased(g.releaseDate);
                     sanitizeGameEnums(g);
@@ -5247,8 +5434,8 @@
                 const client = getSupabase();
                 if (client) {
                     setSyncStatus('syncing');
-                    for (let i = 0; i < drafts.length; i += 50) {
-                        const batch = drafts.slice(i, i + 50);
+                    for (let i = 0; i < ready.length; i += 50) {
+                        const batch = ready.slice(i, i + 50);
                         const { error } = await client.from('games').upsert(batch, { onConflict: 'id' });
                         if (error) {
                             setSyncStatus('error', error.message);
@@ -5262,16 +5449,85 @@
                 renderGallery();
                 if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
                 setSyncStatus('synced');
-                showToast(`🚀 已上架 ${drafts.length} 款游戏`, 2200);
+                showToast(`🚀 已上架 ${ready.length} 款${skipInfo > 0 ? `，跳过 ${skipInfo} 款` : ''}`, 2600);
             };
+
+            // 注：原publishAllDrafts（「全部上架」）已移除。
+            // 它会把158 条零信息草稿一次性推上线，且原先无完整性校验。
+            // 现改为 publishReadyDrafts：只上架信息齐备且无重复的，其余留在缓冲区。
 
             window.deleteDraft = function (id) {
                 const g = games.find(x => x.id === id);
                 if (!g) return;
-                if (!confirm(`确定从缓冲区删除「${g.title || '未命名'}」？将同时从云端删除该记录。`)) return;
+                const dup = findDuplicateGroups().get(id);
+                let warn = '';
+                if (dup && dup.withDrafts.length) {
+                    warn = `\n⚠️ 库内还有同名草稿：${dup.withDrafts.join('、')}`;
+                }
+                if (!confirm(`确定从缓冲区删除「${g.title || '未命名'}」？将同时从云端删除该记录。${warn}`)) return;
                 deleteGame(id).then(() => {
                     if (document.getElementById('bufferModalOverlay')?.classList.contains('show')) renderBuffer();
                 });
+            };
+
+            // 重复草稿处理：把 keepId 的非空信息合并进 dropId，再删掉 dropId。
+            //   方向单一（手动指定保留哪条），不做自动猜测，避免误删信息更全的那条。
+            window.mergeDraft = async function (keepId, dropId) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                const keep = games.find(x => x.id === keepId);
+                const drop = games.find(x => x.id === dropId);
+                if (!keep || !drop) { showToast('⚠️ 记录不存在', 1500); return; }
+                const isBlank = v => v === null || v === undefined || v === '' ||
+                    (Array.isArray(v) && v.length === 0);
+                const merged = [];
+                for (const k of Object.keys(drop)) {
+                    if (isBlank(drop[k])) continue;
+                    if (isBlank(keep[k])) { keep[k] = drop[k]; merged.push(k); }
+                }
+                if (merged.length === 0) {
+                    if (!confirm(`「${drop.title}」没有任何「${keep.title}」缺失的信息，删除后不会保留额外内容。确定删除？`)) return;
+                } else if (!confirm(`将「${drop.title}」的 ${merged.length} 项缺失信息并入「${keep.title}」，然后删除前者。\n合并字段：${merged.join('、')}\n\n确定继续？`)) {
+                    return;
+                }
+                const client = getSupabase();
+                if (client) {
+                    const u = await client.from('games').upsert(keep, { onConflict: 'id' });
+                    if (u.error) { showToast('❌ 合并失败: ' + u.error.message, 2500); return; }
+                    const d = await client.from('games').delete().eq('id', dropId);
+                    if (d.error) { showToast('❌ 删除失败: ' + d.error.message, 2500); return; }
+                }
+                games = games.filter(x => x.id !== dropId);
+                saveGamesToLocal();
+                invalidateSyncCache();
+                renderBuffer();
+                showToast(merged.length ? `✅ 已合并并删除 #${dropId}` : `🗑 已删除 #${dropId}`, 2200);
+            };
+
+            // 批量删除某个标题下的所有多余草稿，保留 id 最小的一条
+            window.dedupeGroup = async function (keepId) {
+                if (!isAdmin) { showToast('⚠️ 仅管理员可操作', 1500); return; }
+                const keep = games.find(x => x.id === keepId);
+                if (!keep) return;
+                const dup = findDuplicateGroups().get(keepId);
+                const targets = (dup && dup.withDrafts) || [];
+                if (targets.length === 0) { showToast('该条没有重复草稿', 1800); return; }
+                const ids = getDraftGames().filter(g =>
+                    (g.title || '').trim().toLowerCase() === (keep.title || '').trim().toLowerCase()
+                ).map(g => g.id).filter(i => i !== keepId);
+                if (ids.length === 0) { showToast('没有可删除的重复草稿', 1800); return; }
+                if (!confirm(`保留 #${keepId}「${keep.title}」，删除另外 ${ids.length} 条重复草稿：#${ids.join('、#')}？`)) return;
+                const client = getSupabase();
+                if (client) {
+                    for (const id of ids) {
+                        const { error } = await client.from('games').delete().eq('id', id);
+                        if (error) { showToast('❌ 删除 #' + id + ' 失败: ' + error.message, 2500); return; }
+                    }
+                }
+                games = games.filter(g => !ids.includes(g.id));
+                saveGamesToLocal();
+                invalidateSyncCache();
+                renderBuffer();
+                showToast(`🗑 已删除 ${ids.length} 条重复草稿`, 2200);
             };
 
             window.clearBuffer = function () {
@@ -5315,6 +5571,13 @@
             }
 
             function openSubmitModal() {
+                // 未登录用户必然被 RLS 拦下（games 表写策略只放行 to authenticated），
+                // 与其让用户填完一整张表再看到失败，不如先引导登录。
+                if (!currentUser) {
+                    showToast('请先登录后再投稿', 2200);
+                    setTimeout(() => { if (typeof openAuthModal === 'function') openAuthModal(); }, 500);
+                    return;
+                }
                 const overlay = document.getElementById('submitModalOverlay');
                 if (!overlay) {
                     // 兜底：弹窗缺失时退回原飞书问卷入口
@@ -5341,7 +5604,30 @@
             }
             window.closeSubmitModal = closeSubmitModal;
 
+            // 取云端当前最大 id（投稿插入新记录前必须先算，否则会撞主键）
+            async function computeNextGameId() {
+                const client = getSupabase();
+                let base = getNextId();
+                if (client) {
+                    try {
+                        const { data } = await client.from('games')
+                            .select('id')
+                            .order('id', { ascending: false })
+                            .limit(1);
+                        const maxId = data && data.length > 0 ? Number(data[0].id) : 0;
+                        if (maxId >= base) base = maxId + 1;
+                    } catch (_) {}
+                }
+                return base;
+            }
+
             async function submitGameFromForm() {
+                // 双保险：openSubmitModal 已拦，这里再挡一次（防止回车/按钮直连调用）
+                if (!currentUser) {
+                    showToast('请先登录后再投稿', 2200);
+                    if (typeof openAuthModal === 'function') openAuthModal();
+                    return;
+                }
                 const getVal = id => (document.getElementById(id) || {}).value || '';
                 const title = getVal('sfTitle').trim();
                 if (!title) { showToast('⚠️ 请输入游戏名称', 1800); return; }
@@ -5362,18 +5648,8 @@
                     if (banned) { showToast('🚫 您已被限制投稿', 2000); return; }
                 }
                 // 安全取 id：以本地最大值为基准，同时参考云端当前最大 id，避免陈旧缓存导致覆盖已有记录
-                let nextId = getNextId();
                 const client = getSupabase();
-                if (client) {
-                    try {
-                        const { data: maxRows } = await client.from('games')
-                            .select('id')
-                            .order('id', { ascending: false })
-                            .limit(1);
-                        const maxId = maxRows && maxRows.length > 0 ? Number(maxRows[0].id) : 0;
-                        if (maxId >= nextId) nextId = maxId + 1;
-                    } catch (_) {}
-                }
+                const nextId = await computeNextGameId();
                 const game = {
                     id: nextId,
                     title,
@@ -5392,12 +5668,30 @@
                     series: '', seriesOrder: 0
                 };
                 if (client) {
-                    const { error } = await client.from('games').upsert(game, { onConflict: 'id' });
-                    if (error) {
-                        if (/isDraft|is_draft|column|permission|policy|row-level|new row violates/i.test(error.message)) {
+                    // ★ 用 insert 而不是 upsert。
+                    //   upsert 会让 PostgREST 生成 INSERT ... ON CONFLICT DO UPDATE，
+                    //   而普通用户只被放行了 INSERT（无 UPDATE 策略）→
+                    //   一旦 nextId 撞上已存在的 id（并发投稿 / 本地缓存陈旧）就会报错。
+                    //   投稿语义本就是「新增草稿」，insert 才是正确写法。
+                    let inserted = await client.from('games').insert(game);
+                    if (inserted.error && (inserted.error.code === '23505' ||
+                        /duplicate key|unique constraint/i.test(inserted.error.message || ''))) {
+                        // 主键撞车：重新取一次 max(id) 再试一次，不该让用户背这个错
+                        console.warn('[投稿] id 撞车，重取 max(id) 后重试:', inserted.error.message);
+                        game.id = (await computeNextGameId()) + 1;
+                        inserted = await client.from('games').insert(game);
+                    }
+                    if (inserted.error) {
+                        const msg = inserted.error.message || String(inserted.error);
+                        // 42501 = 行级安全策略拦截。这是权限配置问题、重试无用，
+                        // 早前被归类到「暂时不可用」分支，把用户和排查都引偏了方向。
+                        if (inserted.error.code === '42501' || /row-level security/i.test(msg)) {
+                            console.error('❌ 投稿被 RLS 拦截（games 表写策略未放行当前用户）:', msg);
+                            showToast('❌ 投稿权限异常，请联系管理员', 3200);
+                        } else if (/isDraft|is_draft|column|policy/i.test(msg)) {
                             showToast('⚠️ 投稿暂时不可用，请稍后再试', 2800);
                         } else {
-                            showToast('❌ 投稿提交失败: ' + error.message, 2500);
+                            showToast('❌ 投稿提交失败: ' + msg, 2500);
                         }
                         return;
                     }
@@ -13826,7 +14120,16 @@
                     if (status === 429) return '操作过于频繁，请 1 分钟后再尝试';
                     if (status === 422) return '请求参数异常，请刷新页面后重试';
                     if (status === 401 || status === 403) return '权限不足或登录已过期，请重新登录';
-                    if (status >= 500) return '服务器暂时不可用，请稍后再试';
+                    // ⚠️ 5xx 不能把服务端原文吞掉：Supabase Auth 的 500 里带着真实原因
+                    //   （例如 "Database error saving new user"＝写库触发器失败、
+                    //     "Error sending confirmation email"＝确认邮件发不出去），
+                    //   只回一句「服务器暂时不可用」会让排查永远停在原地（2026-10-08 踩过）。
+                    if (status >= 500) {
+                        console.error('[Her Lens] Supabase ' + status + ' 原文：', message);
+                        return message
+                            ? '服务器暂时不可用，请稍后再试（' + message + '）'
+                            : '服务器暂时不可用，请稍后再试';
+                    }
                 }
                 if (!message) return '操作失败，请重试';
                 const msg = String(message).toLowerCase().trim();
@@ -14008,8 +14311,16 @@
                         } else {
                             document.getElementById('registerForm').style.display = 'none';
                             document.getElementById('loginForm').style.display = 'none';
-                            document.getElementById('emailConfirmMessage').style.display = 'block';
-                            showToast('📨 验证邮件已发送，请查收邮箱', 3000);
+                            // ★ 两种邮件配置都要能正确收尾：
+                            //   · 开启「Confirm email」→ data.session 为空，提示去邮箱点确认链接；
+                            //   · 关闭「Confirm email」（邮件服务不可用时的应急配置，2026-10-08 用到）
+                            //     → 直接返回 session（已自动登录），此时再说「验证邮件已发送」就是骗自己。
+                            if (data && data.session) {
+                                showToast('🎉 注册成功，已自动登录', 3000);
+                            } else {
+                                document.getElementById('emailConfirmMessage').style.display = 'block';
+                                showToast('📨 验证邮件已发送，请查收邮箱', 3000);
+                            }
                         }
                     });
                 }).catch(err => {

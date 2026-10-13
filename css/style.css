@@ -3590,6 +3590,109 @@
             }
         }
 
+        /* ---------- 审核工作台：工具栏 / 完整度评分 / 状态标记 ---------- */
+        .buf-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .buf-filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .buf-filter-btn {
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text3);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: border-color .18s, color .18s, background .18s;
+        }
+        .buf-filter-btn b {
+            margin-left: 3px;
+            font-weight: 700;
+        }
+        .buf-filter-btn:hover { color: var(--text); }
+        .buf-filter-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--surface-hover, var(--surface));
+        }
+        .buf-filter-btn.warn b { color: var(--warning, #e6a23c); }
+        .buf-filter-btn.ok b { color: var(--success, #4caf50); }
+        .buf-sort {
+            padding: 5px 9px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text2, var(--text3));
+            font-size: 0.8rem;
+            cursor: pointer;
+            max-width: 100%;
+        }
+
+        .buffer-item { flex-wrap: wrap; }
+        .buf-score {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .buf-score.ok   { background: rgba(76, 175, 80, .12);  color: #4caf50; }
+        .buf-score.mid  { background: rgba(230, 162, 60, .14); color: var(--warning, #e6a23c); }
+        .buf-score.low  { background: var(--danger-light);       color: var(--danger); }
+        .buf-score-num { font-size: 1.02rem; }
+        .buf-score-pct { font-size: 0.6rem; opacity: .75; margin-top: 1px; }
+
+        .buf-id {
+            font-size: 0.72rem;
+            color: var(--text3);
+            font-weight: 400;
+            margin-left: 6px;
+            opacity: .8;
+        }
+        .buf-badges {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .buf-badge {
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: var(--surface-hover, rgba(0, 0, 0, .03));
+            color: var(--text3);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .buf-badge.dup { color: var(--warning, #e6a23c); border-color: var(--warning, #e6a23c); }
+        .buf-badge.ok  { color: #4caf50; border-color: rgba(76, 175, 80, .5); }
+        .buf-badge.low { color: var(--danger); border-color: rgba(192, 57, 43, .4); }
+        .buf-badge.mid { color: var(--warning, #e6a23c); }
+        .buf-badge.none{ opacity: .75; }
+        .btn-warn {
+            color: var(--warning, #e6a23c);
+            border-color: var(--warning, #e6a23c);
+        }
+
+        @media (max-width: 768px) {
+            .buf-toolbar { flex-direction: column; align-items: stretch; }
+            .buf-sort { width: 100%; }
+        }
+
         /* ---------- 投稿弹窗：居中窄弹窗（与编辑弹窗一致） ---------- */
         @media (min-width: 769px) {
             #submitModalOverlay {
