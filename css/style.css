@@ -16336,3 +16336,746 @@
         height: 32px;
     }
 }
+
+/* ===== v3 布局层（开始，由 _build_v3.py --prod 生成） ===== */
+        /* ============================================================
+           v3 布局覆盖层（只作用于本页，不改 style.css）
+           结构：① 顶栏 ② 标题行 ③ 列表头 ④ 控制条 ⑤ 筛选 ⑥ 网格
+           ============================================================ */
+        body.page-v3 {
+            /* 与原站一致：1400 容器 + minmax(240px,1fr) → 5 列 / 卡片约 256px
+               （收窄到 1120 会变成 4 列，卡片观感变大） */
+            --v3-w: 1400px;
+            overflow-x: clip;
+        }
+
+        /* ---------- ① 顶栏 ----------
+           与页面一同滚走，不做吸顶（position 保持 static）。
+           去掉 sticky 后也不再需要毛玻璃：没有内容会从它下面穿过去。 */
+        .v3-topbar {
+            position: static;
+            background: var(--filter-bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .v3-topbar-inner {
+            max-width: var(--v3-w);
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .v3-topbar .filter-header {
+            min-height: 56px;
+            gap: 8px;
+        }
+
+        /* ---------- ② 标题行 ---------- */
+        .v3-titlebar {
+            max-width: var(--v3-w);
+            margin: 0 auto;
+            padding: 20px 20px 0;
+        }
+
+        .v3-titlebar .site-title-section {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+            text-align: left;
+            padding: 0;
+        }
+
+        .v3-titlebar .site-title {
+            font-size: 1.32rem;
+            line-height: 1.25;
+        }
+
+        .v3-titlebar .site-subtitle {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text3);
+        }
+
+        /* 用一道细分隔点把站名和副标题并到一行读 */
+        .v3-titlebar .site-subtitle::before {
+            content: '·';
+            margin-right: 9px;
+            color: var(--border);
+        }
+
+        /* ---------- ③ 列表头 ----------
+           左右两侧都走「纯文字」：左侧标题+数量是说明性文字，
+           右侧四个视图是同一层级的文字标签 + 当前项一道细下划线。
+           不用胶囊底、不用白底浮起、不用阴影 —— 两边视觉重量才对等。 */
+        .v3-listhead {
+            max-width: var(--v3-w);
+            margin: 0 auto;
+            padding: 14px 20px 0;
+        }
+
+        .v3-listhead-inner {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .v3-listhead-left {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .v3-listhead-title {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .v3-listhead .result-count {
+            font-size: 0.78rem;
+            font-weight: 400;
+            color: var(--text3);
+            white-space: nowrap;
+        }
+
+        /* 文字型视图切换：清掉原 view-tab 的方块/胶囊外观 */
+        .v3-listhead .view-tabs {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: 20px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: none;
+            box-shadow: none;
+        }
+
+        .v3-listhead .view-tab,
+        .v3-listhead .view-tab:first-child,
+        .v3-listhead .view-tab:last-child {
+            position: relative;
+            padding: 0 0 7px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            color: var(--text2);
+            font-size: 0.84rem;
+            font-weight: 500;
+            line-height: 1.2;
+            white-space: nowrap;
+            transition: color 0.18s ease;
+        }
+
+        .v3-listhead .view-tab:hover {
+            color: var(--text);
+        }
+
+        /* 覆盖原站 `.view-tab:hover:not(.active)` 的强调色描边，避免未选中项一悬停就像被选中 */
+        .v3-listhead .view-tab:hover:not(.active) {
+            color: var(--text);
+            border-color: transparent;
+        }
+
+        .v3-listhead .view-tab.active,
+        .v3-listhead .view-tab.active:hover {
+            background: transparent;
+            box-shadow: none;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* 当前项：2px 短线落在文字下方 7px，代替原先的白色滑块 */
+        .v3-listhead .view-tab.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        /* 键盘操作时的焦点环（鼠标点击不出现） */
+        .v3-listhead .view-tab:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+            border-radius: 4px;
+            color: var(--text);
+        }
+
+        /* ---------- ④ 控制条 ----------
+           同样不吸顶：搜索与快捷动作随页面一起滚走。
+           没有吸附状态，因此也不需要 is-stuck 的底色/边框过渡。 */
+        .v3-control {
+            position: static;
+            background: transparent;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .v3-control-inner {
+            max-width: var(--v3-w);
+            margin: 0 auto;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* 内容列回到 1400 后，搜索框若跟着拉伸会到 900px 左右，过长；
+           给上限，右侧按钮用 margin-left:auto 贴到行尾，视觉上仍是"一条" */
+        .v3-control .search-row {
+            flex: 1 1 320px;
+            max-width: 640px;
+            width: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 让 toolbar / toolbar-left 的层级消失，按钮直接落到控制条这一行 */
+        .v3-control .toolbar {
+            display: contents;
+        }
+
+        .v3-control .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        /* 右侧四个控件原来各有一套外观：排序是描边胶囊、抽卡是橙色渐变＋放大阴影、
+           愿望单红描边、排除已玩绿描边 —— 同一行四种强弱，看着乱。
+           统一成同一套「浅描边胶囊」，颜色只用来表示开关有没有打开。 */
+        .v3-control .btn-sm,
+        .v3-control .sort-select-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            height: 34px;
+            padding: 0 13px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text2);
+            font-size: 0.78rem;
+            font-weight: 500;
+            line-height: 1;
+            box-shadow: none;
+            transform: none;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+        }
+
+        /* 排序：外壳仍是那颗胶囊，可点区域是里面的按钮。
+           原生 select 只作为数据源保留（视觉隐藏），避免点开弹出系统下拉 */
+        .v3-control .sort-select-wrapper {
+            position: relative;
+            min-width: 118px;
+            padding: 0;
+            cursor: default;
+        }
+
+        .v3-control .sort-select-wrapper .sort-select {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
+            clip-path: inset(50%);
+            overflow: hidden;
+        }
+
+        .v3-control .v3-sort-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            height: 100%;
+            padding: 0 13px;
+            border: 0;
+            border-radius: inherit;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .v3-control .v3-sort-btn:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .v3-control .v3-sort-caret {
+            width: 6px;
+            height: 6px;
+            flex-shrink: 0;
+            border-right: 1.4px solid currentColor;
+            border-bottom: 1.4px solid currentColor;
+            transform: rotate(45deg) translate(-1px, -1px);
+            opacity: 0.55;
+            transition: transform 0.18s ease;
+        }
+
+        .v3-control .sort-select-wrapper.is-open .v3-sort-caret {
+            transform: rotate(-135deg) translate(-1px, -1px);
+        }
+
+        /* 菜单展开期间保持高亮，否则鼠标移到菜单上时胶囊会"掉色" */
+        .v3-control .sort-select-wrapper.is-open {
+            background: var(--tag-bg);
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        /* 菜单：沿用站点弹窗的玻璃质感，替掉系统下拉的白底方块 */
+        .v3-sort-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            z-index: 200;
+            min-width: 150px;
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--modal-bg);
+            -webkit-backdrop-filter: blur(20px) saturate(1.2);
+            backdrop-filter: blur(20px) saturate(1.2);
+            box-shadow: 0 14px 34px -16px rgba(60, 30, 80, 0.42);
+        }
+
+        .v3-sort-menu[hidden] {
+            display: none;
+        }
+
+        .v3-sort-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text2);
+            font-family: inherit;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.14s ease, color 0.14s ease;
+        }
+
+        .v3-sort-item:hover,
+        .v3-sort-item:focus-visible {
+            background: var(--tag-bg);
+            color: var(--text);
+            outline: none;
+        }
+
+        .v3-sort-item.is-active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .v3-sort-item.is-active::after {
+            content: '✓';
+            font-size: 0.78rem;
+            line-height: 1;
+        }
+
+        .v3-control .btn-sm:hover,
+        .v3-control .sort-select-wrapper:hover,
+        .v3-control .sort-select-wrapper:focus-within {
+            background: var(--tag-bg);
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        /* 抽卡是这一行唯一的主操作：给一层淡紫底，不再渐变、不再放大 */
+        .v3-control .btn-gacha {
+            background: var(--accent-light);
+            border-color: rgba(155, 138, 189, 0.34);
+            color: var(--accent2);
+            font-weight: 600;
+        }
+
+        .v3-control .btn-gacha:hover {
+            background: rgba(155, 138, 189, 0.18);
+            border-color: var(--accent);
+            color: var(--accent2);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 愿望单 / 排除已玩：默认和其它按钮一样素，开启后才上色（淡底＋彩字） */
+        .v3-control .btn-wishlist:hover {
+            background: rgba(192, 57, 43, 0.07);
+            border-color: rgba(192, 57, 43, 0.40);
+            color: var(--danger);
+        }
+
+        .v3-control .btn-wishlist.active {
+            background: rgba(192, 57, 43, 0.10);
+            border-color: rgba(192, 57, 43, 0.42);
+            color: var(--danger);
+        }
+
+        .v3-control .btn-exclude-played:hover {
+            background: rgba(93, 138, 94, 0.08);
+            border-color: rgba(93, 138, 94, 0.42);
+            color: var(--success);
+        }
+
+        .v3-control .btn-exclude-played.active {
+            background: rgba(93, 138, 94, 0.12);
+            border-color: rgba(93, 138, 94, 0.45);
+            color: var(--success);
+        }
+
+        /* SVG 图标与 emoji 视觉大小对齐 */
+        .v3-control .btn-sm .heart-icon,
+        .v3-control .btn-sm .check-icon {
+            font-size: 0.92em;
+        }
+
+        /* ---------- ⑤ 筛选 ---------- */
+        .v3-filters {
+            max-width: var(--v3-w);
+            margin: 0 auto;
+            /* 控制条底部有 1px 分界线，chips 离它太近会显得挤 */
+            padding: 12px 20px 0;
+        }
+
+        .v3-filters .filter-row {
+            justify-content: flex-start;
+            padding-top: 4px;
+        }
+
+        /* ---------- ⑥ 网格 ---------- */
+        body.page-v3 .gallery-container {
+            max-width: var(--v3-w);
+            padding: 16px 20px 40px;
+        }
+
+        /* 全部视图里给未发售条目一个角标，否则混排时分不出来。
+           左上角被「主角分类」标签（.card-heroine-tag, z-index:5）占着，角标放右上。 */
+        .v3-card-status {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            z-index: 6;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #8a5a1f;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            box-shadow: 0 1px 4px rgba(60, 30, 80, 0.18);
+        }
+
+        body.page-v3[data-theme="dark"] .v3-card-status {
+            background: rgba(30, 25, 38, 0.88);
+            color: #e8c48a;
+        }
+
+        /* 演示数据提示条：与网格左右边对齐（内容列 1400 减去两侧 20px 内距） */
+        .v3-demo-notice {
+            max-width: calc(var(--v3-w) - 40px);
+            margin: 12px auto 0;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-radius: 12px;
+            border: 1px dashed var(--border);
+            background: var(--tag-bg);
+            color: var(--text2);
+            font-size: 0.78rem;
+            line-height: 1.5;
+        }
+
+        .v3-demo-notice b {
+            color: var(--accent);
+        }
+
+        .v3-demo-notice span {
+            flex: 1 1 240px;
+        }
+
+        .v3-demo-notice button {
+            margin-left: auto;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text2);
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-size: 0.74rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        /* ---------- 导航栏：窄屏改成「logo + 动作」一行、导航条带一行 ----------
+           原站 ≤768px 时给 .top-nav 设了 flex-wrap: wrap + justify-content: center，
+           七个导航项在手机上折成两三行、长短不一，看着乱。
+           这里不再折行：导航改为一条不可换行的横向滚动带，超出部分滑出来。 */
+        @media (max-width: 768px) {
+            .v3-topbar .filter-header {
+                flex-wrap: wrap;
+                column-gap: 8px;
+                row-gap: 0;
+                padding-top: 4px;
+                padding-bottom: 2px;
+            }
+
+            .v3-topbar .site-logo {
+                order: 1;
+            }
+
+            .v3-topbar .header-right {
+                order: 2;
+                margin-left: auto;
+            }
+
+            .v3-topbar .top-nav {
+                order: 3;
+                flex: 1 0 100%;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                overflow-x: auto;
+                overflow-y: hidden;
+                gap: 0;
+                /* 左右各外扩 14px，滚动带贴到屏幕两边，边缘不会突然截断 */
+                margin: 2px -14px 0;
+                padding: 0 14px;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .v3-topbar .top-nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            /* 关键：不许被压扁，否则 flex 会把文字挤到换行 */
+            .v3-topbar .top-nav .top-nav-item,
+            .v3-topbar .top-nav .nav-dropdown-wrap {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .v3-topbar .top-nav .top-nav-item {
+                padding: 6px 9px;
+                font-size: 0.8rem;
+            }
+
+            .v3-topbar .top-nav .top-nav-item:first-child {
+                padding-left: 0;
+            }
+
+            /* 导航成了横向滚动容器，绝对定位的下拉菜单会被它裁掉。
+               手机上把菜单改成 fixed 浮层（top 由脚本按按钮位置写入），
+               这样「她们」「游戏小知识」两个二级菜单仍然打得开。 */
+            .v3-topbar .nav-dropdown-menu,
+            .v3-topbar .nav-dropdown-wrap.open .nav-dropdown-menu {
+                position: fixed;
+                left: 14px;
+                right: 14px;
+                top: var(--v3-nav-menu-top, 96px);
+                width: auto;
+                min-width: 0;
+                transform: none;
+            }
+        }
+
+        /* ---------- 移动端 ---------- */
+        @media (max-width: 860px) {
+            .v3-topbar .filter-header {
+                min-height: 52px;
+            }
+
+            .v3-titlebar {
+                padding-top: 14px;
+            }
+
+            .v3-listhead {
+                padding-top: 12px;
+            }
+
+            .v3-listhead .view-tabs {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 16px;
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+
+            .v3-listhead .view-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .v3-listhead .view-tab {
+                flex: 0 0 auto;
+                /* 必须保持 0 左右内边距，否则下划线会与文字错位 */
+                padding: 0 0 9px;
+                font-size: 0.8rem;
+                /* 手机上把可点区域撑到 34px，文字型标签原本只有 25px 左右 */
+                display: inline-flex;
+                align-items: flex-end;
+                min-height: 34px;
+            }
+
+            .v3-topbar-inner,
+            .v3-control-inner,
+            .v3-listhead,
+            .v3-filters,
+            body.page-v3 .gallery-container {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            /* 演示提示条是列表头的兄弟节点，手机上跟着同一档边距走 */
+            .v3-demo-notice {
+                max-width: none;
+                margin: 10px 14px 0;
+            }
+        }
+
+        /* ---------- 控制条：窄屏改成"搜索整行 + 控件一行" ----------
+           原来是 flex-wrap：搜索占满一行后，4 个控件（118+70+84+97px）
+           在 390px 屏上放不下，会折成 3+1 那样参差的两行。
+           这里改用网格：搜索跨满整行，下一行左排序、右三个按钮，永远只有两行。 */
+        @media (max-width: 760px) {
+            .v3-control-inner {
+                display: grid;
+                grid-template-columns: 1fr auto auto auto;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .v3-control .search-row {
+                grid-column: 1 / -1;
+                max-width: none;
+            }
+
+            /* 让 toolbar / toolbar-left 的包裹层消失，四个子项直接成为网格单元 */
+            .v3-control .toolbar,
+            .v3-control .toolbar-left {
+                display: contents;
+            }
+
+            /* 排序不拉伸成一条长胶囊宽度：靠左、给个上限 */
+            .v3-control .sort-select-wrapper {
+                min-width: 0;
+                max-width: 168px;
+                justify-self: start;
+            }
+
+            .v3-control .v3-sort-btn {
+                min-width: 0;
+            }
+
+            .v3-control .v3-sort-label {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            /* 手机上的排序菜单：不再挂在按钮下面做绝对定位（会被祖先的溢出裁掉），
+               改成 fixed 浮层 —— 左右各留 14px、宽度自适应，纵向位置由脚本按按钮算，
+               下方放不下时自动翻到上方；再兜一层 max-height 防止任何情况被截。 */
+            .v3-control .v3-sort-menu {
+                position: fixed;
+                left: 14px;
+                right: 14px;
+                top: var(--v3-sort-menu-top, 180px);
+                width: auto;
+                min-width: 0;
+                max-height: calc(100vh - 24px);
+                overflow-y: auto;
+            }
+        }
+
+        /* 更窄（多数手机）：两个开关收成方形图标，抽卡保留文字作为主操作 */
+        @media (max-width: 430px) {
+            .v3-control .btn-wishlist,
+            .v3-control .btn-exclude-played {
+                width: 36px;
+                padding: 0;
+                gap: 0;
+                /* 文字清零：按钮内只有一个图标，label 由 title / aria 承担 */
+                font-size: 0;
+            }
+
+            /* 图标尺寸必须写具体值：父级 font-size:0 会让 1em 也变 0 */
+            .v3-control .btn-wishlist .heart-icon,
+            .v3-control .btn-exclude-played .check-icon {
+                font-size: 15px;
+            }
+
+            .v3-control .btn-gacha {
+                padding: 0 11px;
+            }
+        }
+
+        /* ---------- 标题行：手机端两行居中 ----------
+           站名一行、副标题换到下一行，两行都居中。手机屏窄，一行并排会把副标题压成
+           很小或折成两行；拆开后层级清楚，也不用再靠缩小字号来塞。
+           - 竖排用 flex-direction: column + align-items: center，别用 text-align 硬凹
+           - 副标题放开原站的 white-space: nowrap，窄屏才能正常折行
+           - 换行之后行首的 · 没有意义，去掉
+           桌面端保持一行并排、左对齐不变。 */
+        @media (max-width: 600px) {
+            .v3-titlebar {
+                padding: 12px 14px 0;
+            }
+
+            .v3-titlebar .site-title-section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                text-align: center;
+                padding: 0;
+            }
+
+            .v3-titlebar .site-title {
+                flex: 0 0 auto;
+                font-size: 1.28rem;
+                line-height: 1.3;
+            }
+
+            .v3-titlebar .site-subtitle {
+                flex: 0 0 auto;
+                max-width: 100%;
+                font-size: 0.78rem;
+                line-height: 1.45;
+                /* 原站这里是 nowrap，窄屏会撑出宽度 */
+                white-space: normal;
+            }
+
+            .v3-titlebar .site-subtitle::before {
+                content: none;
+            }
+        }
+/* ===== v3 布局层（结束） ===== */

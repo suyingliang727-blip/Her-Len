@@ -74,10 +74,10 @@
             return window._lazyLoadScript('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'QRCode', 10000);
         };
     </script>
-    <link rel="stylesheet" href="css/style.css?v=0b838eced8" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
+    <link rel="stylesheet" href="css/style.css?v=3babc412d2" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
 </head>
 
-<body data-theme="light" data-page-node-id="9D0oKelu9L73kLVNf5sXGl">
+<body class="page-v3" data-theme="light" data-page-node-id="9D0oKelu9L73kLVNf5sXGl">
 
     <!-- ================================================================
     ★ 开机屏幕：仿操作系统桌面（每日首次显示）
@@ -450,8 +450,9 @@
         <span class="arrow" data-page-node-id="vZOuGtPuU0HECNG6cIw3OL">↑</span>
     </button>
 
-    <!-- ===== 筛选栏 ===== -->
-    <div class="filter-sticky" id="filterSticky" data-page-node-id="GE7efv1P4oHctw5MiVFXRe">
+    <!-- ===== ① 顶栏（全站唯一吸顶） ===== -->
+    <div class="v3-topbar" id="v3Topbar">
+        <div class="v3-topbar-inner">
         <div class="filter-header" data-page-node-id="UpyxKe8HP1fR4RssFoNc1M">
             <div class="site-logo" id="siteLogo" data-page-node-id="TmympHBru5pnl7NJNvZwDS">Her Lens</div>
             <nav class="top-nav" id="topNav" data-page-node-id="NhGWAyGWgzhCNpXd1SC46t">
@@ -508,27 +509,85 @@
                 </div>
             </div>
         </div>
+        </div>
+    </div>
 
+    <!-- ===== ② 标题行（压成一行，左对齐） ===== -->
+    <div class="v3-titlebar">
         <div class="site-title-section" id="siteTitleSection" data-page-node-id="gKiHwD57u9liYbuDoi7C49">
             <div class="site-title" data-page-node-id="ISXYfnJJgJggM0rPAAyJSo">女性主角游戏</div>
-            <div class="site-subtitle" data-page-node-id="IYKhi8EfaAmyGfwawEAdGz">*请从中选择你的下一场冒险*</div>
+            <div class="site-subtitle" data-page-node-id="IYKhi8EfaAmyGfwawEAdGz">请从中选择你的下一场冒险</div>
         </div>
+    </div>
 
+    <!-- ===== ③ 列表头：标题与数量 · 四个视图同级 ===== -->
+    <div class="v3-listhead" id="v3ListHead">
+        <div class="v3-listhead-inner">
+            <div class="v3-listhead-left">
+                <span class="v3-listhead-title">游戏总览</span>
+                <span class="result-count" id="resultCount" data-page-node-id="l8Ys239KduxyML1SFJMDgy">共 <span class="count-number" id="countNumber" data-page-node-id="EL5wgtQGaLs3IVRTdblTiw">0</span>款游戏</span>
+            </div>
         <div class="view-tabs" id="viewTabs" data-page-node-id="x3Mvgq5IK5w6Hzj5BG9GV4">
-            <span class="view-tab active" data-view="released" data-page-node-id="0wNoH4wGWW8DbZWQKAU3mm">📀 已发售游戏</span>
-            <span class="view-tab" data-view="unreleased" data-page-node-id="meGKAbAsX1iEqOl4r35zM1">⏳ 未发售游戏</span>
-            <span class="view-tab" data-view="series" data-page-node-id="LhgFKbkpVD9KkmDC9E8SBl">📚 系列作品</span>
+            <span class="view-tab active" data-view="all" data-page-node-id="v3taball">全部</span>
+            <span class="view-tab" data-view="released" data-page-node-id="0wNoH4wGWW8DbZWQKAU3mm">已发售</span>
+            <span class="view-tab" data-view="unreleased" data-page-node-id="meGKAbAsX1iEqOl4r35zM1">未发售</span>
+            <span class="view-tab" data-view="series" data-page-node-id="LhgFKbkpVD9KkmDC9E8SBl">系列作品</span>
         </div>
+        </div>
+    </div>
 
+    <!-- ===== ④ 控制条：搜索与快捷动作（滚动后吸附） ===== -->
+    <div class="v3-control" id="v3Control">
+        <div class="v3-control-inner">
         <div class="search-row" id="searchRow" data-page-node-id="LjNX0uTduYQYXs0eoBbYIg">
             <div class="search-input-wrap" data-page-node-id="0MvLJ9jFfSWyHvbBShWkN5">
                 <span class="search-icon" data-page-node-id="sZCkFwWGgUPhf8RZRFjxTU">🔍</span>
-                <input type="text" id="searchInput" name="search" placeholder="搜索游戏名或关键词…" autocomplete="off" data-page-node-id="wm9IRhjZunCx6vwH2VtBog" />
+                <input type="text" id="searchInput" name="search" aria-label="搜索游戏名或关键词" placeholder="搜索游戏名或关键词…" autocomplete="off" data-page-node-id="wm9IRhjZunCx6vwH2VtBog" />
                 <button class="search-clear-btn" id="searchClearBtn" aria-label="清除搜索" data-page-node-id="epdzgTqCDKnQ5qBNdGRTUH">✕</button>
                 <div class="search-history" id="searchHistory" aria-hidden="true" data-page-node-id="VSzyhuo8donDaPeHrK7Kdl"></div>
             </div>
         </div>
+    <div class="toolbar" id="toolbar" data-page-node-id="SSwMNNvPvGWJ09zYXotYsk">
+        <div class="toolbar-left" data-page-node-id="NiSrdrcAj9sFQseDgJvrsL">
+            <div class="sort-select-wrapper" title="选择排序方式" data-page-node-id="mdqCwEAIpyHIESCxkmXWkG">
+                <button type="button" class="v3-sort-btn" id="v3SortBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="v3SortMenu">
+                    <span class="v3-sort-label" id="v3SortLabel">默认排序</span>
+                    <span class="v3-sort-caret" aria-hidden="true"></span>
+                </button>
+                <select class="sort-select" id="sortSelect" tabindex="-1" aria-hidden="true" data-page-node-id="qQg1z2fCDZpDYjzh1tpZXY">
+                    <option value="default" data-page-node-id="2COCzDXP2RQYmFUZjSoltv">默认排序</option>
+                    <option value="newest" data-page-node-id="ETcGGjpbCApkGxVX4Y5HVE">最新发售</option>
+                    <option value="oldest" data-page-node-id="fSMA0XeaES56WKKyCTg1OL">最早发售</option>
+                    <option value="reviewCount" data-page-node-id="GIzesQm4OtX9PmfkMcWw3o">评论数最多</option>
+                </select>
+                <div class="v3-sort-menu" id="v3SortMenu" role="listbox" aria-label="排序方式" hidden></div>
+            </div>
 
+            <button class="btn btn-sm btn-gacha" id="btnGacha" title="从当前游戏池中随机抽取 8 款推荐" data-page-node-id="7AJnVmDmxjjmc84TmA7z5e">
+                <span class="dice-icon" data-page-node-id="xdUuhlw2uHpFYqRfNUH1wI">🌙</span> 抽卡
+            </button>
+
+            <button class="btn btn-sm btn-wishlist" id="btnWishlistToggle" aria-label="愿望单" title="仅显示已加入愿望单的游戏" data-page-node-id="ifmJIWumhaIP1kBLEDykcI">
+                <span class="heart-icon" data-page-node-id="2q472FdW8yeyXtsX72XnsU"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" data-page-node-id="aDpwVs2b4f7a2I2DnztEye"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" data-page-node-id="KlEGwlJ7GEGdNveGG7UATr"/></svg></span> 愿望单
+            </button>
+
+            <button class="btn btn-sm btn-exclude-played" id="btnExcludePlayed" aria-label="排除已玩" title="排除已标记玩过的游戏" data-page-node-id="swMKLvbTshoh52H4zSNW5i">
+                <span class="check-icon" data-page-node-id="RiA8f4Q5REbHVU81Hr0Rcm"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" data-page-node-id="g4nLjUfZvGyI3tDHYsooSD"><path d="M9 16.17L4.83 12l-1.41 1.41L9 19 21 7l-1.41-1.41z" data-page-node-id="x9GdU0ccCXmYIDFUvLnH88"/></svg></span> 排除已玩
+            </button>
+
+
+            <button class="btn btn-sm" id="btnToggleAdmin" title="切换管理模式" style="display:none;" data-page-node-id="eDTgr3lmDq4VyEo3UwIZD1">🔧 管理</button>
+            <button class="btn btn-sm" id="btnAddGame" title="手动添加游戏" style="display:none;" data-page-node-id="CbJiQoHcOfngrXgIJ69PBW">＋ 添加</button>
+            <button class="btn btn-sm" id="btnImportCSV" title="从CSV批量导入" style="display:none;" data-page-node-id="CD364Qg3cGdtbdPWCo1ke7">📂 导入</button>
+            <button class="btn btn-sm" id="btnBuffer" title="查看导入缓冲区（CSV导入的游戏先在此完善）" style="display:none;" data-page-node-id="Sg6if9HKmRNwFWsrICvSTl">🗂 缓冲区</button>
+            <input type="file" id="csvFileInput" accept=".csv" style="display:none;" data-page-node-id="Dh2GpCuxo7L36gk7MbKNhF" />
+        </div>
+    </div>
+        </div>
+    </div>
+
+    <!-- ===== ⑤ 筛选 ===== -->
+    <div class="v3-filters">
         <div class="filter-row" id="filterCategoryRow" data-page-node-id="DEh6cWhD0M8PfeCPmoDKEM"></div>
         <div class="filter-options-panel" id="filterOptionsPanel" data-page-node-id="vrqddYvUzFaECjMN3MyApg"></div>
         <div class="adult-content-banner" id="adultContentBanner" data-page-node-id="ClBb4MlKg1B0d2TCNv2uab">
@@ -547,48 +606,12 @@
         <div class="active-filters-bar" id="activeFiltersBar" data-page-node-id="xAsTVB0r13qwX0svKpbApG"></div>
     </div>
 
-    <!-- ===== 工具栏 ===== -->
-    <div class="toolbar" id="toolbar" data-page-node-id="SSwMNNvPvGWJ09zYXotYsk">
-        <div class="toolbar-left" data-page-node-id="NiSrdrcAj9sFQseDgJvrsL">
-            <label class="sort-select-wrapper" title="选择排序方式" data-page-node-id="mdqCwEAIpyHIESCxkmXWkG">
-                <span class="sort-select-prefix" aria-hidden="true" data-page-node-id="8pXj0CEagqx5DknyVTrcIs">📋</span>
-                <select class="sort-select" id="sortSelect" aria-label="排序方式" data-page-node-id="qQg1z2fCDZpDYjzh1tpZXY">
-                    <option value="default" data-page-node-id="2COCzDXP2RQYmFUZjSoltv">默认排序</option>
-                    <option value="newest" data-page-node-id="ETcGGjpbCApkGxVX4Y5HVE">最新发售</option>
-                    <option value="oldest" data-page-node-id="fSMA0XeaES56WKKyCTg1OL">最早发售</option>
-                    <option value="reviewCount" data-page-node-id="GIzesQm4OtX9PmfkMcWw3o">评论数最多</option>
-                </select>
-                <span class="sort-select-arrow" aria-hidden="true" data-page-node-id="SyBMkskuipef7UglKE4Jza">▾</span>
-            </label>
-
-            <button class="btn btn-sm btn-gacha" id="btnGacha" title="从当前游戏池中随机抽取 8 款推荐" data-page-node-id="7AJnVmDmxjjmc84TmA7z5e">
-                <span class="dice-icon" data-page-node-id="xdUuhlw2uHpFYqRfNUH1wI">🌙</span> 抽卡
-            </button>
-
-            <button class="btn btn-sm btn-wishlist" id="btnWishlistToggle" title="仅显示已加入愿望单的游戏" data-page-node-id="ifmJIWumhaIP1kBLEDykcI">
-                <span class="heart-icon" data-page-node-id="2q472FdW8yeyXtsX72XnsU"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" data-page-node-id="aDpwVs2b4f7a2I2DnztEye"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" data-page-node-id="KlEGwlJ7GEGdNveGG7UATr"/></svg></span> 愿望单
-            </button>
-
-            <button class="btn btn-sm btn-exclude-played" id="btnExcludePlayed" title="排除已标记玩过的游戏" data-page-node-id="swMKLvbTshoh52H4zSNW5i">
-                <span class="check-icon" data-page-node-id="RiA8f4Q5REbHVU81Hr0Rcm"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" data-page-node-id="g4nLjUfZvGyI3tDHYsooSD"><path d="M9 16.17L4.83 12l-1.41 1.41L9 19 21 7l-1.41-1.41z" data-page-node-id="x9GdU0ccCXmYIDFUvLnH88"/></svg></span> 排除已玩
-            </button>
-
-            <span class="result-count" id="resultCount" data-page-node-id="l8Ys239KduxyML1SFJMDgy">共 <span class="count-number" id="countNumber" data-page-node-id="EL5wgtQGaLs3IVRTdblTiw">0</span>款游戏</span>
-
-            <button class="btn btn-sm" id="btnToggleAdmin" title="切换管理模式" style="display:none;" data-page-node-id="eDTgr3lmDq4VyEo3UwIZD1">🔧 管理</button>
-            <button class="btn btn-sm" id="btnAddGame" title="手动添加游戏" style="display:none;" data-page-node-id="CbJiQoHcOfngrXgIJ69PBW">＋ 添加</button>
-            <button class="btn btn-sm" id="btnImportCSV" title="从CSV批量导入" style="display:none;" data-page-node-id="CD364Qg3cGdtbdPWCo1ke7">📂 导入</button>
-            <button class="btn btn-sm" id="btnBuffer" title="查看导入缓冲区（CSV导入的游戏先在此完善）" style="display:none;" data-page-node-id="Sg6if9HKmRNwFWsrICvSTl">🗂 缓冲区</button>
-            <input type="file" id="csvFileInput" accept=".csv" style="display:none;" data-page-node-id="Dh2GpCuxo7L36gk7MbKNhF" />
-        </div>
-    </div>
-
-    <!-- 悬浮主题切换按钮 -->
+    <!-- 悬浮主题切换按钮（app.js 直接 addEventListener，缺了会中断初始化） -->
     <button class="theme-toggle-floating" id="btnThemeToggle" title="切换深色/浅色模式" data-page-node-id="0V5m7ruuCdwtVVeGmkdxFZ">
         <span class="theme-toggle-icon" data-page-node-id="TxRxGTCFTBsEsjRL1UKm5p">🌓</span>
     </button>
 
-    <!-- ===== 游戏网格 ===== -->
+    <!-- ===== ⑥ 游戏网格 ===== -->
     <div class="gallery-container" id="galleryContainer" data-page-node-id="pECszgpwk1UVMwoRd4z1wz">
         <div class="gallery-grid" id="galleryGrid" data-page-node-id="A1EqHIfqYOVxByA0looBTm"></div>
         <div class="no-results" id="noResults" style="display:none;" data-page-node-id="HICr2L8qfLWaqfacsgjCK7">
@@ -1475,8 +1498,240 @@
     <script src="js/daily-tip.js?v=cdc9de80f7" defer></script>
     <script src="js/herlens-extensions.js?v=a3da23c407" defer></script>
     <script src="js/tip-reminder.js?v=b91965e049" defer></script>
-    <script src="js/app.js?v=ad3194d060" defer></script>
+    <script src="js/app.js?v=4c911561fa" defer></script>
 
-    </body>
+    <script>
+        // ============================================================
+        // v3：排序改用站内自绘的下拉（原生 select 只当数据源）
+        // - 选项从 #sortSelect 的 option 生成，选中后回写 value 并派发 change，
+        //   app.js 里原有的 `sortSelect.addEventListener('change', …)` 完全不用改
+        // - app.js 的 updateSortButtons() 会直接改 sel.value 而不派发事件，
+        //   所以用一个 400ms 的极轻比对把按钮文字同步过来（值没变不写 DOM）
+        // - 顶栏与控制条都不吸顶，因此滚动时把菜单收起
+        // ============================================================
+        (function () {
+            var sel = document.getElementById('sortSelect');
+            var btn = document.getElementById('v3SortBtn');
+            var label = document.getElementById('v3SortLabel');
+            var menu = document.getElementById('v3SortMenu');
+            var wrap = btn ? btn.closest('.sort-select-wrapper') : null;
+            if (!sel || !btn || !label || !menu || !wrap) return;
+
+            var lastValue = null;
+            var openState = false;
+
+            function syncLabel() {
+                var opt = sel.options[sel.selectedIndex] || sel.options[0];
+                if (!opt) return;
+                var text = (opt.textContent || '').trim();
+                if (label.textContent !== text) label.textContent = text;
+                lastValue = sel.value;
+            }
+
+            function buildMenu() {
+                menu.innerHTML = '';
+                Array.prototype.forEach.call(sel.options, function (opt) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'v3-sort-item';
+                    item.setAttribute('role', 'option');
+                    item.dataset.value = opt.value;
+                    item.textContent = (opt.textContent || '').trim();
+                    item.addEventListener('click', function () { choose(opt.value); });
+                    menu.appendChild(item);
+                });
+            }
+
+            function markActive() {
+                Array.prototype.forEach.call(menu.children, function (el) {
+                    var on = el.dataset.value === sel.value;
+                    el.classList.toggle('is-active', on);
+                    el.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+            }
+
+            function choose(value) {
+                close();
+                if (sel.value !== value) {
+                    sel.value = value;
+                    // 交给 app.js 原有的 change 处理：setSort → 重新渲染
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                syncLabel();
+            }
+
+            // 窄屏下菜单是 fixed 浮层（见 CSS @media 760），位置要按按钮实时算：
+            // 默认贴按钮下方 6px；下方空间不足就翻到按钮上方，并夹在视口内。
+            function placeMenu() {
+                var r = btn.getBoundingClientRect();
+                if (!r.width && !r.height) return; // 无布局（如无头环境）时不写垃圾值
+                var h = menu.offsetHeight || 150;
+                var top = Math.round(r.bottom + 6);
+                var bottomLimit = (window.innerHeight || 0) - 12;
+                if (bottomLimit > 0 && top + h > bottomLimit) {
+                    top = Math.max(12, Math.round(r.top - h - 6));
+                }
+                document.documentElement.style.setProperty('--v3-sort-menu-top', top + 'px');
+            }
+
+            function open() {
+                if (openState) return;
+                syncLabel();
+                buildMenu();
+                markActive();
+                menu.hidden = false;
+                wrap.classList.add('is-open');
+                btn.setAttribute('aria-expanded', 'true');
+                openState = true;
+                placeMenu();
+                var active = menu.querySelector('.is-active') || menu.firstElementChild;
+                if (active) active.focus();
+            }
+
+            function close() {
+                if (!openState) return;
+                menu.hidden = true;
+                wrap.classList.remove('is-open');
+                btn.setAttribute('aria-expanded', 'false');
+                openState = false;
+            }
+
+            btn.addEventListener('click', function () {
+                if (openState) { close(); } else { open(); }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!openState) return;
+                if (wrap.contains(e.target)) return;
+                close();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (!openState) return;
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    close();
+                    btn.focus();
+                }
+            });
+
+            menu.addEventListener('keydown', function (e) {
+                var items = Array.prototype.slice.call(menu.children);
+                var i = items.indexOf(document.activeElement);
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    (items[i + 1] || items[0]).focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    (items[i - 1] || items[items.length - 1]).focus();
+                }
+            });
+
+            window.addEventListener('scroll', close, { passive: true });
+
+            setInterval(function () {
+                if (sel.value !== lastValue) syncLabel();
+            }, 400);
+
+            syncLabel();
+        })();
+
+        // ============================================================
+        // v3：视图切换（全部 / 已发售 / 未发售 / 系列作品）补键盘可达性
+        // 它们是 span，原本只挂了 click —— 键盘和读屏完全够不到。
+        // 这里补 role/aria/tabindex，并让 Enter、空格、左右方向键可用；
+        // 真正的切换仍交给原有 click 处理（switchView），逻辑不重复。
+        // ============================================================
+        (function () {
+            var tabs = document.getElementById('viewTabs');
+            if (!tabs) return;
+
+            var items = Array.prototype.slice.call(tabs.querySelectorAll('.view-tab'));
+            if (!items.length) return;
+
+            var KEY_ENTER = 13;
+            var KEY_SPACE = 32;
+
+            function sync() {
+                items.forEach(function (el) {
+                    var on = el.classList.contains('active');
+                    el.setAttribute('role', 'tab');
+                    el.setAttribute('aria-selected', on ? 'true' : 'false');
+                    // 只有当前项进 Tab 序列，其余用方向键进入（标准 tabs 模式）
+                    el.setAttribute('tabindex', on ? '0' : '-1');
+                });
+            }
+
+            tabs.setAttribute('role', 'tablist');
+            if (!tabs.getAttribute('aria-label')) tabs.setAttribute('aria-label', '游戏视图');
+
+            items.forEach(function (el, i) {
+                el.addEventListener('keydown', function (e) {
+                    var key = e.key;
+                    var isEnter = key === 'Enter' || e.keyCode === KEY_ENTER;
+                    var isSpace = key === ' ' || key === 'Spacebar' || e.keyCode === KEY_SPACE;
+
+                    if (isEnter || isSpace) {
+                        e.preventDefault();
+                        el.click();
+                        return;
+                    }
+
+                    if (key === 'ArrowRight' || key === 'ArrowLeft') {
+                        e.preventDefault();
+                        var next = key === 'ArrowRight'
+                            ? (i + 1) % items.length
+                            : (i - 1 + items.length) % items.length;
+                        items[next].click();      // 走原有 switchView
+                        items[next].focus();
+                    }
+                });
+            });
+
+            sync();
+            // app.js 只改 class（不派发事件），同步 aria-selected / tabindex
+            if (window.MutationObserver) {
+                new MutationObserver(sync).observe(tabs, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class']
+                });
+            }
+        })();
+
+        // ============================================================
+        // v3：窄屏导航条是横向滚动容器，二级菜单改成 fixed 浮层
+        // - 菜单的 top 按被点按钮的 bottom + 6 写入 --v3-nav-menu-top
+        // - 因为浮层不跟随页面，滚动时直接收起，避免菜单悬在半空
+        // 桌面端该变量不参与布局（仍为绝对定位），无副作用。
+        // ============================================================
+        (function () {
+            var wraps = Array.prototype.slice.call(document.querySelectorAll('.nav-dropdown-wrap'));
+            if (!wraps.length) return;
+
+            function place(wrap) {
+                var btn = wrap.querySelector('.top-nav-item');
+                if (!btn) return;
+                var rect = btn.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return;
+                document.documentElement.style.setProperty('--v3-nav-menu-top', Math.round(rect.bottom + 6) + 'px');
+            }
+
+            wraps.forEach(function (wrap) {
+                wrap.addEventListener('click', function (e) {
+                    if (e.target.closest('.nav-dropdown-menu')) return;
+                    // app.js 在同一个 click 里切换 .open，等它切完再判断
+                    setTimeout(function () {
+                        if (wrap.classList.contains('open')) place(wrap);
+                    }, 0);
+                });
+            });
+
+            window.addEventListener('scroll', function () {
+                wraps.forEach(function (w) { w.classList.remove('open'); });
+            }, { passive: true });
+        })();
+
+    </script>
+</body>
 
 </html>

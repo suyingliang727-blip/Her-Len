@@ -227,7 +227,7 @@
             let activeFilters = {};
             let activeFilterCat = null;
             let currentTheme = 'light';
-            let currentView = 'released';
+            let currentView = 'all';
             let currentSort = 'default';
             let searchQuery = '';
             let wishlistMode = false;
@@ -3477,8 +3477,8 @@
                         const d = JSON.parse(s);
                         currentTheme = d.theme || 'system';
                         if (!['light', 'dark', 'system'].includes(currentTheme)) currentTheme = 'system';
-                        currentView = d.currentView || 'released';
-                        if (currentView === 'series') currentView = 'released';
+                        currentView = d.currentView || 'all';
+                        if (!['all', 'released', 'unreleased'].includes(currentView)) currentView = 'all';
                         currentSort = d.currentSort || 'default';
                         if (!['default', 'newest', 'oldest', 'reviewCount'].includes(currentSort)) currentSort = 'default';
                         isAdminMode = d.isAdminMode || false;
@@ -3510,7 +3510,7 @@
 
             function resetActiveFilters() {
                 activeFilters = {};
-                const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
+                const map = currentView === 'unreleased' ? getUnreleasedFilterCats() : (currentView === 'all' ? getAllFilterCats() : getReleasedFilterCats());
                 Object.keys(map).forEach(k => activeFilters[k] = new Set());
             }
 
@@ -3535,6 +3535,13 @@
                 _filterCatsCache.genresKey = gk;
                 _filterCatsCache.gameplaysKey = pk;
                 return _filterCatsCache.released;
+            }
+
+            // 「全部」视图：两类游戏混排，筛选项取并集（Demo 试玩在未发售那套里才有）
+            function getAllFilterCats() {
+                const m = Object.assign({}, getReleasedFilterCats());
+                m.hasDemo = { label: 'Demo试玩', options: DEMO_OPTIONS, field: 'hasDemo' };
+                return m;
             }
 
             function getUnreleasedFilterCats() {
@@ -3817,12 +3824,12 @@
             }
 
             function getFilteredGames() {
-                const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
+                const map = currentView === 'unreleased' ? getUnreleasedFilterCats() : (currentView === 'all' ? getAllFilterCats() : getReleasedFilterCats());
                 const filtered = games.filter(game => {
                     const id = Number(game.id);
                     if (id === 1 || id === 2) return false;
                     if (game.isDraft) return false; // 导入缓冲区中的草稿不进总览
-                    if (isGameReleased(game) !== (currentView === 'released')) return false;
+                    if (currentView !== 'all' && isGameReleased(game) !== (currentView === 'released')) return false;
                     if (searchQuery && !gameMatchesSearch(game, searchQuery)) return false;
                     if (wishlistMode && !isInWishlist(game.id)) return false;
                     if (excludePlayedMode && isPlayed(game.id)) return false;
@@ -3880,7 +3887,7 @@
             }
 
             function updateFilterUI() {
-                const map = currentView === 'released' ? getReleasedFilterCats() : getUnreleasedFilterCats();
+                const map = currentView === 'unreleased' ? getUnreleasedFilterCats() : (currentView === 'all' ? getAllFilterCats() : getReleasedFilterCats());
 
                 const row = document.getElementById('filterCategoryRow');
                 row.innerHTML = Object.entries(map).map(([cat, info]) => {
@@ -4356,6 +4363,26 @@
 
                 grid.replaceChildren(frag);
 
+                // ★ v3：卡片节点是复用的（_cardMap 命中就直接 appendChild，不重跑模板），
+                //   而「未发售」角标取决于当前视图 —— 切换视图后它会残留（全部→未发售）
+                //   或者缺失（已发售→全部）。这里按当前状态逐张校正。
+                filtered.forEach(function (g) {
+                    var _c = _cardMap.get(g.id);
+                    if (!_c) return;
+                    var _wrap = _c.querySelector('.card-cover-wrap');
+                    if (!_wrap) return;
+                    var _want = (currentView === 'all') && !isGameReleased(g);
+                    var _has = _wrap.querySelector('.v3-card-status');
+                    if (_want && !_has) {
+                        var _tag = document.createElement('div');
+                        _tag.className = 'v3-card-status';
+                        _tag.textContent = '\u23f3 \u672a\u53d1\u552e';
+                        _wrap.appendChild(_tag);
+                    } else if (!_want && _has) {
+                        _has.remove();
+                    }
+                });
+
                 // FLIP：应用反向位移，再过渡到新位置
                 if (flipPrevRects.size > 0) {
                     for (const [id, card] of _cardMap) {
@@ -4515,6 +4542,7 @@
                     : '<div class="card-cover-placeholder" style="position:relative;z-index:2;">' + SVG_ICONS.gamepad + '</div>';
 
                 const heroineTag = game.heroineType ? `<div class="card-heroine-tag">${escapeHTML(game.heroineType)}</div>` : '';
+                const statusTag = (currentView === 'all' && !isGameReleased(game)) ? '<div class="v3-card-status">⏳ 未发售</div>' : '';
 
                 const adminBtns = (isAdmin && isAdminMode)
                     ? `<div class="card-admin-actions"><button class="btn-edit-card" data-game-id="${game.id}">✏️ 编辑</button><button class="btn-del-card" data-game-id="${game.id}">🗑 删除</button></div>`
@@ -4527,6 +4555,7 @@
                         <div class="card-cover-wrap">
                             ${coverImg}
                             ${heroineTag}
+                            ${statusTag}
                         </div>
                         <div class="card-body">
                             <div class="card-title">${escapeHTML(game.title || '')}</div>
