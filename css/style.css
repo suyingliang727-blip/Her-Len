@@ -3537,7 +3537,8 @@
         }
 
         /* 编辑弹窗需叠在缓冲区弹窗之上（缓冲区中点「编辑」时�?*/
-        #editModalOverlay { z-index: 1050; }
+        /* 必须高于 .modal-overlay 的 100000：缓冲区、详情页都可能是它的「下层」 */
+        #editModalOverlay { z-index: 100100; }
 
         /* ---------- 缓冲区列表项 ---------- */
         .buffer-list {
@@ -4050,6 +4051,64 @@
             white-space: pre-line;
             text-indent: 0;
         }
+
+/* ===== 简介折叠（开始，由 _patches_20261021.py 生成） ===== */
+        /* 折叠只作用于文本层；展开入口在同一张卡片的文本下方，是一行文字链接 */
+        .detail-desc-text.is-clamped {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 5;
+            line-clamp: 5;
+            overflow: hidden;
+            /* 末行淡出，让"被裁"看起来是刻意留白，而不是断在半句上 */
+            -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent 100%);
+        }
+
+        .detail-desc-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin: 8px 0 0;
+            padding: 2px 0;
+            border: 0;
+            background: none;
+            color: var(--accent);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 500;
+            line-height: 1.6;
+            cursor: pointer;
+        }
+
+        .detail-desc-toggle:hover .detail-desc-toggle-label {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .detail-desc-toggle:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        .detail-desc-toggle[hidden] {
+            display: none;
+        }
+
+        .detail-desc-caret {
+            width: 6px;
+            height: 6px;
+            border-right: 1.4px solid currentColor;
+            border-bottom: 1.4px solid currentColor;
+            transform: rotate(45deg) translate(-1px, -1px);
+            transition: transform 0.18s ease;
+        }
+
+        .detail-description.is-expanded .detail-desc-caret {
+            transform: rotate(-135deg) translate(-1px, -1px);
+        }
+/* ===== 简介折叠（结束） ===== */
 
         /* ---------- 底部：信息分组卡（方案 B · 单列垂直堆叠· 实机展示区 ---------- */
         .detail-other-info {

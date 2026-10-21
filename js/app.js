@@ -4974,7 +4974,10 @@
             function closeEditModal() {
                 const overlay = document.getElementById('editModalOverlay');
                 if (overlay) overlay.classList.remove('show');
-                document.body.style.overflow = '';
+                // 若缓冲区 / 详情等其他弹层还开着，不能恢复页面滚动，否则背后会跟着滚
+                if (!document.querySelector('.modal-overlay.show')) {
+                    document.body.style.overflow = '';
+                }
                 editingGameId = null;
             }
             window.closeEditModal = closeEditModal;
@@ -7700,6 +7703,72 @@
                 }).join('')}</div>`;
             }
 
+            // 长简介折叠：默认显示 5 行，超过才出现展开入口。
+            // 裁剪发生在 .detail-desc-text 上，展开入口是它的兄弟节点（放在同一个卡片里），
+            // 因此不会被 -webkit-line-clamp 一起裁掉，也不必另起一个浮在卡片外的按钮。
+            // ⚠️ 判定不能直接用折叠后的 scrollHeight —— 部分内核在 line-clamp 下会把它
+            //    报成可视高度，导致永远测不出溢出。这里量两次高度再比。
+            function setupDescClamp(modal) {
+                if (!modal) return;
+                const box = modal.querySelector('.detail-description');
+                if (!box) return;
+                const text = box.querySelector('.detail-desc-text');
+                const btn = box.querySelector('.detail-desc-toggle');
+                const label = box.querySelector('.detail-desc-toggle-label');
+                if (!text || !btn) return;
+
+                const wasExpanded = box.classList.contains('is-expanded');
+
+                // 1) 完整高度
+                text.classList.remove('is-clamped');
+                const fullH = text.scrollHeight;
+                // 2) 折叠到 5 行后的高度
+                text.classList.add('is-clamped');
+                const clampH = text.clientHeight;
+
+                const overflow = fullH > clampH + 2;
+
+                if (!overflow) {
+                    // 不到 5 行：完全展开，且不显示入口
+                    text.classList.remove('is-clamped');
+                    box.classList.remove('is-expanded');
+                    btn.hidden = true;
+                    btn.setAttribute('aria-expanded', 'false');
+                    return;
+                }
+
+                // 恢复用户此前的展开状态
+                box.classList.toggle('is-expanded', wasExpanded);
+                if (wasExpanded) text.classList.remove('is-clamped');
+                if (label) label.textContent = wasExpanded ? '收起' : '展开全文';
+                btn.hidden = false;
+                btn.setAttribute('aria-expanded', wasExpanded ? 'true' : 'false');
+
+                if (!btn._descClampBound) {
+                    btn._descClampBound = true;
+                    btn.addEventListener('click', function () {
+                        const on = box.classList.toggle('is-expanded');
+                        text.classList.toggle('is-clamped', !on);
+                        if (label) label.textContent = on ? '收起' : '展开全文';
+                        btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+                    });
+                }
+            }
+            window.setupDescClamp = setupDescClamp;
+
+            // 窗口尺寸变化后行数会变，重算一次（只在详情弹窗打开时）
+            (function () {
+                let t = null;
+                window.addEventListener('resize', function () {
+                    const overlay = document.getElementById('detailModalOverlay');
+                    if (!overlay || !overlay.classList.contains('show')) return;
+                    const modal = overlay.querySelector('.modal');
+                    if (!modal) return;
+                    clearTimeout(t);
+                    t = setTimeout(function () { setupDescClamp(modal); }, 180);
+                }, { passive: true });
+            })();
+
             async function showDetailModal(game, options) {
                 if (!game) return;
                 const from = options && options.from ? options.from : 'gallery';
@@ -7968,7 +8037,13 @@
                             </div>
 
                             <div class="detail-description texture-card">
-                                ${escapeHTML(game.fullDescription || game.description || '暂无简介')}
+                                <div class="detail-desc-text">
+                                    ${escapeHTML(game.fullDescription || game.description || '暂无简介')}
+                                </div>
+                                <button type="button" class="detail-desc-toggle" aria-expanded="false" hidden>
+                                    <span class="detail-desc-toggle-label">展开全文</span>
+                                    <span class="detail-desc-caret" aria-hidden="true"></span>
+                                </button>
                             </div>
 
                             <div class="detail-other-info texture-card">
@@ -8004,6 +8079,9 @@
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
                 overlay.scrollTop = 0;
+
+                // 首屏渲染完成后量一次行高（此时 overlay 已 show，有布局）
+                requestAnimationFrame(function () { setupDescClamp(modal); });
 
                 modal.querySelector('#detailBackBtn').addEventListener('click', function (e) {
                     e.preventDefault();
@@ -8183,7 +8261,10 @@
                         }
                         if (!changed) return;
                         const descEl = modal.querySelector('.detail-description');
-                        if (descEl && game.fullDescription) descEl.innerHTML = escapeHTML(game.fullDescription);
+                        if (descEl && game.fullDescription) {
+                            descEl.innerHTML = escapeHTML(game.fullDescription);
+                            setupDescClamp(modal);
+                        }
                         const gridEl = modal.querySelector('.detail-screenshots-grid');
                         if (gridEl && game.screenshots && game.screenshots.length > 0) {
                             gridEl.className = 'detail-screenshots-grid';
