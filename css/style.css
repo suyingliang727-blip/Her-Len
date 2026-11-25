@@ -13,6 +13,9 @@
             --accent2: #7e6fa0;
             --tag-bg: rgba(237, 231, 242, 0.50);
             --tag-text: #5a4e66;
+            /* 卡片底部「N 人玩过 / N 人评价」专用：纯黑，优先保证 0.68rem 小字读得清；
+               不用 var(--text) 是因为用户明确要求「纯黑」，两者差一档墨量 */
+            --stat-text: #000;
             --tag-active-bg: #9b8abd;
             --tag-active-text: #fff;
             --shadow: 0 8px 32px rgba(60, 30, 80, 0.18);
@@ -109,7 +112,6 @@
             .coin-tip-btn,
             .btn,
             .sync-status,
-            .card-user-actions .action-btn,
             .modal .detail-tags span,
             .modal .detail-video-link,
             .modal .detail-link-btn,
@@ -301,6 +303,8 @@
             --accent2: #9e8abf;
             --tag-bg: rgba(54, 47, 62, 0.50);
             --tag-text: #c4b5d3;
+            /* 暗色下必须反白：黑字在深底上等于隐形 */
+            --stat-text: #fff;
             --tag-active-bg: #b8a2d6;
             --tag-active-text: #1e1822;
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
@@ -991,7 +995,6 @@
             top: -200px;
             left: -150px;
             animation: floatGlow1 20s ease-in-out infinite alternate;
-            animation-play-state: var(--glow-play-state, running);
         }
 
         .bg-glow.g2 {
@@ -1001,7 +1004,6 @@
             bottom: -150px;
             right: -100px;
             animation: floatGlow2 25s ease-in-out infinite alternate;
-            animation-play-state: var(--glow-play-state, running);
         }
 
         .bg-glow.g3 {
@@ -1012,8 +1014,14 @@
             left: 50%;
             transform: translate(-50%, -50%);
             animation: floatGlow3 30s ease-in-out infinite alternate;
-            animation-play-state: var(--glow-play-state, running);
             opacity: 0.2;
+        }
+
+        /* ★ 滚动时暂停光晕动画：改用 body class 触发。
+           以前是给 :root 设置 --glow-play-state，自定义属性会在全文档继承，
+           每次滚动开始/结束都要做一次整页样式重算（卡片上千张时就是明显的卡顿）。 */
+        body.is-scrolling .bg-glow {
+            animation-play-state: paused;
         }
 
         @keyframes floatGlow1 {
@@ -2897,7 +2905,8 @@
         .gallery-card.visible {
             opacity: 1;
             transform: translateY(0) scale(1);
-            will-change: transform;
+            /* ★ 不再常驻 will-change：上千张卡片各占一个合成层会吃光显存，
+               进入动画结束后由浏览器自行回收；hover 时再临时提升 */
         }
 
         @media (hover: hover) {
@@ -3196,7 +3205,9 @@
             cursor: pointer;
             background: var(--surface);
             color: var(--text2);
-            transition: all .2s;
+            /* ★ 不用 transition: all —— 卡片按钮是 N×2 个，任何属性变化都会参与过渡；
+               这里只过渡真正会变的视觉属性 */
+            transition: background-color .2s, border-color .2s, color .2s, transform .2s;
             user-select: none;
             font-weight: 500;
             touch-action: manipulation;
@@ -3267,15 +3278,91 @@
             color: var(--danger);
         }
 
+        /* ★ 卡片统计行：「玩过人数」+「评价人数」固定同一行，并吸附在正文底部，
+              这样标签有多有少时两枚徽章也不会上下乱窜、跨卡片能对齐 */
+        .gallery-card .card-stats-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: auto;
+            padding-top: 3px;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .gallery-card .card-stats-row > * {
+            flex: 0 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: .68rem;
+            line-height: 1.35;
+            padding: 2px 7px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        /* 两枚统计胶囊同色同高（中性玻璃底），不再用重点色区分「玩过」 */
+        .gallery-card .card-stats-row .card-played-count,
+        .gallery-card .card-stats-row .card-rating-count {
+            background: var(--glass-bg-light);
+            color: var(--stat-text);
+            border: 1px solid transparent;
+        }
+
         .gallery-card .card-rating-count {
             font-size: .68rem;
             padding: 2px 7px;
             border-radius: 10px;
             background: var(--glass-bg-light);
-            color: var(--tag-text);
+            color: var(--stat-text);
             white-space: nowrap;
             display: inline-block;
             min-height: 0;
+        }
+
+        /* 统计胶囊前的小图标：用 mask 而不是背景图 —— 颜色自动跟随 currentColor，
+           浅色主题是纯黑、暗色自动变纯白，不用为两套主题各存一份 SVG。
+           不用 inline-flex 包住文字：那会让 .card-stats-row 的 text-overflow:ellipsis 失效，
+           窄屏就会变成硬裁而不是省略号。 */
+        .gallery-card .card-played-count::before,
+        .gallery-card .card-rating-count::before {
+            content: '';
+            display: inline-block;
+            flex: 0 0 auto;
+            width: 1em;
+            height: 1em;
+            margin-right: 3px;
+            vertical-align: -0.13em;
+            background-color: currentColor;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+
+        /* 玩过：粗对勾（与「标记玩过」按钮同一语义：已玩 = 勾上）。stroke 3.8 与下面
+           实心星的墨量对齐，1x（约 11px）下才不会显得发虚 */
+        .gallery-card .card-played-count::before {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.4 12.6l5.4 5.2L20.8 6'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.4 12.6l5.4 5.2L20.8 6'/%3E%3C/svg%3E");
+        }
+
+        /* 评价：实心五角星（与封面右上角评分徽章呼应，这里是「有多少人打过分」）。
+           星的外接框是满的，同尺寸会显得比对勾重，所以单独缩到 0.94em */
+        .gallery-card .card-rating-count::before {
+            width: .94em;
+            height: .94em;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'/%3E%3C/svg%3E");
+        }
+
+        /* 还没拉到任何评价时不占位，避免空胶囊（:empty 无视伪元素，所以图标会一起消失） */
+        .gallery-card .card-rating-count:empty {
+            display: none;
         }
 
         .gallery-card .card-parallax-bg {
@@ -10868,6 +10955,15 @@
                 font-size: .52rem;
                 padding: 1px 4px;
             }
+            .series-group-cards .gallery-card .card-stats-row {
+                gap: 2px;
+                padding-top: 1px;
+            }
+            .series-group-cards .gallery-card .card-stats-row > * {
+                font-size: .52rem;
+                padding: 1px 4px;
+                border-radius: 8px;
+            }
             /* 平板端：系列作品卡片按钮同行排列 */
             .series-group-cards .gallery-card .card-user-actions {
                 flex-wrap: nowrap;
@@ -11155,6 +11251,18 @@
                 padding: 1px 4px;
             }
 
+            /* 统计行：手机上同样锁在一行，字号与标签一致 */
+            .gallery-card .card-stats-row {
+                gap: 2px;
+                padding-top: 2px;
+            }
+
+            .gallery-card .card-stats-row > * {
+                font-size: .52rem;
+                padding: 1px 4px;
+                border-radius: 8px;
+            }
+
             .gallery-card .card-user-actions {
                 padding: 4px 8px 6px;
                 gap: 4px;
@@ -11199,8 +11307,8 @@
             }
 
             .gallery-card .card-rating-count {
-                font-size: .58rem;
-                padding: 0 10px 4px;
+                font-size: .52rem;
+                padding: 1px 4px;
             }
 
             .btn-wishlist {
@@ -17154,3 +17262,417 @@
             }
         }
 /* ===== v3 布局层（结束） ===== */
+
+/* ==================================================================
+   ★ 卡片评分徽章 / 玩过人数 / 详情页屏蔽（2026-11-25）
+   ================================================================== */
+
+/* 封面右上角星级：始终压在图上的深色药丸，浅色/深色主题都清晰 */
+.gallery-card .card-rating-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 7;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(26, 20, 36, 0.82);
+    color: #ffd77a;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 10px rgba(28, 18, 46, 0.28);
+    /* ★ 不用 backdrop-filter：上千张卡片各带一个背景模糊层，滚动时会掉帧。
+       改用更实的底色保证可读性，视觉差别很小。 */
+}
+
+.gallery-card .card-rating-badge.is-empty {
+    color: rgba(255, 255, 255, 0.86);
+    font-weight: 500;
+    background: rgba(26, 20, 36, 0.66);
+}
+
+.gallery-card .card-rating-badge.is-loading {
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 500;
+    background: rgba(26, 20, 36, 0.5);
+}
+
+/* 卡片「N 人玩过」胶囊的基础样式见 .card-stats-row 区块（标签流之外，单独一行） */
+
+/* 详情页：玩过人数药丸 */
+.detail-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.detail-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--glass-bg-light);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+/* 详情页「屏蔽此游戏」：低调的次要操作，hover 才显出危险色 */
+.detail-block-btn {
+    color: var(--text3);
+    border-color: var(--border);
+    opacity: 0.85;
+}
+
+.detail-block-btn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    opacity: 1;
+}
+
+/* 设置页：已屏蔽的游戏名单 */
+.settings-blocked-games {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.settings-blocked-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.settings-blocked-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.settings-blocked-count {
+    font-size: 0.74rem;
+    color: var(--text3);
+    margin-left: 4px;
+}
+
+.settings-blocked-hint {
+    margin: 0 0 12px;
+    font-size: 0.74rem;
+    line-height: 1.6;
+    color: var(--text3);
+}
+
+.blocked-game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.blocked-game-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: var(--glass-bg-light);
+    border: 1px solid var(--border);
+}
+
+.blocked-game-cover {
+    width: 64px;
+    height: 34px;
+    border-radius: 7px;
+    object-fit: cover;
+    background: var(--tag-bg);
+    flex-shrink: 0;
+}
+
+.blocked-game-cover-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text3);
+    font-size: 0.9rem;
+}
+
+.blocked-game-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.blocked-game-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.blocked-game-sub {
+    font-size: 0.7rem;
+    color: var(--text3);
+    margin-top: 2px;
+}
+
+.blocked-game-restore {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    padding: 4px 12px;
+    border-radius: 10px;
+}
+
+.blocked-game-empty {
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px dashed var(--border);
+    background: var(--tag-bg);
+    color: var(--text3);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.detail-block-btn.is-blocked {
+    color: var(--accent);
+    border-color: var(--accent);
+    opacity: 1;
+}
+
+/* ==================================================================
+   ★ 全站评分补齐中的提示条（2026-11-25）
+   分页后「按评分最高」要等全量评分回来才排得准，中间那几秒顺序还会变。
+   不提示的话用户会以为排序坏了 —— 这条只在「确实缺数据」时出现。
+   ================================================================== */
+.rating-loading-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: var(--glass-bg-light);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: .8rem;
+    line-height: 1.45;
+    /* 内部小圆点一直在转：contain 防止它的 transform 污染祖先 scrollHeight */
+    contain: layout paint;
+}
+
+.rating-loading-hint .rlh-dot {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    border-top-color: transparent;
+    animation: rlh-spin .8s linear infinite;
+}
+
+@keyframes rlh-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rating-loading-hint .rlh-dot { animation: none; border-top-color: var(--accent); opacity: .5; }
+}
+
+/* ==================================================================
+   ★ 游戏列表分页（2026-11-25）
+   1779 款卡片全量常驻 DOM 时，首屏要建约 4.3 万节点、每次搜索都要重排 1779 张。
+   分页后 DOM 恒定 ≤200 张（9 页），首屏建卡与每次重排都降到 1/9。
+   ================================================================== */
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 30px auto 10px;
+    padding: 9px 12px;
+    border-radius: 16px;
+    background: var(--glass-bg-light);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 18px rgba(60, 30, 80, 0.06);
+}
+
+/* display:flex 会盖掉 UA 的 [hidden]{display:none}，这里显式兜住 */
+.pagination-bar[hidden] {
+    display: none !important;
+}
+
+.pagination-bar .page-numbers {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+}
+
+.pagination-bar .page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 9px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text2);
+    font-family: inherit;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease, border-color .18s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pagination-bar .page-btn:hover:not(:disabled):not(.is-current) {
+    background: var(--tag-bg);
+    color: var(--text);
+}
+
+.pagination-bar .page-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.pagination-bar .page-btn.is-current {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    cursor: default;
+}
+
+.pagination-bar .page-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.pagination-bar .page-step {
+    padding: 0 12px;
+    white-space: nowrap;
+}
+
+.pagination-bar .page-ellipsis {
+    padding: 0 2px;
+    color: var(--text3);
+    font-size: .8rem;
+    user-select: none;
+}
+
+/* 「跳至 __ / N 页」：输入数字后回车（或离开输入框）即跳转。
+   桌面与窄屏共用同一个控件 —— 窄屏时它顺手变成「当前页 / 总页数」的替代显示。 */
+.pagination-bar .page-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-left: 4px;
+    color: var(--text2);
+    font-size: .82rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.pagination-bar .page-jump .jump-label {
+    color: var(--text3);
+    font-weight: 500;
+}
+
+.pagination-bar .page-jump-input {
+    width: 56px;
+    height: 34px;                /* 与 .page-btn 等高：分页条高度不因输入框变化而跳动 */
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .72);
+    color: var(--text);
+    font-family: inherit;
+    font-size: .82rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    transition: border-color .18s ease, background .18s ease;
+}
+
+/* 去掉数字框的上下小箭头：分页条里用不上，还会顶宽 56px 的宽度 */
+.pagination-bar .page-jump-input::-webkit-outer-spin-button,
+.pagination-bar .page-jump-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.pagination-bar .page-jump-input:hover {
+    border-color: rgba(120, 100, 150, .4);
+}
+
+.pagination-bar .page-jump-input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    background: #fff;
+}
+
+.pagination-bar .page-jump-input:invalid {
+    border-color: rgba(220, 90, 110, .55);
+}
+
+@media (max-width: 640px) {
+    .pagination-bar {
+        width: 100%;
+        justify-content: space-between;
+        gap: 4px;
+        margin-top: 22px;
+        padding: 8px;
+        border-radius: 14px;
+    }
+
+    .pagination-bar .page-numbers {
+        display: none;
+    }
+
+    /* 窄屏放不下一排页码：中间只留「跳至 [5] / 9 页」，前后各一个翻页按钮 */
+    .pagination-bar .page-jump {
+        flex: 1;
+        justify-content: center;
+        gap: 4px;
+        padding-left: 0;
+        font-size: .78rem;
+    }
+
+    .pagination-bar .page-jump .jump-label {
+        display: none;
+    }
+
+    .pagination-bar .page-jump-input {
+        width: 48px;
+        height: 32px;
+        font-size: .78rem;
+    }
+
+    .pagination-bar .page-btn {
+        min-width: 30px;
+        height: 32px;
+        font-size: .78rem;
+    }
+
+    .pagination-bar .page-step {
+        padding: 0 12px;
+    }
+}

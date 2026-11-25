@@ -74,7 +74,7 @@
             return window._lazyLoadScript('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'QRCode', 10000);
         };
     </script>
-    <link rel="stylesheet" href="css/style.css?v=c27154a318" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
+    <link rel="stylesheet" href="css/style.css?v=056afc5952" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
 </head>
 
 <body class="page-v3" data-theme="light" data-page-node-id="9D0oKelu9L73kLVNf5sXGl">
@@ -556,6 +556,7 @@
                 </button>
                 <select class="sort-select" id="sortSelect" tabindex="-1" aria-hidden="true" data-page-node-id="qQg1z2fCDZpDYjzh1tpZXY">
                     <option value="default" data-page-node-id="2COCzDXP2RQYmFUZjSoltv">默认排序</option>
+                    <option value="rating">评分最高</option>
                     <option value="newest" data-page-node-id="ETcGGjpbCApkGxVX4Y5HVE">最新发售</option>
                     <option value="oldest" data-page-node-id="fSMA0XeaES56WKKyCTg1OL">最早发售</option>
                     <option value="reviewCount" data-page-node-id="GIzesQm4OtX9PmfkMcWw3o">评论数最多</option>
@@ -1205,6 +1206,19 @@
                 </div>
 
                 <button class="btn btn-accent" id="spBlockSaveBtn" style="width:100%; padding:10px; margin-top:16px;" data-page-node-id="6iuXdFgdHPRdk507B23BLY">💾 保存屏蔽设置</button>
+
+                <!-- 已屏蔽的游戏（详情页「屏蔽此游戏」加入的名单） -->
+                <div class="settings-blocked-games">
+                    <div class="settings-blocked-head">
+                        <div>
+                            <span class="settings-blocked-title">🙈 已屏蔽的游戏</span>
+                            <span id="spBlockedGameCount" class="settings-blocked-count"></span>
+                        </div>
+                        <button type="button" class="btn btn-sm" id="spBlockedGameClear" disabled>全部恢复</button>
+                    </div>
+                    <p class="settings-blocked-hint">在游戏详情页点「屏蔽此游戏」即可加入这里，屏蔽后刷新页面、换设备登录都不会再看到它。</p>
+                    <div id="spBlockedGameList" class="blocked-game-list"></div>
+                </div>
             </div>
 
         </div>
@@ -1498,7 +1512,7 @@
     <script src="js/daily-tip.js?v=cdc9de80f7" defer></script>
     <script src="js/herlens-extensions.js?v=a3da23c407" defer></script>
     <script src="js/tip-reminder.js?v=b91965e049" defer></script>
-    <script src="js/app.js?v=132872f885" defer></script>
+    <script src="js/app.js?v=7d16c5ed32" defer></script>
 
     <script>
         // ============================================================

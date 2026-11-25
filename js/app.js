@@ -236,10 +236,13 @@
             let excludedTags = { genre: [], gameplay: [], platforms: [], heroineType: [], costumeType: [], perspective: [] };
             let blockOpenDims = new Set(['genre']);
             let blockSearchQuery = '';
-            let userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} };
+            let userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {}, blocked: [], blockedUpdatedAt: 0 };
             let searchTimeout = null;
             let cardObserver = null;
             let card3DListeners = [];
+            // ★ 3D 悬停绑定标记：WeakSet 判重是 O(1)（原来用数组 find+filter，上千张卡片是 O(N²)）
+            const _card3DBound = new WeakSet();
+            let _hoverMediaCache = null;
             let isTouchDevice = false;
 
             let currentUser = null;
@@ -272,6 +275,91 @@
             const REVIEWS_LIST_CACHE_TTL = 120000; // 2分钟
             let _ratingBatchTimer = null;
             let _ratingBatchPending = [];
+
+            // ★ 评分缓存持久化（2026-11-25）
+            // ----------------------------------------------------------------
+            // 为什么：分页后「按评分排序」必须拿到全站 1779 款的评分才排得准，
+            //   没拉到的会被当成「暂无评分」沉到最后 —— 排出来的顺序是错的。
+            //   若每次进页面都从云端重拉（约 20 个请求），首屏会有数秒顺序错乱。
+            //   这里把结果落到本机：下次进页面第一次渲染就是对的，后台再静默刷新。
+            const RATING_STATS_KEY = 'herlens_rating_stats_v1';
+            const RATING_MEM_TTL = 30 * 60 * 1000;        // 内存 30 分钟（与既有判断一致）
+            const RATING_DISK_TTL = 12 * 60 * 60 * 1000;  // 本机缓存 12 小时
+            let _ratingDiskTimer = null;
+            let _ratingDiskDirty = false;
+
+            function _readRatingStatsFromDisk() {
+                try {
+                    const raw = localStorage.getItem(RATING_STATS_KEY);
+                    if (!raw) return 0;
+                    const obj = JSON.parse(raw);
+                    if (!obj || typeof obj !== 'object' || !obj.m || !obj.ts) return 0;
+                    if (Date.now() - obj.ts > RATING_DISK_TTL) return 0;
+                    let n = 0;
+                    for (const k in obj.m) {
+                        const v = obj.m[k];
+                        if (!v || !Array.isArray(v)) continue;
+                        _ratingStatsCache[k] = {
+                            average: (v[0] === undefined ? null : v[0]),
+                            count: Number(v[1]) || 0,
+                            comment_count: Number(v[2]) || 0,
+                            // ★ 逐条记时间：只刷新当前页时，没刷到的那些仍然是「老」的，
+                            //   下次进页面才知道该补它们（整批共用一个 ts 会让旧数据永不过期）
+                            ts: Number(v[3]) || obj.ts
+                        };
+                        n++;
+                    }
+                    return n;
+                } catch (_) { return 0; }
+            }
+
+            function _saveRatingStatsToDisk() {
+                try {
+                    const m = {};
+                    let n = 0;
+                    for (const k in _ratingStatsCache) {
+                        const c = _ratingStatsCache[k];
+                        if (!c || typeof c !== 'object') continue; // null = 明确要重拉，不落盘
+                        m[k] = [
+                            c.average === undefined ? null : c.average,
+                            Number(c.count) || 0,
+                            Number(c.comment_count) || 0,
+                            Number(c.ts) || 0
+                        ];
+                        n++;
+                    }
+                    if (!n) return;
+                    localStorage.setItem(RATING_STATS_KEY, JSON.stringify({ ts: Date.now(), m: m }));
+                } catch (_) { /* 配额不足时放弃持久化，不影响本次显示 */ }
+            }
+
+            // 批量补齐会写上千次缓存 → 2 秒内只落一次盘
+            function _markRatingDiskDirty() {
+                _ratingDiskDirty = true;
+                if (_ratingDiskTimer) return;
+                _ratingDiskTimer = setTimeout(function () {
+                    _ratingDiskTimer = null;
+                    if (!_ratingDiskDirty) return;
+                    _ratingDiskDirty = false;
+                    _saveRatingStatsToDisk();
+                }, 2000);
+            }
+
+            // 启动即恢复：让第一次 renderGallery 的排序就是对的
+            _readRatingStatsFromDisk();
+
+            // ★ 评分排序：卡片评分批量补齐后自动重排一次（见 loadCardRatingStats）
+
+            // ★ 玩过人数（全站）：一次拉全量 user_played 后按 game_id 聚合，内存 + localStorage 双缓存
+            const PLAYED_COUNTS_KEY = 'herlens_played_counts_v1';
+            const PLAYED_COUNTS_MEM_TTL = 30 * 60 * 1000;   // 内存 30 分钟
+            const PLAYED_COUNTS_DISK_TTL = 6 * 60 * 60 * 1000; // 本机缓存 6 小时
+            let _playedCountMap = null;
+            let _playedCountTs = 0;
+            let _playedCountLoading = null;
+            let _playedCountDeferred = false;
+            let _playedRpcBroken = false;
+            let _blockedSyncTimer = null;
 
             // ★ 答题解锁：用户需通过答题才能评论/评分/回复，答题页面在 quiz.html
             // 一次性/临时邮箱域名黑名单
@@ -1387,8 +1475,11 @@
                         //   用于把删除意图传给其他设备（详见 user_deletions.sql 顶部说明）
                         userData.tombstones = (parsed.tombstones && typeof parsed.tombstones === 'object') ? parsed.tombstones : {};
                         userData.localAdds = (parsed.localAdds && typeof parsed.localAdds === 'object') ? parsed.localAdds : {};
-                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} }; }
-                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} }; }
+                        // ★ 屏蔽（拉黑）游戏：本地列表 + 最后修改时间（跨设备按时间取新）
+                        userData.blocked = (parsed.blocked || []).map(id => Math.round(Number(id))).filter(id => Number.isInteger(id) && id > 0);
+                        userData.blockedUpdatedAt = Number(parsed.blockedUpdatedAt) || 0;
+                    } else { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {}, blocked: [], blockedUpdatedAt: 0 }; }
+                } catch (_) { userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {}, blocked: [], blockedUpdatedAt: 0 }; }
 
                 // 迁移：旧版本使用通用 heroineUserData key，首次登录时迁移到用户专属 key
                 const legacyKey = 'heroineUserData';
@@ -1684,6 +1775,11 @@
 
                     const equipped_title = userData.equippedTitle || cloudMeta.equipped_title || null;
 
+                    // ★ 屏蔽名单：云端更新时间更新时采用云端（换设备后自动带过来）
+                    try { mergeBlockedFromMetadata(cloudMeta); } catch (e) { console.warn('[屏蔽] 合并失败:', e && e.message); }
+                    const blocked_games = getBlockedIds().slice();
+                    const blockedIso = userData.blockedUpdatedAt ? new Date(userData.blockedUpdatedAt).toISOString() : null;
+
                     let localChanged = false;
                     if (titles.length !== localTitles.length || titles.some((t, i) => t !== localTitles[i])) {
                         userData.titles = titles.slice();
@@ -1700,7 +1796,12 @@
                     if (localChanged) saveUserData();
 
                     const { error } = await supabaseClient.auth.updateUser({
-                        data: { titles, achievements, equipped_title }
+                        data: {
+                            titles, achievements, equipped_title,
+                            // ★ 屏蔽名单只在本机确有修改历史（blockedIso 存在）时才一起写，
+                            //   否则可能用空列表覆盖掉云端已有的屏蔽（新设备刚登录、同步还没跑完时）
+                            ...(blockedIso ? { [BLOCK_META_KEY]: blocked_games, blocked_updated_at: blockedIso } : {})
+                        }
                     });
                     if (error) {
                         console.error('❌ 头衔/成就同步到 metadata 失败:', error);
@@ -1718,6 +1819,10 @@
                             currentUser.user_metadata.titles = titles;
                             currentUser.user_metadata.achievements = achievements;
                             currentUser.user_metadata.equipped_title = equipped_title;
+                            if (blockedIso) {
+                                currentUser.user_metadata[BLOCK_META_KEY] = blocked_games;
+                                currentUser.user_metadata.blocked_updated_at = blockedIso;
+                            }
                         }
                         // 同步 equipped_title 到 user_profiles 表（供他人主页读取）
                         _syncEquippedTitleToProfile(equipped_title);
@@ -1851,11 +1956,124 @@
                 }
                 saveUserData();
                 updateCardButtonState(id);
+                // ★ 玩过人数：本机即时 +1/-1，不用等下一次全量拉取
+                bumpPlayedCount(id, idx >= 0 ? -1 : 1);
+                updateDetailPlayedPill(id);
             }
 
             function isInWishlist(gameId) { return userData.wishlist.includes(Number(gameId)); }
 
             function isPlayed(gameId) { return userData.played.includes(Number(gameId)); }
+
+            // ================================================================
+            // 屏蔽（拉黑）游戏
+            // ----------------------------------------------------------------
+            // 名单存在 userData.blocked，随 userData 落到本机 localStorage（刷新/重开仍在）；
+            // 登录用户额外同步到 auth.user_metadata（blocked_games + blocked_updated_at），
+            // 换设备登录后按「最后修改时间」取较新的一份 → 屏蔽/恢复都能跨设备生效。
+            // ================================================================
+            const BLOCK_META_KEY = 'blocked_games';
+
+            function getBlockedIds() {
+                if (!Array.isArray(userData.blocked)) userData.blocked = [];
+                return userData.blocked;
+            }
+
+            function isGameBlocked(gameId) {
+                return getBlockedIds().includes(Number(gameId));
+            }
+
+            function blockGame(gameId) {
+                const id = Number(gameId);
+                if (!Number.isInteger(id) || id <= 0) return false;
+                const list = getBlockedIds();
+                if (list.includes(id)) return false;
+                list.push(id);
+                userData.blockedUpdatedAt = Date.now();
+                saveUserData();
+                syncBlockedToMetadata();
+                try { renderGallery(); } catch (_) {}
+                try { renderBlockedGamesSettings(); } catch (_) {}
+                return true;
+            }
+
+            function unblockGame(gameId) {
+                const id = Number(gameId);
+                const list = getBlockedIds();
+                const idx = list.indexOf(id);
+                if (idx < 0) return false;
+                list.splice(idx, 1);
+                userData.blockedUpdatedAt = Date.now();
+                saveUserData();
+                syncBlockedToMetadata();
+                try { renderGallery(); } catch (_) {}
+                try { renderBlockedGamesSettings(); } catch (_) {}
+                return true;
+            }
+
+            function _cloudBlockedState(meta) {
+                meta = meta || (currentUser && currentUser.user_metadata) || {};
+                const ids = Array.isArray(meta[BLOCK_META_KEY])
+                    ? meta[BLOCK_META_KEY].map(Number).filter(id => Number.isInteger(id) && id > 0)
+                    : [];
+                return { ids, ts: Date.parse(meta.blocked_updated_at) || 0 };
+            }
+
+            // 把本机名单推到云端（400ms 防抖；immediate=true 时立即发出）
+            function syncBlockedToMetadata(immediate) {
+                if (_blockedSyncTimer) { clearTimeout(_blockedSyncTimer); _blockedSyncTimer = null; }
+                const run = async () => {
+                    if (!currentUser || !supabaseClient) return;
+                    if (!userData.blockedUpdatedAt) userData.blockedUpdatedAt = Date.now();
+                    const ids = getBlockedIds().slice();
+                    const iso = new Date(userData.blockedUpdatedAt).toISOString();
+                    try {
+                        const { error } = await supabaseClient.auth.updateUser({
+                            data: { [BLOCK_META_KEY]: ids, blocked_updated_at: iso }
+                        });
+                        if (error) { console.warn('[屏蔽] 同步到云端失败:', error.message); return; }
+                        if (currentUser.user_metadata) {
+                            currentUser.user_metadata[BLOCK_META_KEY] = ids;
+                            currentUser.user_metadata.blocked_updated_at = iso;
+                        }
+                    } catch (e) {
+                        console.warn('[屏蔽] 同步异常:', e && e.message);
+                    }
+                };
+                if (immediate) return run();
+                _blockedSyncTimer = setTimeout(run, 400);
+            }
+
+            // 登录/同步时与云端名单合并：云端更新时间更晚 → 采用云端；否则把本地推上去
+            function mergeBlockedFromMetadata(metaOpt) {
+                if (!currentUser) return false;
+                const cloud = _cloudBlockedState(metaOpt);
+                const localTs = Number(userData.blockedUpdatedAt) || 0;
+                if (cloud.ts > localTs) {
+                    userData.blocked = cloud.ids;
+                    userData.blockedUpdatedAt = cloud.ts;
+                    saveUserData();
+                    return true;
+                }
+                if (localTs > 0 || getBlockedIds().length > 0) syncBlockedToMetadata(true);
+                return false;
+            }
+
+            // 主动向服务端要一次最新 user_metadata（换设备后 session 里的
+            // user_metadata 可能是登录时的旧快照，不主动拉会滞后到下次刷新 token）
+            async function pullBlockedFromCloud() {
+                if (!currentUser || !supabaseClient) return false;
+                try {
+                    const { data, error } = await supabaseClient.auth.getUser();
+                    if (error || !data || !data.user) return false;
+                    const meta = data.user.user_metadata || {};
+                    currentUser.user_metadata = meta;
+                    return mergeBlockedFromMetadata(meta);
+                } catch (e) {
+                    console.warn('[屏蔽] 拉取云端名单失败:', e && e.message);
+                    return false;
+                }
+            }
 
             function updateCardButtonState(gameId) {
                 let card = _cardMap.get(Number(gameId));
@@ -1868,13 +2086,22 @@
                 const playBtn = card.querySelector('.action-play');
                 if (wishBtn) {
                     const inW = isInWishlist(gameId);
-                    wishBtn.className = 'action-btn action-wish' + (inW ? ' active-wish' : '');
-                    wishBtn.innerHTML = `<span class="icon">${inW ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inW ? '已加入' : '加入愿望单'}</span>`;
+                    const w = inW ? '1' : '0';
+                    // ★ 状态没变就不重建 innerHTML（全量刷新时最多上千张卡片）
+                    if (wishBtn.dataset.w !== w) {
+                        wishBtn.dataset.w = w;
+                        wishBtn.className = 'action-btn action-wish' + (inW ? ' active-wish' : '');
+                        wishBtn.innerHTML = `<span class="icon">${inW ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inW ? '已加入' : '加入愿望单'}</span>`;
+                    }
                 }
                 if (playBtn) {
                     const inP = isPlayed(gameId);
-                    playBtn.className = 'action-btn action-play' + (inP ? ' active-played' : '');
-                    playBtn.innerHTML = `<span class="icon">${inP ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inP ? '已玩过' : '标记玩过'}</span>`;
+                    const p = inP ? '1' : '0';
+                    if (playBtn.dataset.p !== p) {
+                        playBtn.dataset.p = p;
+                        playBtn.className = 'action-btn action-play' + (inP ? ' active-played' : '');
+                        playBtn.innerHTML = `<span class="icon">${inP ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inP ? '已玩过' : '标记玩过'}</span>`;
+                    }
                 }
             }
 
@@ -2990,7 +3217,9 @@
                             for (const row of data) {
                                 fetchedMap[row.game_id] = {
                                     average: row.avg_rating,
-                                    count: Number(row.rating_count)
+                                    count: Number(row.rating_count),
+                                    // ★ RPC 直接给了「只写评论没打分」的人数，明细被截断时用它兜底
+                                    commentOnly: Number(row.comment_only_count) || 0
                                 };
                             }
                         }
@@ -3020,7 +3249,7 @@
                         } catch (_) { /* 明细查询失败时退回 RPC 结果，不影响显示 */ }
 
                         for (const id of needFetch) {
-                            const rpcStats = fetchedMap[id] || { average: null, count: 0 };
+                            const rpcStats = fetchedMap[id] || { average: null, count: 0, commentOnly: 0 };
                             const g = grouped[id] || { rated: 0, verdictSum: 0, verdictN: 0, ratingSum: 0, ratingN: 0, comments: 0 };
                             let count = 0;
                             let average = null;
@@ -3034,17 +3263,14 @@
                             } else if (rpcStats.average != null) {
                                 average = rpcStats.average;
                             }
-                            // 本地明细比 RPC 更全时优先用本地口径；否则用 RPC 结果
-                            if (count > 0 || g.comments > 0) {
-                                const commentOnly = Math.max(0, g.comments - g.rated);
-                                const stats = { average, count, comment_count: commentOnly };
-                                _ratingStatsCache[String(id)] = { ...stats, ts: now };
-                                result[id] = stats;
-                            } else {
-                                const stats = { ...rpcStats, comment_count: 0 };
-                                _ratingStatsCache[String(id)] = { ...stats, ts: now };
-                                result[id] = stats;
-                            }
+                            // ★ 纯评论数：明细优先（口径与本地兜底一致）；明细这一批被 1000 行上限
+                            //   截断、或该游戏压根没回来时，退回 RPC 的 comment_only_count，别丢成 0
+                            const commentOnly = g.rated > 0
+                                ? Math.max(0, g.comments - g.rated)
+                                : Math.max(0, rpcStats.commentOnly || 0);
+                            const stats = { average: average, count: count, comment_count: commentOnly };
+                            _ratingStatsCache[String(id)] = { ...stats, ts: now };
+                            result[id] = stats;
                         }
                         batchFetched = true;
                     } catch (e) {
@@ -3132,31 +3358,57 @@
                     } catch (_) { /* 全部失败时保持 0，卡片不显示人数 */ }
                 }
 
+                // 每批都标脏：全量补齐是 10 批，节流后总共只落一两次盘
+                _markRatingDiskDirty();
                 return result;
             }
 
+            // ★ gameId → 该游戏在页面上的徽章节点（一次 querySelectorAll 建好）
+            //   之前 applyCardRatingStats 用属性选择器逐个游戏查全文档，
+            //   1800 个游戏就是 1800 次全文档扫描，补齐评分时会卡一大下
+            let _ratingNodeMap = new Map();
+
             function loadCardRatingStats() {
-                const els = document.querySelectorAll('.card-rating-count');
+                const els = document.querySelectorAll('.card-rating-count, .card-rating-badge');
                 if (!els.length) return;
 
                 const now = Date.now();
+                const nodeMap = new Map();
 
                 els.forEach(el => {
                     const gameId = Number(el.dataset.gameId);
                     if (!gameId) return;
-                    const cacheKey = String(gameId);
-                    const cached = _ratingStatsCache[cacheKey];
-                    if (cached && (now - cached.ts < 1800000)) {
-                        renderCardRatingCount(el, cached);
-                        el.dataset.loaded = '1';
+                    let entry = nodeMap.get(gameId);
+                    if (!entry) { entry = { badges: [], counts: [] }; nodeMap.set(gameId, entry); }
+                    if (el.classList.contains('card-rating-badge')) entry.badges.push(el);
+                    else entry.counts.push(el);
+                });
+                _ratingNodeMap = nodeMap;
+
+                nodeMap.forEach((entry, gameId) => {
+                    const cached = _ratingStatsCache[String(gameId)];
+                    if (cached) {
+                        // ★ 只要有过数据就先用它渲染（哪怕已过期）——过期只代表「该刷新了」，
+                        //   不代表数据无效。老逻辑过期就跳进 pending，卡片会先显示「⭐ …」占位，
+                        //   首屏看起来像「没有评分」。过期的同时排进队列静默刷新。
+                        entry.badges.forEach(el => { renderCardRatingBadge(el, cached); el.dataset.loaded = '1'; });
+                        entry.counts.forEach(el => { renderCardRatingCount(el, cached); el.dataset.loaded = '1'; });
+                        if (now - (cached.ts || 0) >= RATING_MEM_TTL) {
+                            entry.badges.forEach(el => _ratingBatchPending.push({ gameId, selector: el }));
+                            entry.counts.forEach(el => _ratingBatchPending.push({ gameId, selector: el }));
+                        }
                     } else {
-                        _ratingBatchPending.push({ gameId, selector: el });
+                        entry.badges.forEach(el => _ratingBatchPending.push({ gameId, selector: el }));
+                        entry.counts.forEach(el => _ratingBatchPending.push({ gameId, selector: el }));
                     }
                 });
 
                 if (_ratingBatchPending.length === 0) return;
 
                 if (_ratingBatchTimer) return;
+
+                // 全量预取正在跑时，这一轮没必要再发一次重复请求（它拉完会重排、重渲染）
+                if (_ratingPrefetchRunning) { _ratingBatchPending.length = 0; return; }
 
                 _ratingBatchTimer = setTimeout(async () => {
                     const pending = _ratingBatchPending.splice(0);
@@ -3165,15 +3417,66 @@
                     const uniqueIds = [...new Set(pending.map(p => p.gameId))];
                     const batchResult = await fetchBatchRatingStats(uniqueIds);
 
-                    pending.forEach(({ gameId, selector }) => {
-                        const stats = batchResult[gameId] || { average: null, count: 0 };
-                        // 按 gameId 重新查找节点：渲染间隔中网格可能已重绘，旧节点已脱离 DOM
-                        const el = selector.isConnected ? selector : document.querySelector('.card-rating-count[data-game-id="' + gameId + '"]');
-                        if (!el) return;
-                        renderCardRatingCount(el, stats);
+                    // 同一个游戏可能同时有星级徽章和「N人评价」，按 gameId 去重后只更新一次
+                    const done = new Set();
+                    pending.forEach(({ gameId }) => {
+                        if (done.has(gameId)) return;
+                        done.add(gameId);
+                        applyCardRatingStats(gameId, batchResult[gameId] || { average: null, count: 0 });
+                    });
+
+                    // ★ 按评分排序时，等评分补齐后用真实分数重排一次。
+                    //   只有在「确实拿到了评分」时才重排：全部拉取失败时不重排，避免死循环。
+                    //   ★ 分页后当前页只覆盖 100 款，全量预取（ensureAllRatingsLoaded）在跑时不局部重排，
+                    //     否则会拿「部分有分」的数据排出错误顺序。
+                    const gotAnyAvg = Object.keys(batchResult || {}).some(k => batchResult[k] && batchResult[k].average != null);
+                    if (currentSort === 'rating' && currentView !== 'series' && gotAnyAvg && !_ratingPrefetchRunning) {
+                        try { renderGallery(); } catch (_) {}
+                    }
+                }, 200);
+            }
+
+            // 同一游戏可能同时有「星级徽章」和「N人评价」，一次更新全部节点
+            function applyCardRatingStats(gameId, stats) {
+                const id = Number(gameId);
+                const statsSafe = stats || { average: null, count: 0 };
+                const entry = _ratingNodeMap.get(id);
+                if (entry) {
+                    entry.badges.forEach(el => {
+                        if (!el.isConnected) return;
+                        renderCardRatingBadge(el, statsSafe);
                         el.dataset.loaded = '1';
                     });
-                }, 200);
+                    entry.counts.forEach(el => {
+                        if (!el.isConnected) return;
+                        renderCardRatingCount(el, statsSafe);
+                        el.dataset.loaded = '1';
+                    });
+                    return;
+                }
+                // 兜底（例如详情页/曲库里的同名徽章，不在卡片索引里）
+                document.querySelectorAll('.card-rating-badge[data-game-id="' + id + '"]')
+                    .forEach(el => renderCardRatingBadge(el, statsSafe));
+                document.querySelectorAll('.card-rating-count[data-game-id="' + id + '"]')
+                    .forEach(el => renderCardRatingCount(el, statsSafe));
+            }
+
+            // ★ 卡片封面右上角：星级（无评分时明确写「暂无评分」，便于筛选）
+            function renderCardRatingBadge(el, stats) {
+                const raw = stats && stats.average;
+                const avg = (raw === null || raw === undefined || isNaN(Number(raw))) ? null : Number(raw);
+                if (el.classList.contains('is-loading')) el.classList.remove('is-loading');
+                if (avg === null) {
+                    if (el.textContent !== '暂无评分') el.textContent = '暂无评分';
+                    if (!el.classList.contains('is-empty')) el.classList.add('is-empty');
+                    if (el.title !== '还没有人给这款游戏评分') el.title = '还没有人给这款游戏评分';
+                } else {
+                    const txt = '⭐ ' + avg.toFixed(1);
+                    if (el.textContent !== txt) el.textContent = txt;
+                    if (el.classList.contains('is-empty')) el.classList.remove('is-empty');
+                    const t = '社区平均评分 ' + avg.toFixed(1) + ' / 5';
+                    if (el.title !== t) el.title = t;
+                }
             }
 
             // ★ 统一渲染卡片「N人评价」徽章：
@@ -3182,8 +3485,263 @@
                 const count = Number(stats && stats.count) || 0;
                 const commentOnly = Number(stats && stats.comment_count) || 0;
                 const total = count + commentOnly;
-                el.textContent = total > 0 ? '📝 ' + total + '人评价' : '';
+                const txt = total > 0 ? total + '人评价' : '';
+                // ★ 值没变就不写 DOM：每次重渲染都改上千个节点会让页面抖一下
+                if (el.textContent !== txt) el.textContent = txt;
             }
+
+            // ================================================================
+            // 玩过人数（全站）
+            // ----------------------------------------------------------------
+            // user_played 目前对匿名可读，但没有聚合 RPC，只能分页拉全量后本地聚合。
+            // 结果只有「每个游戏一个数字」，缓存到 localStorage（几十 KB），
+            // 所以整站只在缓存过期后拉一次，不会每次开页都跑。
+            // ================================================================
+            function formatPlayedCount(n) {
+                n = Number(n) || 0;
+                if (n >= 10000) {
+                    const v = (n / 10000).toFixed(1).replace(/\.0$/, '');
+                    return v + '万';
+                }
+                return String(n);
+            }
+
+            function _readPlayedCountsFromDisk() {
+                try {
+                    const raw = localStorage.getItem(PLAYED_COUNTS_KEY);
+                    if (!raw) return null;
+                    const obj = JSON.parse(raw);
+                    if (!obj || typeof obj !== 'object' || !obj.counts) return null;
+                    if (!obj.ts || (Date.now() - obj.ts) > PLAYED_COUNTS_DISK_TTL) return null;
+                    return obj;
+                } catch (_) { return null; }
+            }
+
+            function _savePlayedCountsToDisk() {
+                if (!_playedCountMap) return;
+                try {
+                    localStorage.setItem(PLAYED_COUNTS_KEY, JSON.stringify({ ts: _playedCountTs, counts: _playedCountMap }));
+                } catch (_) { /* 配额不足时放弃持久化，不影响本次显示 */ }
+            }
+
+            function getPlayedCountMap(force) {
+                const now = Date.now();
+                if (!force && _playedCountMap && (now - _playedCountTs < PLAYED_COUNTS_MEM_TTL)) {
+                    return Promise.resolve(_playedCountMap);
+                }
+                if (!force && !_playedCountMap) {
+                    const disk = _readPlayedCountsFromDisk();
+                    if (disk) {
+                        _playedCountMap = disk.counts;
+                        _playedCountTs = disk.ts;
+                        return Promise.resolve(_playedCountMap);
+                    }
+                }
+                if (_playedCountLoading) return _playedCountLoading;
+
+                // 游戏库还没加载出来时先不算（否则会把「全 0」当成结果缓存 6 小时）
+                if (!(typeof games !== 'undefined' && Array.isArray(games) && games.length)) {
+                    const m = {};
+                    for (const id of (userData.played || [])) {
+                        const gid = Number(id);
+                        if (gid > 0) m[gid] = 1;
+                    }
+                    return Promise.resolve(m);
+                }
+
+                // ★ 省流模式 / 2G 网络下不拉全量（3.7 万行、约 700KB）：这只是锦上添花的数字，
+                //   优先保证页面本身能打开；先用本地「自己玩过」的 1 次兜底。
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn && (conn.saveData || /(^|-)2g$/.test(String(conn.effectiveType || '')))) {
+                    const m0 = {};
+                    for (const id of (userData.played || [])) {
+                        const gid = Number(id);
+                        if (gid > 0) m0[gid] = 1;
+                    }
+                    return Promise.resolve(m0);
+                }
+
+                _playedCountLoading = (async () => {
+                    const client = (typeof getSupabase === 'function') ? getSupabase() : null;
+                    const map = {};
+                    const mergeLocal = () => {
+                        for (const id of (userData.played || [])) {
+                            const gid = Number(id);
+                            if (gid > 0) map[gid] = (map[gid] || 0) + 1;
+                        }
+                    };
+                    if (!client) {
+                        mergeLocal();
+                        _playedCountMap = map;
+                        _playedCountTs = Date.now();
+                        return map;
+                    }
+                    let serverOk = false;
+                    try {
+                        // 优先走服务端聚合 RPC（需执行 supabase/played_stats.sql）：
+                        // 一次请求换回「每个游戏一行计数」，只有几十 KB
+                        if (!_playedRpcBroken) {
+                            try {
+                                const allIds = (games || []).map(g => Number(g.id)).filter(id => id > 2);
+                                const { data: rpcData, error: rpcErr } = await client
+                                    .rpc('batch_played_stats', { game_ids: allIds });
+                                if (rpcErr) throw rpcErr;
+                                if (Array.isArray(rpcData)) {
+                                    for (const row of rpcData) {
+                                        const gid = Number(row.game_id);
+                                        const n = Number(row.played_count);
+                                        if (gid > 0 && n > 0) map[gid] = n;
+                                    }
+                                    for (const id of (userData.played || [])) {
+                                        const gid = Number(id);
+                                        if (gid > 0) map[gid] = Math.max(map[gid] || 0, 1);
+                                    }
+                                    _playedCountMap = map;
+                                    _playedCountTs = Date.now();
+                                    _savePlayedCountsToDisk();
+                                    return map;
+                                }
+                            } catch (rpcErr) {
+                                const code = rpcErr && rpcErr.code;
+                                if (code === 'PGRST202' || code === '42883' || /could not find the function/i.test(String(rpcErr && rpcErr.message))) {
+                                    _playedRpcBroken = true;
+                                    console.info('[玩过人数] 未部署 batch_played_stats，改用分页统计（执行 supabase/played_stats.sql 可提速）');
+                                }
+                            }
+                        }
+
+                        const PAGE = 1000;
+                        const fetchPage = (from, withCount) => client
+                            .from('user_played')
+                            .select('game_id', withCount ? { count: 'exact' } : undefined)
+                            .order('game_id', { ascending: true })
+                            .range(from, from + PAGE - 1);
+
+                        const first = await fetchPage(0, true);
+                        if (first.error) throw first.error;
+                        serverOk = true;
+                        const addRows = rows => {
+                            if (!Array.isArray(rows)) return;
+                            for (const r of rows) {
+                                const gid = Number(r.game_id);
+                                if (gid > 0) map[gid] = (map[gid] || 0) + 1;
+                            }
+                        };
+                        addRows(first.data);
+
+                        const totalRaw = first.count;
+                        const total = (totalRaw === null || totalRaw === undefined || isNaN(Number(totalRaw)))
+                            ? null : Number(totalRaw);
+                        // 已知总数 → 按总数收尾；未知 → 一直翻到某页不足 1000 行为止
+                        const MAX_PAGES = 80; // 8 万行上限，防止异常数据把页面拖死
+                        let startPage = 1;
+                        let done = (total !== null && total <= PAGE);
+                        while (!done && startPage < MAX_PAGES) {
+                            const batchEnd = Math.min(startPage + 5, MAX_PAGES);
+                            const batch = [];
+                            for (let p = startPage; p < batchEnd; p++) batch.push(fetchPage(p * PAGE, false));
+                            const res = await Promise.all(batch);
+                            for (const r of res) {
+                                if (r.error) { done = true; break; }
+                                const rows = r.data || [];
+                                addRows(rows);
+                                if (rows.length < PAGE) { done = true; break; }
+                            }
+                            startPage = batchEnd;
+                            if (total !== null && startPage * PAGE >= total) done = true;
+                        }
+                    } catch (e) {
+                        console.warn('[玩过人数] 拉取失败，使用本机数据兜底:', e && (e.message || e));
+                    }
+                    // 本机标记过的至少算 1（云端可能因 RLS/未同步少算）
+                    for (const id of (userData.played || [])) {
+                        const gid = Number(id);
+                        if (gid > 0) map[gid] = Math.max(map[gid] || 0, 1);
+                    }
+                    if (serverOk) {
+                        _playedCountMap = map;
+                        _playedCountTs = Date.now();
+                        _savePlayedCountsToDisk();
+                    } else {
+                        // ★ 拉取失败：只用本机数据顶上，且不写盘、不设 TTL，
+                        //   下次渲染会立即重试（否则一次断网会让全站人数空 6 小时）
+                        _playedCountMap = map;
+                        _playedCountTs = 0;
+                        _playedCountDeferred = false;
+                    }
+                    return map;
+                })().finally(() => { _playedCountLoading = null; });
+
+                return _playedCountLoading;
+            }
+
+            function bumpPlayedCount(gameId, delta) {
+                const id = Number(gameId);
+                if (!Number.isInteger(id) || id <= 0) return;
+                if (!_playedCountMap || !_playedCountTs) return; // 还没成功拉过全量：等首次拉取时自然带上
+                const next = Math.max(0, (Number(_playedCountMap[id]) || 0) + (delta > 0 ? 1 : -1));
+                _playedCountMap[id] = next;
+                _playedCountTs = Date.now();
+                _savePlayedCountsToDisk();
+                updateCardPlayedBadges();
+            }
+
+            function renderCardPlayedCount(el, n) {
+                const num = Number(n) || 0;
+                // ★ 数字没变就别碰 DOM：卡片上千张时，每次重渲染都写 textContent 会触发整页重排
+                if (el.dataset.n === String(num)) return;
+                el.dataset.n = String(num);
+                if (num > 0) {
+                    el.textContent = formatPlayedCount(num) + '人玩过';
+                    el.style.display = '';
+                    el.setAttribute('title', num.toLocaleString('zh-CN') + ' 人标记玩过');
+                } else {
+                    el.textContent = '';
+                    el.style.display = 'none';
+                }
+            }
+
+            function updateCardPlayedBadges() {
+                if (!_playedCountMap) return;
+                document.querySelectorAll('.card-played-count').forEach(el => {
+                    const id = Number(el.dataset.gameId);
+                    if (id) renderCardPlayedCount(el, _playedCountMap[id]);
+                });
+            }
+
+            function loadCardPlayedStats() {
+                if (!document.querySelector('.card-played-count')) return;
+                if (_playedCountMap && _playedCountTs) { updateCardPlayedBadges(); return; }
+                if (_playedCountDeferred) return;
+                _playedCountDeferred = true;
+                // 首次要拉全量再聚合：放到浏览器空闲时，别和首屏渲染抢带宽
+                const kick = () => {
+                    getPlayedCountMap().then(map => {
+                        if (map) updateCardPlayedBadges();
+                    }).catch(() => {});
+                };
+                if (typeof requestIdleCallback === 'function') {
+                    requestIdleCallback(kick, { timeout: 2500 });
+                } else {
+                    setTimeout(kick, 1200);
+                }
+            }
+
+            // 详情页「N 人标记玩过」药丸
+            async function updateDetailPlayedPill(gameId) {
+                const pill = document.getElementById('detailPlayedPill');
+                if (!pill) return;
+                const id = Number(gameId);
+                if (!Number.isInteger(id) || id <= 0) return;
+                pill.dataset.gameId = String(id);
+                const map = await getPlayedCountMap();
+                if (!pill.isConnected || Number(pill.dataset.gameId) !== id) return;
+                const n = Number(map && map[id]) || 0;
+                pill.textContent = n > 0
+                    ? '🎮 ' + n.toLocaleString('zh-CN') + ' 人标记玩过'
+                    : '🎮 还没有人标记玩过';
+            }
+
 
             // ================================================================
             // 数据加载
@@ -3480,7 +4038,7 @@
                         currentView = d.currentView || 'all';
                         if (!['all', 'released', 'unreleased'].includes(currentView)) currentView = 'all';
                         currentSort = d.currentSort || 'default';
-                        if (!['default', 'newest', 'oldest', 'reviewCount'].includes(currentSort)) currentSort = 'default';
+                        if (!['default', 'newest', 'oldest', 'reviewCount', 'rating'].includes(currentSort)) currentSort = 'default';
                         isAdminMode = d.isAdminMode || false;
                         // 屏蔽内容设置
                         showAdultContent = d.contentSettings?.showAdultContent === true;
@@ -3806,6 +4364,24 @@
                             }).catch(() => { _reviewCountCacheLoading = false; });
                         }
                     }
+                } else if (currentSort === 'rating') {
+                    // ★ 评分从高到低；暂无评分的统一排到最后（组内按 id 从大到小）
+                    const avgOf = (id) => {
+                        const c = _ratingStatsCache[String(id)];
+                        if (!c || c.average === null || c.average === undefined) return null;
+                        const n = Number(c.average);
+                        return isNaN(n) ? null : n;
+                    };
+                    sorted.sort((a, b) => {
+                        const av = avgOf(a.id), bv = avgOf(b.id);
+                        if (av === null && bv === null) return Number(b.id) - Number(a.id);
+                        if (av === null) return 1;
+                        if (bv === null) return -1;
+                        if (bv !== av) return bv - av;
+                        return Number(b.id) - Number(a.id);
+                    });
+                    // 评分还没拉过时：卡片渲染完会由 loadCardRatingStats() 批量补齐，
+                    // 补齐后它会在「评分排序」下自动重排一次（见 loadCardRatingStats）
                 }
                 return sorted;
             }
@@ -3829,6 +4405,7 @@
                     const id = Number(game.id);
                     if (id === 1 || id === 2) return false;
                     if (game.isDraft) return false; // 导入缓冲区中的草稿不进总览
+                    if (isGameBlocked(id)) return false; // 用户已屏蔽（拉黑）的游戏
                     if (currentView !== 'all' && isGameReleased(game) !== (currentView === 'released')) return false;
                     if (searchQuery && !gameMatchesSearch(game, searchQuery)) return false;
                     if (wishlistMode && !isInWishlist(game.id)) return false;
@@ -3932,10 +4509,15 @@
                 const no = cacheEl('noResults');
                 const countNum = cacheEl('countNumber');
 
+                // 系列视图按系列分组，数量本来就少，不分页 → 顺手隐藏分页条
+                const _pbar = document.getElementById('paginationBar');
+                if (_pbar) { _pbar.hidden = true; _pbar.innerHTML = ''; }
+
                 // 收集所有有系列的游戏（应用屏蔽内容过滤）
                 const seriesMap = {};
                 games.forEach(g => {
                     if (g.isDraft) return; // 导入缓冲区中的草稿不进系列视图
+                    if (isGameBlocked(g.id)) return; // 已屏蔽的游戏不进系列视图
                     if (g.series && g.series.trim()) {
                         // 屏蔽内容过滤
                         if (!showAdultContent && g.costumeType === '含恶俗设计') return;
@@ -4001,6 +4583,15 @@
                         const heroineTag = g.heroineType ? `<div class="card-heroine-tag">${escapeHTML(g.heroineType)}</div>` : '';
                         const inWish = isInWishlist(g.id);
                         const inPlay = isPlayed(g.id);
+                        const _src = _ratingStatsCache[String(g.id)];
+                        const _srcAvg = (_src && _src.average !== null && _src.average !== undefined && !isNaN(Number(_src.average))) ? Number(_src.average) : null;
+                        const ratingBadgeHtml = _src
+                            ? (_srcAvg === null
+                                ? `<span class="card-rating-badge is-empty" data-game-id="${g.id}" title="还没有人给这款游戏评分">暂无评分</span>`
+                                : `<span class="card-rating-badge" data-game-id="${g.id}" title="社区平均评分 ${_srcAvg.toFixed(1)} / 5">⭐ ${_srcAvg.toFixed(1)}</span>`)
+                            : `<span class="card-rating-badge is-loading" data-game-id="${g.id}">⭐ …</span>`;
+                        const _spN = (_playedCountMap && Number(_playedCountMap[g.id])) || 0;
+                        const playedBadgeHtml = `<span class="card-played-count" data-game-id="${g.id}"${_spN > 0 ? ` title="${_spN.toLocaleString('zh-CN')} 人标记玩过"` : ' style="display:none;"'}>${_spN > 0 ? formatPlayedCount(_spN) + '人玩过' : ''}</span>`;
                         return `
                             <div class="gallery-card visible" data-game-id="${g.id}" onclick="openSeriesGameDetail(${g.id})">
                                 <div class="card-parallax-bg"></div>
@@ -4008,15 +4599,17 @@
                                     ${coverHtml}
                                     ${placeholderHtml}
                                     ${heroineTag}
+                                    ${ratingBadgeHtml}
                                 </div>
                                 <div class="card-body">
                                     <div class="card-title">${escapeHTML(g.title)}</div>
                                     <div class="card-desc">${escapeHTML(g.description || '')}</div>
                                     <div class="card-meta">${metaSpans.join('')}</div>
+                                    <div class="card-stats-row">${playedBadgeHtml}<div class="card-rating-count" data-game-id="${g.id}"></div></div>
                                 </div>
                                 <div class="card-user-actions ${isGameReleased(g) ? '' : 'only-wish'}">
-                                    <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${g.id}" onclick="event.stopPropagation();toggleWishlist(${g.id});"><span class="icon">${inWish ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inWish ? '已加入' : '加入愿望单'}</span></button>
-                                    ${isGameReleased(g) ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${g.id}" onclick="event.stopPropagation();togglePlayed(${g.id});"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
+                                    <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${g.id}" data-w="${inWish ? '1' : '0'}" onclick="event.stopPropagation();toggleWishlist(${g.id});"><span class="icon">${inWish ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inWish ? '已加入' : '加入愿望单'}</span></button>
+                                    ${isGameReleased(g) ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${g.id}" data-p="${inPlay ? '1' : '0'}" onclick="event.stopPropagation();togglePlayed(${g.id});"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
                                 </div>
                             </div>`;
                     }).join('');
@@ -4030,6 +4623,7 @@
 
                 grid.innerHTML = html;
                 loadCardRatingStats();
+                loadCardPlayedStats();
 
                 // 为系列卡片也绑定 3D 交互
                 if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
@@ -4255,21 +4849,345 @@
             let _cardMap = new Map();
             let _cardEventBound = new WeakSet();
 
+            // ================================================================
+            // ★ 分页（每页 200 款）
+            // ----------------------------------------------------------------
+            // 为什么要分页：1779 款卡片全量常驻 DOM 时，首屏要建约 4.3 万个节点，
+            // 而且搜索/筛选每触发一次就要重排 1779 张卡片。分页后 DOM 恒定 ≤200 张，
+            // 首屏建卡与每次重排都降到 1/9。
+            // ★ 只切「渲染」，不切「数据」：games 仍全量在内存里（筛选/搜索/排序都要全量才准）。
+            // ================================================================
+            const GALLERY_PAGE_SIZE = 200;
+            let _currentPage = 1;
+            let _totalPages = 1;
+            let _lastFilterSig = null;   // 首次渲染前为 null（不重置页码，允许恢复上次所在页）
+            let _pendingRestoreY = null; // 等卡片渲染完再滚回上次位置
+            let _focusJumpAfterRender = false; // 从「输入页码」跳转时，重建分页条后把焦点还回输入框
+
+            // 结果集/顺序的签名：变了才回到第 1 页。
+            // 只是状态变化（加愿望单、标记玩过）时签名不变 → 用户停在第 5 页就还在第 5 页。
+            function computeFilterSignature() {
+                const parts = [
+                    currentView, currentSort, searchQuery || '',
+                    wishlistMode ? 'W' : '', excludePlayedMode ? 'P' : '', showAdultContent ? 'A' : ''
+                ];
+                try {
+                    const ex = excludedTags || {};
+                    ['heroineType', 'costumeType', 'perspective'].forEach(function (k) {
+                        parts.push(k + '=' + (ex[k] || []).join(','));
+                    });
+                    ['genre', 'gameplay', 'platforms'].forEach(function (k) {
+                        parts.push(k + '=' + (ex[k] || []).slice().sort().join(','));
+                    });
+                } catch (_) { }
+                try {
+                    const keys = Object.keys(activeFilters).sort();
+                    for (const k of keys) {
+                        const s = activeFilters[k];
+                        if (s && s.size) parts.push(k + ':' + Array.from(s).sort().join(','));
+                    }
+                } catch (_) { }
+                return parts.join('\u0001');
+            }
+
+            function ensurePaginationBar() {
+                let bar = document.getElementById('paginationBar');
+                if (bar) return bar;
+                const grid = cacheEl('galleryGrid');
+                if (!grid || !grid.parentNode) return null;
+                bar = document.createElement('nav');
+                bar.id = 'paginationBar';
+                bar.className = 'pagination-bar';
+                bar.setAttribute('aria-label', '游戏列表分页');
+                bar.hidden = true;
+                grid.parentNode.insertBefore(bar, grid.nextSibling);
+                // 事件委托：只绑一次，不用每页重绑
+                bar.addEventListener('click', function (e) {
+                    const btn = e.target.closest('[data-page]');
+                    if (!btn || btn.disabled) return;
+                    e.preventDefault();
+                    goToPage(Number(btn.dataset.page));
+                });
+                // 页码输入框：回车跳转 / 离开输入框也跳（键盘、鼠标都顺手）
+                bar.addEventListener('keydown', function (e) {
+                    const inp = e.target;
+                    if (!inp.classList || !inp.classList.contains('page-jump-input')) return;
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        commitPageJump(inp);
+                    } else if (e.key === 'Escape') {
+                        e.stopPropagation(); // 别让全局 Esc 处理器顺手去关详情页/打赏弹窗
+                        inp.value = _currentPage; // 放弃输入，还原成当前页
+                        inp.blur();
+                    }
+                });
+                bar.addEventListener('focusout', function (e) {
+                    const inp = e.target;
+                    if (!inp.classList || !inp.classList.contains('page-jump-input')) return;
+                    commitPageJump(inp);
+                });
+                return bar;
+            }
+
+            function renderPagination(total) {
+                const bar = ensurePaginationBar();
+                if (!bar) return;
+                if (!(total > GALLERY_PAGE_SIZE)) {
+                    bar.hidden = true;
+                    bar.innerHTML = '';
+                    _focusJumpAfterRender = false; // 分页条都隐藏了，别再抢焦点
+                    return;
+                }
+                bar.hidden = false;
+
+                const nums = [];
+                let last = 0;
+                for (let p = 1; p <= _totalPages; p++) {
+                    // 首页、末页、当前页左右各一页，其余折叠成省略号
+                    if (p === 1 || p === _totalPages || Math.abs(p - _currentPage) <= 1) {
+                        if (last && p - last > 1) nums.push('<span class="page-ellipsis" aria-hidden="true">…</span>');
+                        nums.push('<button type="button" class="page-btn' + (p === _currentPage ? ' is-current' : '') +
+                            '" data-page="' + p + '"' + (p === _currentPage ? ' aria-current="page"' : '') +
+                            ' aria-label="第 ' + p + ' 页">' + p + '</button>');
+                        last = p;
+                    }
+                }
+
+                bar.innerHTML =
+                    '<button type="button" class="page-btn page-step" data-page="' + (_currentPage - 1) + '"' +
+                    (_currentPage <= 1 ? ' disabled' : '') + ' aria-label="上一页">‹ 上一页</button>' +
+                    '<span class="page-numbers">' + nums.join('') + '</span>' +
+                    '<label class="page-jump">' +
+                        '<span class="jump-label">跳至</span>' +
+                        '<input class="page-jump-input" type="number" inputmode="numeric" pattern="[0-9]*"' +
+                        ' min="1" max="' + _totalPages + '" step="1" value="' + _currentPage + '"' +
+                        ' aria-label="输入页码，回车或离开输入框即跳转" title="输入页码后按回车跳转">' +
+                        '<span class="jump-total">/ ' + _totalPages + ' 页</span>' +
+                    '</label>' +
+                    '<button type="button" class="page-btn page-step" data-page="' + (_currentPage + 1) + '"' +
+                    (_currentPage >= _totalPages ? ' disabled' : '') + ' aria-label="下一页">下一页 ›</button>';
+
+                // 跳转后如果是从输入框触发的，把焦点还回输入框（用 preventScroll，
+                // 否则会抢走 goToPage 里「滚回列表顶部」的滚动）
+                // 触屏设备例外：保持焦点会重新弹出键盘挡住列表，跳完就收起。
+                if (_focusJumpAfterRender) {
+                    _focusJumpAfterRender = false;
+                    const finePointer = !window.matchMedia ||
+                        window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+                    const inp = bar.querySelector('.page-jump-input');
+                    if (inp && finePointer) {
+                        try { inp.focus({ preventScroll: true }); inp.select(); }
+                        catch (_) { try { inp.focus(); } catch (__) { } }
+                    }
+                }
+            }
+
+            // 输入框跳页：只在本地跳，没有任何请求。
+            // 空值 / 非数字 / 0 / 负数 → 不算「想跳」，就地把输入框还原成当前页（不误跳第 1 页）；
+            // 超过总页数 → 收敛到末页，并把输入框的值也改成末页。
+            function commitPageJump(input) {
+                if (!input) return;
+                const n = parseInt(String(input.value || '').trim(), 10);
+                if (!isFinite(n) || n < 1) { input.value = _currentPage; return; }
+                const t = Math.max(1, Math.min(n, _totalPages));
+                if (t !== n) input.value = t;
+                if (t === _currentPage) return;
+                _focusJumpAfterRender = true;
+                goToPage(t);
+            }
+
+            function goToPage(page) {
+                let t = Math.round(Number(page));
+                if (!isFinite(t)) { _focusJumpAfterRender = false; return; }
+                t = Math.max(1, Math.min(t, _totalPages));
+                if (t === _currentPage) { _focusJumpAfterRender = false; return; }
+                _currentPage = t;
+                renderGallery();
+                // 翻页后卡片整批换了，停在页尾会看到空白 → 滚回列表顶部（顶栏是 sticky，留 90px 余量）
+                const grid = cacheEl('galleryGrid');
+                if (grid) {
+                    const top = Math.max(0, grid.getBoundingClientRect().top + window.scrollY - 90);
+                    if (Math.abs(window.scrollY - top) > 8) {
+                        window.scrollTo({ top: top, behavior: 'smooth' });
+                    }
+                }
+            }
+            window.goToPage = goToPage;
+
+            // ★ 按评分排序必须全量评分：分页后当前页只渲染 200 款，
+            //   缺分的会被当成「暂无评分」沉到最后 → 排序结果是错的。
+            //   这里把全量评分补齐（分块，避免 .in() 把 1779 个 id 拼进 URL）。
+            let _ratingPrefetchAt = 0;      // 上次尝试时间（退避用）
+            let _ratingPrefetchOkAt = 0;    // 上次「确实拉到数据」的时间
+            let _ratingPrefetchRunning = false;
+
+            // ★ 每批 180 个 id 而不是 500/300：实测 300 个 id 在 user_reviews 里
+            //   匹配 1088 行，会被 PostgREST 的 1000 行上限截断（只回来 161 个游戏），
+            //   那批的「评价人数」和 verdict 折算的均分就不准。180 对应约 650 行，安全。
+            const RATING_FETCH_CHUNK = 180;
+            const RATING_FETCH_CONCURRENCY = 3;
+
+            function collectRatingGaps() {
+                const ids = [];
+                let missing = 0, stale = 0;
+                const now = Date.now();
+                const list = (typeof games !== 'undefined' && games) ? games : [];
+                for (const g of list) {
+                    const id = Number(g.id);
+                    if (!(id > 2)) continue;
+                    if (isGameBlocked(id)) continue;
+                    ids.push(id);
+                    const c = _ratingStatsCache[String(id)];
+                    if (!c) missing++;
+                    else if (now - (c.ts || 0) >= RATING_MEM_TTL) stale++;
+                }
+                return { ids: ids, missing: missing, stale: stale };
+            }
+
+            // 当前页最终会显示哪些游戏（排序后再切片）——用于判断「拉完之后顺序变没变」
+            function _currentPageIdSig() {
+                try {
+                    const list = getFilteredGames();
+                    const start = (_currentPage - 1) * GALLERY_PAGE_SIZE;
+                    return list.slice(start, start + GALLERY_PAGE_SIZE).map(g => g.id).join(',');
+                } catch (_) { return ''; }
+            }
+
+            // 列表顶部提示：全量评分还在拉时告诉用户「顺序会自动更新」，
+            // 否则用户会以为排序坏了（分页之前没人会看到这种中间态）
+            function setRatingLoadingHint(on) {
+                const grid = cacheEl('galleryGrid');
+                if (!grid || !grid.parentNode) return;
+                const existing = document.getElementById('ratingLoadingHint');
+                if (on) {
+                    if (existing) return;
+                    const el = document.createElement('div');
+                    el.id = 'ratingLoadingHint';
+                    el.className = 'rating-loading-hint';
+                    el.innerHTML = '<i class="rlh-dot" aria-hidden="true"></i>正在补齐全站评分，顺序会自动更新';
+                    grid.parentNode.insertBefore(el, grid);
+                } else if (existing) {
+                    existing.remove();
+                }
+            }
+
+            // 拉全量评分（与当前排序无关，可被「空闲预热」复用）。返回拿到分数的游戏数。
+            async function _fetchAllRatingStats(showHint) {
+                if (_ratingPrefetchRunning || !supabaseClient) return 0;
+                const gaps = collectRatingGaps();
+                if (gaps.missing === 0 && gaps.stale === 0) return 0;
+
+                _ratingPrefetchAt = Date.now();
+                _ratingPrefetchRunning = true;
+                if (showHint && gaps.missing > 0) setRatingLoadingHint(true);
+
+                let got = 0;
+                try {
+                    const ids = gaps.ids;
+                    const step = RATING_FETCH_CHUNK * RATING_FETCH_CONCURRENCY;
+                    for (let i = 0; i < ids.length; i += step) {
+                        const jobs = [];
+                        for (let k = 0; k < RATING_FETCH_CONCURRENCY; k++) {
+                            const s = i + k * RATING_FETCH_CHUNK;
+                            if (s >= ids.length) break;
+                            jobs.push(fetchBatchRatingStats(ids.slice(s, s + RATING_FETCH_CHUNK)).catch(() => ({})));
+                        }
+                        const res = await Promise.all(jobs);
+                        for (const r of res) {
+                            for (const key in r) {
+                                if (r[key] && r[key].average != null) got++;
+                            }
+                        }
+                        // 只有在「用户正在看评分排序」时才需要响应中途切走；
+                        // 空闲预热（showHint=false）与当前排序无关，必须拉完整
+                        if (showHint && currentSort !== 'rating') break;
+                    }
+                } finally {
+                    _ratingPrefetchRunning = false;
+                    setRatingLoadingHint(false);
+                    _markRatingDiskDirty();
+                }
+                if (got > 0) _ratingPrefetchOkAt = Date.now();
+                return got;
+            }
+
+            function ensureAllRatingsLoaded() {
+                if (currentSort !== 'rating') return;
+                if (!supabaseClient || _ratingPrefetchRunning) return;
+
+                const now = Date.now();
+                const gaps = collectRatingGaps();
+
+                // 从没拉过的必须补 —— 哪怕只缺几个。缺的那几个会被当成「暂无评分」排到最末，
+                // 而它们很可能是有分的（老逻辑「缺失 ≤ 一页就跳过」正是这个坑）。
+                if (gaps.missing === 0 && gaps.stale === 0) return;
+                if (gaps.missing === 0 && now - _ratingPrefetchOkAt < RATING_MEM_TTL) return; // 只差刷新
+
+                // 拉到过数据 → 30 秒内不重复；一直失败 → 15 秒后允许重试（老逻辑死等 60 秒）
+                const backoff = _ratingPrefetchOkAt ? 30000 : 15000;
+                if (now - _ratingPrefetchAt < backoff) return;
+
+                // 记住「拉之前当前页的顺序」：拉完只在顺序真的会变时才重渲染，
+                // 否则重建 200 张卡片纯属白闪、白掉帧
+                const before = _currentPageIdSig();
+                _fetchAllRatingStats(true).then(function (got) {
+                    if (!got || currentSort !== 'rating') return;
+                    if (currentView === 'series') { renderSeriesView(); return; }
+                    if (_currentPageIdSig() !== before) renderGallery();
+                });
+            }
+
+            // 空闲预热：用户还没切「评分最高」也先把评分拉好落盘，
+            // 这样第一次切过去就是正确顺序。省流模式 / 2G 网络跳过。
+            let _ratingWarmupScheduled = false;
+            function scheduleRatingWarmup() {
+                if (_ratingWarmupScheduled || !supabaseClient) return;
+                _ratingWarmupScheduled = true;
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn && (conn.saveData || /(^|-)2g$/.test(String(conn.effectiveType || '')))) return;
+                const run = function () {
+                    if (currentSort === 'rating' || _ratingPrefetchRunning) return; // 已有人在拉
+                    const gaps = collectRatingGaps();
+                    if (gaps.missing === 0) return;  // 本机已有全量，不必预热
+                    _fetchAllRatingStats(false);
+                };
+                if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 10000 });
+                else setTimeout(run, 5000);
+            }
+
             function renderGallery() {
                 if (currentView === 'series') { renderSeriesView(); return; }
-                const filtered = getFilteredGames();
+
+                // 全量结果（排序后）→ 再切当前页
+                const allGames = getFilteredGames();
+                const totalCount = allGames.length;
+
+                const sig = computeFilterSignature();
+                if (_lastFilterSig !== null && sig !== _lastFilterSig) _currentPage = 1;
+                _lastFilterSig = sig;
+
+                _totalPages = Math.max(1, Math.ceil(totalCount / GALLERY_PAGE_SIZE));
+                if (_currentPage > _totalPages) _currentPage = _totalPages;
+                if (_currentPage < 1) _currentPage = 1;
+
+                const pageStart = (_currentPage - 1) * GALLERY_PAGE_SIZE;
+                const filtered = totalCount > GALLERY_PAGE_SIZE
+                    ? allGames.slice(pageStart, pageStart + GALLERY_PAGE_SIZE)
+                    : allGames;
+
                 const grid = cacheEl('galleryGrid');
                 const no = cacheEl('noResults');
                 const countNum = cacheEl('countNumber');
 
-                countNum.textContent = filtered.length;
+                countNum.textContent = totalCount;
                 countNum.classList.remove('pop');
                 requestAnimationFrame(() => { countNum.classList.add('pop'); });
 
-                if (filtered.length === 0) {
+                if (totalCount === 0) {
                     grid.innerHTML = '';
                     _cardMap.clear();
                     no.style.display = 'block';
+                    renderPagination(0);
 
                     if (wishlistMode) {
                         no.innerHTML = `
@@ -4332,11 +5250,14 @@
                 const newCards = [];
 
                 // FLIP：记录本次「保留」且「已可见」卡片在重排前的位置
+                // ★ 可见卡片太多时直接放弃位移动画：为一段过渡读 1000+ 个 rect 不划算
                 const flipPrevRects = new Map();
                 if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+                    let visCount = 0;
                     for (const [id, card] of _cardMap) {
                         if (!filteredIds.has(id)) continue; // 将被移除的跳过
                         if (!card.classList.contains('visible')) continue; // 尚未进入视口/未做进入动画的跳过
+                        if (++visCount > 120) { flipPrevRects.clear(); break; }
                         flipPrevRects.set(id, card.getBoundingClientRect());
                     }
                 }
@@ -4366,12 +5287,15 @@
                 // ★ v3：卡片节点是复用的（_cardMap 命中就直接 appendChild，不重跑模板），
                 //   而「未发售」角标取决于当前视图 —— 切换视图后它会残留（全部→未发售）
                 //   或者缺失（已发售→全部）。这里按当前状态逐张校正。
+                // ★ 用 dataset 记录上次状态，状态没变就不查 DOM（原来每张卡 2 次 querySelector，
+                //   上千张 × 每次搜索/筛选都要跑一遍）
                 filtered.forEach(function (g) {
                     var _c = _cardMap.get(g.id);
-                    if (!_c) return;
+                    if (!_c || !_c.isConnected) return;
+                    var _want = (currentView === 'all') && !isGameReleased(g);
+                    if ((_c.dataset.stTag === '1') === _want) return;
                     var _wrap = _c.querySelector('.card-cover-wrap');
                     if (!_wrap) return;
-                    var _want = (currentView === 'all') && !isGameReleased(g);
                     var _has = _wrap.querySelector('.v3-card-status');
                     if (_want && !_has) {
                         var _tag = document.createElement('div');
@@ -4381,17 +5305,18 @@
                     } else if (!_want && _has) {
                         _has.remove();
                     }
+                    _c.dataset.stTag = _want ? '1' : '0';
                 });
 
                 // FLIP：应用反向位移，再过渡到新位置
                 if (flipPrevRects.size > 0) {
-                    for (const [id, card] of _cardMap) {
-                        const prev = flipPrevRects.get(id);
-                        if (!prev) continue;
+                    flipPrevRects.forEach((prev, id) => {
+                        const card = _cardMap.get(id);
+                        if (!card || !card.isConnected) return;
                         const cur = card.getBoundingClientRect();
                         const dx = prev.left - cur.left;
                         const dy = prev.top - cur.top;
-                        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue; // 位置未变，跳过
+                        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return; // 位置未变，跳过
                         // 立即反向偏移（无过渡）
                         card.style.transition = 'none';
                         card.style.transform = `translate(${dx}px, ${dy}px)`;
@@ -4406,75 +5331,26 @@
                             };
                             card.addEventListener('transitionend', onEnd);
                         });
-                    }
+                    });
                 }
 
                 if (cardObserver) { cardObserver.disconnect(); } else {
                     cardObserver = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.classList.add('visible');
-                                cardObserver.unobserve(entry.target);
-                                const img = entry.target.querySelector('.card-cover');
-                                if (img && !img.dataset.loaded) {
-                                    img.dataset.loaded = '1';
-                                    if (img.complete) {
-                                        img.classList.add('loaded');
-                                        const ph = entry.target.querySelector('.card-cover-placeholder');
-                                        if (ph) ph.classList.add('hidden');
-                                    } else {
-                                        img.onload = function () {
-                                            this.classList.add('loaded');
-                                            const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
-                                            if (ph) ph.classList.add('hidden');
-                                        };
-                                        img.onerror = function () {
-                                            const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
-                                            if (ph) ph.classList.remove('hidden');
-                                        };
-                                    }
-                                }
-                            }
+                            if (!entry.isIntersecting) return;
+                            cardObserver.unobserve(entry.target);
+                            revealCard(entry.target);
                         });
                     }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
                 }
 
-                const cards = grid.querySelectorAll('.gallery-card');
-                // 一次性读取视口高度，避免循环中重复读取
-                const winHeight = window.innerHeight || document.documentElement.clientHeight;
-                // 用 requestAnimationFrame 批量处理可见性检测，避免强制 reflow
-                requestAnimationFrame(() => {
-                    cards.forEach((card) => {
-                        const rect = card.getBoundingClientRect();
-                        if (rect.top < winHeight - 40) {
-                            card.classList.add('visible');
-                            const img = card.querySelector('.card-cover');
-                            if (img && !img.dataset.loaded) {
-                                img.dataset.loaded = '1';
-                                if (img.complete) {
-                                    img.classList.add('loaded');
-                                    const ph = card.querySelector('.card-cover-placeholder');
-                                    if (ph) ph.classList.add('hidden');
-                                } else {
-                                    img.onload = function () {
-                                        this.classList.add('loaded');
-                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
-                                        if (ph) ph.classList.add('hidden');
-                                    };
-                                    img.onerror = function () {
-                                        const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
-                                        if (ph) ph.classList.remove('hidden');
-                                    };
-                                }
-                            }
-                        } else { cardObserver.observe(card); }
-                        if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
-                            setupCard3D(card);
-                        }
-                    });
-                });
+                // ★ 只测「首屏那几张」：卡片按文档顺序排，一旦某张落在折叠线以下，
+                //   后面的不可能更靠上，剩下的直接挂观察器（observe 不触发同步布局）。
+                //   原来是 1800 张逐张 getBoundingClientRect，每次筛选/搜索都要付这笔钱。
+                armCards(Array.prototype.slice.call(grid.children));
 
-                cards.forEach(card => {
+                // ★ 只给新卡片绑事件：复用卡片的事件一直挂着，不用每次重绑
+                newCards.forEach(card => {
                     if (_cardEventBound.has(card)) return;
                     _cardEventBound.add(card);
 
@@ -4516,6 +5392,62 @@
 
                 updateAchievementDot();
                 loadCardRatingStats();
+                loadCardPlayedStats();
+                ensureAllRatingsLoaded();
+                scheduleRatingWarmup();   // 空闲时把全站评分预热好，下次切「评分最高」零等待
+
+                renderPagination(totalCount);
+
+                // 分页恢复：等卡片真的渲染出来、页面高度够了再滚回上次位置
+                if (_pendingRestoreY !== null) {
+                    const py = _pendingRestoreY;
+                    _pendingRestoreY = null;
+                    requestAnimationFrame(function () { window.scrollTo(0, py); });
+                    // 首屏数据可能分批到位（缓存 → 云端），高度还会再长一次，补一次
+                    setTimeout(function () { window.scrollTo(0, py); }, 350);
+                }
+            }
+
+            // 卡片进入视口（或首屏）时的统一处理：显示 + 加载封面 + 绑定 3D 悬停
+            function revealCard(card) {
+                if (!card.classList.contains('visible')) card.classList.add('visible');
+                const img = card.querySelector('.card-cover');
+                if (img && !img.dataset.loaded) {
+                    img.dataset.loaded = '1';
+                    if (img.complete) {
+                        img.classList.add('loaded');
+                        const ph = card.querySelector('.card-cover-placeholder');
+                        if (ph) ph.classList.add('hidden');
+                    } else {
+                        img.onload = function () {
+                            this.classList.add('loaded');
+                            const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                            if (ph) ph.classList.add('hidden');
+                        };
+                        img.onerror = function () {
+                            const ph = this.closest('.gallery-card')?.querySelector('.card-cover-placeholder');
+                            if (ph) ph.classList.remove('hidden');
+                        };
+                    }
+                }
+                if (!isTouchDevice && canHoverPointer()) setupCard3D(card);
+            }
+
+            // 首屏卡片立刻显示；折叠线以下的挂观察器，滚到附近再显示
+            function armCards(list) {
+                const winH = window.innerHeight || document.documentElement.clientHeight;
+                let stillAboveFold = true;
+                for (let i = 0; i < list.length; i++) {
+                    const card = list[i];
+                    if (!card || card.nodeType !== 1) continue;
+                    if (card.classList.contains('visible')) continue;
+                    if (stillAboveFold) {
+                        const rect = card.getBoundingClientRect();
+                        if (rect.top < winH - 40) { revealCard(card); continue; }
+                        stillAboveFold = false;
+                    }
+                    if (cardObserver) cardObserver.observe(card);
+                }
             }
 
             function createCardElement(game) {
@@ -4544,6 +5476,19 @@
                 const heroineTag = game.heroineType ? `<div class="card-heroine-tag">${escapeHTML(game.heroineType)}</div>` : '';
                 const statusTag = (currentView === 'all' && !isGameReleased(game)) ? '<div class="v3-card-status">⏳ 未发售</div>' : '';
 
+                // ★ 星级徽章：有缓存就按缓存先渲染，避免「暂无评分」闪一下再变数字
+                const _rc = _ratingStatsCache[String(game.id)];
+                const _rcAvg = (_rc && _rc.average !== null && _rc.average !== undefined && !isNaN(Number(_rc.average))) ? Number(_rc.average) : null;
+                const ratingBadgeHtml = _rc
+                    ? (_rcAvg === null
+                        ? '<span class="card-rating-badge is-empty" data-game-id="' + game.id + '" title="还没有人给这款游戏评分">暂无评分</span>'
+                        : '<span class="card-rating-badge" data-game-id="' + game.id + '" title="社区平均评分 ' + _rcAvg.toFixed(1) + ' / 5">⭐ ' + _rcAvg.toFixed(1) + '</span>')
+                    : '<span class="card-rating-badge is-loading" data-game-id="' + game.id + '">⭐ …</span>';
+                const _playedN = (_playedCountMap && Number(_playedCountMap[game.id])) || 0;
+                const playedBadgeHtml = '<span class="card-played-count" data-game-id="' + game.id + '"'
+                    + (_playedN > 0 ? ' title="' + _playedN.toLocaleString('zh-CN') + ' 人标记玩过"' : ' style="display:none;"')
+                    + '>' + (_playedN > 0 ? formatPlayedCount(_playedN) + '人玩过' : '') + '</span>';
+
                 const adminBtns = (isAdmin && isAdminMode)
                     ? `<div class="card-admin-actions"><button class="btn-edit-card" data-game-id="${game.id}">✏️ 编辑</button><button class="btn-del-card" data-game-id="${game.id}">🗑 删除</button></div>`
                     : '';
@@ -4556,15 +5501,17 @@
                             ${coverImg}
                             ${heroineTag}
                             ${statusTag}
+                            ${ratingBadgeHtml}
                         </div>
                         <div class="card-body">
                             <div class="card-title">${escapeHTML(game.title || '')}</div>
                             <div class="card-desc">${escapeHTML(game.description || '')}</div>
-                            <div class="card-meta">${metaParts.join('')}<div class="card-rating-count" data-game-id="${game.id}"></div></div>
+                            <div class="card-meta">${metaParts.join('')}</div>
+                            <div class="card-stats-row">${playedBadgeHtml}<div class="card-rating-count" data-game-id="${game.id}"></div></div>
                         </div>
                         <div class="card-user-actions ${isGameReleased(game) ? '' : 'only-wish'}">
-                            <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}"><span class="icon">${inWish ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inWish ? '已加入' : '加入愿望单'}</span></button>
-                            ${isGameReleased(game) ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
+                            <button class="action-btn action-wish ${inWish ? 'active-wish' : ''}" data-game-id="${game.id}" data-w="${inWish ? '1' : '0'}"><span class="icon">${inWish ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span><span class="action-label">${inWish ? '已加入' : '加入愿望单'}</span></button>
+                            ${isGameReleased(game) ? `<button class="action-btn action-play ${inPlay ? 'active-played' : ''}" data-game-id="${game.id}" data-p="${inPlay ? '1' : '0'}"><span class="icon">${inPlay ? SVG_ICONS.checkFilled : SVG_ICONS.squareOutline}</span><span class="action-label">${inPlay ? '已玩过' : '标记玩过'}</span></button>` : ''}
                         </div>
                         ${adminBtns}
                     </div>`;
@@ -5933,15 +6880,19 @@
             // ================================================================
             // 3D 卡片交互
             // ================================================================
+            // 3D 悬停绑定标记见文件顶部的 _card3DBound / _hoverMediaCache
+            function canHoverPointer() {
+                if (_hoverMediaCache === null) {
+                    try { _hoverMediaCache = window.matchMedia('(hover: hover)').matches; }
+                    catch (_) { _hoverMediaCache = false; }
+                }
+                return _hoverMediaCache;
+            }
+
             function setupCard3D(card) {
                 if (!window.matchMedia('(hover: hover)').matches) return;
-
-                const old = card3DListeners.find(item => item.el === card);
-                if (old) {
-                    card.removeEventListener('mousemove', old.handler);
-                    card.removeEventListener('mouseleave', old.leave);
-                    card3DListeners = card3DListeners.filter(item => item.el !== card);
-                }
+                if (_card3DBound.has(card)) return;
+                _card3DBound.add(card);
 
                 const parallax = card.querySelector('.card-parallax-bg');
                 let rafId = null;
@@ -8030,6 +8981,10 @@
                                         <div class="detail-actions">
                                             <button class="btn btn-sm" data-game-id="${game.id}" id="detailWishBtn"><span class="icon">${isInWishlist(game.id) ? SVG_ICONS.heartFilled : SVG_ICONS.heartOutline}</span> ${isInWishlist(game.id) ? '从愿望单移除' : '加入愿望单'}</button>
                                             ${detailPlayBtnHtml}
+                                            <button class="btn btn-sm detail-block-btn${isGameBlocked(game.id) ? ' is-blocked' : ''}" data-game-id="${game.id}" id="detailBlockBtn" title="${isGameBlocked(game.id) ? '这款游戏已屏蔽，点击恢复显示' : '从你的游戏列表中隐藏这款游戏'}">${isGameBlocked(game.id) ? '✅ 已屏蔽' : '🚫 屏蔽此游戏'}</button>
+                                        </div>
+                                        <div class="detail-stats-row">
+                                            <span class="detail-stat-pill" id="detailPlayedPill" data-game-id="${game.id}">🎮 统计中…</span>
                                         </div>
                                     </div>
                                     <div class="detail-short-desc">${escapeHTML(game.description || '')}</div>
@@ -8118,6 +9073,36 @@
                         }
                     });
                     detailPlayBtn.addEventListener('pointerdown', function (e) {
+                        e.stopPropagation();
+                    });
+                }
+
+                // ★ 玩过人数（详情页）
+                updateDetailPlayedPill(game.id);
+
+                // ★ 屏蔽此游戏：确认后写入本机 + 云端，关闭详情并立即从列表移除
+                const detailBlockBtn = modal.querySelector('#detailBlockBtn');
+                if (detailBlockBtn) {
+                    detailBlockBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const id = Number(this.dataset.gameId);
+                        if (!Number.isInteger(id) || id <= 0) return;
+                        // 已屏蔽 → 就地恢复；未屏蔽 → 确认后屏蔽并关闭详情
+                        if (isGameBlocked(id)) {
+                            unblockGame(id);
+                            this.classList.remove('is-blocked');
+                            this.textContent = '🚫 屏蔽此游戏';
+                            this.setAttribute('title', '从你的游戏列表中隐藏这款游戏');
+                            showToast('已恢复显示《' + game.title + '》', 1800);
+                            return;
+                        }
+                        const ok = confirm('屏蔽后，《' + game.title + '》将不再出现在你的游戏列表和搜索结果里。\n\n之后可以在「设置 › 屏蔽内容管理」中恢复显示。\n\n确定屏蔽吗？');
+                        if (!ok) return;
+                        blockGame(id);
+                        closeDetailModal();
+                        showToast('已屏蔽《' + game.title + '》，可在设置中恢复', 2400);
+                    });
+                    detailBlockBtn.addEventListener('pointerdown', function (e) {
                         e.stopPropagation();
                     });
                 }
@@ -14184,32 +15169,37 @@
             function initBackToTop() {
                 const btn = document.getElementById('backToTop');
                 if (!btn) return;
+                const progressEl = document.getElementById('scrollProgress');
                 let ticking = false;
-                let glowPaused = false;
                 let glowResumeTimer = null;
+                let scrolling = false;
                 window.addEventListener('scroll', function () {
                     // 滚动时暂停背景光晕动画，释放 GPU 资源给滚动渲染
-                    if (!glowPaused) {
-                        glowPaused = true;
-                        document.documentElement.style.setProperty('--glow-play-state', 'paused');
+                    // ★ 用 body class 而不是给 :root 设自定义属性：后者会在全文档继承，
+                    //   每次滚动开始/结束都触发整页样式重算（卡片上千张时就是实打实的卡顿）
+                    if (!scrolling) {
+                        scrolling = true;
+                        document.body.classList.add('is-scrolling');
                     }
                     if (glowResumeTimer) clearTimeout(glowResumeTimer);
                     glowResumeTimer = setTimeout(() => {
-                        glowPaused = false;
-                        document.documentElement.style.setProperty('--glow-play-state', 'running');
+                        scrolling = false;
+                        document.body.classList.remove('is-scrolling');
                     }, 300);
 
                     if (!ticking) {
+                        ticking = true;
                         window.requestAnimationFrame(function () {
                             const scrollY = window.scrollY;
                             if (scrollY > 400) { btn.classList.add('show'); } else { btn.classList.remove('show'); }
-                            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                            const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
-                            const progressEl = document.getElementById('scrollProgress');
-                            if (progressEl) { progressEl.style.width = progress + '%'; }
+                            if (progressEl) {
+                                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                                const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+                                const w = progress.toFixed(1) + '%';
+                                if (progressEl.style.width !== w) progressEl.style.width = w;
+                            }
                             ticking = false;
                         });
-                        ticking = true;
                     }
                 }, { passive: true });
 
@@ -14771,6 +15761,73 @@
                 blockOpenDims = new Set(['genre']);
                 // 用 sp 前缀的容器渲染
                 renderBlockSettingsForPage();
+                renderBlockedGamesSettings();
+            }
+
+            // 设置页「🙈 已屏蔽的游戏」名单：逐款展示 + 单条恢复 / 全部恢复
+            function renderBlockedGamesSettings() {
+                var listEl = document.getElementById('spBlockedGameList');
+                if (!listEl) return;
+                var ids = getBlockedIds().slice();
+                var countEl = document.getElementById('spBlockedGameCount');
+                if (countEl) countEl.textContent = ids.length > 0 ? '（' + ids.length + ' 款）' : '';
+                var clearBtn = document.getElementById('spBlockedGameClear');
+                if (clearBtn) {
+                    clearBtn.disabled = ids.length === 0;
+                    clearBtn.style.opacity = ids.length === 0 ? '0.4' : '1';
+                    clearBtn.style.cursor = ids.length === 0 ? 'not-allowed' : 'pointer';
+                    clearBtn.onclick = function () {
+                        if (ids.length === 0) return;
+                        if (!confirm('恢复显示全部 ' + ids.length + ' 款已屏蔽的游戏？')) return;
+                        userData.blocked = [];
+                        userData.blockedUpdatedAt = Date.now();
+                        saveUserData();
+                        syncBlockedToMetadata();
+                        renderBlockedGamesSettings();
+                        renderGallery();
+                        showToast('已恢复全部屏蔽的游戏', 1800);
+                    };
+                }
+
+                if (ids.length === 0) {
+                    listEl.innerHTML = '<div class="blocked-game-empty">还没有屏蔽任何游戏。在游戏详情页点「🚫 屏蔽此游戏」即可加入这里。</div>';
+                    return;
+                }
+
+                var known = [];
+                var unknownIds = [];
+                ids.forEach(function (id) {
+                    var g = (games || []).find(function (x) { return Number(x.id) === Number(id); });
+                    if (g) known.push(g); else unknownIds.push(id);
+                });
+
+                var html = known.map(function (g) {
+                    var cover = g.cover
+                        ? '<img class="blocked-game-cover" src="' + escapeHTML(g.cover) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';" />'
+                        : '<span class="blocked-game-cover blocked-game-cover-empty">' + SVG_ICONS.gamepad + '</span>';
+                    return '<div class="blocked-game-item" data-game-id="' + g.id + '">' +
+                        cover +
+                        '<div class="blocked-game-info">' +
+                            '<div class="blocked-game-title">' + escapeHTML(g.title) + '</div>' +
+                            '<div class="blocked-game-sub">#' + g.id + (g.releaseDate ? ' · ' + escapeHTML(g.releaseDate) : '') + '</div>' +
+                        '</div>' +
+                        '<button type="button" class="btn btn-sm blocked-game-restore" data-game-id="' + g.id + '">恢复显示</button>' +
+                    '</div>';
+                }).join('');
+
+                if (unknownIds.length > 0) {
+                    html += '<div class="blocked-game-empty">另有 ' + unknownIds.length + ' 款已屏蔽的游戏当前不在游戏库里（可能是已下架条目），恢复后会自动重新出现。</div>';
+                }
+                listEl.innerHTML = html;
+
+                listEl.querySelectorAll('.blocked-game-restore').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = Number(this.dataset.gameId);
+                        if (!Number.isInteger(id)) return;
+                        unblockGame(id);
+                        showToast('已恢复显示', 1400);
+                    });
+                });
             }
 
             // 设置页面版本的 renderBlockSettings（使用 sp 前缀 ID）
@@ -16369,6 +17426,8 @@
 
                     // 步骤 0：先从云端 user_metadata 合并头衔+成就（都是单向解锁）
                     try { mergeTitlesAndAchievementsFromMetadata(); } catch (e) { console.warn(e); }
+                    // 屏蔽名单遵循「最后修改时间较新者生效」，换设备登录后同样生效
+                    try { await pullBlockedFromCloud(); } catch (e) { console.warn(e); }
 
                     // 批量写入助手：优先批量，若触发外键约束(23503)则降级为逐条写入并跳过失败项
                     const safeBatchInsert = async (table, items, opts = {}) => {
@@ -17036,6 +18095,7 @@
                     sessionStorage.setItem(SCROLL_POS_KEY, JSON.stringify({
                         view: currentView,
                         y: window.scrollY,
+                        page: _currentPage,   // 分页后：刷新要回到同一页，否则滚回原位会看到空白
                         ts: Date.now()
                     }));
                 }
@@ -17048,9 +18108,20 @@
                     const data = JSON.parse(raw);
                     // 10分钟内有效
                     if (data.view === currentView && data.ts && (Date.now() - data.ts < 600000)) {
-                        requestAnimationFrame(function () {
-                            window.scrollTo(0, data.y || 0);
-                        });
+                        const savedPage = Number(data.page) || 1;
+                        if (savedPage > 1) {
+                            _currentPage = savedPage;
+                            // 已经渲染过（有数据）就立即重渲染到该页；否则留给首次渲染
+                            if (_lastFilterSig !== null && typeof games !== 'undefined' && games.length) {
+                                if (currentView === 'series') renderSeriesView(); else renderGallery();
+                            }
+                        }
+                        const y = data.y || 0;
+                        if (y > 0) {
+                            // 先试着滚一次；真正的落地交给 renderGallery 末尾的 _pendingRestoreY
+                            _pendingRestoreY = y;
+                            requestAnimationFrame(function () { window.scrollTo(0, y); });
+                        }
                     }
                 } catch (_) { }
             }
@@ -17418,7 +18489,7 @@
                             isAdmin = false;
                             isAdminMode = false;
                             // 清空 userData 并加载 guest 级数据
-                            userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {} };
+                            userData = { wishlist: [], played: [], achievements: [], reviews: [], titles: [], equippedTitle: null, tombstones: {}, localAdds: {}, blocked: [], blockedUpdatedAt: 0 };
                             loadUserData(); // 此时 currentUser 为 null，会加载 heroineUserData_guest
                             updateUIForLoggedOut();
                             document.getElementById('notifBellWrap').style.display = 'none';
