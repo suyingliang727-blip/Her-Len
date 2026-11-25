@@ -4573,6 +4573,54 @@
             display: block;
         }
 
+        /* ★ 动图（webm/mp4）：自动播放，不设播放按钮，也不设 poster（2026-11-25 三次调整）。
+           用户明确不要「加载完之前先闪一张封面静图」，所以第一帧到之前只显示一块
+           跟随主题的柔和底色（不是图片、不是纯黑），首帧解码好后再把 video 淡入。
+           带宽靠「第一条先起播、其余错峰」控制（见 startShotVideos）。 */
+        .detail-screenshots-grid .screenshot-wrap.video-wrap {
+            cursor: zoom-in;
+            /* 浅色下是淡紫→白→淡紫，暗色下自动变深，不写死颜色 */
+            background: linear-gradient(100deg, var(--tag-bg) 0%, var(--bg) 52%, var(--tag-bg) 100%);
+        }
+
+        /* 加载中：video 完全不可见（否则未解码时会是一块纯黑盖住底色） */
+        .detail-screenshots-grid .screenshot-wrap.video-wrap video {
+            cursor: zoom-in;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: transparent;
+        }
+
+        /* 首帧就绪（或已开始播）→ 淡入真画面 */
+        .detail-screenshots-grid .screenshot-wrap.video-wrap.is-ready video {
+            opacity: 1;
+            background: #000;
+        }
+
+        /* 失败时回到安静的暗底 + 左下角提示，不留一块亮色空壳 */
+        .detail-screenshots-grid .screenshot-wrap.video-wrap.is-failed {
+            background: var(--tag-bg);
+        }
+
+        /* 失败提示：默认不占位、不可见，只有加载失败时才显示 */
+        .detail-screenshots-grid .shot-play-hint {
+            position: absolute;
+            left: 8px;
+            bottom: 7px;
+            font-size: 0.68rem;
+            color: #fff;
+            background: rgba(180, 40, 70, 0.82);
+            border-radius: 6px;
+            padding: 1px 7px 2px;
+            pointer-events: none;
+            z-index: 3;
+            display: none;
+        }
+
+        .detail-screenshots-grid .screenshot-wrap.video-wrap.is-failed .shot-play-hint {
+            display: block;
+        }
+
         /* ---------- 评论区 ---------- */
         .review-section {
             grid-area: reviews;
@@ -5166,7 +5214,12 @@
         /* ================================================================
    ★★�?图片查看器浮�?★★�?   ================================================================ */
         #imageViewerOverlay {
-            z-index: 2100;
+            /* 🔴 必须高于 .modal-overlay 的 100000：详情页里点截图时，大图要盖在详情页之上。
+               原来写 2100，结果图确实打开了，却整块藏在详情弹窗底下 ——
+               表现为「点了没反应，关掉详情才看见大图」。
+               取 200100：高于 .modal-overlay(100000) 与 #editModalOverlay(100100)，
+               与 #shareFloatOverlay(200000) 同档再高一级。 */
+            z-index: 200100;
             background: rgba(0, 0, 0, 0.75);
             display: flex;
             align-items: center;
@@ -5190,6 +5243,20 @@
             object-fit: contain;
             border-radius: 12px;
             box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 大图浮层里的动图（点击详情页的 webm/mp4 后在这里播）。
+           视频按**原始分辨率**显示，不做放大：不少 webm 本身就是 616×346 这种小尺寸，
+           强行拉大只会糊。max-width / max-height 只做上限兜底（大屏上不溢出视口），
+           flex:0 0 auto 防止在窄窗口里被 flex 容器压得比源尺寸还小。 */
+        #imageViewerOverlay video {
+            max-width: 95vw;
+            max-height: 90vh;
+            width: auto;
+            flex: 0 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+            background: #000;
         }
 
         #imageViewerClose {

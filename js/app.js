@@ -879,6 +879,109 @@
             // 免费图片代理（站点此前已人工用它修过 4 张封面，实测可用；
             //   已验证它不会把「原图 404」伪装成成功，故不会盖掉站点自己的占位图）
             var IMG_PROXY_PREFIX = 'https://wsrv.nl/?url=';
+            // 代理侧再压一次：卡片封面原图 460×215 已经不大，**不缩放、只转 webp + 质量控制**
+            // （实测同一张 header.jpg：原图 55KB → 走代理 28KB，回退本身也快一倍）
+            // we = without enlargement，保证不会把小图强行拉大
+            var IMG_PROXY_TAIL = '&output=webp&q=80&we';
+
+            // ================================================================
+            // ★ 图片域名可用性记忆（2026-11-25）
+            // 为什么需要：国内网络下 akamai/fastly 这两个 steamstatic 域名经常**整段不可达**，
+            //   而原来的逻辑是「每张图各自失败一次才换域名」—— 首屏二十几张图各撞一次
+            //   连接超时（可达数十秒），表现就是「图半天加载不出来、全是灰占位」。
+            // 现在：某个域名一失败就记 5 分钟黑名单，后续图片**直接跳过它**；
+            //   某个域名成功过就排到候选最前面。整页只需付一次超时代价。
+            // 纯内存，不落盘（换网络环境后自然会重新探测）。
+            // ================================================================
+            var IMG_HOST_FAIL_TTL = 5 * 60 * 1000;
+            var _imgHostBad = Object.create(null);   // host -> 失败时间戳
+            var _imgHostGood = Object.create(null);  // host -> 成功时间戳
+            var _imgHostFails = Object.create(null); // host -> 连续失败次数
+
+            function imgHostOf(url) {
+                var m = /^https?:\/\/([^/?#]+)/i.exec(url || '');
+                return m ? m[1].toLowerCase() : '';
+            }
+            function imgHostUsable(host, now) {
+                var t = _imgHostBad[host];
+                return !(t && now - t < IMG_HOST_FAIL_TTL);
+            }
+            function markImgHostBad(url, force) {
+                var h = imgHostOf(url);
+                if (!h) return;
+                if (!force) {
+                    // 🔴 不能「一张失败就拉黑整段域名」：某款游戏的封面本身 404 很常见，
+                    //   若据此把 akamai 拉黑，整站封面会被赶到更慢的代理上。
+                    //   所以累积到第 2 次才判定为域名级问题。
+                    _imgHostFails[h] = (_imgHostFails[h] || 0) + 1;
+                    if (_imgHostFails[h] < 2) return;
+                }
+                _imgHostBad[h] = Date.now();
+                if (_imgHostGood[h]) delete _imgHostGood[h];
+            }
+            function markImgHostGood(url) {
+                var h = imgHostOf(url);
+                if (!h) return;
+                _imgHostGood[h] = Date.now();
+                _imgHostFails[h] = 0;
+                if (_imgHostBad[h]) delete _imgHostBad[h];
+            }
+
+            // 读取失败原因：404/410 表示「这张图本身不存在」，与域名连通性无关
+            function imgFailureStatus(url) {
+                try {
+                    var es = performance.getEntriesByName(url, 'resource');
+                    if (!es || !es.length) return null;
+                    var st = es[es.length - 1].responseStatus;
+                    return (typeof st === 'number' && st > 0) ? st : null;
+                } catch (_) { return null; }
+            }
+
+            // ================================================================
+            // ★ 启动时竞速探测三个镜像域名（2026-11-25）
+            // 目的：首次进站就挑出真的能连上的那个域名，别让首屏二十几张图各自撞超时。
+            // 用一张必定存在的 Steam 图（app 440）做探针，no-cors 只关心「能不能连上」。
+            // 1.8 秒没结果就放弃（弱网下按默认顺序走，反正失败也有记忆兜底）。
+            // ================================================================
+            var _imgProbeStarted = false;
+            var IMG_PROBE_PATH = '/store_item_assets/steam/apps/440/header.jpg';
+            function probeImgHosts() {
+                if (_imgProbeStarted) return;
+                _imgProbeStarted = true;
+                if (typeof fetch !== 'function' || typeof AbortController !== 'function') return;
+                var now = Date.now();
+                STEAM_IMG_MIRRORS.forEach(function (h) {
+                    // 已经有结论的不用再探
+                    if (_imgHostGood[h] && now - _imgHostGood[h] < 60000) return;
+                    var ctl = null;
+                    try { ctl = new AbortController(); } catch (_) { return; }
+                    var timer = setTimeout(function () { try { ctl.abort(); } catch (_) { } }, 1800);
+                    fetch('https://' + h + IMG_PROBE_PATH, { mode: 'no-cors', signal: ctl.signal, cache: 'force-cache' })
+                        .then(function () { clearTimeout(timer); markImgHostGood('https://' + h + '/'); })
+                        .catch(function () { clearTimeout(timer); markImgHostBad('https://' + h + '/', true); });
+                });
+            }
+
+            // 渲染时用：封面域名已知不可达 → 当场换成可用镜像或代理，
+            // 避免「HTML 里写死的 src 注定失败」再走一轮完整的重试链。
+            function resolveCoverUrl(url) {
+                if (!url || typeof url !== 'string') return url;
+                var host = imgHostOf(url);
+                if (!STEAM_IMG_HOST_RE.test(host)) return url;
+                var now = Date.now();
+                if (imgHostUsable(host, now)) return url;
+                var m = /^https?:\/\/[^/?#]+(\/[^?#]*)?(\?[^#]*)?$/i.exec(url);
+                var rest = m ? ((m[1] || '') + (m[2] || '')) : '';
+                var prefer = null, bestTs = 0;
+                for (var i = 0; i < STEAM_IMG_MIRRORS.length; i++) {
+                    var h = STEAM_IMG_MIRRORS[i];
+                    if (h === host || !imgHostUsable(h, now)) continue;
+                    if ((_imgHostGood[h] || 0) > bestTs) { bestTs = _imgHostGood[h] || 0; prefer = h; }
+                }
+                if (prefer) return 'https://' + prefer + rest;
+                return IMG_PROXY_PREFIX + encodeURIComponent(host + rest) + IMG_PROXY_TAIL;
+            }
+
 
             // 给定一张图的原始地址，列出所有可重试的候选（其他镜像 → 代理）
             function imageFallbackCandidates(src) {
@@ -886,19 +989,27 @@
                 if (!src || typeof src !== 'string') return out;
                 var m = /^https?:\/\/([^/?#]+)([^?#]*)(\?[^#]*)?/i.exec(src);
                 if (!m) return out;
-                var host = m[1], path = m[2] || '', query = m[3] || '';
+                var host = m[1].toLowerCase(), path = m[2] || '', query = m[3] || '';
+                var now = Date.now();
                 if (STEAM_IMG_HOST_RE.test(host)) {
+                    var list = [];
                     for (var i = 0; i < STEAM_IMG_MIRRORS.length; i++) {
                         var h = STEAM_IMG_MIRRORS[i];
-                        if (h !== host) out.push('https://' + h + path + query);
+                        if (h === host) continue;
+                        if (!imgHostUsable(h, now)) continue; // 近期失败过的直接跳过，不再逐张撞超时
+                        list.push(h);
                     }
+                    // 成功过的域名排前面（快照式排序：有 good 记录的优先）
+                    list.sort(function (a, b) { return (_imgHostGood[b] || 0) - (_imgHostGood[a] || 0); });
+                    for (var j = 0; j < list.length; j++) out.push('https://' + list[j] + path + query);
                 }
                 // 代理兜底：把「主机+路径」交给代理去取，绕开原站 CDN 的可达性问题
                 // （已经是代理地址的不再套一层，避免「代理套代理」；
                 //   本机/内网地址代理够不着，也没必要走代理）
                 if (host !== 'wsrv.nl' && host !== 'images.weserv.nl' &&
+                    imgHostUsable('wsrv.nl', now) &&
                     !/^(localhost|127\.|0\.0\.0\.0|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) {
-                    out.push(IMG_PROXY_PREFIX + encodeURIComponent(host + path + query));
+                    out.push(IMG_PROXY_PREFIX + encodeURIComponent(host + path + query) + IMG_PROXY_TAIL);
                 }
                 return out;
             }
@@ -909,11 +1020,26 @@
                 document.addEventListener('error', function (e) {
                     var img = e.target;
                     if (!img || img.tagName !== 'IMG') return;
+                    // ★ 600x338 缩略图不存在（个别老资源没有这个衍生尺寸）→ 一次性回退 1920 原图。
+                    //   必须排在最前面：否则下面的 404 判定会「放行」，图就永久空着；
+                    //   同时这一步绝不能记成「域名不可用」，那是资源本身没有，不是 CDN 不通。
+                    if (img.dataset.hlDown === '1') {
+                        img.dataset.hlDown = '0';
+                        var hiUrl = img.dataset.hi;
+                        if (hiUrl) { e.stopPropagation(); img.src = hiUrl; return; }
+                    }
                     if (!img.dataset.hlImgBase) {
                         img.dataset.hlImgBase = img.getAttribute('src') || '';
                     }
                     var base = img.dataset.hlImgBase;
                     if (!base) return;
+                    var curSrc = img.getAttribute('src') || base;
+                    // 这张图本身不存在（404/410）→ 换哪个镜像都一样，直接交给占位图，
+                    // 而且**不能**据此把这个域名判成不可用（否则会被慢代理接管整站）
+                    var st = imgFailureStatus(curSrc);
+                    if (st === 404 || st === 410) return;
+                    // 记下「当前这个地址」的失败，后续同域名的图直接跳过（这一句是首屏提速的关键）
+                    markImgHostBad(curSrc);
                     var cands = imageFallbackCandidates(base);
                     // hlImgIdx 记录「下一个要试的候选下标」；初始 -1 表示还没试过
                     var next = (img.dataset.hlImgIdx === undefined ? 0 : parseInt(img.dataset.hlImgIdx, 10) + 1);
@@ -922,6 +1048,17 @@
                     // 阻止事件到达 img 自身的内联 onerror，避免它提前把图片隐藏/换成占位
                     e.stopPropagation();
                     img.src = cands[next];
+                }, true);
+
+                // 成功即记录「这个域名可用」，供后面还没加载的图片优先选择。
+                // （img 的 load 同样不冒泡，用捕获阶段）
+                document.addEventListener('load', function (e) {
+                    var img = e.target;
+                    if (!img || img.tagName !== 'IMG') return;
+                    var src = img.getAttribute('src') || '';
+                    if (STEAM_IMG_HOST_RE.test(imgHostOf(src)) || /^wsrv\.nl$|^images\.weserv\.nl$/.test(imgHostOf(src))) {
+                        markImgHostGood(src);
+                    }
                 }, true);
             }
 
@@ -3709,22 +3846,39 @@
                 });
             }
 
+            // ================================================================
+            // ★ 把「非首屏必要」的批量请求推到页面稳定之后（2026-11-25）
+            // 为什么要这么做：玩过人数要翻 37 页（约 700KB）、评分预热要发约 10 批，
+            //   两者都会在首屏几秒内启动。之前用 requestIdleCallback(timeout 2500)，
+            //   而 **idle 回调不等网络**：首屏卡片刚建完、主线程一空就立刻开跑，
+            //   几十个 JSON 请求直接跟封面图抢带宽（弱网尤其明显，表现就是「图要等很久」）。
+            // 现在统一等 window.load（首屏封面已加载完）+ 一段延时，再开始拉。
+            // 兜底 10 秒：万一某张图卡在重试链上迟迟不结束，也不至于一直不拉数据。
+            // ================================================================
+            function whenPageSettled(fn, delay) {
+                let fired = false;
+                const go = () => {
+                    if (fired) return;
+                    fired = true;
+                    setTimeout(fn, delay || 0);
+                };
+                if (document.readyState === 'complete') { go(); return; }
+                window.addEventListener('load', go, { once: true });
+                setTimeout(go, 10000);
+            }
+
             function loadCardPlayedStats() {
                 if (!document.querySelector('.card-played-count')) return;
                 if (_playedCountMap && _playedCountTs) { updateCardPlayedBadges(); return; }
                 if (_playedCountDeferred) return;
                 _playedCountDeferred = true;
-                // 首次要拉全量再聚合：放到浏览器空闲时，别和首屏渲染抢带宽
+                // 首次要拉全量再聚合：等首屏封面加载完再开始，别跟图片抢带宽
                 const kick = () => {
                     getPlayedCountMap().then(map => {
                         if (map) updateCardPlayedBadges();
                     }).catch(() => {});
                 };
-                if (typeof requestIdleCallback === 'function') {
-                    requestIdleCallback(kick, { timeout: 2500 });
-                } else {
-                    setTimeout(kick, 1200);
-                }
+                whenPageSettled(kick, 800);
             }
 
             // 详情页「N 人标记玩过」药丸
@@ -4561,7 +4715,7 @@
                     const list = seriesMap[name];
                     const cardsHtml = list.map(g => {
                         const coverHtml = g.cover
-                            ? `<img class="card-cover" src="${escapeHTML(g.cover)}" referrerpolicy="no-referrer" loading="lazy" decoding="async" onload="this.classList.add('loaded');const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.add('hidden');" onerror="const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.remove('hidden');" />`
+                            ? `<img class="card-cover" src="${escapeHTML(resolveCoverUrl(g.cover))}" referrerpolicy="no-referrer" loading="lazy" decoding="async" onload="this.classList.add('loaded');const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.add('hidden');" onerror="const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.remove('hidden');" />`
                             : '';
                         const placeholderCls = g.cover ? '' : ' style="position:relative;z-index:2;"';
                         const placeholderHtml = `<div class="card-cover-placeholder"${placeholderCls}>${SVG_ICONS.gamepad}</div>`;
@@ -4863,6 +5017,9 @@
             let _lastFilterSig = null;   // 首次渲染前为 null（不重置页码，允许恢复上次所在页）
             let _pendingRestoreY = null; // 等卡片渲染完再滚回上次位置
             let _focusJumpAfterRender = false; // 从「输入页码」跳转时，重建分页条后把焦点还回输入框
+            // 首屏封面「插队」预算：懒加载的图片优先级很低，会和统计请求一起排队，
+            // 所以首屏可见的那几张改成 eager + fetchpriority=high，先让用户看到图。
+            let _firstScreenImgBudget = 0;
 
             // 结果集/顺序的签名：变了才回到第 1 页。
             // 只是状态变化（加愿望单、标记玩过）时签名不变 → 用户停在第 5 页就还在第 5 页。
@@ -5151,8 +5308,8 @@
                     if (gaps.missing === 0) return;  // 本机已有全量，不必预热
                     _fetchAllRatingStats(false);
                 };
-                if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 10000 });
-                else setTimeout(run, 5000);
+                // 排在「玩过人数」之后：两者都要好几轮请求，串行发不会把首屏带宽打满
+                whenPageSettled(run, 2600);
             }
 
             function renderGallery() {
@@ -5248,6 +5405,8 @@
                 const filteredIds = new Set(filtered.map(g => g.id));
                 const frag = document.createDocumentFragment();
                 const newCards = [];
+                // 每次重排重置「首屏插队」预算（4 列 × 3 行左右，留些余量）
+                _firstScreenImgBudget = 12;
 
                 // FLIP：记录本次「保留」且「已可见」卡片在重排前的位置
                 // ★ 可见卡片太多时直接放弃位移动画：为一段过渡读 1000+ 个 rect 不划算
@@ -5412,6 +5571,13 @@
             function revealCard(card) {
                 if (!card.classList.contains('visible')) card.classList.add('visible');
                 const img = card.querySelector('.card-cover');
+                // 首屏可见的封面改成 eager + 高优先级：lazy 图的网络优先级是 Lowest，
+                // 会被评分/玩过人数那些 JSON 请求挤在后面，用户就先看到一片灰占位。
+                if (img && _firstScreenImgBudget > 0) {
+                    _firstScreenImgBudget--;
+                    if (img.getAttribute('loading') !== 'eager') img.setAttribute('loading', 'eager');
+                    img.setAttribute('fetchpriority', 'high');
+                }
                 if (img && !img.dataset.loaded) {
                     img.dataset.loaded = '1';
                     if (img.complete) {
@@ -5448,6 +5614,8 @@
                     }
                     if (cardObserver) cardObserver.observe(card);
                 }
+                // 首屏那一批处理完就把预算清零：后面滚动进来的卡片走正常懒加载
+                _firstScreenImgBudget = 0;
             }
 
             function createCardElement(game) {
@@ -5470,7 +5638,7 @@
                 if (game.releaseDate) metaParts.push('<span>' + escapeHTML(game.releaseDate) + '</span>');
 
                 const coverImg = game.cover
-                    ? `<img class="card-cover" src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)} 封面图" loading="lazy" decoding="async" onload="this.classList.add('loaded');const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.add('hidden');" onerror="const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.remove('hidden');" /><div class="card-cover-placeholder">${SVG_ICONS.gamepad}</div>`
+                    ? `<img class="card-cover" src="${escapeHTML(resolveCoverUrl(game.cover))}" alt="${escapeHTML(game.title)} 封面图" loading="lazy" decoding="async" onload="this.classList.add('loaded');const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.add('hidden');" onerror="const ph=this.closest('.card-cover-wrap')?.querySelector('.card-cover-placeholder');if(ph)ph.classList.remove('hidden');" /><div class="card-cover-placeholder">${SVG_ICONS.gamepad}</div>`
                     : '<div class="card-cover-placeholder" style="position:relative;z-index:2;">' + SVG_ICONS.gamepad + '</div>';
 
                 const heroineTag = game.heroineType ? `<div class="card-heroine-tag">${escapeHTML(game.heroineType)}</div>` : '';
@@ -6947,17 +7115,79 @@
             // ================================================================
             // ★ 图片查看器
             // ================================================================
-            function openImageViewer(src) {
+            // thumb 可选：已经缓存好的小图（详情页里 600x338 那张），先铺上再后台换大图，
+            // 点开瞬间就有画面，不用对着空白等 618KB 的 1920 原图。
+            var _viewerToken = 0;
+
+            function _viewerStopVideo() {
+                const vid = document.getElementById('imageViewerVideo');
+                if (!vid) return;
+                try { vid.pause(); } catch (_) { }
+                vid.removeAttribute('src');
+                try { vid.load(); } catch (_) { }
+                vid.style.display = 'none';
+            }
+
+            function openImageViewer(src, thumb) {
+                if (!src) return;
                 const overlay = document.getElementById('imageViewerOverlay');
                 const img = document.getElementById('imageViewerImg');
-                img.src = src;
+                if (!overlay || !img) return;
+                _viewerStopVideo();
+                img.style.display = '';
+                const token = ++_viewerToken;
+                const first = (thumb && thumb !== src) ? thumb : src;
+                img.src = first;
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                if (first === src) return;
+                const hi = new Image();
+                hi.onload = function () {
+                    if (token !== _viewerToken) return;          // 已经关了或换了另一张
+                    if (!overlay.classList.contains('show')) return;
+                    img.src = src;
+                };
+                hi.src = src;
+            }
+
+            // 动图走这里：同一个浮层，换成 <video> 播原速原尺寸（可暂停、可拖进度条）。
+            // 静态图仍然走 openImageViewer，所以两边的「点开看大图」是同一个入口。
+            function openMediaViewer(url) {
+                if (!url) return;
+                const overlay = document.getElementById('imageViewerOverlay');
+                const img = document.getElementById('imageViewerImg');
+                const vid = document.getElementById('imageViewerVideo');
+                if (!overlay || !img) return;
+                if (!isVideoShot(url) || !vid) { openImageViewer(url); return; }
+                _viewerToken++;
+                img.style.display = 'none';
+                vid.style.display = '';
+                vid.muted = true;
+                vid.src = url;
+                try {
+                    const p = vid.play();
+                    if (p && typeof p.catch === 'function') p.catch(function () { });
+                } catch (_) { }
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
             }
+            window.openMediaViewer = openMediaViewer;
+            // 🔴 截图卡片用的是内联 onclick（`onclick="openImageViewer(...)"`），
+            //   而内联属性只在全局作用域里找名字 —— 本文件整体包在 IIFE 里，
+            //   不显式挂到 window 就会抛 ReferenceError，表现就是「点截图没反应」。
+            window.openImageViewer = openImageViewer;
+            window.closeImageViewer = closeImageViewer;
 
             function closeImageViewer() {
+                _viewerToken++;
+                _viewerStopVideo();
+                const img = document.getElementById('imageViewerImg');
+                if (img) img.style.display = '';
                 document.getElementById('imageViewerOverlay').classList.remove('show');
-                document.body.style.overflow = '';
+                // 大图通常是从详情页点开的：详情页还开着就别解除滚动锁，
+                // 否则关掉大图后，背后的详情页会跟着鼠标滚走。
+                const stillOpen = document.querySelector('.modal-overlay.show');
+                document.body.style.overflow = stillOpen ? 'hidden' : '';
             }
 
             // ================================================================
@@ -8630,21 +8860,178 @@
             // ★ 详情页
             // ================================================================
 
+            // ================================================================
+            // ★ 详情页截图：降档 + 视频按需播放（2026-11-25）
+            // ----------------------------------------------------------------
+            // 线上症状：点开详情页要等好几分钟才出现截图。
+            // 实测（线上真实 URL，curl 取 Content-Length）：
+            //   ss_xxx.1920x1080.jpg   618 KB  ← 库里存的就是这个尺寸
+            //   ss_xxx.600x338.jpg      82 KB  ← Steam 同一资源的官方缩略图，体积 1/7.5
+            //   extras/xxx.webm       2.5 MB  ← 122 款里有 42 款带 webm，且原来 autoplay+loop
+            // 详情页里截图的显示宽度实测 645px（1400 宽窗口），600 宽的源图基本 1:1，
+            // 而拉 1920 宽的图等于白扔 536KB/张；视频更狠 —— 一开弹窗就是 5~7.5MB 全速下载，
+            // 慢网下「等好几分钟」主要就是这笔账。
+            // 处理：
+            //   ① 静态图改拉 600x338（点击看大图时才换回 1920 原图）；
+            //   ② 动图照旧自动播放，但第一条先起播、其余错峰（见 startShotVideos）；
+            //      第一帧到之前**不铺任何封面图**，只留一块跟随主题的柔和底色（见 CSS）。
+            // 兜底：个别老资源没有 600 变体 → 全局 error 捕获里一次性回退原图（见 installImageFallback）。
+            // ================================================================
+            var SHOT_HIRES_RE = /\.1920x1080\.(jpg|jpeg|png)(\?|$)/i;
+            function shotThumbUrl(url) {
+                if (!url || typeof url !== 'string') return url;
+                if (!SHOT_HIRES_RE.test(url)) return url;
+                return url.replace(SHOT_HIRES_RE, '.600x338.$1$2');
+            }
+            function isVideoShot(url) {
+                return /\.(mp4|webm|mov|avi|m4v)(\?|$)/i.test(url || '');
+            }
+            function isGifShot(url) {
+                return !isVideoShot(url) && /\.gif(\?|$)/i.test(url || '');
+            }
+
             function buildDetailScreenshotsHTML(game) {
-                const shots = game.screenshots || [];
+                const shots = (game.screenshots || []).filter(Boolean);
                 if (shots.length === 0) return '<div style="color:var(--text3);font-size:0.85rem;padding:8px 0;">暂无截图</div>';
+
+                // 第一条动图立即起播，其余交给 startShotVideos() 错峰起播
+                const firstVideoIdx = shots.findIndex(function (u) { return isVideoShot(u); });
+
+                // 🔴 不再给 video 设 poster：用户明确不喜欢「加载完之前先闪一张封面静图」。
+                // 现在第一帧到之前是 wrap 的一块柔和底色（见 .video-wrap 的 CSS），
+                // 首帧解码好（loadeddata）后由 startShotVideos 打上 is-ready 淡入，
+                // 全程不出现任何与动图内容无关的图片。
                 return shots.map((url, idx) => {
-                    const isVideo = /\.(mp4|webm|mov|avi)(\?|$)/i.test(url);
-                    const isGif = !isVideo && /\.gif(\?|$)/i.test(url);
-                    if (isVideo) {
-                        return `<div class="screenshot-wrap video-wrap"><video src="${escapeHTML(url)}" autoplay loop muted playsinline onclick="this.paused?this.play():this.pause()" /></div>`;
+                    if (isVideoShot(url)) {
+                        // 只有第一条内联 src（立刻出画面），其余挂在 data-src 上排队，
+                        // 否则 2~3 条 2.5MB 的 webm 会同时抢带宽，谁也出不来。
+                        const srcAttr = (idx === firstVideoIdx) ? ` src="${escapeHTML(url)}"` : '';
+                        return `<div class="screenshot-wrap video-wrap">`
+                            + `<video autoplay muted loop playsinline preload="auto"${srcAttr}`
+                            + ` data-src="${escapeHTML(url)}"`
+                            + ` onclick="openMediaViewer(this.dataset.src)"`
+                            + ` title="点击查看大图"></video>`
+                            + `<span class="shot-play-hint">视频加载失败</span>`
+                            + `</div>`;
                     }
+                    const isGif = isGifShot(url);
                     const wrapClass = 'screenshot-wrap' + (isGif ? ' gif-img' : '');
                     const badge = isGif ? '<span class="gif-badge">GIF</span>' : '';
-                    const loadingAttr = isGif ? '' : 'loading="lazy"';
-                    return `<div class="${wrapClass}"><img ${loadingAttr} src="${escapeHTML(url)}" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}" data-src="${escapeHTML(url)}" onclick="openImageViewer(this.dataset.src)" />${badge}</div>`;
+                    // GIF 是动图，降档会丢帧/尺寸，保持原链
+                    const hi = resolveCoverUrl(url);
+                    const src = isGif ? hi : resolveCoverUrl(shotThumbUrl(url));
+                    // 缩略图与高清不同 → 打标记，加载失败时回退原图
+                    const downAttr = (src !== hi)
+                        ? ` data-hl-down="1" data-hi="${escapeHTML(hi)}"` : '';
+                    const loadingAttr = isGif ? '' : ' loading="lazy"';
+                    const prio = (idx === 0 && !isGif) ? ' fetchpriority="high"' : '';
+                    return `<div class="${wrapClass}"><img${loadingAttr}${prio} src="${escapeHTML(src)}"`
+                        + ` data-src="${escapeHTML(hi)}"`
+                        + ` data-hl-img-base="${escapeHTML(hi)}"${downAttr}`
+                        + ` decoding="async" alt="${escapeHTML(game.title || '游戏')} 截图 ${idx + 1}"`
+                        + ` onclick="openImageViewer(this.dataset.src, this.currentSrc || this.src)" />${badge}</div>`;
                 }).join('');
             }
+
+            // ================================================================
+            // ★ 详情页动图：自动播放 + 错峰起播（2026-11-25 二次调整）
+            // ----------------------------------------------------------------
+            // 用户明确要求「动图自动播放，不要点击播放」。但一次点开就是 2~3 条 2.5MB 的
+            // webm，同时起播会互相抢带宽 → 谁也出不来、只剩黑框。
+            // 折中：第一条内联 src 立刻播，其余挂在 data-src 上，每 1.1 秒放一条，
+            // 画面一条条「活」起来。加载中**不铺封面图**（用户不喜欢），只留一块底色，
+            // 首帧就绪后淡入 —— 详见下方 markReady / is-ready。
+            // 点击动图 → 打开大图弹窗看原速大画面（openMediaViewer），不是暂停。
+            // ================================================================
+            var SHOT_VIDEO_STAGGER_MS = 1100;
+            function startShotVideos(scope) {
+                var root = scope || document;
+                var vids;
+                try { vids = root.querySelectorAll('.detail-screenshots-grid video'); } catch (_) { return; }
+                if (!vids.length) return;
+
+                // 首帧解码完成（loadeddata）或真正开始播（playing）→ 给 wrap 打 is-ready，
+                // CSS 里 video 由 opacity:0 淡入到 1。这样"加载中"只是一块底色，
+                // 不会先闪一张与动图内容无关的封面静图（用户明确不要那个）。
+                function markReady(v) {
+                    var w = v.closest('.video-wrap');
+                    if (!w) return;
+                    w.classList.remove('is-failed');
+                    w.classList.add('is-ready');
+                }
+
+                Array.prototype.forEach.call(vids, function (v) {
+                    if (v.dataset.hlVideoBound) return;
+                    v.dataset.hlVideoBound = '1';
+                    v.addEventListener('loadeddata', function () { markReady(v); }, { once: true });
+                    v.addEventListener('playing', function () { markReady(v); }, { once: true });
+                    v.addEventListener('error', function () {
+                        var w = v.closest('.video-wrap');
+                        if (w) {
+                            w.classList.remove('is-ready');
+                            w.classList.add('is-failed');
+                        }
+                    });
+                    // 已经在缓存里、事件早于绑定触发的情况
+                    if (v.readyState >= 2) markReady(v);
+                });
+
+                // 已经在播的（第一条有内联 src）跳过，其余按顺序放行
+                var queued = Array.prototype.filter.call(vids, function (v) {
+                    return !v.getAttribute('src') && v.dataset.src;
+                });
+                if (!queued.length) return;
+
+                var i = 0;
+                function playNext() {
+                    if (i >= queued.length) return;
+                    var v = queued[i++];
+                    if (!v.isConnected) { playNext(); return; }
+                    v.preload = 'auto';
+                    v.src = v.dataset.src;
+                    var p = v.play();
+                    if (p && typeof p.catch === 'function') p.catch(function () { });
+                    setTimeout(playNext, SHOT_VIDEO_STAGGER_MS);
+                }
+                setTimeout(playNext, SHOT_VIDEO_STAGGER_MS);
+            }
+            window.startShotVideos = startShotVideos;
+
+            // ================================================================
+            // ★ 截图「卡死」兜底（2026-11-25）
+            // 全局 error 捕获只能处理「明确失败」。CDN 被墙/半连接时 img 既不完成
+            // 也不报错，会一直挂在 loading —— 用户看到的就是「等好几分钟还是灰的」。
+            // 这里给详情页的截图加一个 10 秒观察窗：到点还没画出任何像素，
+            // 就换 wsrv 代理地址再试一次（代理侧去取同一张 600x338，绕开原站）。
+            // 只处理详情页（最多 3 张），不影响列表 200 张卡片的性能。
+            // ================================================================
+            var SHOT_STALL_MS = 10000;
+            function armShotWatchdog(scope) {
+                var root = scope || document;
+                var imgs;
+                try { imgs = root.querySelectorAll('.detail-screenshots-grid img'); } catch (_) { return; }
+                Array.prototype.forEach.call(imgs, function (img) {
+                    if (img.dataset.hlWatch) return;
+                    img.dataset.hlWatch = '1';
+                    setTimeout(function () {
+                        // 已经关掉弹窗 / 换成别的游戏 → 不管了
+                        if (!img.isConnected || img.dataset.hlWatch !== '1') return;
+                        if (img.naturalWidth > 0) return;              // 已经出图
+                        var base = img.dataset.hlImgBase || img.getAttribute('src') || '';
+                        var cands = imageFallbackCandidates(base);
+                        var proxy = null;
+                        for (var i = 0; i < cands.length; i++) {
+                            if (/^https:\/\/wsrv\.nl\/|^https:\/\/images\.weserv\.nl\//.test(cands[i])) { proxy = cands[i]; break; }
+                        }
+                        if (!proxy) return;
+                        img.dataset.hlWatch = '2';
+                        img.dataset.hlDown = '0';                      // 降档回退逻辑让位，避免互相打架
+                        img.dataset.hlImgBase = proxy;                 // 代理若再失败，链路到此为止
+                        img.src = proxy;
+                    }, SHOT_STALL_MS);
+                });
+            }
+            window.armShotWatchdog = armShotWatchdog;
 
             function buildDetailVideosHTML(videos) {
                 if (!videos || videos.length === 0) return '';
@@ -8926,7 +9313,7 @@
                         const seriesItemsHtml = seriesGames.map(g => {
                             const isCurrent = g.id === game.id;
                             const coverHtml = g.cover
-                                ? `<img src="${escapeHTML(g.cover)}" referrerpolicy="no-referrer" loading="lazy" onload="this.classList.add('loaded');const ph=this.closest('.detail-series-item-cover')?.querySelector('.card-cover-placeholder');if(ph)ph.style.display='none';" />`
+                                ? `<img src="${escapeHTML(resolveCoverUrl(g.cover))}" referrerpolicy="no-referrer" loading="lazy" onload="this.classList.add('loaded');const ph=this.closest('.detail-series-item-cover')?.querySelector('.card-cover-placeholder');if(ph)ph.style.display='none';" />`
                                 : '';
                             const placeholderHtml = g.cover ? '' : `<div class="card-cover-placeholder" style="position:relative;z-index:2;">${SVG_ICONS.gamepad}</div>`;
                             return `
@@ -8961,7 +9348,7 @@
 
                             <div class="detail-main">
                                 <div class="detail-cover-wrapper">
-                                    ${game.cover ? `<img src="${escapeHTML(game.cover)}" alt="${escapeHTML(game.title)}" onerror="this.style.display='none';" />` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:3rem;">${SVG_ICONS.gamepad}</div>`}
+                                    ${game.cover ? `<img src="${escapeHTML(resolveCoverUrl(game.cover))}" alt="${escapeHTML(game.title)}" onerror="this.style.display='none';" />` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:3rem;">${SVG_ICONS.gamepad}</div>`}
                                 </div>
                                 <div class="detail-info-wrapper">
                                     <h1 class="detail-title">${escapeHTML(game.title)}</h1>
@@ -9215,6 +9602,12 @@
                     }
                 }
 
+                // ★ 截图卡死兜底（见 armShotWatchdog）：CDN 连不上时 img 既不出画面、
+                //   也不触发 error，会一直挂着，表现就是「等好几分钟还是灰的」。
+                armShotWatchdog(modal);
+                // ★ 动图自动播放（第一条已内联 src 立刻起播，其余错峰放行）
+                startShotVideos(modal);
+
                 loadCommunityReviews(game.id);
                 loadDetailRelatedMods(game);
 
@@ -9254,6 +9647,8 @@
                         if (gridEl && game.screenshots && game.screenshots.length > 0) {
                             gridEl.className = 'detail-screenshots-grid';
                             gridEl.innerHTML = buildDetailScreenshotsHTML(game);
+                            armShotWatchdog(modal);
+                            startShotVideos(modal);
                         }
                         const otherInfoEl = modal.querySelector('.detail-other-info');
                         if (otherInfoEl && game.videos && game.videos.length > 0 && !otherInfoEl.querySelector('.detail-video-link')) {
@@ -18257,6 +18652,9 @@
             async function init() {
                 // ★ 最先挂上图片兜底监听，确保首屏渲染的图片失败时也能被接管
                 installImageFallback();
+                // 竞速探测封面镜像域名：首屏建卡前就知道哪个域名能连上，
+                // 避免二十几张图各自撞一次连接超时（国内网络下这是「图加载不出来」的主因）
+                probeImgHosts();
                 loadSettings();
                 loadUserData();
 

@@ -15,7 +15,12 @@
 
     <link rel="preconnect" href="https://tydbvpmigvzsnlmsjuby.supabase.co" data-page-node-id="zZh5HFEbHFcAXc63OojCzR" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" data-page-node-id="69fwLzodY8XC24MKKrjU8I" />
-    <link rel="preconnect" href="https://shared.cloudflare.steamstatic.com" data-page-node-id="oBS4wTUvuo7PDXXh1P11Sr" />
+    <!-- 封面图主力域名：实测 1779 款里 akamai 约 73%、fastly 约 20%，cloudflare 只在兜底时才用。
+         之前只 preconnect 了 cloudflare，等于首屏每张图都要重新 DNS+TCP+TLS。 -->
+    <link rel="preconnect" href="https://shared.akamai.steamstatic.com" data-page-node-id="oBS4wTUvuo7PDXXh1P11Sr" />
+    <link rel="preconnect" href="https://shared.fastly.steamstatic.com" />
+    <link rel="dns-prefetch" href="https://shared.cloudflare.steamstatic.com" />
+    <link rel="dns-prefetch" href="https://wsrv.nl" />
     <link rel="preconnect" href="https://fonts.googleapis.com" data-page-node-id="qZbCvU0vm1Jgkl46uUe6gi" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-page-node-id="OezU3jzCDaJHGioDZ36WLv" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
@@ -74,7 +79,7 @@
             return window._lazyLoadScript('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'QRCode', 10000);
         };
     </script>
-    <link rel="stylesheet" href="css/style.css?v=056afc5952" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
+    <link rel="stylesheet" href="css/style.css?v=31afbb8d9f" data-page-node-id="ShyWs1stYZJtaW29c6BEs5" />
 </head>
 
 <body class="page-v3" data-theme="light" data-page-node-id="9D0oKelu9L73kLVNf5sXGl">
@@ -829,6 +834,9 @@
                 style="display:flex !important;position:fixed;top:20px;right:30px;z-index:2101;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:2rem;padding:0 16px;border-radius:8px;cursor:pointer;line-height:1.8;" data-page-node-id="lDaxfJPpHJnrHJPzteFHJG">✕</button>
             <img id="imageViewerImg" src="" alt="查看大图"
                 style="max-width:95vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.5);" data-page-node-id="QseSg8G6LpXAGzqXOsdgFW" />
+            <!-- 动图（webm/mp4）点开后在这里播：自动播放 + 静音 + 可拖进度 / 暂停 -->
+            <video id="imageViewerVideo" class="image-viewer-video" playsinline loop muted controls
+                style="display:none;" data-page-node-id="QseSg8G6LpXAGzqXOsdgFW"></video>
         </div>
     </div>
 
@@ -1512,7 +1520,7 @@
     <script src="js/daily-tip.js?v=cdc9de80f7" defer></script>
     <script src="js/herlens-extensions.js?v=a3da23c407" defer></script>
     <script src="js/tip-reminder.js?v=b91965e049" defer></script>
-    <script src="js/app.js?v=7d16c5ed32" defer></script>
+    <script src="js/app.js?v=6ac6b65a9a" defer></script>
 
     <script>
         // ============================================================

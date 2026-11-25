@@ -14,8 +14,15 @@
     --tag-bg:rgba(201,168,76,0.08);--tag-border:rgba(201,168,76,0.18);--tag-text:var(--gold);
     --iridescent-opacity:0.10;--silver-sweep-color:rgba(255,255,255,0.40);
 }
-html{width:100%;min-height:100vh;min-height:100dvh;overflow:hidden;background:var(--deep)}
-body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--deep);color:var(--cream);font-family:'Cinzel','Georgia',serif;-webkit-text-size-adjust:100%}
+/* 🔴 滚动必须由 html（视口）承担，不能让 body 当滚动容器：
+   原来写的是 html{overflow:hidden} + body{overflow-y:auto}，但 body 高度是随内容自适应的
+   （只设了 min-height，没有固定高度），它自己永远不会溢出 → overflow-y:auto 形同虚设，
+   而 html 又把溢出裁掉，结果就是「页面有时候滑不动」：桌面窄高窗口必现，
+   手机端因为 @media 里把 html 改成 overflow-y:auto 才侥幸正常。 */
+html{width:100%;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--deep)}
+/* body 不能再设 overflow-x:hidden —— 那个声明会让 overflow-y 的计算值也变成 auto，
+   body 又变回「高度自适应所以滚不动」的假滚动容器，并且和 html 抢滚动权。 */
+body{width:100%;min-height:100vh;min-height:100dvh;overflow:visible;background:var(--deep);color:var(--cream);font-family:'Cinzel','Georgia',serif;-webkit-text-size-adjust:100%}
 
 /* ===== 星空背景 ===== */
 body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 70% 40%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(1px 1px at 90% 80%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 15% 75%,rgba(201,168,76,0.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85% 25%,rgba(201,168,76,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 40% 85%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 60% 35%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(ellipse at 50% 0%,rgba(50,20,80,0.6) 0%,transparent 70%),linear-gradient(180deg,#0a0618 0%,#0e0822 30%,#14102e 60%,#0e0818 100%);pointer-events:none}
@@ -193,7 +200,7 @@ body.history-locked{position:fixed;width:100%;overflow:hidden}
 
 /* ===== 手机 ===== */
 @media(max-width:640px){
-html{overflow-y:auto}
+/* html 现在默认就是 overflow-y:auto（滚动由视口承担），这里不再重复覆盖 */
 .container{padding:52px 14px 40px;min-height:100vh;min-height:100dvh}
 .back-btn{top:10px;left:10px;padding:5px 10px;font-size:0.68rem;border-radius:16px}
 .header{margin-bottom:20px}
@@ -420,7 +427,25 @@ html{overflow-y:auto}
         img.src=c[n];
     },true);
 
-    function loadGames(){var l=localStorage.getItem(STORAGE_KEY);if(l){try{var p=JSON.parse(l);games=p.map(function(g){return Object.assign({},g,{id:Number(g.id)})}).filter(function(g){return g.id!==1&&g.id!==2&&!g.isDraft})}catch(_){games=[]}}}
+    function loadGames(){var l=localStorage.getItem(STORAGE_KEY);if(l){try{var p=JSON.parse(l);var blocked=getBlockedGameIds();games=p.map(function(g){return Object.assign({},g,{id:Number(g.id)})}).filter(function(g){return g.id!==1&&g.id!==2&&!g.isDraft&&!blocked.has(g.id)})}catch(_){games=[]}}}
+    /* 已屏蔽（拉黑）的游戏不参与抽卡：优先读当前登录用户的本地数据，未登录退回 guest */
+    function getBlockedGameIds(){
+        var out={};
+        try{
+            var uid=null;
+            var raw=localStorage.getItem('sb-tydbvpmigvzsnlmsjuby-auth-token');
+            if(raw){var s=JSON.parse(raw);uid=s&&s.user&&s.user.id}
+            var keys=['heroineUserData_guest'];
+            if(uid) keys.unshift('heroineUserData_'+uid);
+            keys.forEach(function(k){
+                try{
+                    var d=JSON.parse(localStorage.getItem(k)||'{}');
+                    (Array.isArray(d.blocked)?d.blocked:[]).forEach(function(id){out[Number(id)]=1});
+                }catch(_){}
+            });
+        }catch(_){}
+        return { has:function(id){return !!out[Number(id)]} };
+    }
     function loadSettings(){
         try{
             var s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
@@ -914,20 +939,35 @@ html{overflow-y:auto}
     }
 
     /* ========== 历史 ========== */
-    function toggleHistory(){
-        var isOpen=document.getElementById('historyPanel').classList.toggle('open');
-        document.getElementById('historyOverlay').classList.toggle('open');
-        if(isOpen){
-            document.body.style.top=-window.scrollY+'px';
+    // 🔴 这里原来是 toggle 一下就完事，一旦「关闭」那一步没走到（点遮罩失败、脚本中断、
+    //    按 ESC 没处理……），body 会永久留着 .history-locked（position:fixed + overflow:hidden）
+    //    → 整个页面再也滑不动，看起来就是「有时候无法下滑」。
+    //    现在改成显式 setHistory(open)：关闭动作幂等，并且监听 ESC。
+    var _lockedScrollY = 0;
+    function setHistory(wantOpen){
+        var panel=document.getElementById('historyPanel');
+        var overlay=document.getElementById('historyOverlay');
+        var isOpen=panel.classList.contains('open');
+        if(wantOpen===undefined) wantOpen=!isOpen;
+        if(wantOpen===isOpen) return;
+        panel.classList.toggle('open', wantOpen);
+        overlay.classList.toggle('open', wantOpen);
+        if(wantOpen){
+            _lockedScrollY=window.scrollY||window.pageYOffset||0;
+            document.body.style.top=(-_lockedScrollY)+'px';
             document.body.classList.add('history-locked');
         }else{
-            var top=document.body.style.top;
             document.body.classList.remove('history-locked');
             document.body.style.top='';
-            if(top) window.scrollTo(0,-parseInt(top));
+            try{ window.scrollTo(0,_lockedScrollY); }catch(e){}
         }
         renderHistory();
     }
+    function toggleHistory(){ setHistory(); }
+    document.addEventListener('keydown',function(e){
+        if(e.key!=='Escape') return;
+        setHistory(false);
+    });
     function renderHistory(){
         var body=document.getElementById('historyBody');
         if(drawHistory.length===0){body.innerHTML='<div class="history-empty">暂无抽卡记录</div>';return}
