@@ -4121,7 +4121,14 @@
             font-size: 0.88rem;
             line-height: 1.5;
             color: var(--text2);
-            display: block;
+            /* 头部「短简介」按定义就该短：新录入的数据偶尔把整段长简介塞进
+               description，不裁的话会把元信息卡直接顶满一屏、把按钮和截图区挤下去。
+               下方 .detail-description 有完整的折叠卡，这里只留 3 行摘要。 */
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            overflow: hidden;
             margin-top: 2px;
             padding-top: 4px;
             border-top: 1px solid var(--border);

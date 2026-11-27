@@ -8923,8 +8923,12 @@
                     // 缩略图与高清不同 → 打标记，加载失败时回退原图
                     const downAttr = (src !== hi)
                         ? ` data-hl-down="1" data-hi="${escapeHTML(hi)}"` : '';
-                    const loadingAttr = isGif ? '' : ' loading="lazy"';
-                    const prio = (idx === 0 && !isGif) ? ' fetchpriority="high"' : '';
+                    // 不再用 loading="lazy"：截图区在详情页靠下，懒加载会变成「滚到哪张才拉哪张」，
+                    // 用户滑下去时图是一张张冒出来的。整组打开就预取，滚到时已经就绪。
+                    // 代价可控：缩略图是 600x338（约 82KB/张），不是 1920 原图。
+                    // 但也不能十几张一起挤占首屏带宽 → 前 3 张（最先进入视野）给 high，其余交给浏览器排队。
+                    const loadingAttr = '';
+                    const prio = (!isGif && idx < 3) ? ' fetchpriority="high"' : '';
                     return `<div class="${wrapClass}"><img${loadingAttr}${prio} src="${escapeHTML(src)}"`
                         + ` data-src="${escapeHTML(hi)}"`
                         + ` data-hl-img-base="${escapeHTML(hi)}"${downAttr}`
@@ -9089,6 +9093,23 @@
                         text.classList.toggle('is-clamped', !on);
                         if (label) label.textContent = on ? '收起' : '展开全文';
                         btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+
+                        // 展开/收起的滚动补偿：
+                        //   展开后卡片变高，若卡片顶部已滚出视口，用户会从半句读起 → 拉回顶部；
+                        //   收起后按钮可能被顶到视口下方，用户找不到「展开全文」→ 拉回来。
+                        // 只在点击这一次读布局，不做持续观测，避免测量/写回互相喂养。
+                        const scroller = box.closest('.modal-overlay');
+                        if (!scroller) return;
+                        const sRect = scroller.getBoundingClientRect();
+                        if (on) {
+                            const top = box.getBoundingClientRect().top - sRect.top;
+                            if (top < 0) scroller.scrollTop += top - 12;
+                        } else {
+                            const bTop = btn.getBoundingClientRect().top - sRect.top;
+                            if (bTop > scroller.clientHeight - 48) {
+                                scroller.scrollTop += bTop - scroller.clientHeight + 96;
+                            }
+                        }
                     });
                 }
             }
@@ -9640,8 +9661,28 @@
                         if (!changed) return;
                         const descEl = modal.querySelector('.detail-description');
                         if (descEl && game.fullDescription) {
-                            descEl.innerHTML = escapeHTML(game.fullDescription);
-                            setupDescClamp(modal);
+                            // ⚠️ 这里只能改文本节点，不能替换 .detail-description 的 innerHTML：
+                            //    innerHTML 一把覆盖会把 .detail-desc-text（承载 is-clamped）和
+                            //    .detail-desc-toggle（展开入口）一起删掉，setupDescClamp 找不到
+                            //    节点直接 return → 长简介整段铺开、既没有折叠也没有入口。
+                            //    新录入的游戏列表数据里没有 fullDescription，必然走这条异步补拉路径，
+                            //    所以现象是「老游戏能折叠，新录入的不能」。
+                            let textEl = descEl.querySelector('.detail-desc-text');
+                            if (!textEl) {
+                                descEl.innerHTML =
+                                    '<div class="detail-desc-text"></div>' +
+                                    '<button type="button" class="detail-desc-toggle" aria-expanded="false" hidden>' +
+                                    '<span class="detail-desc-toggle-label">展开全文</span>' +
+                                    '<span class="detail-desc-caret" aria-hidden="true"></span>' +
+                                    '</button>';
+                                textEl = descEl.querySelector('.detail-desc-text');
+                            }
+                            if (textEl) {
+                                textEl.textContent = game.fullDescription;
+                                // 内容换了，回收起态重新判定，别继承上一份文本的展开状态
+                                descEl.classList.remove('is-expanded');
+                                setupDescClamp(modal);
+                            }
                         }
                         const gridEl = modal.querySelector('.detail-screenshots-grid');
                         if (gridEl && game.screenshots && game.screenshots.length > 0) {
