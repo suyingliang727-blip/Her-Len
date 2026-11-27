@@ -21,9 +21,13 @@
     <link rel="preconnect" href="https://shared.fastly.steamstatic.com" />
     <link rel="dns-prefetch" href="https://shared.cloudflare.steamstatic.com" />
     <link rel="dns-prefetch" href="https://wsrv.nl" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" data-page-node-id="qZbCvU0vm1Jgkl46uUe6gi" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-page-node-id="OezU3jzCDaJHGioDZ36WLv" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
+    <!-- 原来这里 preconnect 到 fonts.googleapis.com / fonts.gstatic.com，但全站没有任何
+         地方真正加载 Google 字体（css 里无 @import、无 @font-face）。这两个域名在国内被墙，
+         预连接只会占住连接池槽位、拖慢真正关键的本地 css/js，所以去掉。 -->
+    <!-- PapaParse 本地化（原走 cdnjs）：它是 defer 且排在所有 defer 之前，
+         一旦在移动网络下超时，后面 wallet.js / app.js 全部按序排队等它，
+         整站就卡在「正在唤醒女主档案…」那一屏。本地同源文件不会有这个风险。 -->
+    <script src="相关文件/libs/papaparse.min.js?v=10797681fc" defer></script>
 
     <script>
         window._lazyLibs = {};
